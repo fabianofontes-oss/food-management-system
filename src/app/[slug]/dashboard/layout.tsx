@@ -10,73 +10,77 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-const menuItems = [
-  { 
-    href: '/dashboard', 
-    label: 'Dashboard', 
-    icon: LayoutDashboard,
-    color: 'text-red-600',
-    bgColor: 'bg-red-50',
-    activeColor: 'bg-red-100'
-  },
-  { 
-    href: '/products', 
-    label: 'Produtos', 
-    icon: Package,
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-50',
-    activeColor: 'bg-blue-100'
-  },
-  { 
-    href: '/crm', 
-    label: 'CRM', 
-    icon: Users,
-    color: 'text-purple-600',
-    bgColor: 'bg-purple-50',
-    activeColor: 'bg-purple-100'
-  },
-  { 
-    href: '/pos', 
-    label: 'PDV', 
-    icon: ShoppingCart,
-    color: 'text-green-600',
-    bgColor: 'bg-green-50',
-    activeColor: 'bg-green-100'
-  },
-  { 
-    href: '/kitchen', 
-    label: 'Cozinha', 
-    icon: ChefHat,
-    color: 'text-orange-600',
-    bgColor: 'bg-orange-50',
-    activeColor: 'bg-orange-100'
-  },
-  { 
-    href: '/delivery', 
-    label: 'Delivery', 
-    icon: Truck,
-    color: 'text-indigo-600',
-    bgColor: 'bg-indigo-50',
-    activeColor: 'bg-indigo-100'
-  },
-  { 
-    href: '/settings', 
-    label: 'Configurações', 
-    icon: Settings,
-    color: 'text-gray-600',
-    bgColor: 'bg-gray-50',
-    activeColor: 'bg-gray-100'
-  },
-]
-
 export default function StoreDashboardLayout({
   children,
+  params,
 }: {
   children: React.ReactNode
+  params: { slug: string }
 }) {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const pathname = usePathname()
+  const { slug } = params
+  const base = `/${slug}/dashboard`
+
+  const menuItems = [
+    { 
+      href: base, 
+      label: 'Dashboard', 
+      icon: LayoutDashboard,
+      color: 'text-red-600',
+      bgColor: 'bg-red-50',
+      activeColor: 'bg-red-100'
+    },
+    { 
+      href: `${base}/products`, 
+      label: 'Produtos', 
+      icon: Package,
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50',
+      activeColor: 'bg-blue-100'
+    },
+    { 
+      href: `${base}/crm`, 
+      label: 'CRM', 
+      icon: Users,
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-50',
+      activeColor: 'bg-purple-100'
+    },
+    { 
+      href: `${base}/pos`, 
+      label: 'PDV', 
+      icon: ShoppingCart,
+      color: 'text-green-600',
+      bgColor: 'bg-green-50',
+      activeColor: 'bg-green-100'
+    },
+    { 
+      href: `${base}/kitchen`, 
+      label: 'Cozinha', 
+      icon: ChefHat,
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-50',
+      activeColor: 'bg-orange-100'
+    },
+    { 
+      href: `${base}/delivery`, 
+      label: 'Delivery', 
+      icon: Truck,
+      color: 'text-indigo-600',
+      bgColor: 'bg-indigo-50',
+      activeColor: 'bg-indigo-100'
+    },
+    { 
+      href: `${base}/settings`, 
+      label: 'Configurações', 
+      icon: Settings,
+      color: 'text-gray-600',
+      bgColor: 'bg-gray-50',
+      activeColor: 'bg-gray-100'
+    },
+  ]
 
   return (
     <div className="flex min-h-screen bg-gray-50">
