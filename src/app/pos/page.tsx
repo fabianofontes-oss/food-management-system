@@ -1,9 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { Search, ShoppingCart, Plus, Minus, Trash2, CreditCard, DollarSign, Smartphone } from 'lucide-react'
+import { Search, ShoppingCart, Plus, Minus, Trash2, CreditCard, DollarSign, Smartphone, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { formatCurrency } from '@/lib/utils'
+import { useProducts } from '@/hooks/useProducts'
+import { supabase } from '@/lib/supabase'
 
 interface CartItem {
   id: string
@@ -13,24 +15,17 @@ interface CartItem {
 }
 
 export default function POSPage() {
+  const { products, loading } = useProducts()
   const [cart, setCart] = useState<CartItem[]>([])
   const [search, setSearch] = useState('')
   const [selectedPayment, setSelectedPayment] = useState<'cash' | 'card' | 'pix'>('cash')
-
-  const products = [
-    { id: '1', name: 'Açaí 300ml', price: 12.00, category: 'Açaí' },
-    { id: '2', name: 'Açaí 500ml', price: 18.00, category: 'Açaí' },
-    { id: '3', name: 'Açaí 700ml', price: 24.00, category: 'Açaí' },
-    { id: '4', name: 'Suco Natural 300ml', price: 8.00, category: 'Bebidas' },
-    { id: '5', name: 'Suco Natural 500ml', price: 12.00, category: 'Bebidas' },
-    { id: '6', name: 'Água Mineral', price: 3.00, category: 'Bebidas' },
-  ]
+  const [processingOrder, setProcessingOrder] = useState(false)
 
   const filteredProducts = products.filter(p => 
-    p.name.toLowerCase().includes(search.toLowerCase())
+    p.name.toLowerCase().includes(search.toLowerCase()) && p.is_active
   )
 
-  const addToCart = (product: typeof products[0]) => {
+  const addToCart = (product: any) => {
     const existing = cart.find(item => item.id === product.id)
     if (existing) {
       setCart(cart.map(item => 
@@ -39,7 +34,7 @@ export default function POSPage() {
           : item
       ))
     } else {
-      setCart([...cart, { ...product, quantity: 1 }])
+      setCart([...cart, { id: product.id, name: product.name, price: product.base_price, quantity: 1 }])
     }
   }
 
@@ -60,9 +55,70 @@ export default function POSPage() {
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
   const total = subtotal
 
-  const handleCheckout = () => {
-    alert(`Pedido finalizado!\nTotal: ${formatCurrency(total)}\nPagamento: ${selectedPayment === 'cash' ? 'Dinheiro' : selectedPayment === 'card' ? 'Cartão' : 'PIX'}`)
-    setCart([])
+  const handleCheckout = async () => {
+    if (cart.length === 0) return
+    
+    setProcessingOrder(true)
+    try {
+      const paymentMethodMap = {
+        cash: 'cash' as const,
+        card: 'credit_card' as const,
+        pix: 'pix' as const
+      }
+
+      const storeId = products[0]?.store_id || '00000000-0000-0000-0000-000000000000'
+      
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          store_id: storeId,
+          order_code: `PDV-${Date.now()}`,
+          customer_name: 'Cliente PDV',
+          customer_phone: '00000000000',
+          customer_email: 'pdv@loja.com',
+          order_type: 'dine_in',
+          payment_method: paymentMethodMap[selectedPayment],
+          subtotal: total,
+          delivery_fee: 0,
+          discount: 0,
+          total_amount: total,
+          status: 'confirmed',
+          notes: 'Pedido via PDV'
+        })
+        .select('id')
+        .single()
+
+      if (orderError) throw orderError
+
+      for (const item of cart) {
+        await supabase.from('order_items').insert({
+          order_id: order.id,
+          product_id: item.id,
+          quantity: item.quantity,
+          unit_price: item.price,
+          total_price: item.price * item.quantity
+        })
+      }
+
+      alert(`✅ Pedido finalizado com sucesso!\nTotal: ${formatCurrency(total)}\nPagamento: ${selectedPayment === 'cash' ? 'Dinheiro' : selectedPayment === 'card' ? 'Cartão' : 'PIX'}`)
+      setCart([])
+    } catch (error) {
+      console.error('Erro ao criar pedido:', error)
+      alert('❌ Erro ao finalizar pedido. Tente novamente.')
+    } finally {
+      setProcessingOrder(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600 text-lg">Carregando produtos...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -96,9 +152,9 @@ export default function POSPage() {
                   onClick={() => addToCart(product)}
                   className="bg-white p-4 rounded-2xl shadow-md hover:shadow-xl transition-all transform hover:scale-105 text-left"
                 >
-                  <div className="text-sm text-gray-500 mb-1">{product.category}</div>
+                  <div className="text-sm text-gray-500 mb-1">Produto</div>
                   <div className="font-bold text-lg mb-2">{product.name}</div>
-                  <div className="text-2xl font-bold text-blue-600">{formatCurrency(product.price)}</div>
+                  <div className="text-2xl font-bold text-blue-600">{formatCurrency(product.base_price)}</div>
                 </button>
               ))}
             </div>
@@ -203,10 +259,17 @@ export default function POSPage() {
 
               <Button
                 onClick={handleCheckout}
-                disabled={cart.length === 0}
+                disabled={cart.length === 0 || processingOrder}
                 className="w-full h-14 text-lg font-bold bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
               >
-                Finalizar Venda
+                {processingOrder ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Processando...
+                  </>
+                ) : (
+                  'Finalizar Venda'
+                )}
               </Button>
             </div>
           </div>

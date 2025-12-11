@@ -1,87 +1,65 @@
 'use client'
 
 import { useState } from 'react'
-import { Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
+import { Clock, CheckCircle, XCircle, AlertCircle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { formatCurrency } from '@/lib/utils'
-
-interface Order {
-  id: string
-  code: string
-  items: { name: string; quantity: number; notes?: string }[]
-  status: 'pending' | 'preparing' | 'ready' | 'delivered'
-  createdAt: Date
-  channel: 'delivery' | 'pickup' | 'dine_in'
-}
+import { useOrders } from '@/hooks/useOrders'
 
 export default function KitchenPage() {
-  const [orders, setOrders] = useState<Order[]>([
-    {
-      id: '1',
-      code: 'A001',
-      items: [
-        { name: 'Açaí 500ml', quantity: 2, notes: 'Sem granola' },
-        { name: 'Suco Natural 300ml', quantity: 1 }
-      ],
-      status: 'pending',
-      createdAt: new Date(Date.now() - 5 * 60000),
-      channel: 'delivery'
-    },
-    {
-      id: '2',
-      code: 'A002',
-      items: [
-        { name: 'Açaí 300ml', quantity: 1 },
-        { name: 'Açaí 700ml', quantity: 1, notes: 'Extra banana' }
-      ],
-      status: 'preparing',
-      createdAt: new Date(Date.now() - 10 * 60000),
-      channel: 'pickup'
-    },
-    {
-      id: '3',
-      code: 'A003',
-      items: [
-        { name: 'Suco Natural 500ml', quantity: 3 }
-      ],
-      status: 'pending',
-      createdAt: new Date(Date.now() - 2 * 60000),
-      channel: 'dine_in'
-    }
-  ])
+  const { orders, loading, updateOrderStatus } = useOrders()
+  const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null)
 
-  const updateStatus = (id: string, status: Order['status']) => {
-    setOrders(orders.map(order => 
-      order.id === id ? { ...order, status } : order
-    ))
+  const updateStatus = async (id: string, newStatus: string) => {
+    setUpdatingOrderId(id)
+    try {
+      await updateOrderStatus(id, newStatus)
+    } catch (error) {
+      console.error('Erro ao atualizar status:', error)
+      alert('❌ Erro ao atualizar status do pedido')
+    } finally {
+      setUpdatingOrderId(null)
+    }
   }
 
-  const getElapsedTime = (date: Date) => {
+  const getElapsedTime = (dateString: string) => {
+    const date = new Date(dateString)
     const minutes = Math.floor((Date.now() - date.getTime()) / 60000)
     return `${minutes} min`
   }
 
-  const getChannelLabel = (channel: Order['channel']) => {
-    const labels = {
+  const getChannelLabel = (channel: string) => {
+    const labels: Record<string, string> = {
       delivery: 'Delivery',
       pickup: 'Retirada',
       dine_in: 'Mesa'
     }
-    return labels[channel]
+    return labels[channel] || 'Outro'
   }
 
-  const getChannelColor = (channel: Order['channel']) => {
-    const colors = {
+  const getChannelColor = (channel: string) => {
+    const colors: Record<string, string> = {
       delivery: 'bg-purple-100 text-purple-700',
       pickup: 'bg-blue-100 text-blue-700',
       dine_in: 'bg-green-100 text-green-700'
     }
-    return colors[channel]
+    return colors[channel] || 'bg-gray-100 text-gray-700'
   }
 
-  const pendingOrders = orders.filter(o => o.status === 'pending')
+  const pendingOrders = orders.filter(o => o.status === 'pending' || o.status === 'confirmed')
   const preparingOrders = orders.filter(o => o.status === 'preparing')
   const readyOrders = orders.filter(o => o.status === 'ready')
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-orange-600 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600 text-lg">Carregando pedidos...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
@@ -104,38 +82,43 @@ export default function KitchenPage() {
               {pendingOrders.map(order => (
                 <div key={order.id} className="bg-white rounded-2xl shadow-lg p-5 border-l-4 border-red-500">
                   <div className="flex items-center justify-between mb-3">
-                    <div className="text-3xl font-bold text-gray-900">{order.code}</div>
-                    <div className={`px-3 py-1 rounded-full text-sm font-semibold ${getChannelColor(order.channel)}`}>
-                      {getChannelLabel(order.channel)}
+                    <div className="text-3xl font-bold text-gray-900">{order.order_code}</div>
+                    <div className={`px-3 py-1 rounded-full text-sm font-semibold ${getChannelColor(order.order_type)}`}>
+                      {getChannelLabel(order.order_type)}
                     </div>
                   </div>
                   
                   <div className="flex items-center gap-2 text-red-600 mb-4">
                     <Clock className="w-4 h-4" />
-                    <span className="font-semibold">{getElapsedTime(order.createdAt)}</span>
+                    <span className="font-semibold">{getElapsedTime(order.created_at)}</span>
                   </div>
 
                   <div className="space-y-2 mb-4">
-                    {order.items.map((item, idx) => (
-                      <div key={idx} className="border-b pb-2">
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-lg">{item.quantity}x</span>
-                          <span className="font-semibold">{item.name}</span>
-                        </div>
-                        {item.notes && (
-                          <div className="text-sm text-orange-600 mt-1 italic">
-                            Obs: {item.notes}
-                          </div>
-                        )}
+                    <div className="border-b pb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold">{order.customer_name}</span>
                       </div>
-                    ))}
+                      <div className="text-sm text-gray-600 mt-1">
+                        Total: {formatCurrency(order.total_amount)}
+                      </div>
+                      {order.notes && (
+                        <div className="text-sm text-orange-600 mt-1 italic">
+                          Obs: {order.notes}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <Button
                     onClick={() => updateStatus(order.id, 'preparing')}
+                    disabled={updatingOrderId === order.id}
                     className="w-full bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800"
                   >
-                    Iniciar Preparo
+                    {updatingOrderId === order.id ? (
+                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Atualizando...</>
+                    ) : (
+                      'Iniciar Preparo'
+                    )}
                   </Button>
                 </div>
               ))}
@@ -152,38 +135,43 @@ export default function KitchenPage() {
               {preparingOrders.map(order => (
                 <div key={order.id} className="bg-white rounded-2xl shadow-lg p-5 border-l-4 border-yellow-500">
                   <div className="flex items-center justify-between mb-3">
-                    <div className="text-3xl font-bold text-gray-900">{order.code}</div>
-                    <div className={`px-3 py-1 rounded-full text-sm font-semibold ${getChannelColor(order.channel)}`}>
-                      {getChannelLabel(order.channel)}
+                    <div className="text-3xl font-bold text-gray-900">{order.order_code}</div>
+                    <div className={`px-3 py-1 rounded-full text-sm font-semibold ${getChannelColor(order.order_type)}`}>
+                      {getChannelLabel(order.order_type)}
                     </div>
                   </div>
                   
                   <div className="flex items-center gap-2 text-yellow-600 mb-4">
                     <Clock className="w-4 h-4" />
-                    <span className="font-semibold">{getElapsedTime(order.createdAt)}</span>
+                    <span className="font-semibold">{getElapsedTime(order.created_at)}</span>
                   </div>
 
                   <div className="space-y-2 mb-4">
-                    {order.items.map((item, idx) => (
-                      <div key={idx} className="border-b pb-2">
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-lg">{item.quantity}x</span>
-                          <span className="font-semibold">{item.name}</span>
-                        </div>
-                        {item.notes && (
-                          <div className="text-sm text-orange-600 mt-1 italic">
-                            Obs: {item.notes}
-                          </div>
-                        )}
+                    <div className="border-b pb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold">{order.customer_name}</span>
                       </div>
-                    ))}
+                      <div className="text-sm text-gray-600 mt-1">
+                        Total: {formatCurrency(order.total_amount)}
+                      </div>
+                      {order.notes && (
+                        <div className="text-sm text-orange-600 mt-1 italic">
+                          Obs: {order.notes}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <Button
                     onClick={() => updateStatus(order.id, 'ready')}
+                    disabled={updatingOrderId === order.id}
                     className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
                   >
-                    Marcar como Pronto
+                    {updatingOrderId === order.id ? (
+                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Atualizando...</>
+                    ) : (
+                      'Marcar como Pronto'
+                    )}
                   </Button>
                 </div>
               ))}
@@ -200,9 +188,9 @@ export default function KitchenPage() {
               {readyOrders.map(order => (
                 <div key={order.id} className="bg-white rounded-2xl shadow-lg p-5 border-l-4 border-green-500">
                   <div className="flex items-center justify-between mb-3">
-                    <div className="text-3xl font-bold text-gray-900">{order.code}</div>
-                    <div className={`px-3 py-1 rounded-full text-sm font-semibold ${getChannelColor(order.channel)}`}>
-                      {getChannelLabel(order.channel)}
+                    <div className="text-3xl font-bold text-gray-900">{order.order_code}</div>
+                    <div className={`px-3 py-1 rounded-full text-sm font-semibold ${getChannelColor(order.order_type)}`}>
+                      {getChannelLabel(order.order_type)}
                     </div>
                   </div>
                   
@@ -212,21 +200,26 @@ export default function KitchenPage() {
                   </div>
 
                   <div className="space-y-2 mb-4">
-                    {order.items.map((item, idx) => (
-                      <div key={idx} className="border-b pb-2">
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-lg">{item.quantity}x</span>
-                          <span className="font-semibold">{item.name}</span>
-                        </div>
+                    <div className="border-b pb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold">{order.customer_name}</span>
                       </div>
-                    ))}
+                      <div className="text-sm text-gray-600 mt-1">
+                        Total: {formatCurrency(order.total_amount)}
+                      </div>
+                    </div>
                   </div>
 
                   <Button
-                    onClick={() => updateStatus(order.id, 'delivered')}
+                    onClick={() => updateStatus(order.id, 'out_for_delivery')}
+                    disabled={updatingOrderId === order.id}
                     className="w-full bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800"
                   >
-                    Finalizar Pedido
+                    {updatingOrderId === order.id ? (
+                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Atualizando...</>
+                    ) : (
+                      'Finalizar Pedido'
+                    )}
                   </Button>
                 </div>
               ))}
