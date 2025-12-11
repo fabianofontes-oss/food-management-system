@@ -1,29 +1,107 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, Search, Edit, Trash2, Image as ImageIcon } from 'lucide-react'
+import { Plus, Search, Edit, Trash2, Image as ImageIcon, Loader2 } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
-
-interface Product {
-  id: string
-  name: string
-  description: string
-  base_price: number
-  category_id: string
-  image_url: string | null
-  is_active: boolean
-}
+import { useProducts } from '@/hooks/useProducts'
 
 export default function ProductsPage() {
+  const { products, loading, error, createProduct, updateProduct, deleteProduct } = useProducts()
   const [searchQuery, setSearchQuery] = useState('')
   const [showModal, setShowModal] = useState(false)
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null)
-
-  const products: Product[] = []
+  const [editingProduct, setEditingProduct] = useState<any>(null)
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    base_price: '',
+    category_id: '',
+    store_id: '',
+    image_url: '',
+    is_active: true
+  })
 
   const filteredProducts = products.filter((p) =>
     p.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    try {
+      if (editingProduct) {
+        await updateProduct(editingProduct.id, {
+          name: formData.name,
+          description: formData.description,
+          base_price: parseFloat(formData.base_price),
+          image_url: formData.image_url || null,
+          is_active: formData.is_active
+        })
+        alert('✅ Produto atualizado!')
+      } else {
+        await createProduct({
+          name: formData.name,
+          description: formData.description,
+          base_price: parseFloat(formData.base_price),
+          category_id: formData.category_id,
+          store_id: formData.store_id,
+          image_url: formData.image_url || null,
+          is_active: formData.is_active
+        })
+        alert('✅ Produto criado!')
+      }
+      setShowModal(false)
+      setFormData({ name: '', description: '', base_price: '', category_id: '', store_id: '', image_url: '', is_active: true })
+      setEditingProduct(null)
+    } catch (err) {
+      alert('❌ Erro: ' + (err instanceof Error ? err.message : 'Erro desconhecido'))
+    }
+  }
+
+  async function handleDelete(id: string) {
+    if (confirm('Deletar este produto?')) {
+      try {
+        await deleteProduct(id)
+        alert('✅ Produto deletado!')
+      } catch (err) {
+        alert('❌ Erro ao deletar')
+      }
+    }
+  }
+
+  function openEditModal(product: any) {
+    setEditingProduct(product)
+    setFormData({
+      name: product.name,
+      description: product.description || '',
+      base_price: product.base_price.toString(),
+      category_id: product.category_id,
+      store_id: product.store_id,
+      image_url: product.image_url || '',
+      is_active: product.is_active
+    })
+    setShowModal(true)
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-green-600 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600 text-lg">Carregando produtos do Supabase...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="bg-red-50 border-2 border-red-200 rounded-lg p-8 max-w-md">
+          <h2 className="text-2xl font-bold text-red-900 mb-4">❌ Erro</h2>
+          <p className="text-red-700">{error}</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

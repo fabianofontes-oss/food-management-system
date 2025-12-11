@@ -1,15 +1,30 @@
 'use client'
 
 import Link from 'next/link'
-import { Store, Settings, ShoppingBag, BarChart3, Users, Clock, DollarSign, Package } from 'lucide-react'
+import { Store, Settings, ShoppingBag, BarChart3, Users, Clock, DollarSign, Package, Loader2 } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
+import { useProducts } from '@/hooks/useProducts'
+import { useOrders } from '@/hooks/useOrders'
 
 export default function LojistaPage() {
-  const stats = {
-    vendasHoje: 1250.00,
-    pedidosHoje: 45,
-    ticketMedio: 27.78,
-    clientesAtivos: 328
+  const { products, loading: loadingProducts } = useProducts()
+  const { orders, loading: loadingOrders } = useOrders()
+
+  const today = new Date().toISOString().split('T')[0]
+  const ordersToday = orders.filter(o => o.created_at.startsWith(today))
+  const vendasHoje = ordersToday.reduce((sum, o) => sum + o.total_amount, 0)
+  const pedidosHoje = ordersToday.length
+  const ticketMedio = pedidosHoje > 0 ? vendasHoje / pedidosHoje : 0
+
+  if (loadingProducts || loadingOrders) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-green-600 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600 text-lg">Carregando dashboard...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -33,7 +48,8 @@ export default function LojistaPage() {
               <span className="text-gray-600 text-sm">Vendas Hoje</span>
               <DollarSign className="w-5 h-5 text-green-600" />
             </div>
-            <p className="text-3xl font-bold text-gray-900">{formatCurrency(stats.vendasHoje)}</p>
+            <p className="text-3xl font-bold text-green-600">{formatCurrency(vendasHoje)}</p>
+            <p className="text-xs text-gray-500 mt-1">Dados reais do Supabase</p>
           </div>
 
           <div className="bg-white rounded-lg shadow-sm p-6">
@@ -41,7 +57,8 @@ export default function LojistaPage() {
               <span className="text-gray-600 text-sm">Pedidos Hoje</span>
               <ShoppingBag className="w-5 h-5 text-blue-600" />
             </div>
-            <p className="text-3xl font-bold text-gray-900">{stats.pedidosHoje}</p>
+            <p className="text-3xl font-bold text-blue-600">{pedidosHoje}</p>
+            <p className="text-xs text-gray-500 mt-1">Tempo real</p>
           </div>
 
           <div className="bg-white rounded-lg shadow-sm p-6">
@@ -49,15 +66,17 @@ export default function LojistaPage() {
               <span className="text-gray-600 text-sm">Ticket Médio</span>
               <BarChart3 className="w-5 h-5 text-purple-600" />
             </div>
-            <p className="text-3xl font-bold text-gray-900">{formatCurrency(stats.ticketMedio)}</p>
+            <p className="text-3xl font-bold text-purple-600">{formatCurrency(ticketMedio)}</p>
+            <p className="text-xs text-gray-500 mt-1">Calculado automaticamente</p>
           </div>
 
           <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-gray-600 text-sm">Clientes Ativos</span>
-              <Users className="w-5 h-5 text-orange-600" />
+              <span className="text-gray-600 text-sm">Total de Produtos</span>
+              <Package className="w-5 h-5 text-orange-600" />
             </div>
-            <p className="text-3xl font-bold text-gray-900">{stats.clientesAtivos}</p>
+            <p className="text-3xl font-bold text-orange-600">{products.length}</p>
+            <p className="text-xs text-gray-500 mt-1">Cadastrados no sistema</p>
           </div>
         </div>
 
