@@ -1,13 +1,19 @@
 'use client'
 
 import { useState } from 'react'
-import { Truck, MapPin, Phone, Clock, CheckCircle, Package, Loader2 } from 'lucide-react'
+import { Truck, MapPin, Phone, Clock, CheckCircle, Package, Loader2, Info } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { formatCurrency } from '@/lib/utils'
 import { useOrders } from '@/hooks/useOrders'
+import { useSettings } from '@/hooks/useSettings'
+import { useStores } from '@/hooks/useStores'
 
 export default function DeliveryPage() {
   const { orders, loading, updateOrderStatus } = useOrders()
+  const { stores } = useStores()
+  const currentStore = stores[0]
+  const { settings } = useSettings(currentStore?.id)
+  
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null)
   const [drivers] = useState(['Carlos Entregador', 'Ana Delivery', 'José Motoboy'])
 
@@ -52,6 +58,19 @@ export default function DeliveryPage() {
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900">Delivery</h1>
           <p className="text-gray-600 mt-1">Gestão de Entregas</p>
+          
+          {/* Info de Configurações */}
+          <div className="mt-4 bg-blue-50 border-2 border-blue-200 rounded-xl p-4 flex items-start gap-3">
+            <Info className="w-5 h-5 text-blue-600 mt-0.5" />
+            <div className="flex-1">
+              <div className="font-semibold text-blue-900 mb-1">Configurações de Entrega</div>
+              <div className="text-sm text-blue-700 space-y-1">
+                <div>• Taxa de entrega: <span className="font-bold">{formatCurrency(settings?.delivery_fee || 0)}</span></div>
+                <div>• Raio de entrega: <span className="font-bold">{settings?.delivery_radius || 0} km</span></div>
+                <div>• Tempo estimado: <span className="font-bold">{settings?.estimated_prep_time || 0} min</span></div>
+              </div>
+            </div>
+          </div>
         </div>
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Aguardando Entregador */}

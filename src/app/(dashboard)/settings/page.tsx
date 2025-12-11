@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { 
   Settings, 
   Store, 
@@ -17,82 +17,38 @@ import {
   Printer,
   Wifi,
   Save,
-  RefreshCw
+  RefreshCw,
+  Loader2,
+  CheckCircle2,
+  AlertCircle
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-
-interface StoreSettings {
-  enablePOS: boolean
-  enableKitchen: boolean
-  enableDelivery: boolean
-  enableDineIn: boolean
-  enableTakeout: boolean
-  enableCash: boolean
-  enableCreditCard: boolean
-  enableDebitCard: boolean
-  enablePix: boolean
-  enableOrderNotifications: boolean
-  enableWhatsAppNotifications: boolean
-  enableEmailNotifications: boolean
-  enableSoundAlerts: boolean
-  enableLoyaltyProgram: boolean
-  enableCoupons: boolean
-  enableScheduledOrders: boolean
-  enableTableManagement: boolean
-  enableInventoryControl: boolean
-  enableAutoPrint: boolean
-  enableKitchenPrint: boolean
-  enableIfood: boolean
-  enableRappi: boolean
-  enableUberEats: boolean
-  minimumOrderValue: number
-  deliveryFee: number
-  deliveryRadius: number
-  estimatedPrepTime: number
-}
+import { useSettings } from '@/hooks/useSettings'
+import { useStores } from '@/hooks/useStores'
 
 export default function SettingsPage() {
-  const [settings, setSettings] = useState<StoreSettings>({
-    enablePOS: true,
-    enableKitchen: true,
-    enableDelivery: true,
-    enableDineIn: true,
-    enableTakeout: true,
-    enableCash: true,
-    enableCreditCard: true,
-    enableDebitCard: true,
-    enablePix: true,
-    enableOrderNotifications: true,
-    enableWhatsAppNotifications: false,
-    enableEmailNotifications: true,
-    enableSoundAlerts: true,
-    enableLoyaltyProgram: false,
-    enableCoupons: true,
-    enableScheduledOrders: false,
-    enableTableManagement: false,
-    enableInventoryControl: false,
-    enableAutoPrint: false,
-    enableKitchenPrint: true,
-    enableIfood: false,
-    enableRappi: false,
-    enableUberEats: false,
-    minimumOrderValue: 15,
-    deliveryFee: 5,
-    deliveryRadius: 5,
-    estimatedPrepTime: 30
-  })
-
+  const { stores } = useStores()
+  const currentStore = stores[0]
+  const { settings, loading, error, updateSettings, resetToDefaults } = useSettings(currentStore?.id)
+  
   const [isSaving, setIsSaving] = useState(false)
+  const [saveSuccess, setSaveSuccess] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const [localSettings, setLocalSettings] = useState(settings)
 
-  const handleToggle = (key: keyof StoreSettings) => {
-    setSettings(prev => ({
+  useEffect(() => {
+    setLocalSettings(settings)
+  }, [settings])
+
+  const handleToggle = (key: string) => {
+    setLocalSettings(prev => ({
       ...prev,
-      [key]: !prev[key]
+      [key]: !prev[key as keyof typeof prev]
     }))
   }
 
-  const handleNumberChange = (key: keyof StoreSettings, value: number) => {
-    setSettings(prev => ({
+  const handleNumberChange = (key: string, value: number) => {
+    setLocalSettings(prev => ({
       ...prev,
       [key]: value
     }))
@@ -100,48 +56,58 @@ export default function SettingsPage() {
 
   const handleSave = async () => {
     setIsSaving(true)
+    setSaveSuccess(false)
+    setSaveError(null)
+    
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      alert('✅ Configurações salvas com sucesso!')
-    } catch (error) {
-      alert('❌ Erro ao salvar configurações')
+      const success = await updateSettings(localSettings)
+      
+      if (success) {
+        setSaveSuccess(true)
+        setTimeout(() => setSaveSuccess(false), 3000)
+      } else {
+        setSaveError('Erro ao salvar configurações')
+      }
+    } catch (err) {
+      setSaveError('Erro ao salvar configurações')
     } finally {
       setIsSaving(false)
     }
   }
 
-  const handleReset = () => {
+  const handleReset = async () => {
     if (confirm('Deseja restaurar as configurações padrão?')) {
-      setSettings({
-        enablePOS: true,
-        enableKitchen: true,
-        enableDelivery: true,
-        enableDineIn: true,
-        enableTakeout: true,
-        enableCash: true,
-        enableCreditCard: true,
-        enableDebitCard: true,
-        enablePix: true,
-        enableOrderNotifications: true,
-        enableWhatsAppNotifications: false,
-        enableEmailNotifications: true,
-        enableSoundAlerts: true,
-        enableLoyaltyProgram: false,
-        enableCoupons: true,
-        enableScheduledOrders: false,
-        enableTableManagement: false,
-        enableInventoryControl: false,
-        enableAutoPrint: false,
-        enableKitchenPrint: true,
-        enableIfood: false,
-        enableRappi: false,
-        enableUberEats: false,
-        minimumOrderValue: 15,
-        deliveryFee: 5,
-        deliveryRadius: 5,
-        estimatedPrepTime: 30
-      })
+      setIsSaving(true)
+      const success = await resetToDefaults()
+      setIsSaving(false)
+      
+      if (success) {
+        setSaveSuccess(true)
+        setTimeout(() => setSaveSuccess(false), 3000)
+      }
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600 text-lg">Carregando configurações...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <AlertCircle className="w-12 h-12 text-red-600 mx-auto mb-4" />
+          <p className="text-red-600 text-lg">{error}</p>
+        </div>
+      </div>
+    )
   }
 
   const ToggleItem = ({ 
@@ -225,7 +191,7 @@ export default function SettingsPage() {
           <p className="text-gray-600">Personalize as funcionalidades da sua loja</p>
         </div>
 
-        <div className="flex gap-3 mb-6">
+        <div className="flex gap-3 mb-6 flex-wrap">
           <Button
             onClick={handleSave}
             disabled={isSaving}
@@ -236,6 +202,11 @@ export default function SettingsPage() {
                 <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
                 Salvando...
               </>
+            ) : saveSuccess ? (
+              <>
+                <CheckCircle2 className="w-4 h-4 mr-2" />
+                Salvo com Sucesso!
+              </>
             ) : (
               <>
                 <Save className="w-4 h-4 mr-2" />
@@ -245,11 +216,18 @@ export default function SettingsPage() {
           </Button>
           <Button
             onClick={handleReset}
+            disabled={isSaving}
             className="bg-gray-200 text-gray-700 hover:bg-gray-300"
           >
             <RefreshCw className="w-4 h-4 mr-2" />
             Restaurar Padrão
           </Button>
+          {saveError && (
+            <div className="flex items-center gap-2 text-red-600 bg-red-50 px-4 py-2 rounded-lg">
+              <AlertCircle className="w-4 h-4" />
+              <span>{saveError}</span>
+            </div>
+          )}
         </div>
 
         <div className="space-y-6">
@@ -263,40 +241,40 @@ export default function SettingsPage() {
                 icon={ShoppingCart}
                 label="PDV (Point of Sale)"
                 description="Sistema de vendas no balcão"
-                checked={settings.enablePOS}
-                onChange={() => handleToggle('enablePOS')}
+                checked={localSettings.enable_pos}
+                onChange={() => handleToggle('enable_pos')}
                 color="text-blue-600"
               />
               <ToggleItem
                 icon={ChefHat}
                 label="Cozinha / KDS"
                 description="Display de pedidos para a cozinha"
-                checked={settings.enableKitchen}
-                onChange={() => handleToggle('enableKitchen')}
+                checked={localSettings.enable_kitchen}
+                onChange={() => handleToggle('enable_kitchen')}
                 color="text-orange-600"
               />
               <ToggleItem
                 icon={Truck}
                 label="Delivery"
                 description="Entregas em domicílio"
-                checked={settings.enableDelivery}
-                onChange={() => handleToggle('enableDelivery')}
+                checked={localSettings.enable_delivery}
+                onChange={() => handleToggle('enable_delivery')}
                 color="text-purple-600"
               />
               <ToggleItem
                 icon={Store}
                 label="Consumo no Local"
                 description="Pedidos para consumir no estabelecimento"
-                checked={settings.enableDineIn}
-                onChange={() => handleToggle('enableDineIn')}
+                checked={localSettings.enable_dine_in}
+                onChange={() => handleToggle('enable_dine_in')}
                 color="text-green-600"
               />
               <ToggleItem
                 icon={Package}
                 label="Retirada"
                 description="Pedidos para retirar no balcão"
-                checked={settings.enableTakeout}
-                onChange={() => handleToggle('enableTakeout')}
+                checked={localSettings.enable_takeout}
+                onChange={() => handleToggle('enable_takeout')}
                 color="text-indigo-600"
               />
             </div>
@@ -312,32 +290,32 @@ export default function SettingsPage() {
                 icon={DollarSign}
                 label="Dinheiro"
                 description="Pagamento em espécie"
-                checked={settings.enableCash}
-                onChange={() => handleToggle('enableCash')}
+                checked={localSettings.enable_cash}
+                onChange={() => handleToggle('enable_cash')}
                 color="text-green-600"
               />
               <ToggleItem
                 icon={CreditCard}
                 label="Cartão de Crédito"
                 description="Aceitar cartões de crédito"
-                checked={settings.enableCreditCard}
-                onChange={() => handleToggle('enableCreditCard')}
+                checked={localSettings.enable_credit_card}
+                onChange={() => handleToggle('enable_credit_card')}
                 color="text-blue-600"
               />
               <ToggleItem
                 icon={CreditCard}
                 label="Cartão de Débito"
                 description="Aceitar cartões de débito"
-                checked={settings.enableDebitCard}
-                onChange={() => handleToggle('enableDebitCard')}
+                checked={localSettings.enable_debit_card}
+                onChange={() => handleToggle('enable_debit_card')}
                 color="text-purple-600"
               />
               <ToggleItem
                 icon={Smartphone}
                 label="PIX"
                 description="Pagamento instantâneo via PIX"
-                checked={settings.enablePix}
-                onChange={() => handleToggle('enablePix')}
+                checked={localSettings.enable_pix}
+                onChange={() => handleToggle('enable_pix')}
                 color="text-teal-600"
               />
             </div>
@@ -353,32 +331,32 @@ export default function SettingsPage() {
                 icon={Bell}
                 label="Notificações de Pedidos"
                 description="Alertas visuais para novos pedidos"
-                checked={settings.enableOrderNotifications}
-                onChange={() => handleToggle('enableOrderNotifications')}
+                checked={localSettings.enable_order_notifications}
+                onChange={() => handleToggle('enable_order_notifications')}
                 color="text-yellow-600"
               />
               <ToggleItem
                 icon={Smartphone}
                 label="WhatsApp"
                 description="Enviar notificações via WhatsApp"
-                checked={settings.enableWhatsAppNotifications}
-                onChange={() => handleToggle('enableWhatsAppNotifications')}
+                checked={localSettings.enable_whatsapp_notifications}
+                onChange={() => handleToggle('enable_whatsapp_notifications')}
                 color="text-green-600"
               />
               <ToggleItem
                 icon={Bell}
                 label="E-mail"
                 description="Enviar confirmações por e-mail"
-                checked={settings.enableEmailNotifications}
-                onChange={() => handleToggle('enableEmailNotifications')}
+                checked={localSettings.enable_email_notifications}
+                onChange={() => handleToggle('enable_email_notifications')}
                 color="text-blue-600"
               />
               <ToggleItem
                 icon={Bell}
                 label="Alertas Sonoros"
                 description="Som ao receber novos pedidos"
-                checked={settings.enableSoundAlerts}
-                onChange={() => handleToggle('enableSoundAlerts')}
+                checked={localSettings.enable_sound_alerts}
+                onChange={() => handleToggle('enable_sound_alerts')}
                 color="text-red-600"
               />
             </div>
@@ -394,40 +372,40 @@ export default function SettingsPage() {
                 icon={Users}
                 label="Programa de Fidelidade"
                 description="Sistema de pontos e recompensas"
-                checked={settings.enableLoyaltyProgram}
-                onChange={() => handleToggle('enableLoyaltyProgram')}
+                checked={localSettings.enable_loyalty_program}
+                onChange={() => handleToggle('enable_loyalty_program')}
                 color="text-purple-600"
               />
               <ToggleItem
                 icon={Package}
                 label="Cupons de Desconto"
                 description="Criar e gerenciar cupons promocionais"
-                checked={settings.enableCoupons}
-                onChange={() => handleToggle('enableCoupons')}
+                checked={localSettings.enable_coupons}
+                onChange={() => handleToggle('enable_coupons')}
                 color="text-orange-600"
               />
               <ToggleItem
                 icon={Clock}
                 label="Agendamento de Pedidos"
                 description="Permitir pedidos agendados"
-                checked={settings.enableScheduledOrders}
-                onChange={() => handleToggle('enableScheduledOrders')}
+                checked={localSettings.enable_scheduled_orders}
+                onChange={() => handleToggle('enable_scheduled_orders')}
                 color="text-blue-600"
               />
               <ToggleItem
                 icon={Store}
                 label="Gestão de Mesas"
                 description="Controle de mesas e comandas"
-                checked={settings.enableTableManagement}
-                onChange={() => handleToggle('enableTableManagement')}
+                checked={localSettings.enable_table_management}
+                onChange={() => handleToggle('enable_table_management')}
                 color="text-green-600"
               />
               <ToggleItem
                 icon={Package}
                 label="Controle de Estoque"
                 description="Gerenciar inventário de produtos"
-                checked={settings.enableInventoryControl}
-                onChange={() => handleToggle('enableInventoryControl')}
+                checked={localSettings.enable_inventory_control}
+                onChange={() => handleToggle('enable_inventory_control')}
                 color="text-indigo-600"
               />
             </div>
@@ -443,16 +421,16 @@ export default function SettingsPage() {
                 icon={Printer}
                 label="Impressão Automática"
                 description="Imprimir pedidos automaticamente"
-                checked={settings.enableAutoPrint}
-                onChange={() => handleToggle('enableAutoPrint')}
+                checked={localSettings.enable_auto_print}
+                onChange={() => handleToggle('enable_auto_print')}
                 color="text-gray-600"
               />
               <ToggleItem
                 icon={Printer}
                 label="Impressora da Cozinha"
                 description="Enviar pedidos para impressora da cozinha"
-                checked={settings.enableKitchenPrint}
-                onChange={() => handleToggle('enableKitchenPrint')}
+                checked={localSettings.enable_kitchen_print}
+                onChange={() => handleToggle('enable_kitchen_print')}
                 color="text-orange-600"
               />
             </div>
@@ -468,24 +446,24 @@ export default function SettingsPage() {
                 icon={Truck}
                 label="iFood"
                 description="Integração com iFood"
-                checked={settings.enableIfood}
-                onChange={() => handleToggle('enableIfood')}
+                checked={localSettings.enable_ifood}
+                onChange={() => handleToggle('enable_ifood')}
                 color="text-red-600"
               />
               <ToggleItem
                 icon={Truck}
                 label="Rappi"
                 description="Integração com Rappi"
-                checked={settings.enableRappi}
-                onChange={() => handleToggle('enableRappi')}
+                checked={localSettings.enable_rappi}
+                onChange={() => handleToggle('enable_rappi')}
                 color="text-orange-600"
               />
               <ToggleItem
                 icon={Truck}
                 label="Uber Eats"
                 description="Integração com Uber Eats"
-                checked={settings.enableUberEats}
-                onChange={() => handleToggle('enableUberEats')}
+                checked={localSettings.enable_uber_eats}
+                onChange={() => handleToggle('enable_uber_eats')}
                 color="text-green-600"
               />
             </div>
@@ -500,32 +478,32 @@ export default function SettingsPage() {
               <NumberInput
                 icon={DollarSign}
                 label="Pedido Mínimo"
-                value={settings.minimumOrderValue}
-                onChange={(v) => handleNumberChange('minimumOrderValue', v)}
+                value={localSettings.minimum_order_value}
+                onChange={(v) => handleNumberChange('minimum_order_value', v)}
                 suffix="R$"
                 color="text-green-600"
               />
               <NumberInput
                 icon={Truck}
                 label="Taxa de Entrega"
-                value={settings.deliveryFee}
-                onChange={(v) => handleNumberChange('deliveryFee', v)}
+                value={localSettings.delivery_fee}
+                onChange={(v) => handleNumberChange('delivery_fee', v)}
                 suffix="R$"
                 color="text-purple-600"
               />
               <NumberInput
                 icon={Truck}
                 label="Raio de Entrega"
-                value={settings.deliveryRadius}
-                onChange={(v) => handleNumberChange('deliveryRadius', v)}
+                value={localSettings.delivery_radius}
+                onChange={(v) => handleNumberChange('delivery_radius', v)}
                 suffix="km"
                 color="text-blue-600"
               />
               <NumberInput
                 icon={Clock}
                 label="Tempo de Preparo"
-                value={settings.estimatedPrepTime}
-                onChange={(v) => handleNumberChange('estimatedPrepTime', v)}
+                value={localSettings.estimated_prep_time}
+                onChange={(v) => handleNumberChange('estimated_prep_time', v)}
                 suffix="min"
                 color="text-orange-600"
               />

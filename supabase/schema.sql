@@ -759,3 +759,110 @@ CREATE TRIGGER update_inventory_items_updated_at BEFORE UPDATE ON inventory_item
 
 CREATE TRIGGER update_printers_updated_at BEFORE UPDATE ON printers
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- =====================================================
+-- STORE SETTINGS TABLE
+-- =====================================================
+CREATE TABLE store_settings (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+  
+  -- Funcionalidades Principais
+  enable_pos BOOLEAN DEFAULT true,
+  enable_kitchen BOOLEAN DEFAULT true,
+  enable_delivery BOOLEAN DEFAULT true,
+  enable_dine_in BOOLEAN DEFAULT true,
+  enable_takeout BOOLEAN DEFAULT true,
+  
+  -- Formas de Pagamento
+  enable_cash BOOLEAN DEFAULT true,
+  enable_credit_card BOOLEAN DEFAULT true,
+  enable_debit_card BOOLEAN DEFAULT true,
+  enable_pix BOOLEAN DEFAULT true,
+  
+  -- Notificações
+  enable_order_notifications BOOLEAN DEFAULT true,
+  enable_whatsapp_notifications BOOLEAN DEFAULT false,
+  enable_email_notifications BOOLEAN DEFAULT true,
+  enable_sound_alerts BOOLEAN DEFAULT true,
+  
+  -- Recursos Avançados
+  enable_loyalty_program BOOLEAN DEFAULT false,
+  enable_coupons BOOLEAN DEFAULT true,
+  enable_scheduled_orders BOOLEAN DEFAULT false,
+  enable_table_management BOOLEAN DEFAULT false,
+  enable_inventory_control BOOLEAN DEFAULT false,
+  
+  -- Impressão
+  enable_auto_print BOOLEAN DEFAULT false,
+  enable_kitchen_print BOOLEAN DEFAULT true,
+  
+  -- Integrações
+  enable_ifood BOOLEAN DEFAULT false,
+  enable_rappi BOOLEAN DEFAULT false,
+  enable_uber_eats BOOLEAN DEFAULT false,
+  
+  -- Operação
+  minimum_order_value DECIMAL(10,2) DEFAULT 15.00,
+  delivery_fee DECIMAL(10,2) DEFAULT 5.00,
+  delivery_radius INTEGER DEFAULT 5,
+  estimated_prep_time INTEGER DEFAULT 30,
+  
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  
+  UNIQUE(store_id)
+);
+
+CREATE INDEX idx_store_settings_store_id ON store_settings(store_id);
+
+-- RLS Policies para store_settings
+ALTER TABLE store_settings ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view their store settings"
+  ON store_settings FOR SELECT
+  USING (
+    store_id IN (
+      SELECT s.id FROM stores s
+      INNER JOIN tenants t ON s.tenant_id = t.id
+      WHERE t.id = (SELECT tenant_id FROM users WHERE id = auth.uid())
+    )
+  );
+
+CREATE POLICY "Users can update their store settings"
+  ON store_settings FOR UPDATE
+  USING (
+    store_id IN (
+      SELECT s.id FROM stores s
+      INNER JOIN tenants t ON s.tenant_id = t.id
+      WHERE t.id = (SELECT tenant_id FROM users WHERE id = auth.uid())
+    )
+  );
+
+CREATE POLICY "Users can insert their store settings"
+  ON store_settings FOR INSERT
+  WITH CHECK (
+    store_id IN (
+      SELECT s.id FROM stores s
+      INNER JOIN tenants t ON s.tenant_id = t.id
+      WHERE t.id = (SELECT tenant_id FROM users WHERE id = auth.uid())
+    )
+  );
+
+CREATE TRIGGER update_store_settings_updated_at BEFORE UPDATE ON store_settings
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Função para criar configurações padrão ao criar uma loja
+CREATE OR REPLACE FUNCTION create_default_store_settings()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO store_settings (store_id)
+  VALUES (NEW.id);
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER create_store_settings_on_store_creation
+  AFTER INSERT ON stores
+  FOR EACH ROW
+  EXECUTE FUNCTION create_default_store_settings();

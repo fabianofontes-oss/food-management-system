@@ -16,15 +16,18 @@ import {
   Menu
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useSettings } from '@/hooks/useSettings'
+import { useStores } from '@/hooks/useStores'
 
-const menuItems = [
+const getMenuItems = (settings: any) => [
   { 
     href: '/admin', 
     label: 'Dashboard', 
     icon: LayoutDashboard,
     color: 'text-red-600',
     bgColor: 'bg-red-50',
-    activeColor: 'bg-red-100'
+    activeColor: 'bg-red-100',
+    show: true
   },
   { 
     href: '/pos', 
@@ -32,7 +35,8 @@ const menuItems = [
     icon: ShoppingCart,
     color: 'text-blue-600',
     bgColor: 'bg-blue-50',
-    activeColor: 'bg-blue-100'
+    activeColor: 'bg-blue-100',
+    show: settings?.enable_pos !== false
   },
   { 
     href: '/kitchen', 
@@ -40,7 +44,8 @@ const menuItems = [
     icon: ChefHat,
     color: 'text-orange-600',
     bgColor: 'bg-orange-50',
-    activeColor: 'bg-orange-100'
+    activeColor: 'bg-orange-100',
+    show: settings?.enable_kitchen !== false
   },
   { 
     href: '/delivery', 
@@ -48,7 +53,8 @@ const menuItems = [
     icon: Truck,
     color: 'text-purple-600',
     bgColor: 'bg-purple-50',
-    activeColor: 'bg-purple-100'
+    activeColor: 'bg-purple-100',
+    show: settings?.enable_delivery !== false
   },
   { 
     href: '/stores', 
@@ -56,7 +62,8 @@ const menuItems = [
     icon: Store,
     color: 'text-green-600',
     bgColor: 'bg-green-50',
-    activeColor: 'bg-green-100'
+    activeColor: 'bg-green-100',
+    show: true
   },
   { 
     href: '/tenants', 
@@ -64,9 +71,10 @@ const menuItems = [
     icon: Building2,
     color: 'text-indigo-600',
     bgColor: 'bg-indigo-50',
-    activeColor: 'bg-indigo-100'
+    activeColor: 'bg-indigo-100',
+    show: true
   },
-]
+].filter(item => item.show)
 
 const settingsItem = {
   href: '/settings',
@@ -81,6 +89,11 @@ export function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const pathname = usePathname()
+  const { stores } = useStores()
+  const currentStore = stores[0]
+  const { settings } = useSettings(currentStore?.id)
+  
+  const menuItems = getMenuItems(settings)
 
   return (
     <>
