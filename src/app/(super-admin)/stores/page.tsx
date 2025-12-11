@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Store, Plus, Edit, Trash2, MapPin, Phone, Clock, Settings } from 'lucide-react'
+import Link from 'next/link'
+import { Store, Plus, Edit, Trash2, MapPin, Phone, Clock, Settings, ExternalLink, LayoutDashboard } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 interface StoreData {
@@ -366,6 +367,28 @@ export default function StoresPage() {
                   <div className="mt-3 text-sm text-gray-500">
                     Tenant: {store.tenant_name} • Criado em: {new Date(store.created_at).toLocaleDateString('pt-BR')}
                   </div>
+                  
+                  {/* Links de Acesso Rápido */}
+                  {store.slug && (
+                    <div className="flex gap-2 mt-4">
+                      <Link
+                        href={`/${store.slug}`}
+                        target="_blank"
+                        className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-blue-600 border border-blue-300 rounded-lg hover:bg-blue-50 transition-colors"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        Cardápio
+                      </Link>
+                      <Link
+                        href={`/${store.slug}/dashboard`}
+                        target="_blank"
+                        className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-emerald-600 border border-emerald-300 rounded-lg hover:bg-emerald-50 transition-colors"
+                      >
+                        <LayoutDashboard className="w-4 h-4" />
+                        Dashboard
+                      </Link>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex gap-2">
