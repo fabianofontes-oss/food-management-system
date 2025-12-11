@@ -1,41 +1,86 @@
 'use client'
 
-import { BarChart3, TrendingUp, ShoppingBag, Users, DollarSign, Package } from 'lucide-react'
+import { BarChart3, TrendingUp, ShoppingBag, Users, DollarSign, Package, Loader2 } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
+import { useProducts } from '@/hooks/useProducts'
+import { useOrders } from '@/hooks/useOrders'
+import { supabase } from '@/lib/supabase'
+import { useEffect, useState } from 'react'
 
 export default function AdminPage() {
+  const { products, loading: loadingProducts } = useProducts()
+  const { orders, loading: loadingOrders } = useOrders()
+  const [customersCount, setCustomersCount] = useState(0)
+  
+  useEffect(() => {
+    async function fetchCustomers() {
+      const { count } = await supabase.from('customers').select('*', { count: 'exact', head: true })
+      setCustomersCount(count || 0)
+    }
+    fetchCustomers()
+  }, [])
+
+  const today = new Date().toISOString().split('T')[0]
+  const ordersToday = orders.filter(o => o.created_at.startsWith(today))
+  const vendasHoje = ordersToday.reduce((sum, o) => sum + o.total_amount, 0)
+  const pedidosHoje = ordersToday.length
+  
   const stats = [
-    { label: 'Vendas Hoje', value: formatCurrency(1250.00), icon: DollarSign, color: 'bg-green-500' },
-    { label: 'Pedidos Hoje', value: '45', icon: ShoppingBag, color: 'bg-blue-500' },
-    { label: 'Clientes', value: '328', icon: Users, color: 'bg-purple-500' },
-    { label: 'Produtos', value: '156', icon: Package, color: 'bg-orange-500' },
+    { label: 'Vendas Hoje', value: formatCurrency(vendasHoje), icon: DollarSign, color: 'bg-green-500' },
+    { label: 'Pedidos Hoje', value: pedidosHoje.toString(), icon: ShoppingBag, color: 'bg-blue-500' },
+    { label: 'Clientes', value: customersCount.toString(), icon: Users, color: 'bg-purple-500' },
+    { label: 'Produtos', value: products.length.toString(), icon: Package, color: 'bg-orange-500' },
   ]
 
-  const recentOrders = [
-    { code: 'A001', customer: 'João Silva', total: 45.00, status: 'Entregue', time: '10 min' },
-    { code: 'A002', customer: 'Maria Santos', total: 32.00, status: 'Em preparo', time: '15 min' },
-    { code: 'A003', customer: 'Pedro Costa', total: 28.00, status: 'Pendente', time: '2 min' },
-    { code: 'A004', customer: 'Ana Lima', total: 52.00, status: 'Saiu para entrega', time: '25 min' },
-    { code: 'A005', customer: 'Carlos Souza', total: 38.00, status: 'Pronto', time: '8 min' },
-  ]
+  const recentOrders = orders.slice(0, 5)
+  
+  const topProducts = products.slice(0, 5).map(p => ({
+    name: p.name,
+    sales: 0,
+    revenue: formatCurrency(p.base_price)
+  }))
 
-  const topProducts = [
-    { name: 'Açaí 500ml', sales: 125, revenue: formatCurrency(2250.00) },
-    { name: 'Açaí 300ml', sales: 98, revenue: formatCurrency(1176.00) },
-    { name: 'Suco Natural 300ml', sales: 87, revenue: formatCurrency(696.00) },
-    { name: 'Açaí 700ml', sales: 65, revenue: formatCurrency(1560.00) },
-    { name: 'Água Mineral', sales: 54, revenue: formatCurrency(162.00) },
-  ]
+  if (loadingProducts || loadingOrders) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-red-600 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600 text-lg">Carregando dashboard...</p>
+        </div>
+      </div>
+    )
+  }
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
-      'Entregue': 'bg-green-100 text-green-700',
-      'Em preparo': 'bg-yellow-100 text-yellow-700',
-      'Pendente': 'bg-red-100 text-red-700',
-      'Saiu para entrega': 'bg-blue-100 text-blue-700',
-      'Pronto': 'bg-purple-100 text-purple-700',
+      'delivered': 'bg-green-100 text-green-700',
+      'preparing': 'bg-yellow-100 text-yellow-700',
+      'pending': 'bg-red-100 text-red-700',
+      'confirmed': 'bg-blue-100 text-blue-700',
+      'ready': 'bg-purple-100 text-purple-700',
+      'out_for_delivery': 'bg-blue-100 text-blue-700',
+      'cancelled': 'bg-gray-100 text-gray-700',
     }
     return colors[status] || 'bg-gray-100 text-gray-700'
+  }
+  
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      'delivered': 'Entregue',
+      'preparing': 'Em preparo',
+      'pending': 'Pendente',
+      'confirmed': 'Confirmado',
+      'ready': 'Pronto',
+      'out_for_delivery': 'Saiu para entrega',
+      'cancelled': 'Cancelado',
+    }
+    return labels[status] || status
+  }
+  
+  const getElapsedTime = (dateString: string) => {
+    const date = new Date(dateString)
+    const minutes = Math.floor((Date.now() - date.getTime()) / 60000)
+    return `${minutes} min`
   }
 
   return (
@@ -72,20 +117,20 @@ export default function AdminPage() {
               <h2 className="text-2xl font-bold">Pedidos Recentes</h2>
             </div>
             <div className="space-y-3">
-              {recentOrders.map((order, idx) => (
-                <div key={idx} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+              {recentOrders.map((order) => (
+                <div key={order.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-1">
-                      <span className="font-bold text-lg">#{order.code}</span>
+                      <span className="font-bold text-lg">#{order.order_code}</span>
                       <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(order.status)}`}>
-                        {order.status}
+                        {getStatusLabel(order.status)}
                       </span>
                     </div>
-                    <div className="text-sm text-gray-600">{order.customer}</div>
-                    <div className="text-xs text-gray-500 mt-1">há {order.time}</div>
+                    <div className="text-sm text-gray-600">{order.customer_name}</div>
+                    <div className="text-xs text-gray-500 mt-1">há {getElapsedTime(order.created_at)}</div>
                   </div>
                   <div className="text-xl font-bold text-green-600">
-                    {formatCurrency(order.total)}
+                    {formatCurrency(order.total_amount)}
                   </div>
                 </div>
               ))}
@@ -104,14 +149,13 @@ export default function AdminPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="font-semibold text-gray-900">{product.name}</div>
-                      <div className="text-sm text-gray-600">{product.sales} vendas</div>
+                      <div className="text-sm text-gray-600">Preço: {product.revenue}</div>
                     </div>
-                    <div className="text-lg font-bold text-purple-600">{product.revenue}</div>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div
                       className="bg-gradient-to-r from-purple-500 to-purple-600 h-2 rounded-full"
-                      style={{ width: `${(product.sales / 125) * 100}%` }}
+                      style={{ width: `${((idx + 1) / topProducts.length) * 100}%` }}
                     />
                   </div>
                 </div>
