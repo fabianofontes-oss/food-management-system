@@ -84,15 +84,12 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      <header className="bg-gradient-to-r from-red-600 to-red-700 text-white p-4 shadow-lg">
-        <div className="container mx-auto">
-          <h1 className="text-3xl font-bold">Dashboard Admin</h1>
-          <p className="text-red-100 mt-1">Painel Administrativo</p>
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white p-6">
+      <div className="max-w-7xl mx-auto space-y-6">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900">Dashboard Admin</h1>
+          <p className="text-gray-600 mt-1">Painel Administrativo</p>
         </div>
-      </header>
-
-      <div className="container mx-auto p-4 space-y-6">
         {/* Stats Cards */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {stats.map((stat, idx) => (

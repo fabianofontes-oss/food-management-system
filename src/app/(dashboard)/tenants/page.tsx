@@ -83,15 +83,12 @@ export default function TenantsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      <header className="bg-gradient-to-r from-indigo-600 to-indigo-700 text-white p-4 shadow-lg">
-        <div className="container mx-auto">
-          <h1 className="text-3xl font-bold">Gestão de Tenants</h1>
-          <p className="text-indigo-100 mt-1">Multi-Tenant - Gerenciar Redes e Empresas</p>
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white p-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900">Gestão de Tenants</h1>
+          <p className="text-gray-600 mt-1">Multi-Tenant - Gerenciar Redes e Empresas</p>
         </div>
-      </header>
-
-      <div className="container mx-auto p-4 max-w-6xl">
         {/* Stats Cards */}
         <div className="grid sm:grid-cols-3 gap-6 mb-6">
           <div className="bg-white rounded-2xl shadow-lg p-6">

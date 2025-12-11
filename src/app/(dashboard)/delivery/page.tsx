@@ -47,15 +47,12 @@ export default function DeliveryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      <header className="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-4 shadow-lg">
-        <div className="container mx-auto">
-          <h1 className="text-3xl font-bold">Delivery</h1>
-          <p className="text-purple-100 mt-1">Gestão de Entregas</p>
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white p-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900">Delivery</h1>
+          <p className="text-gray-600 mt-1">Gestão de Entregas</p>
         </div>
-      </header>
-
-      <div className="container mx-auto p-4">
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Aguardando Entregador */}
           <div>

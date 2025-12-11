@@ -122,15 +122,12 @@ export default function POSPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      <header className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 shadow-lg">
-        <div className="container mx-auto">
-          <h1 className="text-3xl font-bold">PDV - Point of Sale</h1>
-          <p className="text-blue-100 mt-1">Sistema de Vendas</p>
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white p-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900">PDV - Point of Sale</h1>
+          <p className="text-gray-600 mt-1">Sistema de Vendas</p>
         </div>
-      </header>
-
-      <div className="container mx-auto p-4">
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Produtos */}
           <div className="lg:col-span-2 space-y-4">
