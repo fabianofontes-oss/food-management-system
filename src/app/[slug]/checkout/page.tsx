@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation'
 import { useCartStore } from '@/stores/cart-store'
 import { createOrder } from '@/lib/actions/orders'
 import { getStoreBySlug } from '@/lib/actions/menu'
-import { formatCurrency } from '@/lib/utils'
+import { formatCurrency, fetchAddressByCEP } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, Loader2 } from 'lucide-react'
+import { ArrowLeft, Loader2, Search } from 'lucide-react'
 import type { OrderData } from '@/types/menu'
 
 export default function CheckoutPage({ params }: { params: { slug: string } }) {
@@ -15,6 +15,7 @@ export default function CheckoutPage({ params }: { params: { slug: string } }) {
   const { items, getSubtotal, clearCart } = useCartStore()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [loadingCEP, setLoadingCEP] = useState(false)
 
   const [formData, setFormData] = useState({
     name: '',
@@ -190,14 +191,36 @@ export default function CheckoutPage({ params }: { params: { slug: string } }) {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     CEP *
                   </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.zipCode}
-                    onChange={(e) => setFormData({ ...formData, zipCode: e.target.value })}
-                    placeholder="00000-000"
-                    className="w-full p-3 border border-gray-300 rounded-lg"
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      required
+                      value={formData.zipCode}
+                      onChange={(e) => setFormData({ ...formData, zipCode: e.target.value })}
+                      onBlur={async () => {
+                        if (formData.zipCode.replace(/\D/g, '').length === 8) {
+                          setLoadingCEP(true)
+                          const address = await fetchAddressByCEP(formData.zipCode)
+                          if (address && !address.error) {
+                            setFormData({
+                              ...formData,
+                              street: address.street,
+                              district: address.district,
+                              city: address.city,
+                              state: address.state
+                            })
+                          }
+                          setLoadingCEP(false)
+                        }
+                      }}
+                      placeholder="00000-000"
+                      className="w-full p-3 pr-10 border border-gray-300 rounded-lg"
+                    />
+                    {loadingCEP && (
+                      <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 animate-spin text-gray-400" />
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">Digite o CEP e pressione Tab para buscar automaticamente</p>
                 </div>
 
                 <div className="col-span-2">
