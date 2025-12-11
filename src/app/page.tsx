@@ -51,7 +51,7 @@ export default function HomePage() {
               icon={<BarChart3 className="w-10 h-10" />}
               title="Dashboard Admin"
               description="Métricas reais do Supabase"
-              href="/admin"
+              href="/dashboard"
               color="bg-gradient-to-br from-red-500 to-red-600"
               badge="✅ REAL"
             />
@@ -60,7 +60,7 @@ export default function HomePage() {
               icon={<Package className="w-10 h-10" />}
               title="Produtos (CRUD)"
               description="Gerenciar produtos no banco"
-              href="/admin/products"
+              href="/products"
               color="bg-gradient-to-br from-green-500 to-green-600"
               badge="✅ REAL"
             />
@@ -69,7 +69,7 @@ export default function HomePage() {
               icon={<Users className="w-10 h-10" />}
               title="CRM"
               description="Clientes reais do Supabase"
-              href="/admin/crm"
+              href="/crm"
               color="bg-gradient-to-br from-pink-500 to-pink-600"
               badge="✅ REAL"
             />
@@ -83,7 +83,7 @@ export default function HomePage() {
               icon={<Store className="w-10 h-10" />}
               title="Dashboard Lojista"
               description="Métricas da loja em tempo real"
-              href="/lojista"
+              href="/dashboard"
               color="bg-gradient-to-br from-green-600 to-green-700"
               badge="✅ REAL"
             />
@@ -92,7 +92,7 @@ export default function HomePage() {
               icon={<Settings className="w-10 h-10" />}
               title="Configurações"
               description="Configurar dados da loja"
-              href="/lojista/configuracoes"
+              href="/settings"
               color="bg-gradient-to-br from-gray-600 to-gray-700"
               badge="UI"
             />
