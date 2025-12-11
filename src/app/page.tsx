@@ -3,24 +3,27 @@ import { Store, ShoppingCart, ChefHat, Truck, BarChart3, Users } from "lucide-re
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-50">
       <div className="container mx-auto px-4 py-16">
         <div className="text-center mb-16">
-          <h1 className="text-5xl font-bold text-gray-900 mb-4">
+          <div className="inline-block p-4 bg-gradient-to-r from-green-600 to-green-700 rounded-2xl mb-6 shadow-lg">
+            <Store className="w-16 h-16 text-white" />
+          </div>
+          <h1 className="text-6xl font-bold bg-gradient-to-r from-green-600 to-green-800 bg-clip-text text-transparent mb-6">
             Food Management System
           </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-2xl text-gray-700 max-w-3xl mx-auto font-medium">
             Sistema completo de gestão para negócios de alimentação. Multi-loja, multi-nicho.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto mb-16">
           <ModuleCard
             icon={<Store className="w-12 h-12" />}
             title="Cardápio Digital"
             description="QR code por mesa, categorias personalizadas, modificadores flexíveis"
             href="/menu"
-            color="bg-blue-500"
+            color="bg-gradient-to-br from-green-500 to-green-600"
           />
           
           <ModuleCard
@@ -28,7 +31,7 @@ export default function HomePage() {
             title="PDV (Point of Sale)"
             description="Interface rápida para pedidos, múltiplos métodos de pagamento, controle de caixa"
             href="/pos"
-            color="bg-green-500"
+            color="bg-gradient-to-br from-blue-500 to-blue-600"
           />
           
           <ModuleCard
@@ -36,7 +39,7 @@ export default function HomePage() {
             title="Cozinha/KDS"
             description="Display de pedidos em tempo real, workflow de preparação, estações separadas"
             href="/kitchen"
-            color="bg-orange-500"
+            color="bg-gradient-to-br from-orange-500 to-orange-600"
           />
           
           <ModuleCard
@@ -44,7 +47,7 @@ export default function HomePage() {
             title="Delivery"
             description="Gestão de entregas, atribuição de entregadores, rastreamento em tempo real"
             href="/delivery"
-            color="bg-purple-500"
+            color="bg-gradient-to-br from-purple-500 to-purple-600"
           />
           
           <ModuleCard
@@ -52,7 +55,7 @@ export default function HomePage() {
             title="Dashboard Admin"
             description="Relatórios, analytics, gestão de estoque, configurações da loja"
             href="/admin"
-            color="bg-red-500"
+            color="bg-gradient-to-br from-red-500 to-red-600"
           />
           
           <ModuleCard
