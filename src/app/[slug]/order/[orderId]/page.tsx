@@ -1,16 +1,19 @@
 'use client'
+
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { CheckCircle2, Clock, ChefHat, Truck, Package } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+
 interface OrderEvent {
   id: string
   type: string
   message: string | null
   created_at: string
 }
+
 interface Order {
   id: string
   code: string
@@ -35,6 +38,7 @@ interface Order {
   }>
   events: OrderEvent[]
 }
+
 const STATUS_CONFIG = {
   PENDING: { label: 'Aguardando confirmação', icon: Clock, color: 'text-yellow-600' },
   ACCEPTED: { label: 'Pedido aceito', icon: CheckCircle2, color: 'text-green-600' },
@@ -44,6 +48,7 @@ const STATUS_CONFIG = {
   DELIVERED: { label: 'Entregue', icon: CheckCircle2, color: 'text-green-600' },
   CANCELLED: { label: 'Cancelado', icon: CheckCircle2, color: 'text-red-600' },
 }
+
 export default function OrderTrackingPage({
   params,
 }: {
@@ -53,6 +58,7 @@ export default function OrderTrackingPage({
   const [order, setOrder] = useState<Order | null>(null)
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
+
   useEffect(() => {
     loadOrder()
     
@@ -83,10 +89,12 @@ export default function OrderTrackingPage({
         }
       )
       .subscribe()
+
     return () => {
       supabase.removeChannel(channel)
     }
   }, [params.orderId])
+
   async function loadOrder() {
     try {
       const { data, error } = await supabase
@@ -102,6 +110,7 @@ export default function OrderTrackingPage({
         `)
         .eq('id', params.orderId)
         .single()
+
       if (error) throw error
       if (!data) return
       
@@ -118,6 +127,7 @@ export default function OrderTrackingPage({
       setLoading(false)
     }
   }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -128,6 +138,7 @@ export default function OrderTrackingPage({
       </div>
     )
   }
+
   if (!order) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -141,8 +152,10 @@ export default function OrderTrackingPage({
       </div>
     )
   }
+
   const statusConfig = STATUS_CONFIG[order.status as keyof typeof STATUS_CONFIG]
   const StatusIcon = statusConfig?.icon || Clock
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b">
@@ -151,6 +164,7 @@ export default function OrderTrackingPage({
           <p className="text-sm text-gray-600">{formatDate(order.created_at)}</p>
         </div>
       </header>
+
       <main className="container mx-auto px-4 py-6 max-w-2xl space-y-6">
         <div className="bg-white rounded-lg p-6 shadow-sm text-center">
           <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4 ${statusConfig?.color}`}>
@@ -192,6 +206,7 @@ export default function OrderTrackingPage({
             </p>
           )}
         </div>
+
         <div className="bg-white rounded-lg p-6 shadow-sm">
           <h3 className="font-bold text-lg mb-4">Itens do pedido</h3>
           <div className="space-y-4">
@@ -218,6 +233,7 @@ export default function OrderTrackingPage({
               </div>
             ))}
           </div>
+
           <div className="border-t mt-4 pt-4 space-y-2">
             <div className="flex justify-between text-gray-600">
               <span>Subtotal</span>
@@ -235,6 +251,7 @@ export default function OrderTrackingPage({
             </div>
           </div>
         </div>
+
         <div className="bg-white rounded-lg p-6 shadow-sm">
           <h3 className="font-bold text-lg mb-4">Informações do pedido</h3>
           <div className="space-y-3 text-sm">
@@ -265,6 +282,7 @@ export default function OrderTrackingPage({
             </div>
           </div>
         </div>
+
         {order.events && order.events.length > 0 && (
           <div className="bg-white rounded-lg p-6 shadow-sm">
             <h3 className="font-bold text-lg mb-4">Histórico do pedido</h3>
@@ -285,6 +303,7 @@ export default function OrderTrackingPage({
             </div>
           </div>
         )}
+
         <Button
           onClick={() => router.push(`/${params.slug}`)}
           variant="outline"
