@@ -17,166 +17,188 @@ export default function HomePage() {
           </p>
         </div>
 
+        {/* Route Group: (auth) */}
         <div className="mb-12">
-          <h2 className="text-3xl font-bold text-center mb-8 text-gray-800">🎯 Módulos Operacionais (Integrados com Supabase)</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            <ModuleCard
-              icon={<ShoppingCart className="w-10 h-10" />}
-              title="PDV"
-              description="Point of Sale - Produtos e pedidos reais"
-              href="/pos"
-              color="bg-gradient-to-br from-blue-500 to-blue-600"
-              badge="✅ REAL"
-            />
-            
-            <ModuleCard
-              icon={<ChefHat className="w-10 h-10" />}
-              title="Cozinha/KDS"
-              description="Pedidos em tempo real do Supabase"
-              href="/kitchen"
-              color="bg-gradient-to-br from-orange-500 to-orange-600"
-              badge="✅ REAL"
-            />
-            
-            <ModuleCard
-              icon={<Truck className="w-10 h-10" />}
-              title="Delivery"
-              description="Gestão de entregas com dados reais"
-              href="/delivery"
-              color="bg-gradient-to-br from-purple-500 to-purple-600"
-              badge="✅ REAL"
-            />
-            
-            <ModuleCard
-              icon={<BarChart3 className="w-10 h-10" />}
-              title="Dashboard Admin"
-              description="Métricas reais do Supabase"
-              href="/dashboard"
-              color="bg-gradient-to-br from-red-500 to-red-600"
-              badge="✅ REAL"
-            />
-            
-            <ModuleCard
-              icon={<Package className="w-10 h-10" />}
-              title="Produtos (CRUD)"
-              description="Gerenciar produtos no banco"
-              href="/products"
-              color="bg-gradient-to-br from-green-500 to-green-600"
-              badge="✅ REAL"
-            />
-            
-            <ModuleCard
-              icon={<Users className="w-10 h-10" />}
-              title="CRM"
-              description="Clientes reais do Supabase"
-              href="/crm"
-              color="bg-gradient-to-br from-pink-500 to-pink-600"
-              badge="✅ REAL"
-            />
+          <div className="flex items-center justify-center gap-3 mb-8">
+            <h2 className="text-3xl font-bold text-gray-800">🔐 Route Group: (auth)</h2>
+            <span className="px-3 py-1 bg-teal-100 text-teal-700 rounded-full text-sm font-bold">Autenticação</span>
           </div>
-        </div>
-
-        <div className="mb-12">
-          <h2 className="text-3xl font-bold text-center mb-8 text-gray-800">🏪 Área do Lojista</h2>
           <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-            <ModuleCard
-              icon={<Store className="w-10 h-10" />}
-              title="Dashboard Lojista"
-              description="Métricas da loja em tempo real"
-              href="/dashboard"
-              color="bg-gradient-to-br from-green-600 to-green-700"
-              badge="✅ REAL"
-            />
-            
-            <ModuleCard
-              icon={<Settings className="w-10 h-10" />}
-              title="Configurações"
-              description="Configurar dados da loja"
-              href="/settings"
-              color="bg-gradient-to-br from-gray-600 to-gray-700"
-              badge="UI"
-            />
-          </div>
-        </div>
-
-        <div className="mb-12">
-          <h2 className="text-3xl font-bold text-center mb-8 text-gray-800">🛒 Área do Cliente</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            <ModuleCard
-              icon={<Store className="w-10 h-10" />}
-              title="Cardápio"
-              description="Ver produtos da loja (exemplo)"
-              href="/acai-sabor-real"
-              color="bg-gradient-to-br from-green-500 to-green-600"
-              badge="✅ REAL"
-            />
-            
-            <ModuleCard
-              icon={<ShoppingCart className="w-10 h-10" />}
-              title="Carrinho"
-              description="Ver carrinho de compras"
-              href="/acai-sabor-real/cart"
-              color="bg-gradient-to-br from-blue-500 to-blue-600"
-              badge="UI"
-            />
-            
-            <ModuleCard
-              icon={<FileText className="w-10 h-10" />}
-              title="Checkout"
-              description="Finalizar pedido"
-              href="/acai-sabor-real/checkout"
-              color="bg-gradient-to-br from-purple-500 to-purple-600"
-              badge="✅ REAL"
-            />
-            
-            <ModuleCard
-              icon={<UserCircle className="w-10 h-10" />}
-              title="Perfil"
-              description="Dados do cliente"
-              href="/profile"
-              color="bg-gradient-to-br from-indigo-500 to-indigo-600"
-              badge="UI"
-            />
-          </div>
-        </div>
-
-        <div className="mb-12">
-          <h2 className="text-3xl font-bold text-center mb-8 text-gray-800">🔐 Autenticação & Outros</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
             <ModuleCard
               icon={<LogIn className="w-10 h-10" />}
               title="Login"
-              description="Entrar no sistema"
+              description="/login - Entrar no sistema"
               href="/login"
               color="bg-gradient-to-br from-teal-500 to-teal-600"
-              badge="UI"
+              badge="(auth)"
             />
-            
             <ModuleCard
               icon={<UserCircle className="w-10 h-10" />}
-              title="Cadastro"
-              description="Criar conta"
+              title="Signup"
+              description="/signup - Criar conta"
               href="/signup"
               color="bg-gradient-to-br from-cyan-500 to-cyan-600"
-              badge="UI"
+              badge="(auth)"
             />
-            
+          </div>
+        </div>
+
+        {/* Route Group: (super-admin) */}
+        <div className="mb-12">
+          <div className="flex items-center justify-center gap-3 mb-8">
+            <h2 className="text-3xl font-bold text-gray-800">👑 Route Group: (super-admin)</h2>
+            <span className="px-3 py-1 bg-gray-800 text-white rounded-full text-sm font-bold">Sidebar Escura</span>
+          </div>
+          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             <ModuleCard
               icon={<Building2 className="w-10 h-10" />}
               title="Tenants"
-              description="Multi-tenant"
+              description="/tenants - Gestão de redes"
               href="/tenants"
-              color="bg-gradient-to-br from-indigo-500 to-indigo-600"
-              badge="UI"
+              color="bg-gradient-to-br from-gray-700 to-gray-900"
+              badge="(super-admin)"
             />
-            
             <ModuleCard
               icon={<MapPin className="w-10 h-10" />}
-              title="Lojas"
-              description="Gestão de lojas"
+              title="Stores"
+              description="/stores - Gestão de lojas"
               href="/stores"
-              color="bg-gradient-to-br from-violet-500 to-violet-600"
-              badge="UI"
+              color="bg-gradient-to-br from-gray-700 to-gray-900"
+              badge="(super-admin)"
+            />
+          </div>
+        </div>
+
+        {/* Route Group: (store-dashboard) */}
+        <div className="mb-12">
+          <div className="flex items-center justify-center gap-3 mb-8">
+            <h2 className="text-3xl font-bold text-gray-800">🏪 Route Group: (store-dashboard)</h2>
+            <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-bold">Sidebar Clara</span>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+            <ModuleCard
+              icon={<BarChart3 className="w-10 h-10" />}
+              title="Dashboard"
+              description="/dashboard - Painel do lojista"
+              href="/dashboard"
+              color="bg-gradient-to-br from-red-500 to-red-600"
+              badge="(store-dashboard)"
+            />
+            <ModuleCard
+              icon={<Package className="w-10 h-10" />}
+              title="Products"
+              description="/products - CRUD de produtos"
+              href="/products"
+              color="bg-gradient-to-br from-green-500 to-green-600"
+              badge="(store-dashboard)"
+            />
+            <ModuleCard
+              icon={<Users className="w-10 h-10" />}
+              title="CRM"
+              description="/crm - Gestão de clientes"
+              href="/crm"
+              color="bg-gradient-to-br from-pink-500 to-pink-600"
+              badge="(store-dashboard)"
+            />
+            <ModuleCard
+              icon={<ShoppingCart className="w-10 h-10" />}
+              title="POS"
+              description="/pos - Point of Sale"
+              href="/pos"
+              color="bg-gradient-to-br from-blue-500 to-blue-600"
+              badge="(store-dashboard)"
+            />
+            <ModuleCard
+              icon={<ChefHat className="w-10 h-10" />}
+              title="Kitchen"
+              description="/kitchen - KDS"
+              href="/kitchen"
+              color="bg-gradient-to-br from-orange-500 to-orange-600"
+              badge="(store-dashboard)"
+            />
+            <ModuleCard
+              icon={<Truck className="w-10 h-10" />}
+              title="Delivery"
+              description="/delivery - Entregas"
+              href="/delivery"
+              color="bg-gradient-to-br from-purple-500 to-purple-600"
+              badge="(store-dashboard)"
+            />
+            <ModuleCard
+              icon={<Settings className="w-10 h-10" />}
+              title="Settings"
+              description="/settings - Configurações"
+              href="/settings"
+              color="bg-gradient-to-br from-gray-600 to-gray-700"
+              badge="(store-dashboard)"
+            />
+          </div>
+        </div>
+
+        {/* Route Group: (storefront) */}
+        <div className="mb-12">
+          <div className="flex items-center justify-center gap-3 mb-8">
+            <h2 className="text-3xl font-bold text-gray-800">🛒 Route Group: (storefront)</h2>
+            <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-bold">Loja do Cliente</span>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+            <ModuleCard
+              icon={<Store className="w-10 h-10" />}
+              title="Menu"
+              description="/:slug - Cardápio"
+              href="/acai-sabor-real"
+              color="bg-gradient-to-br from-green-500 to-green-600"
+              badge="(storefront)"
+            />
+            <ModuleCard
+              icon={<ShoppingCart className="w-10 h-10" />}
+              title="Cart"
+              description="/:slug/cart - Carrinho"
+              href="/acai-sabor-real/cart"
+              color="bg-gradient-to-br from-blue-500 to-blue-600"
+              badge="(storefront)"
+            />
+            <ModuleCard
+              icon={<FileText className="w-10 h-10" />}
+              title="Checkout"
+              description="/:slug/checkout - Finalizar"
+              href="/acai-sabor-real/checkout"
+              color="bg-gradient-to-br from-purple-500 to-purple-600"
+              badge="(storefront)"
+            />
+            <ModuleCard
+              icon={<FileText className="w-10 h-10" />}
+              title="Order"
+              description="/:slug/order/:id - Pedido"
+              href="/acai-sabor-real/order/123"
+              color="bg-gradient-to-br from-indigo-500 to-indigo-600"
+              badge="(storefront)"
+            />
+          </div>
+        </div>
+
+        {/* Route Group: (public) */}
+        <div className="mb-12">
+          <div className="flex items-center justify-center gap-3 mb-8">
+            <h2 className="text-3xl font-bold text-gray-800">🌍 Route Group: (public)</h2>
+            <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-bold">Páginas Públicas</span>
+          </div>
+          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+            <ModuleCard
+              icon={<Store className="w-10 h-10" />}
+              title="Landing"
+              description="/landing - Página de apresentação"
+              href="/landing"
+              color="bg-gradient-to-br from-purple-500 to-purple-600"
+              badge="(public)"
+            />
+            <ModuleCard
+              icon={<UserCircle className="w-10 h-10" />}
+              title="Profile"
+              description="/profile - Perfil do usuário"
+              href="/profile"
+              color="bg-gradient-to-br from-indigo-500 to-indigo-600"
+              badge="(public)"
             />
           </div>
         </div>
