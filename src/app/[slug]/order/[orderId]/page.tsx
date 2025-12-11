@@ -113,11 +113,12 @@ export default function OrderTrackingPage({
 
       if (error) throw error
       
-      const sortedEvents = [...(data.events || [])].sort(
-        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      const orderData = data as any
+      const sortedEvents = [...(orderData.events || [])].sort(
+        (a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       )
       
-      setOrder({ ...data, events: sortedEvents } as Order)
+      setOrder({ ...orderData, events: sortedEvents } as Order)
     } catch (error) {
       console.error('Error loading order:', error)
     } finally {

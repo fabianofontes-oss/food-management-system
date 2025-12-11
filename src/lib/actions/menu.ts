@@ -63,10 +63,10 @@ export async function getProductWithModifiers(productId: string): Promise<Produc
     .select('group_id')
     .eq('product_id', productId)
 
-  const groupIds = productModifierGroups?.map(pmg => pmg.group_id) || []
+  const groupIds = productModifierGroups?.map((pmg: any) => pmg.group_id) || []
 
   if (groupIds.length === 0) {
-    return { ...product, modifier_groups: [] } as ProductWithModifiers
+    return { ...(product as any), modifier_groups: [] } as ProductWithModifiers
   }
 
   const { data: modifierGroups } = await supabase
@@ -79,14 +79,14 @@ export async function getProductWithModifiers(productId: string): Promise<Produc
     .order('sort_order', { ascending: true })
 
   const groups = (modifierGroups || []).map(group => ({
-    ...group,
-    options: (group.options || [])
+    ...(group as any),
+    options: ((group as any).options || [])
       .filter((opt: any) => opt.is_active)
       .sort((a: any, b: any) => a.sort_order - b.sort_order)
   }))
 
   return {
-    ...product,
+    ...(product as any),
     modifier_groups: groups
   } as ProductWithModifiers
 }
