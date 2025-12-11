@@ -342,6 +342,251 @@ export type Database = {
           updated_at?: string
         }
       }
+      modifier_groups: {
+        Row: {
+          id: string
+          store_id: string
+          name: string
+          min_quantity: number
+          max_quantity: number
+          required: boolean
+          applies_to_all_products: boolean
+          sort_order: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          store_id: string
+          name: string
+          min_quantity?: number
+          max_quantity?: number
+          required?: boolean
+          applies_to_all_products?: boolean
+          sort_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          store_id?: string
+          name?: string
+          min_quantity?: number
+          max_quantity?: number
+          required?: boolean
+          applies_to_all_products?: boolean
+          sort_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      modifier_options: {
+        Row: {
+          id: string
+          group_id: string
+          name: string
+          extra_price: number
+          is_active: boolean
+          sort_order: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          group_id: string
+          name: string
+          extra_price?: number
+          is_active?: boolean
+          sort_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          group_id?: string
+          name?: string
+          extra_price?: number
+          is_active?: boolean
+          sort_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      product_modifier_groups: {
+        Row: {
+          id: string
+          product_id: string
+          group_id: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          product_id: string
+          group_id: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          product_id?: string
+          group_id?: string
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      order_items: {
+        Row: {
+          id: string
+          order_id: string
+          product_id: string
+          title_snapshot: string
+          unit_price: number
+          quantity: number
+          unit_type: 'unit' | 'weight'
+          weight: number | null
+          subtotal: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          order_id: string
+          product_id: string
+          title_snapshot: string
+          unit_price: number
+          quantity?: number
+          unit_type: 'unit' | 'weight'
+          weight?: number | null
+          subtotal: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          order_id?: string
+          product_id?: string
+          title_snapshot?: string
+          unit_price?: number
+          quantity?: number
+          unit_type?: 'unit' | 'weight'
+          weight?: number | null
+          subtotal?: number
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      order_item_modifiers: {
+        Row: {
+          id: string
+          order_item_id: string
+          modifier_option_id: string
+          name_snapshot: string
+          extra_price: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          order_item_id: string
+          modifier_option_id: string
+          name_snapshot: string
+          extra_price: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          order_item_id?: string
+          modifier_option_id?: string
+          name_snapshot?: string
+          extra_price?: number
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      order_events: {
+        Row: {
+          id: string
+          order_id: string
+          type: 'CREATED' | 'ACCEPTED' | 'IN_PREPARATION' | 'READY' | 'OUT_FOR_DELIVERY' | 'DELIVERED' | 'CANCELLED' | 'NOTE'
+          message: string | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          order_id: string
+          type: 'CREATED' | 'ACCEPTED' | 'IN_PREPARATION' | 'READY' | 'OUT_FOR_DELIVERY' | 'DELIVERED' | 'CANCELLED' | 'NOTE'
+          message?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          order_id?: string
+          type?: 'CREATED' | 'ACCEPTED' | 'IN_PREPARATION' | 'READY' | 'OUT_FOR_DELIVERY' | 'DELIVERED' | 'CANCELLED' | 'NOTE'
+          message?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      customer_addresses: {
+        Row: {
+          id: string
+          customer_id: string
+          label: string | null
+          street: string
+          number: string
+          complement: string | null
+          district: string
+          city: string
+          state: string
+          zip_code: string
+          reference: string | null
+          latitude: number | null
+          longitude: number | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          customer_id: string
+          label?: string | null
+          street: string
+          number: string
+          complement?: string | null
+          district: string
+          city: string
+          state: string
+          zip_code: string
+          reference?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          customer_id?: string
+          label?: string | null
+          street?: string
+          number?: string
+          complement?: string | null
+          district?: string
+          city?: string
+          state?: string
+          zip_code?: string
+          reference?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never

@@ -112,13 +112,15 @@ export default function OrderTrackingPage({
         .single()
 
       if (error) throw error
+      if (!data) return
       
-      const orderData = data as any
-      const sortedEvents = [...(orderData.events || [])].sort(
-        (a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      )
+      const sortedEvents = Array.isArray(data.events) 
+        ? [...data.events].sort(
+            (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          )
+        : []
       
-      setOrder({ ...orderData, events: sortedEvents } as Order)
+      setOrder({ ...data, events: sortedEvents } as Order)
     } catch (error) {
       console.error('Error loading order:', error)
     } finally {
@@ -222,7 +224,7 @@ export default function OrderTrackingPage({
                   <div className="text-sm text-gray-600 ml-6">
                     {item.modifiers.map((mod, modIdx) => (
                       <div key={modIdx}>
-                        • {mod.name_snapshot}
+                        - {mod.name_snapshot}
                         {mod.extra_price > 0 && ` (+${formatCurrency(mod.extra_price)})`}
                       </div>
                     ))}
