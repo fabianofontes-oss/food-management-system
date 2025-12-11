@@ -105,24 +105,24 @@ export function ProductModal({ productId, isOpen, onClose }: ProductModalProps) 
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="bg-white w-full sm:max-w-2xl sm:rounded-lg max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
+      <div className="bg-white w-full sm:max-w-2xl sm:rounded-2xl max-h-[90vh] overflow-y-auto shadow-2xl animate-in slide-in-from-bottom sm:slide-in-from-bottom-0 duration-300">
         {loading ? (
           <div className="p-8 text-center">
             <p className="text-gray-500">Carregando...</p>
           </div>
         ) : product ? (
           <>
-            <div className="sticky top-0 bg-white border-b p-4 flex items-center justify-between">
-              <h2 className="text-xl font-bold">{product.name}</h2>
-              <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full">
-                <X className="w-5 h-5" />
+            <div className="sticky top-0 bg-gradient-to-r from-green-600 to-green-700 text-white p-4 flex items-center justify-between shadow-md">
+              <h2 className="text-2xl font-bold">{product.name}</h2>
+              <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-full transition-colors">
+                <X className="w-6 h-6" />
               </button>
             </div>
 
             <div className="p-6 space-y-6">
               {product.image_url && (
-                <div className="relative w-full h-48 rounded-lg overflow-hidden bg-gray-100">
+                <div className="relative w-full h-64 rounded-2xl overflow-hidden bg-gradient-to-br from-green-50 to-green-100 shadow-lg">
                   <Image
                     src={product.image_url}
                     alt={product.name}
@@ -136,19 +136,25 @@ export function ProductModal({ productId, isOpen, onClose }: ProductModalProps) 
                 <p className="text-gray-600">{product.description}</p>
               )}
 
-              <div className="text-2xl font-bold text-green-600">
-                {formatCurrency(product.base_price)}
+              <div className="flex items-center gap-2">
+                <span className="text-3xl font-bold text-green-600">
+                  {formatCurrency(product.base_price)}
+                </span>
+                <span className="text-sm text-gray-500">preço base</span>
               </div>
 
               {product.modifier_groups.map(group => (
-                <div key={group.id} className="space-y-3">
+                <div key={group.id} className="space-y-3 p-4 bg-gray-50 rounded-xl">
                   <div>
-                    <h3 className="font-semibold text-lg">{group.name}</h3>
-                    <p className="text-sm text-gray-500">
-                      {group.required ? 'Obrigatório' : 'Opcional'}
-                      {' • '}
-                      {group.max_quantity === 1 ? 'Escolha 1' : `Escolha até ${group.max_quantity}`}
-                    </p>
+                    <h3 className="font-bold text-lg text-gray-900">{group.name}</h3>
+                    <div className="flex items-center gap-2 mt-1">
+                      {group.required && (
+                        <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-semibold rounded-full">Obrigatório</span>
+                      )}
+                      <span className="text-sm text-gray-600">
+                        {group.max_quantity === 1 ? 'Escolha 1' : `Escolha até ${group.max_quantity}`}
+                      </span>
+                    </div>
                   </div>
 
                   <div className="space-y-2">
@@ -159,16 +165,27 @@ export function ProductModal({ productId, isOpen, onClose }: ProductModalProps) 
                         <button
                           key={option.id}
                           onClick={() => toggleModifier(group.id, option.id, option.name, option.extra_price, group)}
-                          className={`w-full p-3 rounded-lg border-2 transition-colors text-left ${
+                          className={`w-full p-4 rounded-xl border-2 transition-all transform hover:scale-[1.02] text-left ${
                             isSelected
-                              ? 'border-green-500 bg-green-50'
-                              : 'border-gray-200 hover:border-gray-300'
+                              ? 'border-green-500 bg-gradient-to-r from-green-50 to-green-100 shadow-md'
+                              : 'border-gray-200 bg-white hover:border-green-300 hover:shadow-sm'
                           }`}
                         >
                           <div className="flex items-center justify-between">
-                            <span className="font-medium">{option.name}</span>
+                            <div className="flex items-center gap-3">
+                              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                                isSelected ? 'border-green-600 bg-green-600' : 'border-gray-300'
+                              }`}>
+                                {isSelected && (
+                                  <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                  </svg>
+                                )}
+                              </div>
+                              <span className="font-semibold text-gray-900">{option.name}</span>
+                            </div>
                             {option.extra_price > 0 && (
-                              <span className="text-green-600">
+                              <span className="text-green-600 font-bold">
                                 + {formatCurrency(option.extra_price)}
                               </span>
                             )}
@@ -193,33 +210,38 @@ export function ProductModal({ productId, isOpen, onClose }: ProductModalProps) 
                 />
               </div>
 
-              <div className="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
-                <span className="font-medium">Quantidade</span>
-                <div className="flex items-center gap-3">
+              <div className="flex items-center justify-between bg-gradient-to-r from-gray-50 to-gray-100 p-5 rounded-xl">
+                <span className="font-bold text-gray-900">Quantidade</span>
+                <div className="flex items-center gap-4">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="p-2 rounded-full bg-white border hover:bg-gray-50"
+                    className="p-2 rounded-full bg-white border-2 border-gray-300 hover:border-green-500 hover:bg-green-50 transition-all"
                   >
-                    <Minus className="w-4 h-4" />
+                    <Minus className="w-5 h-5" />
                   </button>
-                  <span className="w-8 text-center font-semibold">{quantity}</span>
+                  <span className="w-10 text-center font-bold text-xl text-green-600">{quantity}</span>
                   <button
                     onClick={() => setQuantity(quantity + 1)}
-                    className="p-2 rounded-full bg-white border hover:bg-gray-50"
+                    className="p-2 rounded-full bg-white border-2 border-gray-300 hover:border-green-500 hover:bg-green-50 transition-all"
                   >
-                    <Plus className="w-4 h-4" />
+                    <Plus className="w-5 h-5" />
                   </button>
                 </div>
               </div>
             </div>
 
-            <div className="sticky bottom-0 bg-white border-t p-4">
+            <div className="sticky bottom-0 bg-white border-t p-4 shadow-lg">
               <Button
                 onClick={handleAddToCart}
                 disabled={!canAddToCart()}
-                className="w-full h-12 text-lg"
+                className="w-full h-14 text-lg font-bold bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 shadow-lg"
               >
-                Adicionar • {formatCurrency(calculateTotal())}
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  Adicionar • {formatCurrency(calculateTotal())}
+                </span>
               </Button>
             </div>
           </>
