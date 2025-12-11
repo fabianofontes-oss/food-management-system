@@ -62,8 +62,8 @@ export default function HomePage() {
             icon={<Users className="w-12 h-12" />}
             title="Multi-Tenant"
             description="Suporte para múltiplas lojas e redes, isolamento de dados, configurações por nicho"
-            href="/stores"
-            color="bg-indigo-500"
+            href="/tenants"
+            color="bg-gradient-to-br from-indigo-500 to-indigo-600"
           />
         </div>
 
