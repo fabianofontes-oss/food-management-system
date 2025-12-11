@@ -7,9 +7,87 @@ import type { Product } from '@/types/menu'
 interface ProductCardProps {
   product: Product
   onClick: () => void
+  viewMode?: 'grid' | 'list' | 'visual'
 }
 
-export function ProductCard({ product, onClick }: ProductCardProps) {
+export function ProductCard({ product, onClick, viewMode = 'grid' }: ProductCardProps) {
+  if (viewMode === 'list') {
+    return (
+      <button
+        onClick={onClick}
+        className="group w-full bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden text-left"
+      >
+        <div className="flex gap-4 p-4 items-center">
+          <div className="relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden bg-gradient-to-br from-green-50 to-green-100">
+            {product.image_url ? (
+              <Image
+                src={product.image_url}
+                alt={product.name}
+                fill
+                className="object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <svg className="w-8 h-8 text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+            )}
+          </div>
+          
+          <div className="flex-1 min-w-0">
+            <h3 className="font-bold text-base text-gray-900 group-hover:text-green-600 transition-colors">
+              {product.name}
+            </h3>
+            {product.description && (
+              <p className="text-sm text-gray-500 line-clamp-1 mt-1">
+                {product.description}
+              </p>
+            )}
+          </div>
+          
+          <p className="text-lg font-bold text-green-600">
+            {formatCurrency(product.base_price)}
+          </p>
+        </div>
+      </button>
+    )
+  }
+
+  if (viewMode === 'visual') {
+    return (
+      <button
+        onClick={onClick}
+        className="group w-full bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden text-left transform hover:-translate-y-1"
+      >
+        <div className="relative w-full aspect-square bg-gradient-to-br from-green-50 to-green-100">
+          {product.image_url ? (
+            <Image
+              src={product.image_url}
+              alt={product.name}
+              fill
+              className="object-cover group-hover:scale-110 transition-transform duration-300"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <svg className="w-20 h-20 text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+          )}
+        </div>
+        <div className="p-4">
+          <h3 className="font-bold text-lg text-gray-900 mb-1 group-hover:text-green-600 transition-colors">
+            {product.name}
+          </h3>
+          <p className="text-xl font-bold text-green-600">
+            {formatCurrency(product.base_price)}
+          </p>
+        </div>
+      </button>
+    )
+  }
+
   return (
     <button
       onClick={onClick}
