@@ -22,7 +22,7 @@ export async function createOrder(
       .single()
 
     if (existingCustomer) {
-      customerId = existingCustomer.id
+      customerId = (existingCustomer as any).id
     } else {
       const { data: newCustomer, error: customerError } = await supabase
         .from('customers')
@@ -31,12 +31,12 @@ export async function createOrder(
           name: orderData.customer.name,
           phone: orderData.customer.phone,
           email: orderData.customer.email || null,
-        })
+        } as any)
         .select('id')
         .single()
 
       if (customerError) throw customerError
-      customerId = newCustomer.id
+      customerId = (newCustomer as any).id
     }
 
     let deliveryAddressId: string | null = null
@@ -46,12 +46,12 @@ export async function createOrder(
         .insert({
           customer_id: customerId,
           ...orderData.delivery_address,
-        })
+        } as any)
         .select('id')
         .single()
 
       if (addressError) throw addressError
-      deliveryAddressId = address.id
+      deliveryAddressId = (address as any).id
     }
 
     const subtotal = items.reduce((sum, item) => sum + item.subtotal, 0)
@@ -73,7 +73,7 @@ export async function createOrder(
         payment_method: orderData.payment_method,
         delivery_address_id: deliveryAddressId,
         notes: orderData.notes || null,
-      })
+      } as any)
       .select('id, code')
       .single()
 
@@ -83,14 +83,14 @@ export async function createOrder(
       const { data: orderItem, error: itemError } = await supabase
         .from('order_items')
         .insert({
-          order_id: order.id,
+          order_id: (order as any).id,
           product_id: item.product_id,
           title_snapshot: item.product_name,
           unit_price: item.unit_price,
           quantity: item.quantity,
           unit_type: 'unit',
           subtotal: item.subtotal,
-        })
+        } as any)
         .select('id')
         .single()
 
@@ -98,7 +98,7 @@ export async function createOrder(
 
       if (item.modifiers.length > 0) {
         const modifiers = item.modifiers.map(mod => ({
-          order_item_id: orderItem.id,
+          order_item_id: (orderItem as any).id,
           modifier_option_id: mod.option_id,
           name_snapshot: mod.name,
           extra_price: mod.extra_price,
@@ -106,19 +106,19 @@ export async function createOrder(
 
         const { error: modError } = await supabase
           .from('order_item_modifiers')
-          .insert(modifiers)
+          .insert(modifiers as any)
 
         if (modError) throw modError
       }
     }
 
     await supabase.from('order_events').insert({
-      order_id: order.id,
+      order_id: (order as any).id,
       type: 'CREATED',
       message: 'Pedido criado',
-    })
+    } as any)
 
-    return { success: true, orderId: order.id, orderCode: order.code }
+    return { success: true, orderId: (order as any).id, orderCode: (order as any).code }
   } catch (error) {
     console.error('Error creating order:', error)
     return { success: false, error: 'Erro ao criar pedido' }
