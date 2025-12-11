@@ -3,10 +3,16 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Building2, Store, ChevronLeft, ChevronRight, Menu } from 'lucide-react'
+import { Building2, Store, ChevronLeft, ChevronRight, Menu, LayoutDashboard } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const menuItems = [
+  { 
+    href: '/admin', 
+    label: 'Dashboard', 
+    icon: LayoutDashboard,
+    description: 'Centro de Comando'
+  },
   { 
     href: '/tenants', 
     label: 'Tenants', 
