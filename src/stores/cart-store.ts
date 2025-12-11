@@ -5,6 +5,8 @@ import type { CartItem, SelectedModifier } from '@/types/menu'
 interface CartStore {
   storeSlug: string | null
   items: CartItem[]
+  couponCode: string | null
+  couponDiscount: number
   setStoreSlug: (slug: string) => void
   addItem: (
     productId: string,
@@ -16,8 +18,12 @@ interface CartStore {
   ) => void
   removeItem: (itemId: string) => void
   updateQuantity: (itemId: string, quantity: number) => void
+  applyCoupon: (code: string, discount: number) => void
+  removeCoupon: () => void
   clearCart: () => void
   getSubtotal: () => number
+  getDiscount: () => number
+  getTotal: () => number
   getItemCount: () => number
 }
 
@@ -26,6 +32,8 @@ export const useCartStore = create<CartStore>()(
     (set, get) => ({
       storeSlug: null,
       items: [],
+      couponCode: null,
+      couponDiscount: 0,
 
       setStoreSlug: (slug) => set({ storeSlug: slug }),
 
@@ -75,10 +83,28 @@ export const useCartStore = create<CartStore>()(
         }))
       },
 
-      clearCart: () => set({ items: [], storeSlug: null }),
+      applyCoupon: (code, discount) => {
+        set({ couponCode: code, couponDiscount: discount })
+      },
+
+      removeCoupon: () => {
+        set({ couponCode: null, couponDiscount: 0 })
+      },
+
+      clearCart: () => set({ items: [], storeSlug: null, couponCode: null, couponDiscount: 0 }),
 
       getSubtotal: () => {
         return get().items.reduce((sum, item) => sum + item.subtotal, 0)
+      },
+
+      getDiscount: () => {
+        return get().couponDiscount
+      },
+
+      getTotal: () => {
+        const subtotal = get().getSubtotal()
+        const discount = get().getDiscount()
+        return Math.max(0, subtotal - discount)
       },
 
       getItemCount: () => {
