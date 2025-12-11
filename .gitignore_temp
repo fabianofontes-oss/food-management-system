@@ -1,0 +1,5 @@
+# Arquivos a serem deletados
+src/components/dashboard/Sidebar.tsx
+temp_pos_backup.txt
+recovered_pos.txt
+organize.ps1
