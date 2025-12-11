@@ -1,78 +1,50 @@
 'use client'
 
 import { useState } from 'react'
-import { Truck, MapPin, Phone, Clock, CheckCircle, Package } from 'lucide-react'
+import { Truck, MapPin, Phone, Clock, CheckCircle, Package, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { formatCurrency } from '@/lib/utils'
-
-interface Delivery {
-  id: string
-  orderCode: string
-  customer: string
-  address: string
-  phone: string
-  total: number
-  status: 'pending' | 'assigned' | 'in_transit' | 'delivered'
-  driver?: string
-  createdAt: Date
-}
+import { useOrders } from '@/hooks/useOrders'
 
 export default function DeliveryPage() {
-  const [deliveries, setDeliveries] = useState<Delivery[]>([
-    {
-      id: '1',
-      orderCode: 'A001',
-      customer: 'João Silva',
-      address: 'Rua das Flores, 123 - Centro',
-      phone: '(11) 99999-9999',
-      total: 45.00,
-      status: 'pending',
-      createdAt: new Date(Date.now() - 5 * 60000)
-    },
-    {
-      id: '2',
-      orderCode: 'A002',
-      customer: 'Maria Santos',
-      address: 'Av. Principal, 456 - Jardim',
-      phone: '(11) 98888-8888',
-      total: 32.00,
-      status: 'assigned',
-      driver: 'Carlos Entregador',
-      createdAt: new Date(Date.now() - 15 * 60000)
-    },
-    {
-      id: '3',
-      orderCode: 'A003',
-      customer: 'Pedro Costa',
-      address: 'Rua do Comércio, 789 - Vila Nova',
-      phone: '(11) 97777-7777',
-      total: 28.00,
-      status: 'in_transit',
-      driver: 'Ana Delivery',
-      createdAt: new Date(Date.now() - 25 * 60000)
-    }
-  ])
-
+  const { orders, loading, updateOrderStatus } = useOrders()
+  const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null)
   const [drivers] = useState(['Carlos Entregador', 'Ana Delivery', 'José Motoboy'])
 
-  const updateStatus = (id: string, status: Delivery['status'], driver?: string) => {
-    setDeliveries(deliveries.map(delivery => 
-      delivery.id === id ? { ...delivery, status, driver } : delivery
-    ))
+  const deliveryOrders = orders.filter(o => o.order_type === 'delivery')
+
+  const updateStatus = async (id: string, newStatus: string) => {
+    setUpdatingOrderId(id)
+    try {
+      await updateOrderStatus(id, newStatus)
+    } catch (error) {
+      console.error('Erro ao atualizar status:', error)
+      alert('❌ Erro ao atualizar status')
+    } finally {
+      setUpdatingOrderId(null)
+    }
   }
 
-  const assignDriver = (id: string, driver: string) => {
-    updateStatus(id, 'assigned', driver)
-  }
-
-  const getElapsedTime = (date: Date) => {
+  const getElapsedTime = (dateString: string) => {
+    const date = new Date(dateString)
     const minutes = Math.floor((Date.now() - date.getTime()) / 60000)
     return `${minutes} min`
   }
 
-  const pendingDeliveries = deliveries.filter(d => d.status === 'pending')
-  const assignedDeliveries = deliveries.filter(d => d.status === 'assigned')
-  const inTransitDeliveries = deliveries.filter(d => d.status === 'in_transit')
+  const pendingDeliveries = deliveryOrders.filter(d => d.status === 'pending' || d.status === 'confirmed')
+  const assignedDeliveries = deliveryOrders.filter(d => d.status === 'preparing' || d.status === 'ready')
+  const inTransitDeliveries = deliveryOrders.filter(d => d.status === 'out_for_delivery')
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-purple-600 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600 text-lg">Carregando entregas...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
@@ -94,45 +66,41 @@ export default function DeliveryPage() {
             <div className="space-y-4 mt-4">
               {pendingDeliveries.map(delivery => (
                 <div key={delivery.id} className="bg-white rounded-2xl shadow-lg p-5 border-l-4 border-yellow-500">
-                  <div className="text-2xl font-bold text-gray-900 mb-2">#{delivery.orderCode}</div>
+                  <div className="text-2xl font-bold text-gray-900 mb-2">#{delivery.order_code}</div>
                   
                   <div className="space-y-2 mb-4">
                     <div className="flex items-start gap-2">
                       <MapPin className="w-5 h-5 text-gray-600 flex-shrink-0 mt-0.5" />
                       <div>
-                        <div className="font-semibold">{delivery.customer}</div>
-                        <div className="text-sm text-gray-600">{delivery.address}</div>
+                        <div className="font-semibold">{delivery.customer_name}</div>
+                        <div className="text-sm text-gray-600">{delivery.delivery_address || 'Endereço não informado'}</div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <Phone className="w-5 h-5 text-gray-600" />
-                      <span className="text-sm">{delivery.phone}</span>
+                      <span className="text-sm">{delivery.customer_phone}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Clock className="w-5 h-5 text-yellow-600" />
-                      <span className="text-sm font-semibold text-yellow-600">{getElapsedTime(delivery.createdAt)}</span>
+                      <span className="text-sm font-semibold text-yellow-600">{getElapsedTime(delivery.created_at)}</span>
                     </div>
                   </div>
 
                   <div className="text-2xl font-bold text-purple-600 mb-4">
-                    {formatCurrency(delivery.total)}
+                    {formatCurrency(delivery.total_amount)}
                   </div>
 
-                  <div className="space-y-2">
-                    <div className="text-sm font-semibold mb-2">Atribuir Entregador:</div>
-                    {drivers.map(driver => (
-                      <button
-                        key={driver}
-                        onClick={() => assignDriver(delivery.id, driver)}
-                        className="w-full p-3 text-left rounded-xl border-2 border-gray-200 hover:border-purple-500 hover:bg-purple-50 transition-all"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Truck className="w-5 h-5" />
-                          <span className="font-semibold">{driver}</span>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
+                  <Button
+                    onClick={() => updateStatus(delivery.id, 'preparing')}
+                    disabled={updatingOrderId === delivery.id}
+                    className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800"
+                  >
+                    {updatingOrderId === delivery.id ? (
+                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Processando...</>
+                    ) : (
+                      'Confirmar Pedido'
+                    )}
+                  </Button>
                 </div>
               ))}
             </div>
@@ -163,7 +131,7 @@ export default function DeliveryPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <Truck className="w-5 h-5 text-blue-600" />
-                      <span className="text-sm font-semibold text-blue-600">{delivery.driver}</span>
+                      <span className="text-sm font-semibold text-blue-600">Em preparo</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Clock className="w-5 h-5 text-gray-600" />
@@ -176,10 +144,15 @@ export default function DeliveryPage() {
                   </div>
 
                   <Button
-                    onClick={() => updateStatus(delivery.id, 'in_transit', delivery.driver)}
+                    onClick={() => updateStatus(delivery.id, 'out_for_delivery')}
+                    disabled={updatingOrderId === delivery.id}
                     className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
                   >
-                    Saiu para Entrega
+                    {updatingOrderId === delivery.id ? (
+                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Atualizando...</>
+                    ) : (
+                      'Saiu para Entrega'
+                    )}
                   </Button>
                 </div>
               ))}
@@ -211,7 +184,7 @@ export default function DeliveryPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <Truck className="w-5 h-5 text-green-600" />
-                      <span className="text-sm font-semibold text-green-600">{delivery.driver}</span>
+                      <span className="text-sm font-semibold text-green-600">Em trânsito</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Clock className="w-5 h-5 text-gray-600" />
@@ -224,11 +197,15 @@ export default function DeliveryPage() {
                   </div>
 
                   <Button
-                    onClick={() => updateStatus(delivery.id, 'delivered', delivery.driver)}
+                    onClick={() => updateStatus(delivery.id, 'delivered')}
+                    disabled={updatingOrderId === delivery.id}
                     className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
                   >
-                    <CheckCircle className="w-5 h-5 mr-2" />
-                    Confirmar Entrega
+                    {updatingOrderId === delivery.id ? (
+                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Finalizando...</>
+                    ) : (
+                      <><CheckCircle className="w-5 h-5 mr-2" />Confirmar Entrega</>
+                    )}
                   </Button>
                 </div>
               ))}

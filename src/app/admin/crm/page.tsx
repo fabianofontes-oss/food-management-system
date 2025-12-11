@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
-import { Search, Users, TrendingUp, DollarSign, MessageCircle } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Search, Users, TrendingUp, DollarSign, MessageCircle, Loader2 } from 'lucide-react'
 import { formatCurrency, formatPhone } from '@/lib/utils'
+import { supabase } from '@/lib/supabase'
 
 interface Customer {
   id: string
@@ -18,8 +19,54 @@ interface Customer {
 export default function CRMPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedSegment, setSelectedSegment] = useState<string | null>(null)
+  const [customers, setCustomers] = useState<Customer[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const customers: Customer[] = []
+  useEffect(() => {
+    async function fetchCustomers() {
+      setLoading(true)
+      try {
+        const { data: customersData } = await supabase
+          .from('customers')
+          .select('*')
+          .order('created_at', { ascending: false })
+
+        const { data: ordersData } = await supabase
+          .from('orders')
+          .select('customer_id, total_amount, created_at')
+
+        const customersWithStats = (customersData || []).map((customer: any) => {
+          const customerOrders = (ordersData || []).filter((o: any) => o.customer_id === customer.id)
+          const totalSpent = customerOrders.reduce((sum: number, o: any) => sum + o.total_amount, 0)
+          const totalOrders = customerOrders.length
+          const lastOrder = customerOrders[0]?.created_at || customer.created_at
+
+          let segment: 'VIP' | 'Regular' | 'New' | 'Inactive' = 'New'
+          if (totalSpent > 500) segment = 'VIP'
+          else if (totalOrders > 5) segment = 'Regular'
+          else if (totalOrders === 0) segment = 'Inactive'
+
+          return {
+            id: customer.id,
+            name: customer.name,
+            phone: customer.phone,
+            email: customer.email || '',
+            total_orders: totalOrders,
+            total_spent: totalSpent,
+            last_order_date: lastOrder,
+            segment
+          }
+        })
+
+        setCustomers(customersWithStats)
+      } catch (error) {
+        console.error('Erro ao buscar clientes:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchCustomers()
+  }, [])
 
   const filteredCustomers = customers.filter((c) => {
     const matchesSearch = c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -34,6 +81,17 @@ export default function CRMPage() {
     new: customers.filter(c => c.segment === 'New').length,
     inactive: customers.filter(c => c.segment === 'Inactive').length,
     totalRevenue: customers.reduce((sum, c) => sum + c.total_spent, 0)
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600 text-lg">Carregando clientes...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
