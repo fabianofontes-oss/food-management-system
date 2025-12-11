@@ -1,535 +1,654 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useState } from 'react'
 import { 
-  Settings, 
-  Store, 
-  ShoppingCart, 
-  ChefHat, 
-  Truck, 
-  Bell,
-  CreditCard,
-  Users,
-  Package,
-  Clock,
-  DollarSign,
-  Smartphone,
-  Printer,
-  Wifi,
-  Save,
-  RefreshCw,
-  Loader2,
-  CheckCircle2,
-  AlertCircle
+  Settings, ShoppingCart, ChefHat, Truck, Store, Package,
+  DollarSign, CreditCard, Smartphone, Bell, Mail, Volume2,
+  Users, Tag, Clock, UtensilsCrossed, Archive, Printer,
+  Wifi, Save, RotateCcw, Loader2, CheckCircle, XCircle
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { useSettings } from '@/hooks/useSettings'
+import { ToggleCard } from '@/components/settings/ToggleCard'
+import { settingsFormSchema, defaultSettings, type SettingsFormData } from '@/lib/validations/settings'
 import { useStores } from '@/hooks/useStores'
+import { supabase } from '@/lib/supabase'
 
 export default function SettingsPage() {
   const { stores } = useStores()
   const currentStore = stores[0]
-  const { settings, loading, error, updateSettings, resetToDefaults } = useSettings(currentStore?.id)
-  
-  const [isSaving, setIsSaving] = useState(false)
-  const [saveSuccess, setSaveSuccess] = useState(false)
-  const [saveError, setSaveError] = useState<string | null>(null)
-  const [localSettings, setLocalSettings] = useState(settings)
+  const [saving, setSaving] = useState(false)
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle')
 
-  useEffect(() => {
-    setLocalSettings(settings)
-  }, [settings])
+  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<SettingsFormData>({
+    resolver: zodResolver(settingsFormSchema),
+    defaultValues: defaultSettings,
+  })
 
-  const handleToggle = (key: string) => {
-    setLocalSettings(prev => ({
-      ...prev,
-      [key]: !prev[key as keyof typeof prev]
-    }))
-  }
+  const watchedValues = watch()
 
-  const handleNumberChange = (key: string, value: number) => {
-    setLocalSettings(prev => ({
-      ...prev,
-      [key]: value
-    }))
-  }
+  const onSubmit = async (data: SettingsFormData) => {
+    if (!currentStore?.id) {
+      alert('Nenhuma loja selecionada')
+      return
+    }
 
-  const handleSave = async () => {
-    setIsSaving(true)
-    setSaveSuccess(false)
-    setSaveError(null)
-    
+    setSaving(true)
+    setSaveStatus('idle')
+
     try {
-      const success = await updateSettings(localSettings)
-      
-      if (success) {
-        setSaveSuccess(true)
-        setTimeout(() => setSaveSuccess(false), 3000)
-      } else {
-        setSaveError('Erro ao salvar configurações')
-      }
-    } catch (err) {
-      setSaveError('Erro ao salvar configurações')
+      const { error } = await supabase
+        .from('stores')
+        .update({ settings: data })
+        .eq('id', currentStore.id)
+
+      if (error) throw error
+
+      setSaveStatus('success')
+      setTimeout(() => setSaveStatus('idle'), 3000)
+    } catch (error) {
+      console.error('Erro ao salvar configurações:', error)
+      setSaveStatus('error')
+      setTimeout(() => setSaveStatus('idle'), 3000)
     } finally {
-      setIsSaving(false)
+      setSaving(false)
     }
   }
 
-  const handleReset = async () => {
+  const handleReset = () => {
     if (confirm('Deseja restaurar as configurações padrão?')) {
-      setIsSaving(true)
-      const success = await resetToDefaults()
-      setIsSaving(false)
-      
-      if (success) {
-        setSaveSuccess(true)
-        setTimeout(() => setSaveSuccess(false), 3000)
-      }
+      Object.keys(defaultSettings).forEach((key) => {
+        setValue(key as keyof SettingsFormData, defaultSettings[key as keyof SettingsFormData])
+      })
     }
   }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600 text-lg">Carregando configurações...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <AlertCircle className="w-12 h-12 text-red-600 mx-auto mb-4" />
-          <p className="text-red-600 text-lg">{error}</p>
-        </div>
-      </div>
-    )
-  }
-
-  const ToggleItem = ({ 
-    icon: Icon, 
-    label, 
-    description, 
-    checked, 
-    onChange,
-    color = 'text-gray-600'
-  }: { 
-    icon: any
-    label: string
-    description: string
-    checked: boolean
-    onChange: () => void
-    color?: string
-  }) => (
-    <div className="flex items-start justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
-      <div className="flex items-start gap-3 flex-1">
-        <Icon className={`w-5 h-5 mt-0.5 ${color}`} />
-        <div>
-          <div className="font-semibold text-gray-900">{label}</div>
-          <div className="text-sm text-gray-600 mt-1">{description}</div>
-        </div>
-      </div>
-      <button
-        onClick={onChange}
-        className={`relative w-12 h-6 rounded-full transition-colors ${
-          checked ? 'bg-green-500' : 'bg-gray-300'
-        }`}
-      >
-        <div
-          className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${
-            checked ? 'translate-x-6' : 'translate-x-0'
-          }`}
-        />
-      </button>
-    </div>
-  )
-
-  const NumberInput = ({
-    icon: Icon,
-    label,
-    value,
-    onChange,
-    suffix,
-    color = 'text-gray-600'
-  }: {
-    icon: any
-    label: string
-    value: number
-    onChange: (value: number) => void
-    suffix: string
-    color?: string
-  }) => (
-    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-      <div className="flex items-center gap-3">
-        <Icon className={`w-5 h-5 ${color}`} />
-        <span className="font-semibold text-gray-900">{label}</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <input
-          type="number"
-          value={value}
-          onChange={(e) => onChange(Number(e.target.value))}
-          className="w-20 px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none text-center"
-        />
-        <span className="text-sm text-gray-600">{suffix}</span>
-      </div>
-    </div>
-  )
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white p-6">
       <div className="max-w-5xl mx-auto">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <Settings className="w-8 h-8 text-gray-700" />
+            <Settings className="w-10 h-10 text-gray-700" />
             <h1 className="text-4xl font-bold text-gray-900">Configurações</h1>
           </div>
           <p className="text-gray-600">Personalize as funcionalidades da sua loja</p>
         </div>
 
-        <div className="flex gap-3 mb-6 flex-wrap">
-          <Button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
-          >
-            {isSaving ? (
-              <>
-                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                Salvando...
-              </>
-            ) : saveSuccess ? (
-              <>
-                <CheckCircle2 className="w-4 h-4 mr-2" />
-                Salvo com Sucesso!
-              </>
-            ) : (
-              <>
-                <Save className="w-4 h-4 mr-2" />
-                Salvar Configurações
-              </>
-            )}
-          </Button>
-          <Button
-            onClick={handleReset}
-            disabled={isSaving}
-            className="bg-gray-200 text-gray-700 hover:bg-gray-300"
-          >
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Restaurar Padrão
-          </Button>
-          {saveError && (
-            <div className="flex items-center gap-2 text-red-600 bg-red-50 px-4 py-2 rounded-lg">
-              <AlertCircle className="w-4 h-4" />
-              <span>{saveError}</span>
-            </div>
-          )}
-        </div>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {/* Botões de Ação */}
+          <div className="flex gap-3">
+            <Button
+              type="submit"
+              disabled={saving}
+              className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 flex items-center gap-2"
+            >
+              {saving ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <Save className="w-5 h-5" />
+                  Salvar Configurações
+                </>
+              )}
+            </Button>
 
-        <div className="space-y-6">
-          <section className="bg-white rounded-2xl shadow-lg p-6">
-            <div className="flex items-center gap-2 mb-4">
+            <Button
+              type="button"
+              onClick={handleReset}
+              variant="outline"
+              className="px-6 py-3 flex items-center gap-2"
+            >
+              <RotateCcw className="w-5 h-5" />
+              Restaurar Padrão
+            </Button>
+
+            {saveStatus === 'success' && (
+              <div className="flex items-center gap-2 text-green-600 font-medium">
+                <CheckCircle className="w-5 h-5" />
+                Salvo com sucesso!
+              </div>
+            )}
+
+            {saveStatus === 'error' && (
+              <div className="flex items-center gap-2 text-red-600 font-medium">
+                <XCircle className="w-5 h-5" />
+                Erro ao salvar
+              </div>
+            )}
+          </div>
+
+          {/* Funcionalidades Principais */}
+          <section className="bg-white rounded-2xl p-6 shadow-sm">
+            <div className="flex items-center gap-2 mb-6">
               <Store className="w-6 h-6 text-blue-600" />
-              <h2 className="text-2xl font-bold">Funcionalidades Principais</h2>
+              <h2 className="text-2xl font-bold text-gray-900">Funcionalidades Principais</h2>
             </div>
             <div className="space-y-3">
-              <ToggleItem
+              <ToggleCard
                 icon={ShoppingCart}
-                label="PDV (Point of Sale)"
+                iconColor="text-blue-600"
+                title="PDV (Point of Sale)"
                 description="Sistema de vendas no balcão"
-                checked={localSettings.enable_pos}
-                onChange={() => handleToggle('enable_pos')}
-                color="text-blue-600"
+                enabled={watchedValues.enablePOS}
+                onToggle={(val) => setValue('enablePOS', val)}
               />
-              <ToggleItem
+              <ToggleCard
                 icon={ChefHat}
-                label="Cozinha / KDS"
+                iconColor="text-orange-600"
+                title="Cozinha / KDS"
                 description="Display de pedidos para a cozinha"
-                checked={localSettings.enable_kitchen}
-                onChange={() => handleToggle('enable_kitchen')}
-                color="text-orange-600"
+                enabled={watchedValues.enableKitchen}
+                onToggle={(val) => setValue('enableKitchen', val)}
               />
-              <ToggleItem
+              <ToggleCard
                 icon={Truck}
-                label="Delivery"
+                iconColor="text-purple-600"
+                title="Delivery"
                 description="Entregas em domicílio"
-                checked={localSettings.enable_delivery}
-                onChange={() => handleToggle('enable_delivery')}
-                color="text-purple-600"
-              />
-              <ToggleItem
+                enabled={watchedValues.delivery.enabled}
+                onToggle={(val) => setValue('delivery.enabled', val)}
+                showAccordion={true}
+              >
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Taxa de Entrega (R$) *
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      {...register('delivery.fee', { valueAsNumber: true })}
+                      className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                      placeholder="5.00"
+                    />
+                    {errors.delivery?.fee && (
+                      <p className="text-red-600 text-sm mt-1">{errors.delivery.fee.message}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Raio de Entrega (km) *
+                    </label>
+                    <input
+                      type="number"
+                      {...register('delivery.minRadius', { valueAsNumber: true })}
+                      className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                      placeholder="5"
+                    />
+                    {errors.delivery?.minRadius && (
+                      <p className="text-red-600 text-sm mt-1">{errors.delivery.minRadius.message}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Tempo Médio de Entrega (min) *
+                    </label>
+                    <input
+                      type="number"
+                      {...register('delivery.avgTime', { valueAsNumber: true })}
+                      className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                      placeholder="30"
+                    />
+                    {errors.delivery?.avgTime && (
+                      <p className="text-red-600 text-sm mt-1">{errors.delivery.avgTime.message}</p>
+                    )}
+                  </div>
+                </div>
+              </ToggleCard>
+              <ToggleCard
                 icon={Store}
-                label="Consumo no Local"
+                iconColor="text-green-600"
+                title="Consumo no Local"
                 description="Pedidos para consumir no estabelecimento"
-                checked={localSettings.enable_dine_in}
-                onChange={() => handleToggle('enable_dine_in')}
-                color="text-green-600"
+                enabled={watchedValues.enableDineIn}
+                onToggle={(val) => setValue('enableDineIn', val)}
               />
-              <ToggleItem
+              <ToggleCard
                 icon={Package}
-                label="Retirada"
+                iconColor="text-indigo-600"
+                title="Retirada"
                 description="Pedidos para retirar no balcão"
-                checked={localSettings.enable_takeout}
-                onChange={() => handleToggle('enable_takeout')}
-                color="text-indigo-600"
+                enabled={watchedValues.enableTakeout}
+                onToggle={(val) => setValue('enableTakeout', val)}
               />
             </div>
           </section>
 
-          <section className="bg-white rounded-2xl shadow-lg p-6">
-            <div className="flex items-center gap-2 mb-4">
+          {/* Formas de Pagamento */}
+          <section className="bg-white rounded-2xl p-6 shadow-sm">
+            <div className="flex items-center gap-2 mb-6">
               <CreditCard className="w-6 h-6 text-green-600" />
-              <h2 className="text-2xl font-bold">Formas de Pagamento</h2>
+              <h2 className="text-2xl font-bold text-gray-900">Formas de Pagamento</h2>
             </div>
             <div className="space-y-3">
-              <ToggleItem
+              <ToggleCard
                 icon={DollarSign}
-                label="Dinheiro"
+                iconColor="text-green-600"
+                title="Dinheiro"
                 description="Pagamento em espécie"
-                checked={localSettings.enable_cash}
-                onChange={() => handleToggle('enable_cash')}
-                color="text-green-600"
+                enabled={watchedValues.enableCash}
+                onToggle={(val) => setValue('enableCash', val)}
               />
-              <ToggleItem
+              <ToggleCard
                 icon={CreditCard}
-                label="Cartão de Crédito"
+                iconColor="text-blue-600"
+                title="Cartão de Crédito"
                 description="Aceitar cartões de crédito"
-                checked={localSettings.enable_credit_card}
-                onChange={() => handleToggle('enable_credit_card')}
-                color="text-blue-600"
+                enabled={watchedValues.enableCreditCard}
+                onToggle={(val) => setValue('enableCreditCard', val)}
               />
-              <ToggleItem
+              <ToggleCard
                 icon={CreditCard}
-                label="Cartão de Débito"
+                iconColor="text-purple-600"
+                title="Cartão de Débito"
                 description="Aceitar cartões de débito"
-                checked={localSettings.enable_debit_card}
-                onChange={() => handleToggle('enable_debit_card')}
-                color="text-purple-600"
+                enabled={watchedValues.enableDebitCard}
+                onToggle={(val) => setValue('enableDebitCard', val)}
               />
-              <ToggleItem
+              <ToggleCard
                 icon={Smartphone}
-                label="PIX"
+                iconColor="text-teal-600"
+                title="PIX"
                 description="Pagamento instantâneo via PIX"
-                checked={localSettings.enable_pix}
-                onChange={() => handleToggle('enable_pix')}
-                color="text-teal-600"
-              />
+                enabled={watchedValues.pix.enabled}
+                onToggle={(val) => setValue('pix.enabled', val)}
+                showAccordion={true}
+              >
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Tipo de Chave PIX *
+                    </label>
+                    <select
+                      {...register('pix.keyType')}
+                      className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-teal-500 focus:outline-none"
+                    >
+                      <option value="">Selecione o tipo</option>
+                      <option value="cpf">CPF</option>
+                      <option value="cnpj">CNPJ</option>
+                      <option value="email">E-mail</option>
+                      <option value="phone">Telefone</option>
+                      <option value="random">Chave Aleatória</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Chave PIX *
+                    </label>
+                    <input
+                      type="text"
+                      {...register('pix.keyValue')}
+                      className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-teal-500 focus:outline-none"
+                      placeholder="Digite sua chave PIX"
+                    />
+                    {errors.pix?.keyValue && (
+                      <p className="text-red-600 text-sm mt-1">{errors.pix.keyValue.message}</p>
+                    )}
+                  </div>
+                </div>
+              </ToggleCard>
             </div>
           </section>
 
-          <section className="bg-white rounded-2xl shadow-lg p-6">
-            <div className="flex items-center gap-2 mb-4">
+          {/* Notificações */}
+          <section className="bg-white rounded-2xl p-6 shadow-sm">
+            <div className="flex items-center gap-2 mb-6">
               <Bell className="w-6 h-6 text-yellow-600" />
-              <h2 className="text-2xl font-bold">Notificações</h2>
+              <h2 className="text-2xl font-bold text-gray-900">Notificações</h2>
             </div>
             <div className="space-y-3">
-              <ToggleItem
+              <ToggleCard
                 icon={Bell}
-                label="Notificações de Pedidos"
+                iconColor="text-yellow-600"
+                title="Notificações de Pedidos"
                 description="Alertas visuais para novos pedidos"
-                checked={localSettings.enable_order_notifications}
-                onChange={() => handleToggle('enable_order_notifications')}
-                color="text-yellow-600"
+                enabled={watchedValues.enableOrderNotifications}
+                onToggle={(val) => setValue('enableOrderNotifications', val)}
               />
-              <ToggleItem
+              <ToggleCard
                 icon={Smartphone}
-                label="WhatsApp"
+                iconColor="text-green-600"
+                title="WhatsApp"
                 description="Enviar notificações via WhatsApp"
-                checked={localSettings.enable_whatsapp_notifications}
-                onChange={() => handleToggle('enable_whatsapp_notifications')}
-                color="text-green-600"
-              />
-              <ToggleItem
-                icon={Bell}
-                label="E-mail"
+                enabled={watchedValues.whatsapp.enabled}
+                onToggle={(val) => setValue('whatsapp.enabled', val)}
+                showAccordion={true}
+              >
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Número do WhatsApp *
+                    </label>
+                    <input
+                      type="text"
+                      {...register('whatsapp.phoneNumber')}
+                      className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:outline-none"
+                      placeholder="(11) 99999-9999"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Token da API *
+                    </label>
+                    <input
+                      type="text"
+                      {...register('whatsapp.apiToken')}
+                      className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:outline-none"
+                      placeholder="Token da API do WhatsApp"
+                    />
+                    {errors.whatsapp && (
+                      <p className="text-red-600 text-sm mt-1">{errors.whatsapp.message}</p>
+                    )}
+                  </div>
+                </div>
+              </ToggleCard>
+              <ToggleCard
+                icon={Mail}
+                iconColor="text-blue-600"
+                title="E-mail"
                 description="Enviar confirmações por e-mail"
-                checked={localSettings.enable_email_notifications}
-                onChange={() => handleToggle('enable_email_notifications')}
-                color="text-blue-600"
+                enabled={watchedValues.enableEmail}
+                onToggle={(val) => setValue('enableEmail', val)}
               />
-              <ToggleItem
-                icon={Bell}
-                label="Alertas Sonoros"
+              <ToggleCard
+                icon={Volume2}
+                iconColor="text-red-600"
+                title="Alertas Sonoros"
                 description="Som ao receber novos pedidos"
-                checked={localSettings.enable_sound_alerts}
-                onChange={() => handleToggle('enable_sound_alerts')}
-                color="text-red-600"
+                enabled={watchedValues.enableSoundAlerts}
+                onToggle={(val) => setValue('enableSoundAlerts', val)}
               />
             </div>
           </section>
 
-          <section className="bg-white rounded-2xl shadow-lg p-6">
-            <div className="flex items-center gap-2 mb-4">
+          {/* Recursos Avançados */}
+          <section className="bg-white rounded-2xl p-6 shadow-sm">
+            <div className="flex items-center gap-2 mb-6">
               <Settings className="w-6 h-6 text-purple-600" />
-              <h2 className="text-2xl font-bold">Recursos Avançados</h2>
+              <h2 className="text-2xl font-bold text-gray-900">Recursos Avançados</h2>
             </div>
             <div className="space-y-3">
-              <ToggleItem
+              <ToggleCard
                 icon={Users}
-                label="Programa de Fidelidade"
+                iconColor="text-pink-600"
+                title="Programa de Fidelidade"
                 description="Sistema de pontos e recompensas"
-                checked={localSettings.enable_loyalty_program}
-                onChange={() => handleToggle('enable_loyalty_program')}
-                color="text-purple-600"
-              />
-              <ToggleItem
-                icon={Package}
-                label="Cupons de Desconto"
+                enabled={watchedValues.loyalty.enabled}
+                onToggle={(val) => setValue('loyalty.enabled', val)}
+                showAccordion={true}
+              >
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Pontos por Real Gasto *
+                    </label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      {...register('loyalty.pointsPerReal', { valueAsNumber: true })}
+                      className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:outline-none"
+                      placeholder="1"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Pontos Mínimos para Resgate *
+                    </label>
+                    <input
+                      type="number"
+                      {...register('loyalty.minPointsToRedeem', { valueAsNumber: true })}
+                      className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:outline-none"
+                      placeholder="100"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Valor da Recompensa (R$) *
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      {...register('loyalty.rewardValue', { valueAsNumber: true })}
+                      className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:outline-none"
+                      placeholder="10.00"
+                    />
+                    {errors.loyalty && (
+                      <p className="text-red-600 text-sm mt-1">{errors.loyalty.message}</p>
+                    )}
+                  </div>
+                </div>
+              </ToggleCard>
+              <ToggleCard
+                icon={Tag}
+                iconColor="text-orange-600"
+                title="Cupons de Desconto"
                 description="Criar e gerenciar cupons promocionais"
-                checked={localSettings.enable_coupons}
-                onChange={() => handleToggle('enable_coupons')}
-                color="text-orange-600"
+                enabled={watchedValues.enableCoupons}
+                onToggle={(val) => setValue('enableCoupons', val)}
               />
-              <ToggleItem
+              <ToggleCard
                 icon={Clock}
-                label="Agendamento de Pedidos"
+                iconColor="text-blue-600"
+                title="Agendamento de Pedidos"
                 description="Permitir pedidos agendados"
-                checked={localSettings.enable_scheduled_orders}
-                onChange={() => handleToggle('enable_scheduled_orders')}
-                color="text-blue-600"
+                enabled={watchedValues.enableScheduling}
+                onToggle={(val) => setValue('enableScheduling', val)}
               />
-              <ToggleItem
-                icon={Store}
-                label="Gestão de Mesas"
+              <ToggleCard
+                icon={UtensilsCrossed}
+                iconColor="text-green-600"
+                title="Gestão de Mesas"
                 description="Controle de mesas e comandas"
-                checked={localSettings.enable_table_management}
-                onChange={() => handleToggle('enable_table_management')}
-                color="text-green-600"
+                enabled={watchedValues.enableTableManagement}
+                onToggle={(val) => setValue('enableTableManagement', val)}
               />
-              <ToggleItem
-                icon={Package}
-                label="Controle de Estoque"
+              <ToggleCard
+                icon={Archive}
+                iconColor="text-indigo-600"
+                title="Controle de Estoque"
                 description="Gerenciar inventário de produtos"
-                checked={localSettings.enable_inventory_control}
-                onChange={() => handleToggle('enable_inventory_control')}
-                color="text-indigo-600"
+                enabled={watchedValues.enableInventory}
+                onToggle={(val) => setValue('enableInventory', val)}
               />
             </div>
           </section>
 
-          <section className="bg-white rounded-2xl shadow-lg p-6">
-            <div className="flex items-center gap-2 mb-4">
+          {/* Impressão */}
+          <section className="bg-white rounded-2xl p-6 shadow-sm">
+            <div className="flex items-center gap-2 mb-6">
               <Printer className="w-6 h-6 text-gray-600" />
-              <h2 className="text-2xl font-bold">Impressão</h2>
+              <h2 className="text-2xl font-bold text-gray-900">Impressão</h2>
             </div>
             <div className="space-y-3">
-              <ToggleItem
+              <ToggleCard
                 icon={Printer}
-                label="Impressão Automática"
+                iconColor="text-gray-600"
+                title="Impressão Automática"
                 description="Imprimir pedidos automaticamente"
-                checked={localSettings.enable_auto_print}
-                onChange={() => handleToggle('enable_auto_print')}
-                color="text-gray-600"
+                enabled={watchedValues.enableAutoPrint}
+                onToggle={(val) => setValue('enableAutoPrint', val)}
               />
-              <ToggleItem
+              <ToggleCard
                 icon={Printer}
-                label="Impressora da Cozinha"
+                iconColor="text-orange-600"
+                title="Impressora da Cozinha"
                 description="Enviar pedidos para impressora da cozinha"
-                checked={localSettings.enable_kitchen_print}
-                onChange={() => handleToggle('enable_kitchen_print')}
-                color="text-orange-600"
+                enabled={watchedValues.enableKitchenPrint}
+                onToggle={(val) => setValue('enableKitchenPrint', val)}
               />
             </div>
           </section>
 
-          <section className="bg-white rounded-2xl shadow-lg p-6">
-            <div className="flex items-center gap-2 mb-4">
+          {/* Integrações */}
+          <section className="bg-white rounded-2xl p-6 shadow-sm">
+            <div className="flex items-center gap-2 mb-6">
               <Wifi className="w-6 h-6 text-blue-600" />
-              <h2 className="text-2xl font-bold">Integrações</h2>
+              <h2 className="text-2xl font-bold text-gray-900">Integrações</h2>
             </div>
             <div className="space-y-3">
-              <ToggleItem
+              <ToggleCard
                 icon={Truck}
-                label="iFood"
+                iconColor="text-red-600"
+                title="iFood"
                 description="Integração com iFood"
-                checked={localSettings.enable_ifood}
-                onChange={() => handleToggle('enable_ifood')}
-                color="text-red-600"
-              />
-              <ToggleItem
+                enabled={watchedValues.ifood.enabled}
+                onToggle={(val) => setValue('ifood.enabled', val)}
+                showAccordion={true}
+              >
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Merchant ID *
+                    </label>
+                    <input
+                      type="text"
+                      {...register('ifood.merchantId')}
+                      className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-red-500 focus:outline-none"
+                      placeholder="Seu Merchant ID do iFood"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      API Key *
+                    </label>
+                    <input
+                      type="text"
+                      {...register('ifood.apiKey')}
+                      className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-red-500 focus:outline-none"
+                      placeholder="Sua API Key do iFood"
+                    />
+                    {errors.ifood && (
+                      <p className="text-red-600 text-sm mt-1">{errors.ifood.message}</p>
+                    )}
+                  </div>
+                </div>
+              </ToggleCard>
+              <ToggleCard
                 icon={Truck}
-                label="Rappi"
+                iconColor="text-orange-600"
+                title="Rappi"
                 description="Integração com Rappi"
-                checked={localSettings.enable_rappi}
-                onChange={() => handleToggle('enable_rappi')}
-                color="text-orange-600"
-              />
-              <ToggleItem
+                enabled={watchedValues.rappi.enabled}
+                onToggle={(val) => setValue('rappi.enabled', val)}
+                showAccordion={true}
+              >
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Store ID *
+                    </label>
+                    <input
+                      type="text"
+                      {...register('rappi.storeId')}
+                      className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-orange-500 focus:outline-none"
+                      placeholder="Seu Store ID do Rappi"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      API Key *
+                    </label>
+                    <input
+                      type="text"
+                      {...register('rappi.apiKey')}
+                      className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-orange-500 focus:outline-none"
+                      placeholder="Sua API Key do Rappi"
+                    />
+                    {errors.rappi && (
+                      <p className="text-red-600 text-sm mt-1">{errors.rappi.message}</p>
+                    )}
+                  </div>
+                </div>
+              </ToggleCard>
+              <ToggleCard
                 icon={Truck}
-                label="Uber Eats"
+                iconColor="text-green-600"
+                title="Uber Eats"
                 description="Integração com Uber Eats"
-                checked={localSettings.enable_uber_eats}
-                onChange={() => handleToggle('enable_uber_eats')}
-                color="text-green-600"
-              />
+                enabled={watchedValues.uberEats.enabled}
+                onToggle={(val) => setValue('uberEats.enabled', val)}
+                showAccordion={true}
+              >
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Store ID *
+                    </label>
+                    <input
+                      type="text"
+                      {...register('uberEats.storeId')}
+                      className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:outline-none"
+                      placeholder="Seu Store ID do Uber Eats"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      API Key *
+                    </label>
+                    <input
+                      type="text"
+                      {...register('uberEats.apiKey')}
+                      className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:outline-none"
+                      placeholder="Sua API Key do Uber Eats"
+                    />
+                    {errors.uberEats && (
+                      <p className="text-red-600 text-sm mt-1">{errors.uberEats.message}</p>
+                    )}
+                  </div>
+                </div>
+              </ToggleCard>
             </div>
           </section>
 
-          <section className="bg-white rounded-2xl shadow-lg p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <Settings className="w-6 h-6 text-gray-600" />
-              <h2 className="text-2xl font-bold">Operação</h2>
-            </div>
-            <div className="space-y-3">
-              <NumberInput
-                icon={DollarSign}
-                label="Pedido Mínimo"
-                value={localSettings.minimum_order_value}
-                onChange={(v) => handleNumberChange('minimum_order_value', v)}
-                suffix="R$"
-                color="text-green-600"
-              />
-              <NumberInput
-                icon={Truck}
-                label="Taxa de Entrega"
-                value={localSettings.delivery_fee}
-                onChange={(v) => handleNumberChange('delivery_fee', v)}
-                suffix="R$"
-                color="text-purple-600"
-              />
-              <NumberInput
-                icon={Truck}
-                label="Raio de Entrega"
-                value={localSettings.delivery_radius}
-                onChange={(v) => handleNumberChange('delivery_radius', v)}
-                suffix="km"
-                color="text-blue-600"
-              />
-              <NumberInput
-                icon={Clock}
-                label="Tempo de Preparo"
-                value={localSettings.estimated_prep_time}
-                onChange={(v) => handleNumberChange('estimated_prep_time', v)}
-                suffix="min"
-                color="text-orange-600"
-              />
-            </div>
-          </section>
-        </div>
+          {/* Botões de Ação (Repetido no final) */}
+          <div className="flex gap-3 sticky bottom-6 bg-white p-4 rounded-xl shadow-lg border-2 border-gray-200">
+            <Button
+              type="submit"
+              disabled={saving}
+              className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 flex items-center gap-2"
+            >
+              {saving ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <Save className="w-5 h-5" />
+                  Salvar Configurações
+                </>
+              )}
+            </Button>
 
-        <div className="sticky bottom-6 mt-8 flex justify-center">
-          <Button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 shadow-xl"
-          >
-            {isSaving ? (
-              <>
-                <RefreshCw className="w-5 h-5 mr-2 animate-spin" />
-                Salvando...
-              </>
-            ) : (
-              <>
-                <Save className="w-5 h-5 mr-2" />
-                Salvar Todas as Configurações
-              </>
+            <Button
+              type="button"
+              onClick={handleReset}
+              variant="outline"
+              className="px-6 py-3 flex items-center gap-2"
+            >
+              <RotateCcw className="w-5 h-5" />
+              Restaurar Padrão
+            </Button>
+
+            {saveStatus === 'success' && (
+              <div className="flex items-center gap-2 text-green-600 font-medium">
+                <CheckCircle className="w-5 h-5" />
+                Salvo com sucesso!
+              </div>
             )}
-          </Button>
-        </div>
+
+            {saveStatus === 'error' && (
+              <div className="flex items-center gap-2 text-red-600 font-medium">
+                <XCircle className="w-5 h-5" />
+                Erro ao salvar
+              </div>
+            )}
+          </div>
+        </form>
       </div>
     </div>
   )
