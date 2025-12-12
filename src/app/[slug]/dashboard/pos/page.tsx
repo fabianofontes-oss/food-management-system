@@ -1,13 +1,15 @@
 'use client'
 
 import { useState } from 'react'
-import { Search, ShoppingCart, Plus, Minus, Trash2, CreditCard, DollarSign, Smartphone, Loader2, AlertCircle } from 'lucide-react'
+import { Search, ShoppingCart, Plus, Minus, Trash2, CreditCard, DollarSign, Smartphone, Loader2, AlertCircle, Maximize, Minimize, Printer, User, Tag, TrendingUp, Clock, Package, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { formatCurrency } from '@/lib/utils'
 import { useProducts } from '@/hooks/useProducts'
 import { supabase } from '@/lib/supabase'
 import { useSettings } from '@/hooks/useSettings'
 import { useSettingsHelper } from '@/lib/settingsHelper'
+import { useLanguage } from '@/lib/LanguageContext'
+import { useEffect } from 'react'
 
 interface CartItem {
   id: string
@@ -17,6 +19,7 @@ interface CartItem {
 }
 
 export default function POSPage() {
+  const { t, formatCurrency: formatCurrencyI18n } = useLanguage()
   const { products, loading } = useProducts()
   const currentStoreId = products[0]?.store_id
   const { settings } = useSettings(currentStoreId)
@@ -24,13 +27,97 @@ export default function POSPage() {
   
   const [cart, setCart] = useState<CartItem[]>([])
   const [search, setSearch] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [selectedPayment, setSelectedPayment] = useState<'cash' | 'card' | 'pix'>('cash')
   const [processingOrder, setProcessingOrder] = useState(false)
   const [validationError, setValidationError] = useState<string | null>(null)
+  
+  // Cliente
+  const [customerName, setCustomerName] = useState('')
+  const [customerPhone, setCustomerPhone] = useState('')
+  
+  // Desconto
+  const [discountType, setDiscountType] = useState<'percent' | 'fixed'>('percent')
+  const [discountValue, setDiscountValue] = useState(0)
+  
+  // Troco
+  const [cashReceived, setCashReceived] = useState(0)
+  
+  // Fullscreen
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  
+  // Estatísticas
+  const [todaySales, setTodaySales] = useState(0)
+  const [todayOrders, setTodayOrders] = useState(0)
+  const [recentOrders, setRecentOrders] = useState<any[]>([])
 
-  const filteredProducts = products.filter(p => 
-    p.name.toLowerCase().includes(search.toLowerCase()) && p.is_active
-  )
+  // Carregar estatísticas do dia
+  useEffect(() => {
+    async function loadStats() {
+      if (!currentStoreId) return
+      const today = new Date().toDateString()
+      
+      const { data } = await supabase
+        .from('orders')
+        .select('total_amount, created_at')
+        .eq('store_id', currentStoreId)
+        .gte('created_at', new Date(today).toISOString())
+        .order('created_at', { ascending: false })
+        .limit(10)
+      
+      if (data) {
+        setRecentOrders(data)
+        setTodayOrders(data.length)
+        setTodaySales(data.reduce((sum, o) => sum + o.total_amount, 0))
+      }
+    }
+    loadStats()
+  }, [currentStoreId, processingOrder])
+
+  // Atalhos de teclado
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === 'f' || e.key === 'F') {
+        e.preventDefault()
+        toggleFullscreen()
+      }
+      if (e.key === 'Escape') {
+        if (isFullscreen) toggleFullscreen()
+        else if (cart.length > 0) clearCart()
+      }
+      if (e.key === 'Enter' && cart.length > 0) {
+        e.preventDefault()
+        handleCheckout()
+      }
+    }
+    window.addEventListener('keydown', handleKeyPress)
+    return () => window.removeEventListener('keydown', handleKeyPress)
+  }, [cart, isFullscreen])
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(e => console.log('Erro fullscreen:', e))
+      setIsFullscreen(true)
+    } else {
+      document.exitFullscreen().catch(e => console.log('Erro exit fullscreen:', e))
+      setIsFullscreen(false)
+    }
+  }
+
+  const clearCart = () => {
+    if (confirm('Limpar carrinho?')) {
+      setCart([])
+      setCustomerName('')
+      setCustomerPhone('')
+      setDiscountValue(0)
+      setCashReceived(0)
+    }
+  }
+
+  const filteredProducts = products.filter(p => {
+    const matchSearch = p.name.toLowerCase().includes(search.toLowerCase())
+    return matchSearch && p.is_active
+  })
 
   const addToCart = (product: any) => {
     const existing = cart.find(item => item.id === product.id)
@@ -60,13 +147,67 @@ export default function POSPage() {
   }
 
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
-  const total = subtotal
+  const discountAmount = discountType === 'percent' 
+    ? (subtotal * discountValue) / 100 
+    : discountValue
+  const total = Math.max(0, subtotal - discountAmount)
+  const change = selectedPayment === 'cash' ? Math.max(0, cashReceived - total) : 0
+
+  const printReceipt = (order: any) => {
+    const printWindow = window.open('', '', 'width=300,height=600')
+    if (printWindow) {
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Cupom Fiscal</title>
+            <style>
+              body { font-family: monospace; font-size: 12px; margin: 10px; }
+              h2 { text-align: center; margin: 5px 0; }
+              .line { border-top: 1px dashed #000; margin: 5px 0; }
+              .total { font-size: 16px; font-weight: bold; }
+            </style>
+          </head>
+          <body>
+            <h2>CUPOM FISCAL</h2>
+            <div class="line"></div>
+            <p><strong>Pedido:</strong> ${order.order_code}</p>
+            <p><strong>Data:</strong> ${new Date().toLocaleString('pt-BR')}</p>
+            ${customerName ? `<p><strong>Cliente:</strong> ${customerName}</p>` : ''}
+            <div class="line"></div>
+            <h3>ITENS:</h3>
+            ${cart.map(item => `
+              <p>${item.quantity}x ${item.name}<br>
+              ${formatCurrencyI18n(item.price)} x ${item.quantity} = ${formatCurrencyI18n(item.price * item.quantity)}</p>
+            `).join('')}
+            <div class="line"></div>
+            <p>Subtotal: ${formatCurrencyI18n(subtotal)}</p>
+            ${discountAmount > 0 ? `<p>Desconto: -${formatCurrencyI18n(discountAmount)}</p>` : ''}
+            <p class="total">TOTAL: ${formatCurrencyI18n(total)}</p>
+            <p><strong>Pagamento:</strong> ${selectedPayment === 'cash' ? 'Dinheiro' : selectedPayment === 'card' ? 'Cartão' : 'PIX'}</p>
+            ${selectedPayment === 'cash' && cashReceived > 0 ? `
+              <p>Recebido: ${formatCurrencyI18n(cashReceived)}</p>
+              <p>Troco: ${formatCurrencyI18n(change)}</p>
+            ` : ''}
+            <div class="line"></div>
+            <p style="text-align: center; margin-top: 20px;">Obrigado pela preferência!</p>
+          </body>
+        </html>
+      `)
+      printWindow.document.close()
+      printWindow.print()
+    }
+  }
 
   const handleCheckout = async () => {
     if (cart.length === 0) return
     
     if (!helper.isOrderValueValid(total)) {
       setValidationError(`Pedido mínimo: ${formatCurrency(helper.minimumOrderValue)}`)
+      return
+    }
+
+    if (selectedPayment === 'cash' && cashReceived < total) {
+      setValidationError('Valor recebido insuficiente')
       return
     }
     
@@ -86,17 +227,17 @@ export default function POSPage() {
         .insert({
           store_id: storeId,
           order_code: `PDV-${Date.now()}`,
-          customer_name: 'Cliente PDV',
-          customer_phone: '00000000000',
+          customer_name: customerName || 'Cliente PDV',
+          customer_phone: customerPhone || '00000000000',
           customer_email: 'pdv@loja.com',
           order_type: 'dine_in',
           payment_method: paymentMethodMap[selectedPayment],
-          subtotal: total,
+          subtotal: subtotal,
           delivery_fee: 0,
-          discount: 0,
+          discount: discountAmount,
           total_amount: total,
           status: 'confirmed',
-          notes: 'Pedido via PDV'
+          notes: `Pedido via PDV${discountAmount > 0 ? ` - Desconto: ${formatCurrencyI18n(discountAmount)}` : ''}`
         })
         .select('id')
         .single()
@@ -113,8 +254,17 @@ export default function POSPage() {
         })
       }
 
-      alert(`✅ Pedido finalizado com sucesso!\nTotal: ${formatCurrency(total)}\nPagamento: ${selectedPayment === 'cash' ? 'Dinheiro' : selectedPayment === 'card' ? 'Cartão' : 'PIX'}`)
+      // Imprimir cupom
+      printReceipt(order)
+      
+      alert(`✅ Pedido finalizado com sucesso!\nTotal: ${formatCurrencyI18n(total)}\nPagamento: ${selectedPayment === 'cash' ? 'Dinheiro' : selectedPayment === 'card' ? 'Cartão' : 'PIX'}${change > 0 ? `\nTroco: ${formatCurrencyI18n(change)}` : ''}`)
+      
+      // Limpar tudo
       setCart([])
+      setCustomerName('')
+      setCustomerPhone('')
+      setDiscountValue(0)
+      setCashReceived(0)
     } catch (error) {
       console.error('Erro ao criar pedido:', error)
       alert('❌ Erro ao finalizar pedido. Tente novamente.')
