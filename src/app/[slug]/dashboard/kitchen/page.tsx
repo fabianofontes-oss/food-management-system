@@ -1,14 +1,78 @@
 'use client'
 
-import { useState } from 'react'
-import { Clock, CheckCircle, XCircle, AlertCircle, Loader2 } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { Clock, CheckCircle, XCircle, AlertCircle, Loader2, ChefHat, Bell } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { formatCurrency } from '@/lib/utils'
 import { useOrders } from '@/hooks/useOrders'
+import { useLanguage } from '@/lib/LanguageContext'
+import { supabase } from '@/lib/supabase'
+
+type OrderItem = {
+  id: string
+  product_id: string
+  quantity: number
+  unit_price: number
+  products: {
+    name: string
+  }
+}
 
 export default function KitchenPage() {
+  const { t, formatCurrency: formatCurrencyI18n } = useLanguage()
   const { orders, loading, updateOrderStatus } = useOrders()
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null)
+  const [orderItems, setOrderItems] = useState<Record<string, OrderItem[]>>({})
+  const [lastOrderCount, setLastOrderCount] = useState(0)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const [soundEnabled, setSoundEnabled] = useState(true)
+
+  // Auto-refresh a cada 30 segundos
+  useEffect(() => {
+    const interval = setInterval(() => {
+      window.location.reload()
+    }, 30000)
+    return () => clearInterval(interval)
+  }, [])
+
+  // Notificação sonora para novos pedidos
+  useEffect(() => {
+    const pendingCount = orders.filter(o => o.status === 'pending' || o.status === 'confirmed').length
+    if (pendingCount > lastOrderCount && lastOrderCount > 0 && soundEnabled) {
+      playNotificationSound()
+    }
+    setLastOrderCount(pendingCount)
+  }, [orders, lastOrderCount, soundEnabled])
+
+  // Carregar itens dos pedidos
+  useEffect(() => {
+    async function loadOrderItems() {
+      const orderIds = orders.map(o => o.id)
+      if (orderIds.length === 0) return
+
+      const { data } = await supabase
+        .from('order_items')
+        .select('id, product_id, quantity, unit_price, products(name)')
+        .in('order_id', orderIds)
+
+      if (data) {
+        const itemsByOrder: Record<string, OrderItem[]> = {}
+        data.forEach((item: any) => {
+          const orderId = item.order_id
+          if (!itemsByOrder[orderId]) itemsByOrder[orderId] = []
+          itemsByOrder[orderId].push(item)
+        })
+        setOrderItems(itemsByOrder)
+      }
+    }
+    loadOrderItems()
+  }, [orders])
+
+  const playNotificationSound = () => {
+    if (audioRef.current) {
+      audioRef.current.play().catch(e => console.log('Erro ao tocar som:', e))
+    }
+  }
 
   const updateStatus = async (id: string, newStatus: string) => {
     setUpdatingOrderId(id)
@@ -26,6 +90,18 @@ export default function KitchenPage() {
     const date = new Date(dateString)
     const minutes = Math.floor((Date.now() - date.getTime()) / 60000)
     return `${minutes} min`
+  }
+
+  const getTimerColor = (minutes: number) => {
+    if (minutes < 10) return 'text-green-600'
+    if (minutes < 20) return 'text-yellow-600'
+    return 'text-red-600'
+  }
+
+  const getProgressPercentage = (dateString: string, maxMinutes: number = 30) => {
+    const date = new Date(dateString)
+    const minutes = Math.floor((Date.now() - date.getTime()) / 60000)
+    return Math.min((minutes / maxMinutes) * 100, 100)
   }
 
   const getChannelLabel = (channel: string) => {
@@ -62,11 +138,30 @@ export default function KitchenPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white p-6">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white p-4 md:p-6">
+      {/* Audio para notificação */}
+      <audio ref={audioRef} src="/notification.mp3" preload="auto" />
+      
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900">Cozinha / KDS</h1>
-          <p className="text-gray-600 mt-1">Kitchen Display System</p>
+        <div className="mb-6 md:mb-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 flex items-center gap-3">
+                <ChefHat className="w-8 h-8 md:w-10 md:h-10 text-orange-600" />
+                {t('menu.kitchen')}
+              </h1>
+              <p className="text-gray-600 mt-1">Kitchen Display System</p>
+            </div>
+            <button
+              onClick={() => setSoundEnabled(!soundEnabled)}
+              className={`p-3 rounded-xl transition-colors ${
+                soundEnabled ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'
+              }`}
+              title={soundEnabled ? 'Som ativado' : 'Som desativado'}
+            >
+              <Bell className="w-5 h-5" />
+            </button>
+          </div>
         </div>
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Pendentes */}
@@ -85,9 +180,19 @@ export default function KitchenPage() {
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-2 text-red-600 mb-4">
-                    <Clock className="w-4 h-4" />
-                    <span className="font-semibold">{getElapsedTime(order.created_at)}</span>
+                  <div className="mb-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Clock className="w-4 h-4" />
+                      <span className={`font-bold text-lg ${getTimerColor(Math.floor((Date.now() - new Date(order.created_at).getTime()) / 60000))}`}>
+                        {getElapsedTime(order.created_at)}
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="bg-red-600 h-2 rounded-full transition-all duration-1000"
+                        style={{ width: `${getProgressPercentage(order.created_at)}%` }}
+                      />
+                    </div>
                   </div>
 
                   <div className="space-y-2 mb-4">
@@ -96,7 +201,7 @@ export default function KitchenPage() {
                         <span className="font-semibold">{order.customer_name}</span>
                       </div>
                       <div className="text-sm text-gray-600 mt-1">
-                        Total: {formatCurrency(order.total_amount)}
+                        Total: {formatCurrencyI18n(order.total_amount)}
                       </div>
                       {order.notes && (
                         <div className="text-sm text-orange-600 mt-1 italic">
@@ -104,6 +209,19 @@ export default function KitchenPage() {
                         </div>
                       )}
                     </div>
+                    
+                    {/* Itens do pedido */}
+                    {orderItems[order.id] && orderItems[order.id].length > 0 && (
+                      <div className="mt-3 space-y-1">
+                        <div className="text-xs font-semibold text-gray-500 uppercase">Itens:</div>
+                        {orderItems[order.id].map((item) => (
+                          <div key={item.id} className="flex justify-between text-sm">
+                            <span>{item.quantity}x {item.products?.name || 'Produto'}</span>
+                            <span className="text-gray-500">{formatCurrencyI18n(item.unit_price)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   <Button
@@ -138,9 +256,19 @@ export default function KitchenPage() {
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-2 text-yellow-600 mb-4">
-                    <Clock className="w-4 h-4" />
-                    <span className="font-semibold">{getElapsedTime(order.created_at)}</span>
+                  <div className="mb-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Clock className="w-4 h-4" />
+                      <span className={`font-bold text-lg ${getTimerColor(Math.floor((Date.now() - new Date(order.created_at).getTime()) / 60000))}`}>
+                        {getElapsedTime(order.created_at)}
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="bg-yellow-600 h-2 rounded-full transition-all duration-1000"
+                        style={{ width: `${getProgressPercentage(order.created_at)}%` }}
+                      />
+                    </div>
                   </div>
 
                   <div className="space-y-2 mb-4">
@@ -149,7 +277,7 @@ export default function KitchenPage() {
                         <span className="font-semibold">{order.customer_name}</span>
                       </div>
                       <div className="text-sm text-gray-600 mt-1">
-                        Total: {formatCurrency(order.total_amount)}
+                        Total: {formatCurrencyI18n(order.total_amount)}
                       </div>
                       {order.notes && (
                         <div className="text-sm text-orange-600 mt-1 italic">
@@ -157,6 +285,18 @@ export default function KitchenPage() {
                         </div>
                       )}
                     </div>
+                    
+                    {orderItems[order.id] && orderItems[order.id].length > 0 && (
+                      <div className="mt-3 space-y-1">
+                        <div className="text-xs font-semibold text-gray-500 uppercase">Itens:</div>
+                        {orderItems[order.id].map((item) => (
+                          <div key={item.id} className="flex justify-between text-sm">
+                            <span>{item.quantity}x {item.products?.name || 'Produto'}</span>
+                            <span className="text-gray-500">{formatCurrencyI18n(item.unit_price)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   <Button
@@ -202,9 +342,21 @@ export default function KitchenPage() {
                         <span className="font-semibold">{order.customer_name}</span>
                       </div>
                       <div className="text-sm text-gray-600 mt-1">
-                        Total: {formatCurrency(order.total_amount)}
+                        Total: {formatCurrencyI18n(order.total_amount)}
                       </div>
                     </div>
+                    
+                    {orderItems[order.id] && orderItems[order.id].length > 0 && (
+                      <div className="mt-3 space-y-1">
+                        <div className="text-xs font-semibold text-gray-500 uppercase">Itens:</div>
+                        {orderItems[order.id].map((item) => (
+                          <div key={item.id} className="flex justify-between text-sm">
+                            <span>{item.quantity}x {item.products?.name || 'Produto'}</span>
+                            <span className="text-gray-500">{formatCurrencyI18n(item.unit_price)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   <Button
