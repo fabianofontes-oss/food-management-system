@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Search, ShoppingCart, Plus, Minus, Trash2, CreditCard, DollarSign, Smartphone, Loader2, AlertCircle, Maximize, Minimize, Printer, User, Tag, TrendingUp, Clock, Package, X } from 'lucide-react'
+import { Search, ShoppingCart, Plus, Minus, Trash2, CreditCard, DollarSign, Smartphone, Loader2, AlertCircle, Maximize, Minimize, Printer, User, Tag, TrendingUp, Clock, Package, X, Scale, Truck, Home, Barcode, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { formatCurrency } from '@/lib/utils'
 import { useProducts } from '@/hooks/useProducts'
@@ -16,6 +16,8 @@ interface CartItem {
   name: string
   price: number
   quantity: number
+  weight?: number // Para produtos vendidos por peso
+  isByWeight?: boolean
 }
 
 export default function POSPage() {
@@ -50,6 +52,27 @@ export default function POSPage() {
   const [todaySales, setTodaySales] = useState(0)
   const [todayOrders, setTodayOrders] = useState(0)
   const [recentOrders, setRecentOrders] = useState<any[]>([])
+
+  // Balança
+  const [showWeightModal, setShowWeightModal] = useState<string | null>(null)
+  const [weightInput, setWeightInput] = useState('')
+
+  // Delivery no PDV
+  const [isDeliveryOrder, setIsDeliveryOrder] = useState(false)
+  const [deliveryAddress, setDeliveryAddress] = useState('')
+  const [deliveryFee, setDeliveryFee] = useState(0)
+
+  // Atendente
+  const [attendantName, setAttendantName] = useState('')
+  const [showAttendantModal, setShowAttendantModal] = useState(true)
+
+  // Comandas/Mesas
+  const [orderType, setOrderType] = useState<'dine_in' | 'takeout' | 'delivery'>('dine_in')
+  const [tableNumber, setTableNumber] = useState('')
+  const [commandNumber, setCommandNumber] = useState('')
+
+  // Código de Barras
+  const [barcodeInput, setBarcodeInput] = useState('')
 
   // Carregar estatísticas do dia
   useEffect(() => {
@@ -119,16 +142,64 @@ export default function POSPage() {
     return matchSearch && p.is_active
   })
 
-  const addToCart = (product: any) => {
-    const existing = cart.find(item => item.id === product.id)
-    if (existing) {
+  const addToCart = (product: any, weight?: number) => {
+    // Verificar se produto é vendido por peso
+    const isByWeight = product.name.toLowerCase().includes('kg') || product.description?.toLowerCase().includes('peso')
+    
+    if (isByWeight && !weight) {
+      // Abrir modal de peso
+      setShowWeightModal(product.id)
+      return
+    }
+
+    const existing = cart.find(item => item.id === product.id && !item.isByWeight)
+    if (existing && !isByWeight) {
       setCart(cart.map(item => 
         item.id === product.id 
           ? { ...item, quantity: item.quantity + 1 }
           : item
       ))
     } else {
-      setCart([...cart, { id: product.id, name: product.name, price: product.base_price, quantity: 1 }])
+      const finalPrice = isByWeight && weight ? product.base_price * weight : product.base_price
+      setCart([...cart, { 
+        id: product.id, 
+        name: product.name, 
+        price: finalPrice, 
+        quantity: 1,
+        weight: weight,
+        isByWeight: isByWeight
+      }])
+    }
+  }
+
+  const addProductByWeight = (productId: string) => {
+    const product = products.find(p => p.id === productId)
+    if (!product || !weightInput) return
+    
+    const weight = parseFloat(weightInput)
+    if (weight <= 0) {
+      alert('Peso inválido')
+      return
+    }
+
+    addToCart(product, weight)
+    setShowWeightModal(null)
+    setWeightInput('')
+  }
+
+  const searchByBarcode = () => {
+    if (!barcodeInput.trim()) return
+    
+    const product = products.find(p => 
+      p.id === barcodeInput || 
+      p.name.toLowerCase().includes(barcodeInput.toLowerCase())
+    )
+    
+    if (product) {
+      addToCart(product)
+      setBarcodeInput('')
+    } else {
+      alert('Produto não encontrado')
     }
   }
 
@@ -150,7 +221,8 @@ export default function POSPage() {
   const discountAmount = discountType === 'percent' 
     ? (subtotal * discountValue) / 100 
     : discountValue
-  const total = Math.max(0, subtotal - discountAmount)
+  const finalDeliveryFee = isDeliveryOrder ? deliveryFee : 0
+  const total = Math.max(0, subtotal - discountAmount + finalDeliveryFee)
   const change = selectedPayment === 'cash' ? Math.max(0, cashReceived - total) : 0
 
   const printReceipt = (order: any) => {
@@ -222,22 +294,35 @@ export default function POSPage() {
 
       const storeId = products[0]?.store_id || '00000000-0000-0000-0000-000000000000'
       
+      const orderCode = commandNumber || tableNumber 
+        ? `${commandNumber || 'MESA-' + tableNumber}` 
+        : `PDV-${Date.now()}`
+
+      const orderNotes = [
+        `Pedido via PDV`,
+        attendantName ? `Atendente: ${attendantName}` : '',
+        discountAmount > 0 ? `Desconto: ${formatCurrencyI18n(discountAmount)}` : '',
+        tableNumber ? `Mesa: ${tableNumber}` : '',
+        commandNumber ? `Comanda: ${commandNumber}` : ''
+      ].filter(Boolean).join(' | ')
+
       const { data: order, error: orderError } = await supabase
         .from('orders')
         .insert({
           store_id: storeId,
-          order_code: `PDV-${Date.now()}`,
+          order_code: orderCode,
           customer_name: customerName || 'Cliente PDV',
           customer_phone: customerPhone || '00000000000',
           customer_email: 'pdv@loja.com',
-          order_type: 'dine_in',
+          delivery_address: isDeliveryOrder ? deliveryAddress : null,
+          order_type: isDeliveryOrder ? 'delivery' : orderType,
           payment_method: paymentMethodMap[selectedPayment],
           subtotal: subtotal,
-          delivery_fee: 0,
+          delivery_fee: finalDeliveryFee,
           discount: discountAmount,
           total_amount: total,
           status: 'confirmed',
-          notes: `Pedido via PDV${discountAmount > 0 ? ` - Desconto: ${formatCurrencyI18n(discountAmount)}` : ''}`
+          notes: orderNotes
         })
         .select('id')
         .single()
@@ -295,7 +380,7 @@ export default function POSPage() {
                 <ShoppingCart className="w-8 h-8 md:w-10 md:h-10 text-blue-600" />
                 PDV - Point of Sale
               </h1>
-              <p className="text-gray-600 mt-1">Pressione F para fullscreen • Enter para finalizar • Esc para limpar</p>
+              <p className="text-gray-600 mt-1">Atendente: <strong>{attendantName || 'Não identificado'}</strong></p>
             </div>
             <div className="flex gap-2">
               <button
