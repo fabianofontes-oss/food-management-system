@@ -10,8 +10,8 @@ interface ProductCardProps {
 
 export const ProductCard = ({ product, onEdit, onDelete }: ProductCardProps) => {
   const isLowStock = (product.stock_quantity || 0) <= (product.min_stock || 0) && (product.min_stock || 0) > 0
-  const margin = (product.price || 0) > 0 && (product.cost_price || 0) > 0 
-    ? (((product.price || 0) - (product.cost_price || 0)) / (product.price || 0) * 100).toFixed(1)
+  const margin = (product.base_price || 0) > 0 && (product.cost_price || 0) > 0 
+    ? (((product.base_price || 0) - (product.cost_price || 0)) / (product.base_price || 0) * 100).toFixed(1)
     : null
 
   return (
@@ -88,7 +88,7 @@ export const ProductCard = ({ product, onEdit, onDelete }: ProductCardProps) => 
             <DollarSign className="w-4 h-4 text-green-600" />
             <span className="text-xs text-green-700 font-medium">Preço</span>
           </div>
-          <div className="text-xl font-bold text-green-900">{formatCurrency(product.price)}</div>
+          <div className="text-xl font-bold text-green-900">{formatCurrency(product.base_price)}</div>
           {margin && (
             <div className="text-xs text-green-600 mt-1">Margem: {margin}%</div>
           )}

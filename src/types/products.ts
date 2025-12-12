@@ -41,7 +41,7 @@ export interface Product {
   store_id: string
   name: string
   description: string | null
-  price: number
+  base_price: number
   category_id: string | null
   unit_id: string | null
   prep_time: number
