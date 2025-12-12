@@ -4,16 +4,19 @@ import { useState, useEffect } from 'react'
 import { ExternalLink, Copy, CheckCircle, XCircle, AlertCircle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
-  checkStore,
-  checkTenant,
-  checkCheckoutMode,
-  checkPayments,
-  checkUserSession,
-  checkStoreAccess,
-  getLastOrderIdForStore,
-  getStoreBySlug,
-  type QACheckResult
-} from '@/lib/qa/queries'
+  runStoreCheck,
+  runTenantCheck,
+  runCheckoutModeCheck,
+  runPaymentsCheck,
+  runUserSessionCheck,
+  runStoreAccessCheck,
+  getLastOrderId,
+} from '@/lib/qa/actions'
+
+type QACheckResult = {
+  status: 'ok' | 'fail' | 'warning'
+  message: string
+}
 
 type CheckResults = {
   store: QACheckResult | null
@@ -67,12 +70,12 @@ export function QAHubClient() {
         userSessionCheck,
         storeAccessCheck
       ] = await Promise.all([
-        checkStore(storeSlug),
-        checkTenant(storeSlug),
-        checkCheckoutMode(storeSlug),
-        checkPayments(storeSlug),
-        checkUserSession(),
-        checkStoreAccess(storeSlug)
+        runStoreCheck(storeSlug),
+        runTenantCheck(storeSlug),
+        runCheckoutModeCheck(storeSlug),
+        runPaymentsCheck(storeSlug),
+        runUserSessionCheck(),
+        runStoreAccessCheck(storeSlug)
       ])
 
       setChecks({
@@ -85,11 +88,8 @@ export function QAHubClient() {
       })
 
       // Get last order ID
-      const store = await getStoreBySlug(storeSlug)
-      if (store) {
-        const orderId = await getLastOrderIdForStore(store.id)
-        setLastOrderId(orderId)
-      }
+      const orderId = await getLastOrderId(storeSlug)
+      setLastOrderId(orderId)
     } catch (error) {
       console.error('Error running checks:', error)
     } finally {
