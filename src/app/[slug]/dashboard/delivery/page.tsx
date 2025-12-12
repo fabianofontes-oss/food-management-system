@@ -1,18 +1,34 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Truck, MapPin, Phone, Clock, CheckCircle, Package, Loader2, Info } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { formatCurrency } from '@/lib/utils'
 import { useOrders } from '@/hooks/useOrders'
 import { useSettings } from '@/hooks/useSettings'
-import { useStores } from '@/hooks/useStores'
+import { useParams } from 'next/navigation'
+import { supabase } from '@/lib/supabase'
 
 export default function DeliveryPage() {
+  const params = useParams()
+  const slug = params.slug as string
+  const [storeId, setStoreId] = useState<string | null>(null)
+  
+  useEffect(() => {
+    async function loadStore() {
+      if (!slug) return
+      const { data } = await supabase
+        .from('stores')
+        .select('id')
+        .eq('slug', slug)
+        .single()
+      if (data) setStoreId(data.id)
+    }
+    loadStore()
+  }, [slug])
+  
   const { orders, loading, updateOrderStatus } = useOrders()
-  const { stores } = useStores()
-  const currentStore = stores[0]
-  const { settings } = useSettings(currentStore?.id)
+  const { settings } = useSettings(storeId)
   
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null)
   const [drivers] = useState(['Carlos Entregador', 'Ana Delivery', 'José Motoboy'])

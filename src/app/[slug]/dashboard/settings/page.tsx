@@ -2,7 +2,7 @@
 
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { 
   Settings, ShoppingCart, ChefHat, Truck, Store, Package,
   DollarSign, CreditCard, Smartphone, Bell, Mail, Volume2,
@@ -12,14 +12,28 @@ import {
 import { Button } from '@/components/ui/button'
 import { ToggleCard } from '@/components/settings/ToggleCard'
 import { settingsFormSchema, defaultSettings, type SettingsFormData } from '@/lib/validations/settings'
-import { useStores } from '@/hooks/useStores'
 import { supabase } from '@/lib/supabase'
+import { useParams } from 'next/navigation'
 
 export default function SettingsPage() {
-  const { stores } = useStores()
-  const currentStore = stores[0]
+  const params = useParams()
+  const slug = params.slug as string
   const [saving, setSaving] = useState(false)
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const [storeId, setStoreId] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function loadStore() {
+      if (!slug) return
+      const { data } = await supabase
+        .from('stores')
+        .select('id')
+        .eq('slug', slug)
+        .single()
+      if (data) setStoreId(data.id)
+    }
+    loadStore()
+  }, [slug])
 
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<SettingsFormData>({
     resolver: zodResolver(settingsFormSchema),
@@ -29,7 +43,7 @@ export default function SettingsPage() {
   const watchedValues = watch()
 
   const onSubmit = async (data: SettingsFormData) => {
-    if (!currentStore?.id) {
+    if (!storeId) {
       alert('Nenhuma loja selecionada')
       return
     }
@@ -41,7 +55,7 @@ export default function SettingsPage() {
       const { error } = await supabase
         .from('stores')
         .update({ settings: data })
-        .eq('id', currentStore.id)
+        .eq('id', storeId)
 
       if (error) throw error
 

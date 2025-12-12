@@ -8,7 +8,6 @@ import { useProducts } from '@/hooks/useProducts'
 import { supabase } from '@/lib/supabase'
 import { useSettings } from '@/hooks/useSettings'
 import { useSettingsHelper } from '@/lib/settingsHelper'
-import { useStores } from '@/hooks/useStores'
 
 interface CartItem {
   id: string
@@ -19,9 +18,8 @@ interface CartItem {
 
 export default function POSPage() {
   const { products, loading } = useProducts()
-  const { stores } = useStores()
-  const currentStore = stores[0]
-  const { settings } = useSettings(currentStore?.id)
+  const currentStoreId = products[0]?.store_id
+  const { settings } = useSettings(currentStoreId)
   const helper = useSettingsHelper(settings)
   
   const [cart, setCart] = useState<CartItem[]>([])
