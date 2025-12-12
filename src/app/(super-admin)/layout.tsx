@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Building2, Store, ChevronLeft, ChevronRight, Menu, LayoutDashboard, Users, Settings } from 'lucide-react'
+import { Building2, Store, ChevronLeft, ChevronRight, Menu, LayoutDashboard, Users, Settings, CreditCard, BarChart3, FileText, Ticket, Flag, Zap, FileSpreadsheet } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const menuItems = [
@@ -26,10 +26,52 @@ const menuItems = [
     description: 'Gerenciar Lojas'
   },
   { 
+    href: '/admin/plans', 
+    label: 'Planos', 
+    icon: CreditCard,
+    description: 'Gestão de Planos'
+  },
+  { 
     href: '/admin/users', 
     label: 'Usuários', 
     icon: Users,
     description: 'Gerenciar Usuários'
+  },
+  { 
+    href: '/admin/analytics', 
+    label: 'Analytics', 
+    icon: BarChart3,
+    description: 'Métricas e Relatórios'
+  },
+  { 
+    href: '/admin/logs', 
+    label: 'Logs', 
+    icon: FileText,
+    description: 'Auditoria'
+  },
+  { 
+    href: '/admin/tickets', 
+    label: 'Tickets', 
+    icon: Ticket,
+    description: 'Suporte'
+  },
+  { 
+    href: '/admin/features', 
+    label: 'Feature Flags', 
+    icon: Flag,
+    description: 'Controle de Features'
+  },
+  { 
+    href: '/admin/automations', 
+    label: 'Automações', 
+    icon: Zap,
+    description: 'Automações'
+  },
+  { 
+    href: '/admin/reports', 
+    label: 'Relatórios', 
+    icon: FileSpreadsheet,
+    description: 'Relatórios'
   },
   { 
     href: '/admin/settings', 

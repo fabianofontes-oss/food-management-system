@@ -29,6 +29,88 @@ export type Database = {
           updated_at?: string
         }
       }
+      plans: {
+        Row: {
+          id: string
+          name: string
+          slug: string
+          price_monthly_cents: number
+          price_yearly_cents: number | null
+          currency: string
+          features: Json | null
+          limits: Json | null
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          slug: string
+          price_monthly_cents?: number
+          price_yearly_cents?: number | null
+          currency?: string
+          features?: Json | null
+          limits?: Json | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          slug?: string
+          price_monthly_cents?: number
+          price_yearly_cents?: number | null
+          currency?: string
+          features?: Json | null
+          limits?: Json | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      tenant_subscriptions: {
+        Row: {
+          id: string
+          tenant_id: string
+          plan_id: string
+          status: string
+          renew_period: string
+          current_period_start: string
+          current_period_end: string | null
+          trial_ends_at: string | null
+          cancel_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          plan_id: string
+          status?: string
+          renew_period?: string
+          current_period_start?: string
+          current_period_end?: string | null
+          trial_ends_at?: string | null
+          cancel_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          tenant_id?: string
+          plan_id?: string
+          status?: string
+          renew_period?: string
+          current_period_start?: string
+          current_period_end?: string | null
+          trial_ends_at?: string | null
+          cancel_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
       stores: {
         Row: {
           id: string
