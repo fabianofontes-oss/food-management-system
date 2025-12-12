@@ -189,6 +189,11 @@ const uberEatsConfigSchema = z.object({
   }
 )
 
+// Schema para Checkout
+const checkoutConfigSchema = z.object({
+  mode: z.enum(['guest', 'phone_required']).default('phone_required'),
+})
+
 // Schema principal de configurações
 export const settingsFormSchema = z.object({
   // Funcionalidades Principais
@@ -228,6 +233,9 @@ export const settingsFormSchema = z.object({
   ifood: ifoodConfigSchema,
   rappi: rappiConfigSchema,
   uberEats: uberEatsConfigSchema,
+  
+  // Checkout
+  checkout: checkoutConfigSchema,
 })
 
 export type SettingsFormData = z.infer<typeof settingsFormSchema>
@@ -270,5 +278,8 @@ export const defaultSettings: SettingsFormData = {
   },
   uberEats: {
     enabled: false,
+  },
+  checkout: {
+    mode: 'phone_required',
   },
 }
