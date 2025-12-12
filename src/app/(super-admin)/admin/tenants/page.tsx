@@ -1,82 +1,115 @@
 'use client'
 
-import { useState } from 'react'
-import { Building2, Plus, Edit, Trash2, Store, Users, Settings } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Building2, Plus, Edit, Trash2, Store, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { getTenants, createTenant, updateTenant, deleteTenant, type Tenant } from '@/lib/superadmin/queries'
+import { createClient } from '@/lib/superadmin/queries'
 
-interface Tenant {
-  id: string
-  name: string
-  slug: string
-  is_active: boolean
+type TenantWithStoreCount = Tenant & {
   stores_count: number
-  created_at: string
 }
 
 export default function TenantsPage() {
-  const [tenants, setTenants] = useState<Tenant[]>([
-    {
-      id: '1',
-      name: 'Tenant Demo',
-      slug: 'demo',
-      is_active: true,
-      stores_count: 1,
-      created_at: '2024-01-01'
-    }
-  ])
-
+  const [tenants, setTenants] = useState<TenantWithStoreCount[]>([])
+  const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editingTenant, setEditingTenant] = useState<Tenant | null>(null)
+  const [submitting, setSubmitting] = useState(false)
   const [formData, setFormData] = useState({
-    name: '',
-    slug: '',
-    is_active: true
+    name: ''
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (editingTenant) {
-      setTenants(tenants.map(t => 
-        t.id === editingTenant.id 
-          ? { ...t, ...formData }
-          : t
-      ))
-    } else {
-      const newTenant: Tenant = {
-        id: Date.now().toString(),
-        ...formData,
-        stores_count: 0,
-        created_at: new Date().toISOString()
-      }
-      setTenants([...tenants, newTenant])
-    }
+  useEffect(() => {
+    loadTenants()
+  }, [])
 
-    setFormData({ name: '', slug: '', is_active: true })
-    setShowForm(false)
-    setEditingTenant(null)
+  async function loadTenants() {
+    try {
+      setLoading(true)
+      const data = await getTenants()
+      
+      const supabase = createClient()
+      const tenantsWithCount = await Promise.all(
+        data.map(async (tenant) => {
+          const { count } = await supabase
+            .from('stores')
+            .select('*', { count: 'exact', head: true })
+            .eq('tenant_id', tenant.id)
+          
+          return {
+            ...tenant,
+            stores_count: count || 0
+          }
+        })
+      )
+      
+      setTenants(tenantsWithCount)
+    } catch (err) {
+      console.error('Erro ao carregar tenants:', err)
+      alert('Erro ao carregar tenants')
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const handleEdit = (tenant: Tenant) => {
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    
+    try {
+      setSubmitting(true)
+      
+      if (editingTenant) {
+        await updateTenant(editingTenant.id, { name: formData.name })
+      } else {
+        await createTenant({ name: formData.name })
+      }
+      
+      await loadTenants()
+      setFormData({ name: '' })
+      setShowForm(false)
+      setEditingTenant(null)
+    } catch (err) {
+      console.error('Erro ao salvar tenant:', err)
+      alert('Erro ao salvar tenant')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  function handleEdit(tenant: Tenant) {
     setEditingTenant(tenant)
-    setFormData({
-      name: tenant.name,
-      slug: tenant.slug,
-      is_active: tenant.is_active
-    })
+    setFormData({ name: tenant.name })
     setShowForm(true)
   }
 
-  const handleDelete = (id: string) => {
-    if (confirm('Tem certeza que deseja excluir este tenant?')) {
-      setTenants(tenants.filter(t => t.id !== id))
+  async function handleDelete(id: string) {
+    if (!confirm('Tem certeza que deseja excluir este tenant?')) return
+    
+    try {
+      await deleteTenant(id)
+      await loadTenants()
+    } catch (err) {
+      console.error('Erro ao excluir tenant:', err)
+      alert('Erro ao excluir tenant. Verifique se não há lojas vinculadas.')
     }
   }
 
-  const handleCancel = () => {
+  function handleCancel() {
     setShowForm(false)
     setEditingTenant(null)
-    setFormData({ name: '', slug: '', is_active: true })
+    setFormData({ name: '' })
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white p-6 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
+          <p className="text-gray-600">Carregando tenants...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -108,12 +141,12 @@ export default function TenantsPage() {
           
           <div className="bg-white rounded-2xl shadow-lg p-6">
             <div className="flex items-center justify-between mb-2">
-              <Users className="w-8 h-8 text-blue-600" />
+              <Building2 className="w-8 h-8 text-blue-600" />
               <span className="text-3xl font-bold text-gray-900">
-                {tenants.filter(t => t.is_active).length}
+                {tenants.length}
               </span>
             </div>
-            <div className="text-gray-600">Tenants Ativos</div>
+            <div className="text-gray-600">Redes Cadastradas</div>
           </div>
         </div>
 
@@ -143,54 +176,34 @@ export default function TenantsPage() {
                 <input
                   type="text"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) => setFormData({ name: e.target.value })}
                   placeholder="Ex: Rede Açaí Premium"
                   className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none"
                   required
+                  disabled={submitting}
                 />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Slug (URL amigável) *
-                </label>
-                <input
-                  type="text"
-                  value={formData.slug}
-                  onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
-                  placeholder="Ex: acai-premium"
-                  className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none"
-                  required
-                />
-                <p className="text-sm text-gray-500 mt-1">
-                  Usado na URL. Apenas letras minúsculas, números e hífens.
-                </p>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  id="is_active"
-                  checked={formData.is_active}
-                  onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                  className="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500"
-                />
-                <label htmlFor="is_active" className="text-sm font-semibold text-gray-700">
-                  Tenant Ativo
-                </label>
               </div>
 
               <div className="flex gap-3 pt-4">
                 <Button
                   type="submit"
-                  className="bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800"
+                  disabled={submitting}
+                  className="bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 disabled:opacity-50"
                 >
-                  {editingTenant ? 'Salvar Alterações' : 'Criar Tenant'}
+                  {submitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Salvando...
+                    </>
+                  ) : (
+                    editingTenant ? 'Salvar Alterações' : 'Criar Tenant'
+                  )}
                 </Button>
                 <Button
                   type="button"
                   onClick={handleCancel}
-                  className="bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  disabled={submitting}
+                  className="bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50"
                 >
                   Cancelar
                 </Button>
@@ -205,28 +218,15 @@ export default function TenantsPage() {
             <div key={tenant.id} className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
+                  <div className="flex items-center gap-3 mb-3">
                     <Building2 className="w-6 h-6 text-indigo-600" />
                     <h3 className="text-2xl font-bold text-gray-900">{tenant.name}</h3>
-                    {tenant.is_active ? (
-                      <span className="px-3 py-1 bg-green-100 text-green-700 text-sm font-semibold rounded-full">
-                        Ativo
-                      </span>
-                    ) : (
-                      <span className="px-3 py-1 bg-red-100 text-red-700 text-sm font-semibold rounded-full">
-                        Inativo
-                      </span>
-                    )}
                   </div>
                   
                   <div className="space-y-2 text-gray-600">
                     <div className="flex items-center gap-2">
-                      <Settings className="w-4 h-4" />
-                      <span className="font-mono text-sm">Slug: {tenant.slug}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
                       <Store className="w-4 h-4" />
-                      <span className="text-sm">{tenant.stores_count} loja(s)</span>
+                      <span className="text-sm font-semibold">{tenant.stores_count} loja(s) vinculada(s)</span>
                     </div>
                     <div className="text-sm text-gray-500">
                       Criado em: {new Date(tenant.created_at).toLocaleDateString('pt-BR')}
