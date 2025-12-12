@@ -1,17 +1,7 @@
 import { notFound } from 'next/navigation'
 import { QAHubClient } from './QAHubClient'
-import {
-  checkStore,
-  checkTenant,
-  checkCheckoutMode,
-  checkPayments,
-  checkUserSession,
-  checkStoreAccess,
-  getLastOrderIdForStore,
-  getStoreBySlug
-} from '@/lib/qa/queries'
 
-export default async function QAHubPage() {
+export default function QAHubPage() {
   // Proteção: apenas em desenvolvimento/preview
   if (process.env.NODE_ENV === 'production') {
     notFound()
