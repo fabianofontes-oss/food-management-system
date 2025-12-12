@@ -4,6 +4,9 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Lock, Mail, Loader2 } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
+
+const SUPER_ADMIN_EMAILS = process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAILS?.split(',').map(e => e.trim()) || []
 
 export default function LoginPage() {
   const router = useRouter()
@@ -20,11 +23,52 @@ export default function LoginPage() {
     setError('')
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      router.push('/admin')
-    } catch (err) {
-      setError('Email ou senha inválidos')
-    } finally {
+      const supabase = createClient()
+      
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password
+      })
+
+      if (signInError) {
+        setError(signInError.message)
+        setLoading(false)
+        return
+      }
+
+      if (!data.user) {
+        setError('Erro ao fazer login')
+        setLoading(false)
+        return
+      }
+
+      // Check if super admin
+      if (SUPER_ADMIN_EMAILS.includes(data.user.email || '')) {
+        router.push('/admin')
+        return
+      }
+
+      // Get user stores
+      const { data: stores, error: storesError } = await supabase
+        .rpc('get_user_stores')
+
+      if (storesError) {
+        console.error('Error fetching stores:', storesError)
+        setError('Erro ao carregar suas lojas')
+        setLoading(false)
+        return
+      }
+
+      if (!stores || stores.length === 0) {
+        setError('Nenhuma loja atribuída ainda. Entre em contato com o administrador.')
+        setLoading(false)
+        return
+      }
+
+      // Redirect to first store dashboard
+      router.push(`/${stores[0].store_slug}/dashboard`)
+    } catch (err: any) {
+      setError(err.message || 'Erro ao fazer login')
       setLoading(false)
     }
   }
