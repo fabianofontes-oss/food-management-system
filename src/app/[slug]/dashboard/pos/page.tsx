@@ -536,17 +536,46 @@ export default function POSPage() {
             </div>
 
             <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {filteredProducts.map(product => (
-                <button
-                  key={product.id}
-                  onClick={() => addToCart(product)}
-                  className="bg-white p-4 rounded-2xl shadow-md hover:shadow-xl transition-all transform hover:scale-105 text-left"
-                >
-                  <div className="text-sm text-gray-500 mb-1">Produto</div>
-                  <div className="font-bold text-lg mb-2">{product.name}</div>
-                  <div className="text-2xl font-bold text-blue-600">{formatCurrency(product.base_price)}</div>
-                </button>
-              ))}
+              {filteredProducts.map(product => {
+                const isByWeight = product.name.toLowerCase().includes('kg') || product.description?.toLowerCase().includes('peso')
+                
+                return (
+                  <div key={product.id} className="bg-white p-4 rounded-2xl shadow-md hover:shadow-xl transition-all relative">
+                    {/* Badge de Balança */}
+                    {isByWeight && (
+                      <div className="absolute -top-2 -right-2 bg-green-600 text-white p-2 rounded-full shadow-lg">
+                        <Scale className="w-4 h-4" />
+                      </div>
+                    )}
+                    
+                    <div className="text-sm text-gray-500 mb-1">{isByWeight ? 'Por Peso (kg)' : 'Produto'}</div>
+                    <div className="font-bold text-lg mb-2">{product.name}</div>
+                    <div className="text-2xl font-bold text-blue-600 mb-3">
+                      {formatCurrency(product.base_price)}{isByWeight && '/kg'}
+                    </div>
+                    
+                    {/* Botões */}
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => addToCart(product)}
+                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                      >
+                        <Plus className="w-4 h-4" />
+                        {isByWeight ? 'Pesar' : 'Adicionar'}
+                      </button>
+                      {!isByWeight && (
+                        <button
+                          onClick={() => setShowWeightModal(product.id)}
+                          className="bg-green-600 hover:bg-green-700 text-white p-2 rounded-lg transition-colors"
+                          title="Adicionar por peso"
+                        >
+                          <Scale className="w-5 h-5" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           </div>
 
@@ -567,8 +596,19 @@ export default function POSPage() {
                   {cart.map(item => (
                     <div key={item.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
                       <div className="flex-1">
-                        <div className="font-semibold">{item.name}</div>
-                        <div className="text-sm text-gray-600">{formatCurrency(item.price)}</div>
+                        <div className="font-semibold flex items-center gap-2">
+                          {item.isByWeight && <Scale className="w-4 h-4 text-green-600" />}
+                          {item.name}
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          {item.isByWeight && item.weight ? (
+                            <span className="text-green-600 font-medium">
+                              {item.weight}kg × {formatCurrencyI18n(item.price / item.weight)}/kg = {formatCurrencyI18n(item.price)}
+                            </span>
+                          ) : (
+                            formatCurrency(item.price)
+                          )}
+                        </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <button
