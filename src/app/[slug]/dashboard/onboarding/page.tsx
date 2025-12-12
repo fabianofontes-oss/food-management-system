@@ -6,10 +6,11 @@ import { Check, ChevronRight, ChevronLeft, Store, CreditCard, Clock, Package, Lo
 import { Button } from '@/components/ui/button'
 import { supabase } from '@/lib/supabase'
 
-type OnboardingStep = 'store_info' | 'payments' | 'hours' | 'first_product'
+type OnboardingStep = 'store_info' | 'payments' | 'hours' | 'first_product' | 'ready_check'
 
 type OnboardingState = {
   completed: boolean
+  ready_check: boolean
   steps: {
     store_info: boolean
     payments: boolean
@@ -29,6 +30,7 @@ export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState<OnboardingStep>('store_info')
   const [onboardingState, setOnboardingState] = useState<OnboardingState>({
     completed: false,
+    ready_check: false,
     steps: {
       store_info: false,
       payments: false,
@@ -36,6 +38,7 @@ export default function OnboardingPage() {
       first_product: false
     }
   })
+  const [showReadyCheckConfirm, setShowReadyCheckConfirm] = useState(false)
 
   // Step 1 - Store Info
   const [storeName, setStoreName] = useState('')
@@ -264,9 +267,42 @@ export default function OnboardingPage() {
         })
 
       await saveStepProgress('first_product', true)
-      await completeOnboarding()
+      setCurrentStep('ready_check')
     } catch (err) {
       console.error('Error creating product:', err)
+    }
+    setSaving(false)
+  }
+
+  async function handleReadyCheck() {
+    setSaving(true)
+    try {
+      const { data: store } = await supabase
+        .from('stores')
+        .select('settings')
+        .eq('id', storeId)
+        .single()
+
+      const settings = (store?.settings as any) || {}
+      if (!settings.onboarding) {
+        settings.onboarding = {}
+      }
+      
+      settings.onboarding.ready_check = true
+      settings.onboarding.completed = true
+
+      await supabase
+        .from('stores')
+        .update({ settings })
+        .eq('id', storeId)
+
+      setOnboardingState({
+        ...onboardingState,
+        ready_check: true,
+        completed: true
+      })
+    } catch (err) {
+      console.error('Error marking ready:', err)
     }
     setSaving(false)
   }
@@ -725,12 +761,116 @@ export default function OnboardingPage() {
                     </>
                   ) : (
                     <>
-                      Finalizar
-                      <Check className="w-5 h-5 ml-2" />
+                      Continuar
+                      <ChevronRight className="w-5 h-5 ml-2" />
                     </>
                   )}
                 </Button>
               </div>
+            </div>
+          )}
+
+          {currentStep === 'ready_check' && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Sua loja está pronta?</h2>
+                <p className="text-gray-600">Confirme que você completou a configuração inicial</p>
+              </div>
+
+              <div className="bg-green-50 border-2 border-green-200 rounded-xl p-6 space-y-4">
+                <h3 className="font-bold text-green-900 text-lg mb-3">Checklist de Prontidão:</h3>
+                
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <Check className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="font-medium text-gray-900">Informações da loja configuradas</p>
+                      <p className="text-sm text-gray-600">Nome, telefone e endereço</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <Check className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="font-medium text-gray-900">Formas de pagamento ativas</p>
+                      <p className="text-sm text-gray-600">Pelo menos um método habilitado</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <Check className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="font-medium text-gray-900">Horário de funcionamento definido</p>
+                      <p className="text-sm text-gray-600">Dias e horários configurados</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <Check className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="font-medium text-gray-900">Primeiro produto cadastrado</p>
+                      <p className="text-sm text-gray-600">Menu inicial criado</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {showReadyCheckConfirm && (
+                <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-6">
+                  <p className="text-yellow-900 font-medium mb-4">
+                    Ao confirmar, sua loja será marcada como pronta para começar a receber pedidos. 
+                    Você poderá fazer ajustes a qualquer momento nas configurações.
+                  </p>
+                  <div className="flex gap-3">
+                    <Button
+                      onClick={() => setShowReadyCheckConfirm(false)}
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      onClick={handleReadyCheck}
+                      disabled={saving}
+                      className="flex-1 bg-green-600 hover:bg-green-700"
+                    >
+                      {saving ? (
+                        <>
+                          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                          Confirmando...
+                        </>
+                      ) : (
+                        <>
+                          <Check className="w-5 h-5 mr-2" />
+                          Confirmar
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {!showReadyCheckConfirm && (
+                <div className="flex gap-3">
+                  <Button
+                    onClick={() => setCurrentStep('first_product')}
+                    variant="outline"
+                    className="flex-1"
+                    size="lg"
+                  >
+                    <ChevronLeft className="w-5 h-5 mr-2" />
+                    Voltar
+                  </Button>
+                  <Button
+                    onClick={() => setShowReadyCheckConfirm(true)}
+                    className="flex-1 bg-green-600 hover:bg-green-700"
+                    size="lg"
+                  >
+                    <Sparkles className="w-5 h-5 mr-2" />
+                    Marcar loja como pronta
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </div>
