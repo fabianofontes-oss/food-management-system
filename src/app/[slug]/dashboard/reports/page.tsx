@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { formatCurrency } from '@/lib/utils'
-import { Calendar, DollarSign, ShoppingBag, TrendingUp, CreditCard, Loader2, AlertCircle, Award, Clock } from 'lucide-react'
+import { Calendar, DollarSign, ShoppingBag, TrendingUp, CreditCard, Loader2, AlertCircle, Award, Clock, Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 interface ReportMetrics {
@@ -262,16 +262,73 @@ export default function ReportsPage() {
     return labels[method] || method
   }
 
+  const exportToCSV = () => {
+    const { start, end } = getDateRange()
+    const startFormatted = new Date(start).toLocaleDateString('pt-BR')
+    const endFormatted = new Date(end).toLocaleDateString('pt-BR')
+
+    // CSV Header
+    let csv = 'RELATÓRIO DE VENDAS\n'
+    csv += `Período: ${startFormatted} - ${endFormatted}\n\n`
+
+    // Métricas Principais
+    csv += 'MÉTRICAS PRINCIPAIS\n'
+    csv += 'Métrica,Valor\n'
+    csv += `Total de Pedidos,${metrics.total_orders}\n`
+    csv += `Receita Total,R$ ${metrics.total_revenue.toFixed(2)}\n`
+    csv += `Ticket Médio,R$ ${metrics.average_ticket.toFixed(2)}\n`
+    csv += `Pedidos Pagos,${metrics.paid_count}\n`
+    csv += `Pedidos Pendentes,${metrics.pending_count}\n\n`
+
+    // Breakdown por Método de Pagamento
+    csv += 'VENDAS POR MÉTODO DE PAGAMENTO\n'
+    csv += 'Método,Quantidade,Total,% do Total\n'
+    paymentBreakdown.forEach(item => {
+      const percentage = ((item.total / metrics.total_revenue) * 100).toFixed(1)
+      csv += `${getPaymentMethodLabel(item.method)},${item.count},R$ ${item.total.toFixed(2)},${percentage}%\n`
+    })
+    csv += '\n'
+
+    // Top Products
+    csv += 'PRODUTOS MAIS VENDIDOS\n'
+    csv += 'Produto,Quantidade,Receita,Nº Pedidos\n'
+    topProducts.forEach(product => {
+      csv += `${product.product_name},${product.total_quantity},R$ ${product.total_revenue.toFixed(2)},${product.order_count}\n`
+    })
+
+    // Download
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+    link.setAttribute('href', url)
+    link.setAttribute('download', `relatorio_vendas_${Date.now()}.csv`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 flex items-center gap-3">
-            <TrendingUp className="w-8 h-8 md:w-10 md:h-10 text-blue-600" />
-            Relatórios
-          </h1>
-          <p className="text-gray-600 mt-1">Análise de vendas e desempenho</p>
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 flex items-center gap-3">
+              <TrendingUp className="w-8 h-8 md:w-10 md:h-10 text-blue-600" />
+              Relatórios
+            </h1>
+            <p className="text-gray-600 mt-1">Análise de vendas e desempenho</p>
+          </div>
+          {!loading && metrics.total_orders > 0 && (
+            <Button
+              onClick={exportToCSV}
+              className="bg-green-600 hover:bg-green-700 flex items-center gap-2"
+            >
+              <Download className="w-5 h-5" />
+              Exportar CSV
+            </Button>
+          )}
         </div>
 
         {/* Filtros de Data */}
