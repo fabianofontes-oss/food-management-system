@@ -34,6 +34,7 @@ export default function KitchenPage() {
   const [chefs] = useState(['João', 'Maria', 'Carlos', 'Ana'])
   const [completedToday, setCompletedToday] = useState(0)
   const [avgPrepTime, setAvgPrepTime] = useState(0)
+  const [channelFilter, setChannelFilter] = useState<'all' | 'delivery' | 'dine_in' | 'takeout'>('all')
 
   // Auto-refresh a cada 30 segundos
   useEffect(() => {
@@ -235,9 +236,14 @@ export default function KitchenPage() {
     return colors[channel] || 'bg-gray-100 text-gray-700'
   }
 
-  const pendingOrders = orders.filter(o => o.status === 'pending' || o.status === 'confirmed')
-  const preparingOrders = orders.filter(o => o.status === 'preparing')
-  const readyOrders = orders.filter(o => o.status === 'ready')
+  const filterByChannel = (ordersList: any[]) => {
+    if (channelFilter === 'all') return ordersList
+    return ordersList.filter(o => o.order_type === channelFilter)
+  }
+
+  const pendingOrders = filterByChannel(orders.filter(o => o.status === 'pending' || o.status === 'confirmed'))
+  const preparingOrders = filterByChannel(orders.filter(o => o.status === 'preparing'))
+  const readyOrders = filterByChannel(orders.filter(o => o.status === 'ready'))
 
   if (loading) {
     return (
