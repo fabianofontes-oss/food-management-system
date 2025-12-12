@@ -43,6 +43,8 @@ export function useOrders(storeId?: string) {
   async function fetchOrders() {
     try {
       setLoading(true)
+      setError(null)
+      
       let query = supabase
         .from('orders')
         .select('*')
@@ -54,10 +56,16 @@ export function useOrders(storeId?: string) {
 
       const { data, error } = await query
 
-      if (error) throw error
+      if (error) {
+        console.error('Erro ao buscar pedidos:', error)
+        throw error
+      }
+      
       setOrders(data || [])
     } catch (err) {
+      console.error('Erro no fetchOrders:', err)
       setError(err instanceof Error ? err.message : 'Erro ao carregar pedidos')
+      setOrders([]) // Define array vazio em caso de erro
     } finally {
       setLoading(false)
     }
