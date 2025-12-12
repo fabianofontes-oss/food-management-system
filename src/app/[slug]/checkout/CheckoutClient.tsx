@@ -12,8 +12,11 @@ import { PaymentMethodSelector } from './components/PaymentMethodSelector'
 import { OrderSummary } from './components/OrderSummary'
 import { OrderTypeSelector } from './components/OrderTypeSelector'
 import { NotesSection } from './components/NotesSection'
+import { CouponSection } from './components/CouponSection'
 import { loadStoreSettings } from './services/storeSettings'
 import { validateAndSubmitOrder } from './services/orders'
+import { validateCoupon } from '@/lib/coupons/actions'
+import { supabase } from '@/lib/supabase'
 import type { CheckoutFormData, CheckoutMode, PaymentMethod } from './types'
 
 interface CheckoutClientProps {
@@ -28,6 +31,8 @@ export function CheckoutClient({ slug }: CheckoutClientProps) {
   const [loadingCEP, setLoadingCEP] = useState(false)
   const [checkoutMode, setCheckoutMode] = useState<CheckoutMode>('phone_required')
   const [availablePaymentMethods, setAvailablePaymentMethods] = useState<PaymentMethod[]>(['CASH'])
+  const [storeId, setStoreId] = useState<string | null>(null)
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null)
 
   const [formData, setFormData] = useState<CheckoutFormData>({
     name: '',
@@ -48,7 +53,8 @@ export function CheckoutClient({ slug }: CheckoutClientProps) {
 
   const subtotal = getSubtotal()
   const deliveryFee = formData.channel === 'DELIVERY' ? 5.00 : 0
-  const total = subtotal + deliveryFee
+  const discount = appliedCoupon?.discount || 0
+  const total = subtotal + deliveryFee - discount
 
   useEffect(() => {
     async function loadSettings() {
@@ -60,9 +66,42 @@ export function CheckoutClient({ slug }: CheckoutClientProps) {
       if (settings.availablePaymentMethods.length > 0 && !settings.availablePaymentMethods.includes(formData.paymentMethod)) {
         setFormData(prev => ({ ...prev, paymentMethod: settings.availablePaymentMethods[0] }))
       }
+
+      // Load store ID
+      const { data } = await supabase
+        .from('stores')
+        .select('id')
+        .eq('slug', slug)
+        .single()
+      
+      if (data) {
+        setStoreId(data.id)
+      }
     }
     loadSettings()
   }, [slug])
+
+  async function handleApplyCoupon(code: string) {
+    if (!storeId) {
+      return { valid: false, reason: 'Loja não encontrada' }
+    }
+
+    const result = await validateCoupon(storeId, code, subtotal)
+    
+    if (result.valid && result.discount_amount) {
+      setAppliedCoupon({
+        code: result.coupon_code || code,
+        discount: result.discount_amount
+      })
+      return { valid: true, discount: result.discount_amount }
+    }
+    
+    return { valid: false, reason: result.reason }
+  }
+
+  function handleRemoveCoupon() {
+    setAppliedCoupon(null)
+  }
 
   const handleFieldChange = (field: keyof CheckoutFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -154,11 +193,19 @@ export function CheckoutClient({ slug }: CheckoutClientProps) {
             onChange={(notes) => setFormData({ ...formData, notes })}
           />
 
+          <CouponSection
+            onApply={handleApplyCoupon}
+            appliedCoupon={appliedCoupon}
+            onRemove={handleRemoveCoupon}
+          />
+
           <OrderSummary
             subtotal={subtotal}
             deliveryFee={deliveryFee}
+            discount={discount}
             total={total}
             showDeliveryFee={formData.channel === 'DELIVERY'}
+            showDiscount={discount > 0}
           />
 
           {error && (
