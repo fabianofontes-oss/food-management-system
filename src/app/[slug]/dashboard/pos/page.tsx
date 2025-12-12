@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Search, ShoppingCart, Plus, Minus, Trash2, CreditCard, DollarSign, Smartphone, Loader2, AlertCircle, Maximize, Minimize, Printer, User, Tag, TrendingUp, Clock, Package, X, Scale, Truck, Home, Barcode, Users } from 'lucide-react'
+import { Search, ShoppingCart, Plus, Minus, Trash2, CreditCard, DollarSign, Smartphone, Loader2, AlertCircle, Maximize, Minimize, Printer, User, Tag, TrendingUp, Clock, Package, X, Scale, Truck, Home, Barcode, Users, ArrowDownCircle, ArrowUpCircle, FileText, Lock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { formatCurrency } from '@/lib/utils'
 import { useProducts } from '@/hooks/useProducts'
@@ -73,6 +73,21 @@ export default function POSPage() {
 
   // Código de Barras
   const [barcodeInput, setBarcodeInput] = useState('')
+
+  // Sangria/Suprimento
+  const [showCashModal, setShowCashModal] = useState<'withdrawal' | 'supply' | null>(null)
+  const [cashAmount, setCashAmount] = useState('')
+  const [cashReason, setCashReason] = useState('')
+  const [cashMovements, setCashMovements] = useState<any[]>([])
+
+  // Fechamento de Caixa
+  const [showClosingModal, setShowClosingModal] = useState(false)
+  const [closingCash, setClosingCash] = useState(0)
+
+  // Cancelamento
+  const [showCancelModal, setShowCancelModal] = useState(false)
+  const [cancelPassword, setCancelPassword] = useState('')
+  const [itemToCancel, setItemToCancel] = useState<string | null>(null)
 
   // Carregar estatísticas do dia
   useEffect(() => {
@@ -215,6 +230,61 @@ export default function POSPage() {
 
   const removeItem = (id: string) => {
     setCart(cart.filter(item => item.id !== id))
+  }
+
+  const handleCashMovement = (type: 'withdrawal' | 'supply') => {
+    const amount = parseFloat(cashAmount)
+    if (!amount || amount <= 0 || !cashReason) {
+      alert('Preencha o valor e motivo')
+      return
+    }
+
+    const movement = {
+      type,
+      amount,
+      reason: cashReason,
+      attendant: attendantName,
+      timestamp: new Date().toISOString()
+    }
+
+    setCashMovements([...cashMovements, movement])
+    setCashAmount('')
+    setCashReason('')
+    setShowCashModal(null)
+    alert(`${type === 'withdrawal' ? 'Sangria' : 'Suprimento'} registrado: ${formatCurrencyI18n(amount)}`)
+  }
+
+  const generateClosingReport = () => {
+    const cashSales = todaySales // Simplificado - em produção, filtrar por forma de pagamento
+    const withdrawals = cashMovements.filter(m => m.type === 'withdrawal').reduce((sum, m) => sum + m.amount, 0)
+    const supplies = cashMovements.filter(m => m.type === 'supply').reduce((sum, m) => sum + m.amount, 0)
+    const expectedCash = cashSales - withdrawals + supplies
+    const difference = closingCash - expectedCash
+
+    return {
+      cashSales,
+      withdrawals,
+      supplies,
+      expectedCash,
+      closingCash,
+      difference,
+      orders: todayOrders
+    }
+  }
+
+  const handleCancelItem = () => {
+    if (cancelPassword !== '1234') { // Senha padrão - em produção, usar senha do gerente
+      alert('Senha incorreta!')
+      return
+    }
+
+    if (itemToCancel) {
+      setCart(cart.filter(item => item.id !== itemToCancel))
+      setShowCancelModal(false)
+      setCancelPassword('')
+      setItemToCancel(null)
+      alert('Item cancelado com sucesso')
+    }
   }
 
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
