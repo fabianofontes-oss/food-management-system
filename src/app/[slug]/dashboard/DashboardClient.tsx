@@ -55,6 +55,14 @@ export default function DashboardClient({
       activeColor: 'bg-teal-100'
     },
     { 
+      href: `${base}/delivery`, 
+      label: 'Delivery',
+      icon: Truck,
+      color: 'text-indigo-600',
+      bgColor: 'bg-indigo-50',
+      activeColor: 'bg-indigo-100'
+    },
+    { 
       href: `${base}/crm`, 
       label: 'CRM',
       icon: Users,
@@ -232,23 +240,6 @@ export default function DashboardClient({
               )
             })}
           </nav>
-
-          {/* Banner Delivery Fixo */}
-          <Link
-            href={`${base}/orders/delivery`}
-            onClick={() => setIsMobileOpen(false)}
-            className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-4 hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg border-t-2 border-purple-400"
-          >
-            <div className="flex items-center justify-center gap-3">
-              <Truck className="w-6 h-6 animate-pulse" />
-              {!isCollapsed && (
-                <div className="flex flex-col">
-                  <span className="font-bold text-lg">🚚 Delivery</span>
-                  <span className="text-xs opacity-90">Gestão de Entregas</span>
-                </div>
-              )}
-            </div>
-          </Link>
         </div>
       </aside>
 
