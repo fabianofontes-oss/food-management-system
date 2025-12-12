@@ -47,26 +47,12 @@ export default function DashboardClient({
       activeColor: 'bg-blue-100'
     },
     { 
-      id: 'operacoes',
-      label: 'Operações',
-      icon: ClipboardList,
+      href: `${base}/orders`, 
+      label: 'Pedidos',
+      icon: ShoppingBag,
       color: 'text-teal-600',
       bgColor: 'bg-teal-50',
-      activeColor: 'bg-teal-100',
-      submenu: [
-        { 
-          href: `${base}/orders`, 
-          label: 'Pedidos',
-          icon: ShoppingBag,
-          color: 'text-teal-600'
-        },
-        { 
-          href: `${base}/orders/delivery`, 
-          label: 'Delivery',
-          icon: Truck,
-          color: 'text-indigo-600'
-        }
-      ]
+      activeColor: 'bg-teal-100'
     },
     { 
       href: `${base}/crm`, 
@@ -152,7 +138,7 @@ export default function DashboardClient({
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+          <nav className="flex-1 p-4 space-y-2 overflow-y-auto pb-24">
             {menuItems.map((item: any) => {
               const Icon = item.icon
               
@@ -247,14 +233,22 @@ export default function DashboardClient({
             })}
           </nav>
 
-          {/* Footer */}
-          <div className="p-4 border-t border-gray-200">
-            {!isCollapsed && (
-              <div className="text-xs text-gray-500 text-center">
-                Food Management System
-              </div>
-            )}
-          </div>
+          {/* Banner Delivery Fixo */}
+          <Link
+            href={`${base}/orders/delivery`}
+            onClick={() => setIsMobileOpen(false)}
+            className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-4 hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg border-t-2 border-purple-400"
+          >
+            <div className="flex items-center justify-center gap-3">
+              <Truck className="w-6 h-6 animate-pulse" />
+              {!isCollapsed && (
+                <div className="flex flex-col">
+                  <span className="font-bold text-lg">🚚 Delivery</span>
+                  <span className="text-xs opacity-90">Gestão de Entregas</span>
+                </div>
+              )}
+            </div>
+          </Link>
         </div>
       </aside>
 
