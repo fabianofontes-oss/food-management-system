@@ -131,6 +131,61 @@ export default function OrdersPage() {
     return labels[type] || type
   }
 
+  const getPaymentMethodLabel = (method: string) => {
+    const labels: Record<string, string> = {
+      'pix': 'PIX',
+      'cash': 'Dinheiro',
+      'card': 'Cartão',
+      'card_on_delivery': 'Cartão na Entrega',
+      'online': 'Online'
+    }
+    return labels[method] || method
+  }
+
+  const getPaymentStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      'pending': 'Pendente',
+      'paid': 'Pago',
+      'cancelled': 'Cancelado'
+    }
+    return labels[status] || status
+  }
+
+  const getPaymentStatusColor = (status: string) => {
+    const colors: Record<string, string> = {
+      'pending': 'bg-yellow-100 text-yellow-800',
+      'paid': 'bg-green-100 text-green-800',
+      'cancelled': 'bg-red-100 text-red-800'
+    }
+    return colors[status] || 'bg-gray-100 text-gray-800'
+  }
+
+  const markAsPaid = async (orderId: string) => {
+    if (!confirm('Confirmar pagamento recebido?')) return
+
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({ payment_status: 'paid' })
+        .eq('id', orderId)
+
+      if (error) throw error
+
+      alert('Pagamento confirmado com sucesso!')
+      
+      // Atualizar estado local
+      if (selectedOrder?.id === orderId) {
+        setSelectedOrder({ ...selectedOrder, payment_status: 'paid' })
+      }
+      
+      // Recarregar pedidos
+      window.location.reload()
+    } catch (err) {
+      console.error('Erro ao confirmar pagamento:', err)
+      alert('Erro ao confirmar pagamento')
+    }
+  }
+
   const getTypeColor = (type: string) => {
     const colors: Record<string, string> = {
       'delivery': 'bg-purple-100 text-purple-700',
@@ -382,6 +437,12 @@ export default function OrdersPage() {
                       <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getTypeColor(order.order_type)}`}>
                         {getTypeLabel(order.order_type)}
                       </span>
+                      <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                        {getPaymentMethodLabel(order.payment_method || 'cash')}
+                      </span>
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getPaymentStatusColor(order.payment_status || 'pending')}`}>
+                        {getPaymentStatusLabel(order.payment_status || 'pending')}
+                      </span>
                     </div>
                     <div className="text-sm text-gray-600 mb-1">
                       <strong>{order.customer_name}</strong>
@@ -467,6 +528,37 @@ export default function OrdersPage() {
                     </span>
                   </div>
                 </div>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                <h4 className="font-bold text-blue-900 mb-3">Pagamento</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <div className="text-sm text-blue-700">Método</div>
+                    <div className="font-medium text-blue-900">{getPaymentMethodLabel(selectedOrder.payment_method || 'cash')}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-blue-700">Status</div>
+                    <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${getPaymentStatusColor(selectedOrder.payment_status || 'pending')}`}>
+                      {getPaymentStatusLabel(selectedOrder.payment_status || 'pending')}
+                    </span>
+                  </div>
+                </div>
+                {selectedOrder.payment_method === 'pix' && (selectedOrder.payment_status === 'pending' || !selectedOrder.payment_status) && (
+                  <div className="mt-3 text-sm text-blue-700">
+                    💡 PIX manual: confirme após receber o pagamento
+                  </div>
+                )}
+                {(selectedOrder.payment_status === 'pending' || !selectedOrder.payment_status) && (
+                  <div className="mt-4">
+                    <Button
+                      onClick={() => markAsPaid(selectedOrder.id)}
+                      className="w-full bg-green-600 hover:bg-green-700"
+                    >
+                      ✓ Marcar como Pago
+                    </Button>
+                  </div>
+                )}
               </div>
 
               <div className="bg-gray-50 rounded-xl p-4">
