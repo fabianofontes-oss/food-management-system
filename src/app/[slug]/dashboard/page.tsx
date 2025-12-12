@@ -6,11 +6,71 @@ import { useProducts } from '@/hooks/useProducts'
 import { useOrders } from '@/hooks/useOrders'
 import { supabase } from '@/lib/supabase'
 import { useEffect, useState } from 'react'
+import { useParams, useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 
 export default function AdminPage() {
+  const params = useParams()
+  const router = useRouter()
+  const slug = params.slug as string
+  
   const { products, loading: loadingProducts } = useProducts()
   const { orders, loading: loadingOrders } = useOrders()
   const [customersCount, setCustomersCount] = useState(0)
+  const [checkingOnboarding, setCheckingOnboarding] = useState(true)
+  
+  useEffect(() => {
+    checkOnboardingStatus()
+  }, [slug])
+  
+  async function checkOnboardingStatus() {
+    try {
+      const supabaseClient = createClient()
+      
+      // Get current user session
+      const { data: { session } } = await supabaseClient.auth.getSession()
+      if (!session) {
+        setCheckingOnboarding(false)
+        return
+      }
+
+      // Get store
+      const { data: store } = await supabaseClient
+        .from('stores')
+        .select('id, settings')
+        .eq('slug', slug)
+        .single()
+
+      if (!store) {
+        setCheckingOnboarding(false)
+        return
+      }
+
+      // Get user role
+      const { data: storeUser } = await supabaseClient
+        .from('store_users')
+        .select('role')
+        .eq('store_id', store.id)
+        .eq('user_id', session.user.id)
+        .single()
+
+      // Only check onboarding for owner/manager
+      if (storeUser && (storeUser.role === 'owner' || storeUser.role === 'manager')) {
+        const settings = store.settings as any
+        const onboardingCompleted = settings?.onboarding?.completed === true
+
+        if (!onboardingCompleted) {
+          router.push(`/${slug}/dashboard/onboarding`)
+          return
+        }
+      }
+
+      setCheckingOnboarding(false)
+    } catch (err) {
+      console.error('Error checking onboarding:', err)
+      setCheckingOnboarding(false)
+    }
+  }
   
   useEffect(() => {
     async function fetchCustomers() {
