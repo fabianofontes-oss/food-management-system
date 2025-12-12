@@ -3,12 +3,14 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Lock, Mail, User, Phone, Loader2 } from 'lucide-react'
+import { Lock, Mail, User, Phone, Loader2, CheckCircle } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 
 export default function SignupPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -28,14 +30,61 @@ export default function SignupPage() {
       return
     }
 
+    if (formData.password.length < 6) {
+      setError('A senha deve ter pelo menos 6 caracteres')
+      setLoading(false)
+      return
+    }
+
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      router.push('/admin')
-    } catch (err) {
-      setError('Erro ao criar conta')
-    } finally {
+      const supabase = createClient()
+      
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            name: formData.name,
+            phone: formData.phone
+          }
+        }
+      })
+
+      if (signUpError) {
+        setError(signUpError.message)
+        setLoading(false)
+        return
+      }
+
+      if (data.user) {
+        setSuccess(true)
+      }
+    } catch (err: any) {
+      setError(err.message || 'Erro ao criar conta')
       setLoading(false)
     }
+  }
+
+  if (success) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-white flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+            <div className="inline-block p-3 bg-green-100 rounded-full mb-4">
+              <CheckCircle className="w-8 h-8 text-green-600" />
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Conta criada!</h1>
+            <p className="text-gray-600 mb-6">
+              Enviamos um email de confirmação para <strong>{formData.email}</strong>.
+              Por favor, verifique sua caixa de entrada e clique no link para ativar sua conta.
+            </p>
+            <Link href="/login" className="inline-block bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-semibold">
+              Ir para Login
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
