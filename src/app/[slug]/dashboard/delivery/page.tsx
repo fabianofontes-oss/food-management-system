@@ -46,26 +46,38 @@ export default function DeliveryPage() {
   const [orderItems, setOrderItems] = useState<Record<string, any[]>>({})
   const [deliveredToday, setDeliveredToday] = useState(0)
   const [avgDeliveryTime, setAvgDeliveryTime] = useState(0)
+  const [deliveryTimes, setDeliveryTimes] = useState<Record<string, number>>({})
 
   const deliveryOrders = orders.filter(o => o.order_type === 'delivery')
 
-  // Calcular estatísticas
+  // Calcular estatísticas e tempo de entrega real
   useEffect(() => {
     const today = new Date().toDateString()
-    const delivered = deliveryOrders.filter(o => 
-      o.status === 'delivered' && new Date(o.created_at).toDateString() === today
+    const delivered = deliveryOrders.filter(d => 
+      d.status === 'delivered' && new Date(d.created_at).toDateString() === today
     )
     setDeliveredToday(delivered.length)
+    
+    // Calcular tempo de entrega para cada pedido em trânsito
+    const times: Record<string, number> = {}
+    deliveryOrders.forEach(order => {
+      if (order.status === 'out_for_delivery') {
+        const created = new Date(order.created_at).getTime()
+        const now = Date.now()
+        times[order.id] = Math.floor((now - created) / 60000)
+      }
+    })
+    setDeliveryTimes(times)
     
     if (delivered.length > 0) {
       const totalTime = delivered.reduce((acc, order) => {
         const created = new Date(order.created_at).getTime()
-        const now = Date.now()
-        return acc + (now - created)
+        const completed = new Date(order.updated_at || order.created_at).getTime()
+        return acc + (completed - created)
       }, 0)
       setAvgDeliveryTime(Math.floor(totalTime / delivered.length / 60000))
     }
-  }, [orders])
+  }, [deliveryOrders])
 
   // Notificação sonora para novos pedidos
   useEffect(() => {
