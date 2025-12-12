@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import { 
   LayoutDashboard, ShoppingCart, ChefHat, Truck, 
   Package, Settings, ChevronLeft, ChevronRight, Menu,
-  Users, ShoppingBag, ClipboardList, ChevronDown
+  Users, ShoppingBag, ClipboardList, ChevronDown, UserCog
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useLanguage } from '@/lib/LanguageContext'
@@ -85,6 +85,14 @@ export default function DashboardClient({
       color: 'text-orange-600',
       bgColor: 'bg-orange-50',
       activeColor: 'bg-orange-100'
+    },
+    { 
+      href: `${base}/team`, 
+      label: 'Equipe',
+      icon: UserCog,
+      color: 'text-cyan-600',
+      bgColor: 'bg-cyan-50',
+      activeColor: 'bg-cyan-100'
     },
     { 
       href: `${base}/settings`, 
