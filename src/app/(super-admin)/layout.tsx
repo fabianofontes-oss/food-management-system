@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Building2, Store, ChevronLeft, ChevronRight, Menu, LayoutDashboard, Users, Settings, CreditCard, BarChart3, FileText, Ticket, Flag, Zap, FileSpreadsheet } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { LanguageProvider } from '@/lib/LanguageContext'
 
 const menuItems = [
   { 
@@ -91,14 +92,20 @@ export default function SuperAdminLayout({
   const pathname = usePathname()
 
   return (
-    <div className="flex min-h-screen bg-gray-900">
-      {/* Mobile Menu Button */}
-      <button
-        onClick={() => setIsMobileOpen(!isMobileOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-gray-800 rounded-lg shadow-lg text-white"
-      >
-        <Menu className="w-6 h-6" />
-      </button>
+    <LanguageProvider
+      locale="pt-BR"
+      country="BR"
+      currency="BRL"
+      timezone="America/Sao_Paulo"
+    >
+      <div className="flex min-h-screen bg-gray-900">
+        {/* Mobile Menu Button */}
+        <button
+          onClick={() => setIsMobileOpen(!isMobileOpen)}
+          className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-gray-800 rounded-lg shadow-lg text-white"
+        >
+          <Menu className="w-6 h-6" />
+        </button>
 
       {/* Mobile Overlay */}
       {isMobileOpen && (
@@ -188,5 +195,6 @@ export default function SuperAdminLayout({
         {children}
       </main>
     </div>
+    </LanguageProvider>
   )
 }
