@@ -1,15 +1,30 @@
 'use client'
 
-import { useState } from 'react'
-import { Plus, Search, Edit, Trash2, Image as ImageIcon, Loader2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Plus, Search, Edit, Trash2, Image as ImageIcon, Loader2, Package, TrendingUp, DollarSign, Grid, List, Filter, X, Eye, EyeOff } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 import { useProducts } from '@/hooks/useProducts'
+import { useLanguage } from '@/lib/LanguageContext'
+import { Button } from '@/components/ui/button'
 
 export default function ProductsPage() {
+  const { t, formatCurrency: formatCurrencyI18n } = useLanguage()
   const { products, loading, error, createProduct, updateProduct, deleteProduct } = useProducts()
+  
   const [searchQuery, setSearchQuery] = useState('')
   const [showModal, setShowModal] = useState(false)
   const [editingProduct, setEditingProduct] = useState<any>(null)
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
+  const [priceFilter, setPriceFilter] = useState<'all' | 'low' | 'medium' | 'high'>('all')
+  const [showFilters, setShowFilters] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [productToDelete, setProductToDelete] = useState<any>(null)
+  
+  const [totalProducts, setTotalProducts] = useState(0)
+  const [activeProducts, setActiveProducts] = useState(0)
+  const [avgPrice, setAvgPrice] = useState(0)
+  
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -20,9 +35,29 @@ export default function ProductsPage() {
     is_active: true
   })
 
-  const filteredProducts = products.filter((p) =>
-    p.name.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  useEffect(() => {
+    setTotalProducts(products.length)
+    setActiveProducts(products.filter(p => p.is_active).length)
+    setAvgPrice(products.length > 0 ? products.reduce((sum, p) => sum + p.base_price, 0) / products.length : 0)
+  }, [products])
+
+  const filteredProducts = products.filter((p) => {
+    const matchSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (p.description && p.description.toLowerCase().includes(searchQuery.toLowerCase()))
+    
+    const matchStatus = statusFilter === 'all' || 
+      (statusFilter === 'active' && p.is_active) ||
+      (statusFilter === 'inactive' && !p.is_active)
+    
+    let matchPrice = true
+    if (priceFilter !== 'all') {
+      if (priceFilter === 'low') matchPrice = p.base_price < 20
+      else if (priceFilter === 'medium') matchPrice = p.base_price >= 20 && p.base_price < 50
+      else if (priceFilter === 'high') matchPrice = p.base_price >= 50
+    }
+    
+    return matchSearch && matchStatus && matchPrice
+  })
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -56,14 +91,15 @@ export default function ProductsPage() {
     }
   }
 
-  async function handleDelete(id: string) {
-    if (confirm('Deletar este produto?')) {
-      try {
-        await deleteProduct(id)
-        alert('✅ Produto deletado!')
-      } catch (err) {
-        alert('❌ Erro ao deletar')
-      }
+  async function handleDelete() {
+    if (!productToDelete) return
+    try {
+      await deleteProduct(productToDelete.id)
+      alert('✅ Produto deletado!')
+      setShowDeleteModal(false)
+      setProductToDelete(null)
+    } catch (err) {
+      alert('❌ Erro ao deletar')
     }
   }
 
