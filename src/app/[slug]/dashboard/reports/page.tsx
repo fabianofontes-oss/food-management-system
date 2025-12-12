@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { formatCurrency } from '@/lib/utils'
-import { Calendar, DollarSign, ShoppingBag, TrendingUp, CreditCard, Loader2, AlertCircle } from 'lucide-react'
+import { Calendar, DollarSign, ShoppingBag, TrendingUp, CreditCard, Loader2, AlertCircle, Award, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 interface ReportMetrics {
@@ -19,6 +19,20 @@ interface PaymentBreakdown {
   method: string
   count: number
   total: number
+}
+
+interface TopProduct {
+  product_name: string
+  total_quantity: number
+  total_revenue: number
+  order_count: number
+}
+
+interface PeakHour {
+  hour: number
+  total_orders: number
+  total_revenue: number
+  average_ticket: number
 }
 
 type DatePreset = 'today' | '7days' | '30days' | 'custom'
@@ -43,6 +57,9 @@ export default function ReportsPage() {
   })
   
   const [paymentBreakdown, setPaymentBreakdown] = useState<PaymentBreakdown[]>([])
+  const [topProducts, setTopProducts] = useState<TopProduct[]>([])
+  const [peakHours, setPeakHours] = useState<PeakHour[]>([])
+  const [topN, setTopN] = useState<number>(5)
 
   // Carregar store_id
   useEffect(() => {
@@ -162,6 +179,68 @@ export default function ReportsPage() {
         }))
 
         setPaymentBreakdown(breakdownArray)
+
+        // Buscar order_items para análise de produtos e horários
+        const orderIds = orders.map(o => o.id)
+        
+        const { data: orderItems, error: itemsError } = await supabase
+          .from('order_items')
+          .select('product_id, quantity, unit_price, order_id, products(name)')
+          .in('order_id', orderIds)
+
+        if (itemsError) throw itemsError
+
+        // Calcular Top Products
+        if (orderItems && orderItems.length > 0) {
+          const productStats: Record<string, { quantity: number; revenue: number; orders: Set<string> }> = {}
+          
+          orderItems.forEach(item => {
+            const productName = (item.products as any)?.name || 'Produto Desconhecido'
+            if (!productStats[productName]) {
+              productStats[productName] = { quantity: 0, revenue: 0, orders: new Set() }
+            }
+            productStats[productName].quantity += item.quantity
+            productStats[productName].revenue += item.quantity * item.unit_price
+            productStats[productName].orders.add(item.order_id)
+          })
+
+          const topProductsArray = Object.entries(productStats)
+            .map(([name, stats]) => ({
+              product_name: name,
+              total_quantity: stats.quantity,
+              total_revenue: stats.revenue,
+              order_count: stats.orders.size
+            }))
+            .sort((a, b) => b.total_revenue - a.total_revenue)
+            .slice(0, topN)
+
+          setTopProducts(topProductsArray)
+        } else {
+          setTopProducts([])
+        }
+
+        // Calcular Peak Hours
+        const hourStats: Record<number, { orders: number; revenue: number }> = {}
+        
+        orders.forEach(order => {
+          const hour = new Date(order.created_at).getHours()
+          if (!hourStats[hour]) {
+            hourStats[hour] = { orders: 0, revenue: 0 }
+          }
+          hourStats[hour].orders++
+          hourStats[hour].revenue += order.total_amount || 0
+        })
+
+        const peakHoursArray = Object.entries(hourStats)
+          .map(([hour, stats]) => ({
+            hour: parseInt(hour),
+            total_orders: stats.orders,
+            total_revenue: stats.revenue,
+            average_ticket: stats.orders > 0 ? stats.revenue / stats.orders : 0
+          }))
+          .sort((a, b) => b.total_orders - a.total_orders)
+
+        setPeakHours(peakHoursArray)
       } catch (err) {
         console.error('Erro ao carregar relatórios:', err)
         setError('Erro ao carregar relatórios')
@@ -171,7 +250,7 @@ export default function ReportsPage() {
     }
 
     loadReports()
-  }, [storeId, datePreset, startDate, endDate])
+  }, [storeId, datePreset, startDate, endDate, topN])
 
   const getPaymentMethodLabel = (method: string) => {
     const labels: Record<string, string> = {
@@ -347,6 +426,123 @@ export default function ReportsPage() {
                     </tbody>
                   </table>
                 </div>
+              )}
+            </div>
+
+            {/* Top Products */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm mt-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Award className="w-6 h-6 text-orange-600" />
+                  <h2 className="text-xl font-bold text-gray-900">Produtos Mais Vendidos</h2>
+                </div>
+                <select
+                  value={topN}
+                  onChange={(e) => setTopN(Number(e.target.value))}
+                  className="px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
+                >
+                  <option value={5}>Top 5</option>
+                  <option value={10}>Top 10</option>
+                  <option value={20}>Top 20</option>
+                </select>
+              </div>
+              
+              {topProducts.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  Nenhum produto vendido no período selecionado
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b-2 border-gray-200">
+                        <th className="text-left py-3 px-4 font-bold text-gray-700">Produto</th>
+                        <th className="text-right py-3 px-4 font-bold text-gray-700">Quantidade</th>
+                        <th className="text-right py-3 px-4 font-bold text-gray-700">Receita</th>
+                        <th className="text-right py-3 px-4 font-bold text-gray-700">Nº Pedidos</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {topProducts.map((product, index) => (
+                        <tr key={product.product_name} className="border-b border-gray-100 hover:bg-gray-50">
+                          <td className="py-3 px-4">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-orange-600">#{index + 1}</span>
+                              <span className="font-medium">{product.product_name}</span>
+                            </div>
+                          </td>
+                          <td className="py-3 px-4 text-right">{product.total_quantity}</td>
+                          <td className="py-3 px-4 text-right font-bold text-green-600">
+                            {formatCurrency(product.total_revenue)}
+                          </td>
+                          <td className="py-3 px-4 text-right text-gray-600">{product.order_count}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {/* Peak Hours */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm mt-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Clock className="w-6 h-6 text-indigo-600" />
+                <h2 className="text-xl font-bold text-gray-900">Horários de Pico</h2>
+              </div>
+              
+              {peakHours.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  Nenhum pedido no período selecionado
+                </div>
+              ) : (
+                <>
+                  {/* Top 5 Busiest Hours */}
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-3">Top 5 Horários Mais Movimentados</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+                      {peakHours.slice(0, 5).map((hour, index) => (
+                        <div key={hour.hour} className="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl p-4 text-white shadow-lg">
+                          <div className="text-sm opacity-90 mb-1">#{index + 1}</div>
+                          <div className="text-2xl font-bold mb-1">{hour.hour}:00</div>
+                          <div className="text-sm opacity-90">{hour.total_orders} pedidos</div>
+                          <div className="text-xs opacity-75 mt-1">{formatCurrency(hour.total_revenue)}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Full 24-hour Breakdown */}
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-3">Distribuição Completa (24h)</h3>
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b-2 border-gray-200">
+                            <th className="text-left py-3 px-4 font-bold text-gray-700">Horário</th>
+                            <th className="text-right py-3 px-4 font-bold text-gray-700">Pedidos</th>
+                            <th className="text-right py-3 px-4 font-bold text-gray-700">Receita</th>
+                            <th className="text-right py-3 px-4 font-bold text-gray-700">Ticket Médio</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {peakHours.map((hour) => (
+                            <tr key={hour.hour} className="border-b border-gray-100 hover:bg-gray-50">
+                              <td className="py-3 px-4 font-medium">{hour.hour}:00 - {hour.hour}:59</td>
+                              <td className="py-3 px-4 text-right">{hour.total_orders}</td>
+                              <td className="py-3 px-4 text-right font-bold text-green-600">
+                                {formatCurrency(hour.total_revenue)}
+                              </td>
+                              <td className="py-3 px-4 text-right text-gray-600">
+                                {formatCurrency(hour.average_ticket)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </>
               )}
             </div>
           </>
