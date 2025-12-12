@@ -5,7 +5,8 @@ import { useParams } from 'next/navigation'
 import { Ticket, Plus, Edit2, Trash2, Power, Loader2, AlertCircle, Check, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { supabase } from '@/lib/supabase'
-import { getCoupons, createCoupon, updateCoupon, deleteCoupon, toggleCouponStatus, formatCouponValue, isCouponDateValid, hasUsesRemaining, type Coupon, type CouponType } from '@/lib/coupons/actions'
+import { getCoupons, createCoupon, updateCoupon, deleteCoupon, toggleCouponStatus, type Coupon, type CouponType } from '@/lib/coupons/actions'
+import { formatCouponValue, isCouponDateValid, hasUsesRemaining } from '@/lib/coupons/utils'
 
 export default function CouponsPage() {
   const params = useParams()
