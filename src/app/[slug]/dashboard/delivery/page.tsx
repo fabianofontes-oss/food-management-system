@@ -277,6 +277,123 @@ export default function DeliveryPage() {
     }
   }
 
+  const createDriver = async () => {
+    try {
+      if (!newDriver.name || !newDriver.phone) {
+        alert('Nome e telefone são obrigatórios')
+        return
+      }
+
+      const { error } = await supabase
+        .from('drivers')
+        .insert({
+          tenant_id: tenantId,
+          store_id: storeId,
+          name: newDriver.name,
+          phone: newDriver.phone,
+          email: newDriver.email || null,
+          vehicle_type: newDriver.vehicle_type || null,
+          vehicle_plate: newDriver.vehicle_plate || null,
+          notes: newDriver.notes || null
+        })
+
+      if (error) throw error
+      
+      await fetchDrivers()
+      setShowDriverForm(false)
+      setNewDriver({ name: '', phone: '', email: '', vehicle_type: 'moto', vehicle_plate: '', notes: '' })
+      alert('Motorista cadastrado com sucesso!')
+    } catch (err) {
+      console.error('Erro ao criar motorista:', err)
+      alert('Erro ao cadastrar motorista')
+    }
+  }
+
+  const updateDriver = async () => {
+    try {
+      if (!editingDriver || !newDriver.name || !newDriver.phone) {
+        alert('Nome e telefone são obrigatórios')
+        return
+      }
+
+      const { error } = await supabase
+        .from('drivers')
+        .update({
+          name: newDriver.name,
+          phone: newDriver.phone,
+          email: newDriver.email || null,
+          vehicle_type: newDriver.vehicle_type || null,
+          vehicle_plate: newDriver.vehicle_plate || null,
+          notes: newDriver.notes || null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', editingDriver.id)
+
+      if (error) throw error
+      
+      await fetchDrivers()
+      setShowDriverForm(false)
+      setEditingDriver(null)
+      setNewDriver({ name: '', phone: '', email: '', vehicle_type: 'moto', vehicle_plate: '', notes: '' })
+      alert('Motorista atualizado com sucesso!')
+    } catch (err) {
+      console.error('Erro ao atualizar motorista:', err)
+      alert('Erro ao atualizar motorista')
+    }
+  }
+
+  const deleteDriver = async (driverId: string) => {
+    try {
+      if (!confirm('Tem certeza que deseja excluir este motorista?')) {
+        return
+      }
+
+      const { error } = await supabase
+        .from('drivers')
+        .delete()
+        .eq('id', driverId)
+
+      if (error) throw error
+      
+      await fetchDrivers()
+      alert('Motorista excluído com sucesso!')
+    } catch (err) {
+      console.error('Erro ao excluir motorista:', err)
+      alert('Erro ao excluir motorista')
+    }
+  }
+
+  const toggleDriverAvailability = async (driverId: string, currentStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('drivers')
+        .update({ 
+          is_available: !currentStatus,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', driverId)
+
+      if (error) throw error
+      await fetchDrivers()
+    } catch (err) {
+      console.error('Erro ao alterar disponibilidade:', err)
+      alert('Erro ao alterar disponibilidade')
+    }
+  }
+
+  const openEditDriver = (driver: Driver) => {
+    setEditingDriver(driver)
+    setNewDriver({
+      name: driver.name,
+      phone: driver.phone,
+      email: driver.email || '',
+      vehicle_type: driver.vehicle_type || 'moto',
+      vehicle_plate: driver.vehicle_plate || '',
+      notes: driver.notes || ''
+    })
+    setShowDriverForm(true)
+  }
+
   const printDelivery = (delivery: Delivery) => {
     const printWindow = window.open('', '', 'width=800,height=600')
     if (!printWindow) return
@@ -361,6 +478,13 @@ export default function DeliveryPage() {
               {deliveries.length} entrega{deliveries.length !== 1 ? 's' : ''} no total
             </p>
           </div>
+          <Button
+            onClick={() => setShowDriversManager(true)}
+            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700"
+          >
+            <Users className="w-5 h-5" />
+            Gerenciar Motoristas ({drivers.length})
+          </Button>
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -691,6 +815,264 @@ export default function DeliveryPage() {
                     onClick={() => {
                       setShowDriverModal(false)
                       setSelectedDelivery(null)
+                      setNewDriver({ name: '', phone: '', email: '', vehicle_type: 'moto', vehicle_plate: '', notes: '' })
+                    }}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    Cancelar
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal de Gestão de Motoristas */}
+        {showDriversManager && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl">
+              <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                  <Users className="w-6 h-6" />
+                  Gerenciar Motoristas
+                </h2>
+                <button
+                  onClick={() => setShowDriversManager(false)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
+                <div className="flex justify-between items-center mb-6">
+                  <p className="text-gray-600">
+                    {drivers.length} motorista{drivers.length !== 1 ? 's' : ''} cadastrado{drivers.length !== 1 ? 's' : ''}
+                  </p>
+                  <Button
+                    onClick={() => {
+                      setEditingDriver(null)
+                      setNewDriver({ name: '', phone: '', email: '', vehicle_type: 'moto', vehicle_plate: '', notes: '' })
+                      setShowDriverForm(true)
+                    }}
+                    className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Novo Motorista
+                  </Button>
+                </div>
+
+                {drivers.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">
+                      Nenhum motorista cadastrado
+                    </h3>
+                    <p className="text-gray-600 mb-4">
+                      Cadastre motoristas para facilitar a atribuição de entregas
+                    </p>
+                    <Button
+                      onClick={() => {
+                        setEditingDriver(null)
+                        setNewDriver({ name: '', phone: '', email: '', vehicle_type: 'moto', vehicle_plate: '', notes: '' })
+                        setShowDriverForm(true)
+                      }}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Cadastrar Primeiro Motorista
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="grid gap-4">
+                    {drivers.map(driver => (
+                      <div key={driver.id} className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <h3 className="text-lg font-bold text-gray-900">{driver.name}</h3>
+                              <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                                driver.is_available 
+                                  ? 'bg-green-100 text-green-700' 
+                                  : 'bg-gray-100 text-gray-700'
+                              }`}>
+                                {driver.is_available ? 'Disponível' : 'Indisponível'}
+                              </span>
+                            </div>
+                            <div className="space-y-1 text-sm text-gray-600">
+                              <div className="flex items-center gap-2">
+                                <Phone className="w-4 h-4" />
+                                {driver.phone}
+                              </div>
+                              {driver.email && (
+                                <div className="flex items-center gap-2">
+                                  <span>📧</span>
+                                  {driver.email}
+                                </div>
+                              )}
+                              {driver.vehicle_type && (
+                                <div className="flex items-center gap-2">
+                                  <Truck className="w-4 h-4" />
+                                  {driver.vehicle_type === 'moto' ? 'Moto' : driver.vehicle_type === 'carro' ? 'Carro' : 'Bicicleta'}
+                                  {driver.vehicle_plate && ` - ${driver.vehicle_plate}`}
+                                </div>
+                              )}
+                              <div className="flex items-center gap-2">
+                                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                                {driver.rating.toFixed(1)} | {driver.total_deliveries} entregas
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              onClick={() => toggleDriverAvailability(driver.id, driver.is_available)}
+                              size="sm"
+                              variant="outline"
+                              className="flex items-center gap-1"
+                            >
+                              {driver.is_available ? <BellOff className="w-4 h-4" /> : <Bell className="w-4 h-4" />}
+                            </Button>
+                            <Button
+                              onClick={() => openEditDriver(driver)}
+                              size="sm"
+                              variant="outline"
+                              className="flex items-center gap-1"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              onClick={() => deleteDriver(driver.id)}
+                              size="sm"
+                              variant="outline"
+                              className="flex items-center gap-1 text-red-600 border-red-600 hover:bg-red-50"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal de Formulário (Criar/Editar Motorista) */}
+        {showDriverForm && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl">
+              <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-gray-900">
+                  {editingDriver ? 'Editar Motorista' : 'Novo Motorista'}
+                </h2>
+                <button
+                  onClick={() => {
+                    setShowDriverForm(false)
+                    setEditingDriver(null)
+                    setNewDriver({ name: '', phone: '', email: '', vehicle_type: 'moto', vehicle_plate: '', notes: '' })
+                  }}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Nome *
+                  </label>
+                  <input
+                    type="text"
+                    value={newDriver.name}
+                    onChange={(e) => setNewDriver({ ...newDriver, name: e.target.value })}
+                    placeholder="Nome completo"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Telefone *
+                  </label>
+                  <input
+                    type="tel"
+                    value={newDriver.phone}
+                    onChange={(e) => setNewDriver({ ...newDriver, phone: e.target.value })}
+                    placeholder="(00) 00000-0000"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    value={newDriver.email}
+                    onChange={(e) => setNewDriver({ ...newDriver, email: e.target.value })}
+                    placeholder="email@exemplo.com"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Tipo de Veículo
+                  </label>
+                  <select
+                    value={newDriver.vehicle_type}
+                    onChange={(e) => setNewDriver({ ...newDriver, vehicle_type: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="moto">Moto</option>
+                    <option value="carro">Carro</option>
+                    <option value="bicicleta">Bicicleta</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Placa do Veículo
+                  </label>
+                  <input
+                    type="text"
+                    value={newDriver.vehicle_plate}
+                    onChange={(e) => setNewDriver({ ...newDriver, vehicle_plate: e.target.value.toUpperCase() })}
+                    placeholder="ABC-1234"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Observações
+                  </label>
+                  <textarea
+                    value={newDriver.notes}
+                    onChange={(e) => setNewDriver({ ...newDriver, notes: e.target.value })}
+                    placeholder="Informações adicionais..."
+                    rows={3}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <Button
+                    onClick={editingDriver ? updateDriver : createDriver}
+                    disabled={!newDriver.name || !newDriver.phone}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700"
+                  >
+                    {editingDriver ? 'Atualizar' : 'Cadastrar'}
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setShowDriverForm(false)
+                      setEditingDriver(null)
                       setNewDriver({ name: '', phone: '', email: '', vehicle_type: 'moto', vehicle_plate: '', notes: '' })
                     }}
                     variant="outline"
