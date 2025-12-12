@@ -285,11 +285,61 @@ export default function POSPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white p-6">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900">PDV - Point of Sale</h1>
-          <p className="text-gray-600 mt-1">Sistema de Vendas</p>
+        {/* Header com Estatísticas e Controles */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 flex items-center gap-3">
+                <ShoppingCart className="w-8 h-8 md:w-10 md:h-10 text-blue-600" />
+                PDV - Point of Sale
+              </h1>
+              <p className="text-gray-600 mt-1">Pressione F para fullscreen • Enter para finalizar • Esc para limpar</p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={clearCart}
+                disabled={cart.length === 0}
+                className="p-3 rounded-xl bg-red-100 text-red-700 hover:bg-red-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Limpar Carrinho (Esc)"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              <button
+                onClick={toggleFullscreen}
+                className="p-3 rounded-xl bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors"
+                title="Modo Fullscreen (F)"
+              >
+                {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
+              </button>
+            </div>
+          </div>
+
+          {/* Painel de Estatísticas */}
+          <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-4 text-white shadow-lg">
+              <div className="flex items-center gap-3 mb-2">
+                <TrendingUp className="w-6 h-6" />
+                <span className="text-sm font-medium opacity-90">Vendas Hoje</span>
+              </div>
+              <div className="text-3xl font-bold">{formatCurrencyI18n(todaySales)}</div>
+            </div>
+            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-4 text-white shadow-lg">
+              <div className="flex items-center gap-3 mb-2">
+                <Package className="w-6 h-6" />
+                <span className="text-sm font-medium opacity-90">Pedidos</span>
+              </div>
+              <div className="text-3xl font-bold">{todayOrders}</div>
+            </div>
+            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-4 text-white shadow-lg">
+              <div className="flex items-center gap-3 mb-2">
+                <Clock className="w-6 h-6" />
+                <span className="text-sm font-medium opacity-90">Ticket Médio</span>
+              </div>
+              <div className="text-3xl font-bold">{todayOrders > 0 ? formatCurrencyI18n(todaySales / todayOrders) : '--'}</div>
+            </div>
+          </div>
         </div>
         <div className="grid lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-4">
@@ -365,10 +415,84 @@ export default function POSPage() {
                 </div>
               )}
 
+              {/* Campos de Cliente */}
+              {cart.length > 0 && (
+                <div className="mb-4 p-3 bg-gray-50 rounded-xl">
+                  <div className="flex items-center gap-2 mb-2">
+                    <User className="w-4 h-4 text-gray-600" />
+                    <h3 className="font-semibold text-sm">Cliente (Opcional)</h3>
+                  </div>
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      placeholder="Nome do cliente"
+                      value={customerName}
+                      onChange={(e) => setCustomerName(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <input
+                      type="tel"
+                      placeholder="Telefone"
+                      value={customerPhone}
+                      onChange={(e) => setCustomerPhone(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Campos de Desconto */}
+              {cart.length > 0 && (
+                <div className="mb-4 p-3 bg-yellow-50 rounded-xl">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Tag className="w-4 h-4 text-yellow-600" />
+                    <h3 className="font-semibold text-sm">Desconto</h3>
+                  </div>
+                  <div className="flex gap-2">
+                    <select
+                      value={discountType}
+                      onChange={(e) => setDiscountType(e.target.value as 'percent' | 'fixed')}
+                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                    >
+                      <option value="percent">%</option>
+                      <option value="fixed">R$</option>
+                    </select>
+                    <input
+                      type="number"
+                      placeholder="0"
+                      value={discountValue || ''}
+                      onChange={(e) => setDiscountValue(Number(e.target.value))}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                      min="0"
+                      max={discountType === 'percent' ? 100 : subtotal}
+                    />
+                  </div>
+                  {discountAmount > 0 && (
+                    <div className="mt-2 text-sm text-yellow-700">
+                      Desconto: -{formatCurrencyI18n(discountAmount)}
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="border-t-2 pt-4 mb-6">
+                {cart.length > 0 && (
+                  <div className="space-y-2 mb-3">
+                    <div className="flex justify-between text-lg">
+                      <span>Subtotal</span>
+                      <span>{formatCurrencyI18n(subtotal)}</span>
+                    </div>
+                    {discountAmount > 0 && (
+                      <div className="flex justify-between text-lg text-yellow-600">
+                        <span>Desconto</span>
+                        <span>-{formatCurrencyI18n(discountAmount)}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
                 <div className="flex justify-between text-3xl font-bold">
                   <span>Total</span>
-                  <span className="text-blue-600">{formatCurrency(total)}</span>
+                  <span className="text-blue-600">{formatCurrencyI18n(total)}</span>
                 </div>
               </div>
 
@@ -435,6 +559,41 @@ export default function POSPage() {
                   )}
                 </div>
               </div>
+
+              {/* Campo de Troco (Dinheiro) */}
+              {selectedPayment === 'cash' && cart.length > 0 && (
+                <div className="mb-4 p-3 bg-green-50 rounded-xl">
+                  <div className="flex items-center gap-2 mb-2">
+                    <DollarSign className="w-4 h-4 text-green-600" />
+                    <h3 className="font-semibold text-sm">Valor Recebido</h3>
+                  </div>
+                  <input
+                    type="number"
+                    placeholder="0,00"
+                    value={cashReceived || ''}
+                    onChange={(e) => setCashReceived(Number(e.target.value))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-lg font-bold focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    min="0"
+                    step="0.01"
+                  />
+                  {cashReceived > 0 && (
+                    <div className="mt-2 space-y-1">
+                      <div className="flex justify-between text-sm">
+                        <span>Total:</span>
+                        <span className="font-bold">{formatCurrencyI18n(total)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Recebido:</span>
+                        <span className="font-bold">{formatCurrencyI18n(cashReceived)}</span>
+                      </div>
+                      <div className="flex justify-between text-lg font-bold text-green-700">
+                        <span>Troco:</span>
+                        <span>{formatCurrencyI18n(change)}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {validationError && (
                 <div className="bg-red-50 border-2 border-red-200 rounded-lg p-3 flex items-center gap-2 text-red-700 mb-4">
