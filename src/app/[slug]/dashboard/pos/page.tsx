@@ -428,6 +428,102 @@ export default function POSPage() {
         </div>
         <div className="grid lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-4">
+            {/* Código de Barras */}
+            <div className="bg-white p-4 rounded-xl shadow-md">
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Barcode className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input
+                    type="text"
+                    placeholder="Código de barras..."
+                    value={barcodeInput}
+                    onChange={(e) => setBarcodeInput(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && searchByBarcode()}
+                    className="w-full pl-10 pr-4 py-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
+                  />
+                </div>
+                <Button onClick={searchByBarcode} className="bg-blue-600">
+                  Buscar
+                </Button>
+              </div>
+            </div>
+
+            {/* Tipo de Pedido e Delivery */}
+            <div className="bg-white p-4 rounded-xl shadow-md">
+              <div className="grid grid-cols-3 gap-2 mb-3">
+                <button
+                  onClick={() => { setOrderType('dine_in'); setIsDeliveryOrder(false); }}
+                  className={`p-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
+                    orderType === 'dine_in' && !isDeliveryOrder ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  <Home className="w-4 h-4" />
+                  Mesa
+                </button>
+                <button
+                  onClick={() => { setOrderType('takeout'); setIsDeliveryOrder(false); }}
+                  className={`p-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
+                    orderType === 'takeout' && !isDeliveryOrder ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  <Package className="w-4 h-4" />
+                  Viagem
+                </button>
+                <button
+                  onClick={() => { setIsDeliveryOrder(true); setOrderType('delivery'); }}
+                  className={`p-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
+                    isDeliveryOrder ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  <Truck className="w-4 h-4" />
+                  Delivery
+                </button>
+              </div>
+
+              {/* Campos de Mesa/Comanda */}
+              {orderType === 'dine_in' && !isDeliveryOrder && (
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Número da Mesa"
+                    value={tableNumber}
+                    onChange={(e) => setTableNumber(e.target.value)}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Comanda (opcional)"
+                    value={commandNumber}
+                    onChange={(e) => setCommandNumber(e.target.value)}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+              )}
+
+              {/* Campos de Delivery */}
+              {isDeliveryOrder && (
+                <div className="space-y-2">
+                  <input
+                    type="text"
+                    placeholder="Endereço de entrega"
+                    value={deliveryAddress}
+                    onChange={(e) => setDeliveryAddress(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
+                  <input
+                    type="number"
+                    placeholder="Taxa de entrega (R$)"
+                    value={deliveryFee || ''}
+                    onChange={(e) => setDeliveryFee(Number(e.target.value))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Busca de Produtos */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
@@ -708,6 +804,74 @@ export default function POSPage() {
           </div>
         </div>
       </div>
+
+      {/* Modal de Login de Atendente */}
+      {showAttendantModal && !attendantName && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
+            <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <Users className="w-5 h-5 text-blue-600" />
+              Identificação do Atendente
+            </h3>
+            <p className="text-gray-600 mb-4">Por favor, identifique-se para continuar</p>
+            <input
+              type="text"
+              placeholder="Nome do atendente"
+              value={attendantName}
+              onChange={(e) => setAttendantName(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && attendantName && setShowAttendantModal(false)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-4"
+              autoFocus
+            />
+            <Button
+              onClick={() => attendantName && setShowAttendantModal(false)}
+              disabled={!attendantName}
+              className="w-full bg-blue-600 hover:bg-blue-700"
+            >
+              Continuar
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Peso (Balança) */}
+      {showWeightModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowWeightModal(null)}>
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <Scale className="w-5 h-5 text-green-600" />
+              Produto Vendido por Peso
+            </h3>
+            <p className="text-gray-600 mb-4">Digite o peso em quilogramas (kg)</p>
+            <input
+              type="number"
+              placeholder="0.000"
+              value={weightInput}
+              onChange={(e) => setWeightInput(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && weightInput && addProductByWeight(showWeightModal)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-lg font-bold focus:ring-2 focus:ring-green-500 focus:border-transparent mb-4"
+              min="0"
+              step="0.001"
+              autoFocus
+            />
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowWeightModal(null)}
+                className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => addProductByWeight(showWeightModal)}
+                disabled={!weightInput || parseFloat(weightInput) <= 0}
+                className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Adicionar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
