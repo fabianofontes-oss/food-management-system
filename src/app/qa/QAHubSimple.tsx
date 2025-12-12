@@ -30,30 +30,31 @@ export function QAHubClient() {
       return
     }
     
+    const baseUrl = window.location.origin
     const urls = [
-      `/${slug}`,
-      `/${slug}/cart`,
-      `/${slug}/checkout`,
-      `/${slug}/dashboard`,
-      `/${slug}/dashboard/products`,
-      `/${slug}/dashboard/orders`,
-      `/${slug}/dashboard/kitchen`,
-      `/${slug}/dashboard/delivery`,
-      `/${slug}/dashboard/crm`,
-      `/${slug}/dashboard/pos`,
-      `/${slug}/dashboard/reports`,
-      `/${slug}/dashboard/coupons`,
-      `/${slug}/dashboard/team`,
-      `/${slug}/dashboard/settings`,
-      '/admin',
-      '/admin/analytics',
-      '/login',
-      '/signup',
-      '/select-store'
+      `${baseUrl}/${slug}`,
+      `${baseUrl}/${slug}/cart`,
+      `${baseUrl}/${slug}/checkout`,
+      `${baseUrl}/${slug}/dashboard`,
+      `${baseUrl}/${slug}/dashboard/products`,
+      `${baseUrl}/${slug}/dashboard/orders`,
+      `${baseUrl}/${slug}/dashboard/kitchen`,
+      `${baseUrl}/${slug}/dashboard/delivery`,
+      `${baseUrl}/${slug}/dashboard/crm`,
+      `${baseUrl}/${slug}/dashboard/pos`,
+      `${baseUrl}/${slug}/dashboard/reports`,
+      `${baseUrl}/${slug}/dashboard/coupons`,
+      `${baseUrl}/${slug}/dashboard/team`,
+      `${baseUrl}/${slug}/dashboard/settings`,
+      `${baseUrl}/admin`,
+      `${baseUrl}/admin/analytics`,
+      `${baseUrl}/login`,
+      `${baseUrl}/signup`,
+      `${baseUrl}/select-store`
     ].join('\n')
 
     navigator.clipboard.writeText(urls)
-    alert('URLs copiadas!')
+    alert('URLs completas copiadas!')
   }
 
   const openAllTabs = () => {
@@ -131,6 +132,31 @@ export function QAHubClient() {
             </Button>
           </div>
         </div>
+
+        {slug && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">🔗 Links Prontos</h2>
+            <div className="space-y-2">
+              <div className="bg-gray-50 p-3 rounded border border-gray-200">
+                <p className="text-xs text-gray-500 mb-1">Público:</p>
+                <code className="text-xs text-gray-700 block">http://localhost:3000/{slug}</code>
+                <code className="text-xs text-gray-700 block">http://localhost:3000/{slug}/cart</code>
+                <code className="text-xs text-gray-700 block">http://localhost:3000/{slug}/checkout</code>
+              </div>
+              <div className="bg-gray-50 p-3 rounded border border-gray-200">
+                <p className="text-xs text-gray-500 mb-1">Dashboard:</p>
+                <code className="text-xs text-gray-700 block">http://localhost:3000/{slug}/dashboard</code>
+                <code className="text-xs text-gray-700 block">http://localhost:3000/{slug}/dashboard/products</code>
+                <code className="text-xs text-gray-700 block">http://localhost:3000/{slug}/dashboard/orders</code>
+              </div>
+              <div className="bg-gray-50 p-3 rounded border border-gray-200">
+                <p className="text-xs text-gray-500 mb-1">Admin & Auth:</p>
+                <code className="text-xs text-gray-700 block">http://localhost:3000/admin</code>
+                <code className="text-xs text-gray-700 block">http://localhost:3000/login</code>
+              </div>
+            </div>
+          </div>
+        )}
 
         {slug && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
