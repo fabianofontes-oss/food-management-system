@@ -12,12 +12,12 @@ export interface MeasurementUnit {
 export interface ProductCategory {
   id: string
   tenant_id: string
-  store_id: string | null
+  store_id: string
   name: string
   description: string | null
-  icon: string | null
-  color: string | null
-  display_order: number
+  sort_order: number
+  icon?: string | null
+  color?: string | null
   is_active: boolean
   created_at: string
   updated_at: string

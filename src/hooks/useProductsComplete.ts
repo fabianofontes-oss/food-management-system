@@ -25,7 +25,7 @@ export const useProductsComplete = (storeId: string | null) => {
           .from('products')
           .select(`
             *,
-            category:product_categories(*),
+            category:categories(*),
             unit:measurement_units(*),
             ingredients:product_ingredients(
               *,
@@ -36,10 +36,10 @@ export const useProductsComplete = (storeId: string | null) => {
           .eq('store_id', storeId)
           .order('name'),
         supabase
-          .from('product_categories')
+          .from('categories')
           .select('*')
           .eq('store_id', storeId)
-          .order('display_order'),
+          .order('sort_order'),
         supabase
           .from('measurement_units')
           .select('*')
@@ -150,7 +150,7 @@ export const useProductsComplete = (storeId: string | null) => {
   const createCategory = async (data: Partial<ProductCategory>) => {
     try {
       const { error } = await supabase
-        .from('product_categories')
+        .from('categories')
         .insert([{ ...data, store_id: storeId }])
 
       if (error) throw error
