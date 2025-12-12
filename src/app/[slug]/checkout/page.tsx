@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useCartStore } from '@/stores/cart-store'
 import { createOrder } from '@/lib/actions/orders'
@@ -16,6 +16,7 @@ export default function CheckoutPage({ params }: { params: { slug: string } }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [loadingCEP, setLoadingCEP] = useState(false)
+  const [checkoutMode, setCheckoutMode] = useState<'guest' | 'phone_required'>('phone_required')
 
   const [formData, setFormData] = useState({
     name: '',
@@ -38,22 +39,44 @@ export default function CheckoutPage({ params }: { params: { slug: string } }) {
   const deliveryFee = formData.channel === 'DELIVERY' ? 5.00 : 0
   const total = subtotal + deliveryFee
 
+  useEffect(() => {
+    async function loadCheckoutMode() {
+      try {
+        const store = await getStoreBySlug(params.slug)
+        if (store?.settings?.checkout?.mode) {
+          setCheckoutMode(store.settings.checkout.mode)
+        }
+      } catch (err) {
+        console.error('Erro ao carregar configuração de checkout:', err)
+      }
+    }
+    loadCheckoutMode()
+  }, [params.slug])
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     setError('')
 
     try {
+      // Validar telefone baseado no modo de checkout
+      if (checkoutMode === 'phone_required' && !formData.phone.trim()) {
+        setError('Telefone é obrigatório para finalizar o pedido')
+        setLoading(false)
+        return
+      }
+
       const store = await getStoreBySlug(params.slug)
       if (!store) {
         setError('Loja não encontrada')
+        setLoading(false)
         return
       }
 
       const orderData: OrderData = {
         customer: {
           name: formData.name,
-          phone: formData.phone,
+          phone: formData.phone.trim() || undefined,
           email: formData.email || undefined,
         },
         channel: formData.channel,
@@ -128,16 +151,19 @@ export default function CheckoutPage({ params }: { params: { slug: string } }) {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Telefone *
+                Telefone {checkoutMode === 'phone_required' ? '*' : '(opcional)'}
               </label>
               <input
                 type="tel"
-                required
+                required={checkoutMode === 'phone_required'}
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 placeholder="(11) 99999-9999"
                 className="w-full p-3 border border-gray-300 rounded-lg"
               />
+              {checkoutMode === 'guest' && (
+                <p className="text-xs text-gray-500 mt-1">Opcional: informe para receber atualizações do pedido</p>
+              )}
             </div>
 
             <div>

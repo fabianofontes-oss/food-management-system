@@ -24,6 +24,9 @@ export interface StoreSettings {
     radius_km: number
     fee: number
   }
+  checkout?: {
+    mode: 'guest' | 'phone_required'
+  }
   takeaway_discount?: number
   auto_accept_orders?: boolean
 }
@@ -95,7 +98,7 @@ export interface CartItem {
 
 export interface CustomerData {
   name: string
-  phone: string
+  phone?: string
   email?: string
 }
 
