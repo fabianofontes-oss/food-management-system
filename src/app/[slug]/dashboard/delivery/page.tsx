@@ -57,6 +57,7 @@ export default function DeliveryPage() {
   const [filter, setFilter] = useState<string>('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [dateFilter, setDateFilter] = useState('')
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState<'all' | 'pending' | 'paid'>('all')
   const [showDriverModal, setShowDriverModal] = useState(false)
   const [selectedDelivery, setSelectedDelivery] = useState<Delivery | null>(null)
   const [showMetrics, setShowMetrics] = useState(false)
@@ -237,6 +238,35 @@ export default function DeliveryPage() {
     }
     const Icon = icons[status] || Clock
     return <Icon className="w-4 h-4" />
+  }
+
+  const getPaymentMethodLabel = (method: string) => {
+    const labels: Record<string, string> = {
+      pix: 'PIX',
+      cash: 'Dinheiro',
+      card: 'Cartão',
+      card_on_delivery: 'Cartão na Entrega',
+      online: 'Online'
+    }
+    return labels[method] || method
+  }
+
+  const getPaymentStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      pending: 'Pendente',
+      paid: 'Pago',
+      cancelled: 'Cancelado'
+    }
+    return labels[status] || status
+  }
+
+  const getPaymentStatusColor = (status: string) => {
+    const colors: Record<string, string> = {
+      pending: 'bg-yellow-100 text-yellow-800',
+      paid: 'bg-green-100 text-green-800',
+      cancelled: 'bg-red-100 text-red-800'
+    }
+    return colors[status] || 'bg-gray-100 text-gray-800'
   }
 
   const updateDeliveryStatus = async (deliveryId: string, newStatus: string) => {
@@ -427,13 +457,14 @@ export default function DeliveryPage() {
 
   const filteredDeliveries = deliveries.filter(delivery => {
     const matchesFilter = filter === 'all' || delivery.status === filter
+    const matchesPaymentStatus = paymentStatusFilter === 'all' || (delivery.order as any)?.payment_status === paymentStatusFilter || (!((delivery.order as any)?.payment_status) && paymentStatusFilter === 'pending')
     const matchesSearch = !searchTerm || 
       delivery.order?.order_code.toLowerCase().includes(searchTerm.toLowerCase()) ||
       delivery.order?.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       delivery.address.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesDate = !dateFilter || delivery.created_at.startsWith(dateFilter)
     
-    return matchesFilter && matchesSearch && matchesDate
+    return matchesFilter && matchesPaymentStatus && matchesSearch && matchesDate
   })
 
   const stats = {

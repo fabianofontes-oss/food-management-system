@@ -35,6 +35,7 @@ export default function KitchenPage() {
   const [completedToday, setCompletedToday] = useState(0)
   const [avgPrepTime, setAvgPrepTime] = useState(0)
   const [channelFilter, setChannelFilter] = useState<'all' | 'delivery' | 'dine_in' | 'takeout'>('all')
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState<'all' | 'pending' | 'paid'>('all')
 
   // Auto-refresh a cada 30 segundos
   useEffect(() => {
@@ -236,14 +237,48 @@ export default function KitchenPage() {
     return colors[channel] || 'bg-gray-100 text-gray-700'
   }
 
+  const getPaymentMethodLabel = (method: string) => {
+    const labels: Record<string, string> = {
+      pix: 'PIX',
+      cash: 'Dinheiro',
+      card: 'Cartão',
+      card_on_delivery: 'Cartão na Entrega',
+      online: 'Online'
+    }
+    return labels[method] || method
+  }
+
+  const getPaymentStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      pending: 'Pendente',
+      paid: 'Pago',
+      cancelled: 'Cancelado'
+    }
+    return labels[status] || status
+  }
+
+  const getPaymentStatusColor = (status: string) => {
+    const colors: Record<string, string> = {
+      pending: 'bg-yellow-100 text-yellow-800',
+      paid: 'bg-green-100 text-green-800',
+      cancelled: 'bg-red-100 text-red-800'
+    }
+    return colors[status] || 'bg-gray-100 text-gray-800'
+  }
+
   const filterByChannel = (ordersList: any[]) => {
     if (channelFilter === 'all') return ordersList
     return ordersList.filter(o => o.order_type === channelFilter)
   }
 
-  const pendingOrders = filterByChannel(orders.filter(o => o.status === 'pending' || o.status === 'confirmed'))
-  const preparingOrders = filterByChannel(orders.filter(o => o.status === 'preparing'))
-  const readyOrders = filterByChannel(orders.filter(o => o.status === 'ready'))
+  const filterByPaymentStatus = (ordersList: any[]) => {
+    if (paymentStatusFilter === 'all') return ordersList
+    return ordersList.filter(o => (o.payment_status || 'pending') === paymentStatusFilter)
+  }
+
+  const pendingOrders = filterByPaymentStatus(filterByChannel(orders.filter(o => o.status === 'pending' || o.status === 'confirmed')))
+  const preparingOrders = filterByPaymentStatus(filterByChannel(orders.filter(o => o.status === 'preparing')))
+  const readyOrders = filterByPaymentStatus(filterByChannel(orders.filter(o => o.status === 'ready')))
 
   if (loading) {
     return (
@@ -289,6 +324,37 @@ export default function KitchenPage() {
               >
                 {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
               </button>
+            </div>
+          </div>
+
+          {/* Filtros */}
+          <div className="bg-white rounded-xl p-4 mb-6 shadow-sm">
+            <div className="flex gap-4">
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Tipo de Pedido</label>
+                <select
+                  value={channelFilter}
+                  onChange={(e) => setChannelFilter(e.target.value as any)}
+                  className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-orange-500 focus:outline-none"
+                >
+                  <option value="all">Todos</option>
+                  <option value="delivery">Delivery</option>
+                  <option value="dine_in">Mesa</option>
+                  <option value="takeout">Retirada</option>
+                </select>
+              </div>
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Status do Pagamento</label>
+                <select
+                  value={paymentStatusFilter}
+                  onChange={(e) => setPaymentStatusFilter(e.target.value as any)}
+                  className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-orange-500 focus:outline-none"
+                >
+                  <option value="all">Todos</option>
+                  <option value="pending">Pendente</option>
+                  <option value="paid">Pago</option>
+                </select>
+              </div>
             </div>
           </div>
 
@@ -356,6 +422,14 @@ export default function KitchenPage() {
                         {getChannelLabel(order.order_type)}
                       </div>
                     </div>
+                  </div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="px-2 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                      {getPaymentMethodLabel(order.payment_method || 'cash')}
+                    </span>
+                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getPaymentStatusColor(order.payment_status || 'pending')}`}>
+                      {getPaymentStatusLabel(order.payment_status || 'pending')}
+                    </span>
                   </div>
                   
                   <div className="mb-4">
