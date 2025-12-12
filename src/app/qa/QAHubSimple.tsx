@@ -7,15 +7,13 @@ import { Button } from '@/components/ui/button'
 export function QAHubClient() {
   const [slug, setSlug] = useState('')
 
-  // Load slug from localStorage
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const savedSlug = localStorage.getItem('qa_store_slug') || ''
-      setSlug(savedSlug)
+      const saved = localStorage.getItem('qa_store_slug') || ''
+      setSlug(saved)
     }
   }, [])
 
-  // Save slug to localStorage
   useEffect(() => {
     if (typeof window !== 'undefined' && slug) {
       localStorage.setItem('qa_store_slug', slug)
@@ -33,11 +31,9 @@ export function QAHubClient() {
     }
     
     const urls = [
-      // Público
       `/${slug}`,
       `/${slug}/cart`,
       `/${slug}/checkout`,
-      // Lojista
       `/${slug}/dashboard`,
       `/${slug}/dashboard/products`,
       `/${slug}/dashboard/orders`,
@@ -49,14 +45,12 @@ export function QAHubClient() {
       `/${slug}/dashboard/coupons`,
       `/${slug}/dashboard/team`,
       `/${slug}/dashboard/settings`,
-      // Super Admin
       '/admin',
       '/admin/analytics',
-      // Auth
       '/login',
       '/signup',
       '/select-store'
-    ].filter(Boolean).join('\n')
+    ].join('\n')
 
     navigator.clipboard.writeText(urls)
     alert('URLs copiadas!')
@@ -78,29 +72,6 @@ export function QAHubClient() {
     urls.forEach(url => window.open(url, '_blank'))
   }
 
-  const StatusBadge = ({ result }: { result: QACheckResult | null }) => {
-    if (!result) return <span className="text-gray-400">-</span>
-
-    const icons = {
-      ok: <CheckCircle className="w-4 h-4 text-green-600" />,
-      fail: <XCircle className="w-4 h-4 text-red-600" />,
-      warning: <AlertCircle className="w-4 h-4 text-yellow-600" />
-    }
-
-    const colors = {
-      ok: 'bg-green-50 text-green-700 border-green-200',
-      fail: 'bg-red-50 text-red-700 border-red-200',
-      warning: 'bg-yellow-50 text-yellow-700 border-yellow-200'
-    }
-
-    return (
-      <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${colors[result.status]}`}>
-        {icons[result.status]}
-        <span className="text-sm font-medium">{result.message}</span>
-      </div>
-    )
-  }
-
   const RouteButton = ({ url, label }: { url: string; label: string }) => (
     <button
       onClick={() => openUrl(url)}
@@ -114,7 +85,6 @@ export function QAHubClient() {
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">🔍 QA Hub</h1>
           <p className="text-gray-600">Central de verificação e acesso rápido a todas as rotas do sistema</p>
@@ -123,7 +93,6 @@ export function QAHubClient() {
           </div>
         </div>
 
-        {/* Store Slug Input */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Store Slug
@@ -136,24 +105,9 @@ export function QAHubClient() {
               placeholder="ex: minha-loja"
               className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
-            <Button
-              onClick={() => runChecks(slug)}
-              disabled={!slug || loading}
-              className="px-6"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Verificando...
-                </>
-              ) : (
-                'Verificar'
-              )}
-            </Button>
           </div>
         </div>
 
-        {/* Quick Actions */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Ações Rápidas</h2>
           <div className="flex gap-3">
@@ -178,56 +132,17 @@ export function QAHubClient() {
           </div>
         </div>
 
-        {/* Checks */}
-        {slug && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Checagens Rápidas</h2>
-            <div className="space-y-3">
-              <div>
-                <span className="text-sm font-medium text-gray-600 mb-1 block">Store existe?</span>
-                <StatusBadge result={checks.store} />
-              </div>
-              <div>
-                <span className="text-sm font-medium text-gray-600 mb-1 block">Tenant i18n</span>
-                <StatusBadge result={checks.tenant} />
-              </div>
-              <div>
-                <span className="text-sm font-medium text-gray-600 mb-1 block">Checkout Mode</span>
-                <StatusBadge result={checks.checkoutMode} />
-              </div>
-              <div>
-                <span className="text-sm font-medium text-gray-600 mb-1 block">Pagamentos</span>
-                <StatusBadge result={checks.payments} />
-              </div>
-              <div>
-                <span className="text-sm font-medium text-gray-600 mb-1 block">Usuário autenticado?</span>
-                <StatusBadge result={checks.userSession} />
-              </div>
-              <div>
-                <span className="text-sm font-medium text-gray-600 mb-1 block">Acesso à store?</span>
-                <StatusBadge result={checks.storeAccess} />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Routes Grid */}
         {slug && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Público */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">🛒 Público (Cliente)</h2>
               <div className="space-y-2">
                 <RouteButton url={`/${slug}`} label="Menu" />
                 <RouteButton url={`/${slug}/cart`} label="Carrinho" />
                 <RouteButton url={`/${slug}/checkout`} label="Checkout" />
-                {lastOrderId && (
-                  <RouteButton url={`/${slug}/order/${lastOrderId}`} label="Último Pedido" />
-                )}
               </div>
             </div>
 
-            {/* Lojista */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">🏪 Lojista (Dashboard)</h2>
               <div className="space-y-2">
@@ -245,9 +160,7 @@ export function QAHubClient() {
               </div>
             </div>
 
-            {/* Super Admin + Auth */}
             <div className="space-y-6">
-              {/* Super Admin */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">👑 Super Admin</h2>
                 <div className="space-y-2">
@@ -256,7 +169,6 @@ export function QAHubClient() {
                 </div>
               </div>
 
-              {/* Auth */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">🔐 Autenticação</h2>
                 <div className="space-y-2">
