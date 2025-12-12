@@ -129,9 +129,21 @@ export function CheckoutClient({ slug }: CheckoutClientProps) {
     setLoading(true)
     setError('')
 
-    const result = await validateAndSubmitOrder(slug, formData, checkoutMode, items)
+    const result = await validateAndSubmitOrder(
+      slug, 
+      formData, 
+      checkoutMode, 
+      items,
+      appliedCoupon || undefined
+    )
 
     if (result.success && result.orderId) {
+      // Increment coupon usage if coupon was applied
+      if (appliedCoupon && storeId) {
+        const { incrementCouponUsage } = await import('@/lib/coupons/actions')
+        await incrementCouponUsage(storeId, appliedCoupon.code)
+      }
+      
       clearCart()
       router.push(`/${slug}/order/${result.orderId}`)
     } else {

@@ -14,7 +14,8 @@ export async function validateAndSubmitOrder(
   slug: string,
   formData: CheckoutFormData,
   checkoutMode: CheckoutMode,
-  items: CartItem[]
+  items: CartItem[],
+  couponData?: { code: string; discount: number }
 ): Promise<OrderSubmitResult> {
   try {
     // Validar telefone baseado no modo de checkout
@@ -42,6 +43,8 @@ export async function validateAndSubmitOrder(
       channel: formData.channel,
       payment_method: formData.paymentMethod,
       notes: formData.notes || undefined,
+      coupon_code: couponData?.code,
+      discount_amount: couponData?.discount,
     }
 
     if (formData.channel === 'DELIVERY') {
