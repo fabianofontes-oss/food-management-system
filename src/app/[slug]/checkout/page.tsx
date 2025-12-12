@@ -17,6 +17,7 @@ export default function CheckoutPage({ params }: { params: { slug: string } }) {
   const [error, setError] = useState('')
   const [loadingCEP, setLoadingCEP] = useState(false)
   const [checkoutMode, setCheckoutMode] = useState<'guest' | 'phone_required'>('phone_required')
+  const [availablePaymentMethods, setAvailablePaymentMethods] = useState<string[]>(['CASH'])
 
   const [formData, setFormData] = useState({
     name: '',
@@ -40,17 +41,43 @@ export default function CheckoutPage({ params }: { params: { slug: string } }) {
   const total = subtotal + deliveryFee
 
   useEffect(() => {
-    async function loadCheckoutMode() {
+    async function loadStoreSettings() {
       try {
         const store = await getStoreBySlug(params.slug)
+        
+        // Carregar modo de checkout
         if (store?.settings?.checkout?.mode) {
           setCheckoutMode(store.settings.checkout.mode)
         }
+        
+        // Carregar métodos de pagamento disponíveis
+        const methods: string[] = []
+        if (store?.settings?.payments) {
+          if (store.settings.payments.pix?.enabled) {
+            methods.push('PIX')
+          }
+          if (store.settings.payments.cash) {
+            methods.push('CASH')
+          }
+          if (store.settings.payments.card_on_delivery) {
+            methods.push('CARD')
+          }
+        } else {
+          // Default: apenas dinheiro se não configurado
+          methods.push('CASH')
+        }
+        
+        setAvailablePaymentMethods(methods)
+        
+        // Se nenhum método disponível, usar o primeiro como fallback
+        if (methods.length > 0 && !methods.includes(formData.paymentMethod)) {
+          setFormData(prev => ({ ...prev, paymentMethod: methods[0] as any }))
+        }
       } catch (err) {
-        console.error('Erro ao carregar configuração de checkout:', err)
+        console.error('Erro ao carregar configurações da loja:', err)
       }
     }
-    loadCheckoutMode()
+    loadStoreSettings()
   }, [params.slug])
 
   async function handleSubmit(e: React.FormEvent) {
@@ -346,24 +373,32 @@ export default function CheckoutPage({ params }: { params: { slug: string } }) {
           <div className="bg-white rounded-lg p-6 shadow-sm space-y-4">
             <h2 className="font-bold text-lg">Forma de pagamento</h2>
             
-            <div className="grid grid-cols-2 gap-3">
-              {(['PIX', 'CASH', 'CARD'] as const).map((method) => (
-                <button
-                  key={method}
-                  type="button"
-                  onClick={() => setFormData({ ...formData, paymentMethod: method })}
-                  className={`p-4 rounded-lg border-2 font-medium ${
-                    formData.paymentMethod === method
-                      ? 'border-green-500 bg-green-50 text-green-700'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  {method === 'PIX' && 'PIX'}
-                  {method === 'CASH' && 'Dinheiro'}
-                  {method === 'CARD' && 'Cartão'}
-                </button>
-              ))}
-            </div>
+            {availablePaymentMethods.length === 0 ? (
+              <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-lg">
+                <p className="text-sm">
+                  <strong>⚠️ Atenção:</strong> Nenhum método de pagamento configurado. Entre em contato com a loja.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                {availablePaymentMethods.map((method) => (
+                  <button
+                    key={method}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, paymentMethod: method as any })}
+                    className={`p-4 rounded-lg border-2 font-medium ${
+                      formData.paymentMethod === method
+                        ? 'border-green-500 bg-green-50 text-green-700'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    {method === 'PIX' && 'PIX'}
+                    {method === 'CASH' && 'Dinheiro'}
+                    {method === 'CARD' && 'Cartão na Entrega'}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="bg-white rounded-lg p-6 shadow-sm space-y-4">

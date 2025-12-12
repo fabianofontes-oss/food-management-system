@@ -194,6 +194,48 @@ const checkoutConfigSchema = z.object({
   mode: z.enum(['guest', 'phone_required']).default('phone_required'),
 })
 
+// Schema para Payments (MVP - sem gateways)
+const paymentsConfigSchema = z.object({
+  pix: z.object({
+    enabled: z.boolean(),
+    key_type: z.enum(['cpf', 'cnpj', 'email', 'phone', 'random']).optional(),
+    key: z.string().optional(),
+    receiver_name: z.string().optional(),
+  }).optional(),
+  cash: z.boolean().optional(),
+  card_on_delivery: z.boolean().optional(),
+}).refine(
+  (data) => {
+    // Se PIX está habilitado, validar campos obrigatórios
+    if (data.pix?.enabled) {
+      if (!data.pix.key_type || !data.pix.key || !data.pix.receiver_name) {
+        return false
+      }
+      // Validar chave PIX baseado no tipo
+      switch (data.pix.key_type) {
+        case 'cpf':
+          return validateCPF(data.pix.key)
+        case 'cnpj':
+          return validateCNPJ(data.pix.key)
+        case 'email':
+          return z.string().email().safeParse(data.pix.key).success
+        case 'phone':
+          const cleaned = data.pix.key.replace(/\D/g, '')
+          return cleaned.length >= 10 && cleaned.length <= 11
+        case 'random':
+          return data.pix.key.length >= 32
+        default:
+          return false
+      }
+    }
+    return true
+  },
+  {
+    message: 'Configuração de PIX inválida',
+    path: ['pix'],
+  }
+)
+
 // Schema principal de configurações
 export const settingsFormSchema = z.object({
   // Funcionalidades Principais
@@ -236,6 +278,9 @@ export const settingsFormSchema = z.object({
   
   // Checkout
   checkout: checkoutConfigSchema,
+  
+  // Payments (MVP)
+  payments: paymentsConfigSchema,
 })
 
 export type SettingsFormData = z.infer<typeof settingsFormSchema>
@@ -281,5 +326,12 @@ export const defaultSettings: SettingsFormData = {
   },
   checkout: {
     mode: 'phone_required',
+  },
+  payments: {
+    pix: {
+      enabled: false,
+    },
+    cash: true,
+    card_on_delivery: false,
   },
 }

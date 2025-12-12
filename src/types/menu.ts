@@ -27,6 +27,16 @@ export interface StoreSettings {
   checkout?: {
     mode: 'guest' | 'phone_required'
   }
+  payments?: {
+    pix?: {
+      enabled: boolean
+      key_type?: 'cpf' | 'cnpj' | 'email' | 'phone' | 'random'
+      key?: string
+      receiver_name?: string
+    }
+    cash?: boolean
+    card_on_delivery?: boolean
+  }
   takeaway_discount?: number
   auto_accept_orders?: boolean
 }
