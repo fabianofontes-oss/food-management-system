@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { DeliveryStats } from '../types'
 
 export const useDeliveryStats = (deliveryOrders: any[]) => {
@@ -7,6 +7,8 @@ export const useDeliveryStats = (deliveryOrders: any[]) => {
     avgDeliveryTime: 0,
     deliveryTimes: {}
   })
+
+  const orderIds = useMemo(() => deliveryOrders.map(o => o.id).join(','), [deliveryOrders])
 
   useEffect(() => {
     const calculateStats = () => {
@@ -45,7 +47,7 @@ export const useDeliveryStats = (deliveryOrders: any[]) => {
     const interval = setInterval(calculateStats, 30000)
     
     return () => clearInterval(interval)
-  }, [deliveryOrders])
+  }, [orderIds, deliveryOrders])
 
   return stats
 }
