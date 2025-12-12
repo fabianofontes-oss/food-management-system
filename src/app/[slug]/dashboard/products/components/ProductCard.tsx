@@ -9,9 +9,9 @@ interface ProductCardProps {
 }
 
 export const ProductCard = ({ product, onEdit, onDelete }: ProductCardProps) => {
-  const isLowStock = product.stock_quantity <= product.min_stock && product.min_stock > 0
-  const margin = product.price > 0 && product.cost_price > 0 
-    ? ((product.price - product.cost_price) / product.price * 100).toFixed(1)
+  const isLowStock = (product.stock_quantity || 0) <= (product.min_stock || 0) && (product.min_stock || 0) > 0
+  const margin = (product.price || 0) > 0 && (product.cost_price || 0) > 0 
+    ? (((product.price || 0) - (product.cost_price || 0)) / (product.price || 0) * 100).toFixed(1)
     : null
 
   return (
@@ -99,7 +99,7 @@ export const ProductCard = ({ product, onEdit, onDelete }: ProductCardProps) => 
             <span className="text-xs text-blue-700 font-medium">Estoque</span>
           </div>
           <div className="text-xl font-bold text-blue-900">
-            {product.stock_quantity.toFixed(2)}
+            {product.stock_quantity?.toFixed(2) || '0.00'}
           </div>
           {product.unit && (
             <div className="text-xs text-blue-600 mt-1">{product.unit.name}</div>
