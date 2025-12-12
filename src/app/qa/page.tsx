@@ -90,8 +90,45 @@ export default function QAPage() {
         )}
 
         {!slug && (
-          <div style={{ textAlign: 'center', padding: '48px', color: '#6b7280' }}>
-            Digite um store slug acima para ver os links
+          <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '16px' }}>🔗 Links Exemplo (sem slug)</h2>
+            
+            <div style={{ marginBottom: '16px' }}>
+              <p style={{ fontSize: '12px', color: '#6b7280', marginBottom: '8px' }}>Público:</p>
+              <div style={{ backgroundColor: '#f9fafb', padding: '12px', borderRadius: '6px', border: '1px solid #e5e7eb' }}>
+                <code onClick={() => copyUrl('http://localhost:3000/minha-loja')} style={{ display: 'block', fontSize: '13px', cursor: 'pointer', marginBottom: '4px' }}>http://localhost:3000/minha-loja</code>
+                <code onClick={() => copyUrl('http://localhost:3000/minha-loja/cart')} style={{ display: 'block', fontSize: '13px', cursor: 'pointer', marginBottom: '4px' }}>http://localhost:3000/minha-loja/cart</code>
+                <code onClick={() => copyUrl('http://localhost:3000/minha-loja/checkout')} style={{ display: 'block', fontSize: '13px', cursor: 'pointer' }}>http://localhost:3000/minha-loja/checkout</code>
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <p style={{ fontSize: '12px', color: '#6b7280', marginBottom: '8px' }}>Dashboard:</p>
+              <div style={{ backgroundColor: '#f9fafb', padding: '12px', borderRadius: '6px', border: '1px solid #e5e7eb' }}>
+                <code onClick={() => copyUrl('http://localhost:3000/minha-loja/dashboard')} style={{ display: 'block', fontSize: '13px', cursor: 'pointer', marginBottom: '4px' }}>http://localhost:3000/minha-loja/dashboard</code>
+                <code onClick={() => copyUrl('http://localhost:3000/minha-loja/dashboard/products')} style={{ display: 'block', fontSize: '13px', cursor: 'pointer', marginBottom: '4px' }}>http://localhost:3000/minha-loja/dashboard/products</code>
+                <code onClick={() => copyUrl('http://localhost:3000/minha-loja/dashboard/orders')} style={{ display: 'block', fontSize: '13px', cursor: 'pointer', marginBottom: '4px' }}>http://localhost:3000/minha-loja/dashboard/orders</code>
+                <code onClick={() => copyUrl('http://localhost:3000/minha-loja/dashboard/kitchen')} style={{ display: 'block', fontSize: '13px', cursor: 'pointer', marginBottom: '4px' }}>http://localhost:3000/minha-loja/dashboard/kitchen</code>
+                <code onClick={() => copyUrl('http://localhost:3000/minha-loja/dashboard/delivery')} style={{ display: 'block', fontSize: '13px', cursor: 'pointer', marginBottom: '4px' }}>http://localhost:3000/minha-loja/dashboard/delivery</code>
+                <code onClick={() => copyUrl('http://localhost:3000/minha-loja/dashboard/crm')} style={{ display: 'block', fontSize: '13px', cursor: 'pointer', marginBottom: '4px' }}>http://localhost:3000/minha-loja/dashboard/crm</code>
+                <code onClick={() => copyUrl('http://localhost:3000/minha-loja/dashboard/pos')} style={{ display: 'block', fontSize: '13px', cursor: 'pointer', marginBottom: '4px' }}>http://localhost:3000/minha-loja/dashboard/pos</code>
+                <code onClick={() => copyUrl('http://localhost:3000/minha-loja/dashboard/reports')} style={{ display: 'block', fontSize: '13px', cursor: 'pointer', marginBottom: '4px' }}>http://localhost:3000/minha-loja/dashboard/reports</code>
+                <code onClick={() => copyUrl('http://localhost:3000/minha-loja/dashboard/coupons')} style={{ display: 'block', fontSize: '13px', cursor: 'pointer', marginBottom: '4px' }}>http://localhost:3000/minha-loja/dashboard/coupons</code>
+                <code onClick={() => copyUrl('http://localhost:3000/minha-loja/dashboard/team')} style={{ display: 'block', fontSize: '13px', cursor: 'pointer', marginBottom: '4px' }}>http://localhost:3000/minha-loja/dashboard/team</code>
+                <code onClick={() => copyUrl('http://localhost:3000/minha-loja/dashboard/settings')} style={{ display: 'block', fontSize: '13px', cursor: 'pointer' }}>http://localhost:3000/minha-loja/dashboard/settings</code>
+              </div>
+            </div>
+
+            <div>
+              <p style={{ fontSize: '12px', color: '#6b7280', marginBottom: '8px' }}>Admin & Auth:</p>
+              <div style={{ backgroundColor: '#f9fafb', padding: '12px', borderRadius: '6px', border: '1px solid #e5e7eb' }}>
+                <code onClick={() => copyUrl('http://localhost:3000/admin')} style={{ display: 'block', fontSize: '13px', cursor: 'pointer', marginBottom: '4px' }}>http://localhost:3000/admin</code>
+                <code onClick={() => copyUrl('http://localhost:3000/admin/analytics')} style={{ display: 'block', fontSize: '13px', cursor: 'pointer', marginBottom: '4px' }}>http://localhost:3000/admin/analytics</code>
+                <code onClick={() => copyUrl('http://localhost:3000/login')} style={{ display: 'block', fontSize: '13px', cursor: 'pointer', marginBottom: '4px' }}>http://localhost:3000/login</code>
+                <code onClick={() => copyUrl('http://localhost:3000/signup')} style={{ display: 'block', fontSize: '13px', cursor: 'pointer', marginBottom: '4px' }}>http://localhost:3000/signup</code>
+                <code onClick={() => copyUrl('http://localhost:3000/select-store')} style={{ display: 'block', fontSize: '13px', cursor: 'pointer' }}>http://localhost:3000/select-store</code>
+              </div>
+            </div>
           </div>
         )}
       </div>
