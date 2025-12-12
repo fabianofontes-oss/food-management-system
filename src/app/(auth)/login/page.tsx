@@ -65,8 +65,12 @@ export default function LoginPage() {
         return
       }
 
-      // Redirect to first store dashboard
-      router.push(`/${stores[0].store_slug}/dashboard`)
+      // Redirect based on number of stores
+      if (stores.length === 1) {
+        router.push(`/${stores[0].store_slug}/dashboard`)
+      } else {
+        router.push('/select-store')
+      }
     } catch (err: any) {
       setError(err.message || 'Erro ao fazer login')
       setLoading(false)
