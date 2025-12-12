@@ -76,7 +76,7 @@ CREATE POLICY "Store members can manage coupons"
       SELECT store_id 
       FROM store_users 
       WHERE user_id = auth.uid()
-        AND role IN ('owner', 'manager')
+        AND role::text IN ('owner', 'manager')
     )
   );
 

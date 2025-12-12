@@ -2,6 +2,25 @@
 -- Implements Row Level Security for multi-tenant data isolation
 
 -- ============================================
+-- HELPER FUNCTION
+-- ============================================
+-- Function to check if user has access to a store
+CREATE OR REPLACE FUNCTION user_has_store_access(p_store_id UUID)
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM store_users
+    WHERE user_id = auth.uid()
+      AND store_id = p_store_id
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Grant execute permission
+GRANT EXECUTE ON FUNCTION user_has_store_access(UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION user_has_store_access(UUID) TO anon;
+
+-- ============================================
 -- STORES TABLE
 -- ============================================
 ALTER TABLE stores ENABLE ROW LEVEL SECURITY;

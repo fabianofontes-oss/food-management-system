@@ -39,7 +39,7 @@ CREATE POLICY "Store owners can manage store users"
       SELECT 1 FROM store_users su
       WHERE su.store_id = store_users.store_id
         AND su.user_id = auth.uid()
-        AND su.role = 'owner'
+        AND su.role::text = 'owner'
     )
   );
 
@@ -77,6 +77,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Add updated_at trigger for store_users
+DROP TRIGGER IF EXISTS update_store_users_updated_at ON store_users;
 CREATE TRIGGER update_store_users_updated_at
   BEFORE UPDATE ON store_users
   FOR EACH ROW

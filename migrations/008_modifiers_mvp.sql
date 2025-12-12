@@ -50,14 +50,14 @@ BEGIN
 END $$;
 
 -- Create indexes for performance
-CREATE INDEX idx_modifier_groups_store_id ON modifier_groups(store_id);
-CREATE INDEX idx_modifier_groups_sort_order ON modifier_groups(sort_order);
-CREATE INDEX idx_modifier_options_group_id ON modifier_options(group_id);
-CREATE INDEX idx_modifier_options_sort_order ON modifier_options(sort_order);
-CREATE INDEX idx_modifier_options_active ON modifier_options(is_active) WHERE is_active = true;
-CREATE INDEX idx_product_modifier_groups_product ON product_modifier_groups(product_id);
-CREATE INDEX idx_product_modifier_groups_group ON product_modifier_groups(group_id);
-CREATE INDEX idx_order_items_modifiers ON order_items USING GIN (modifiers);
+CREATE INDEX IF NOT EXISTS idx_modifier_groups_store_id ON modifier_groups(store_id);
+CREATE INDEX IF NOT EXISTS idx_modifier_groups_sort_order ON modifier_groups(sort_order);
+CREATE INDEX IF NOT EXISTS idx_modifier_options_group_id ON modifier_options(group_id);
+CREATE INDEX IF NOT EXISTS idx_modifier_options_sort_order ON modifier_options(sort_order);
+CREATE INDEX IF NOT EXISTS idx_modifier_options_active ON modifier_options(is_active) WHERE is_active = true;
+CREATE INDEX IF NOT EXISTS idx_product_modifier_groups_product ON product_modifier_groups(product_id);
+CREATE INDEX IF NOT EXISTS idx_product_modifier_groups_group ON product_modifier_groups(group_id);
+CREATE INDEX IF NOT EXISTS idx_order_items_modifiers ON order_items USING GIN (modifiers);
 
 -- Enable RLS on modifier tables
 ALTER TABLE modifier_groups ENABLE ROW LEVEL SECURITY;
@@ -92,7 +92,7 @@ CREATE POLICY "Store members can manage modifier groups"
       SELECT store_id 
       FROM store_users 
       WHERE user_id = auth.uid()
-        AND role IN ('owner', 'manager')
+        AND role::text IN ('owner', 'manager')
     )
   );
 
@@ -117,7 +117,7 @@ CREATE POLICY "Store members can manage modifier options"
       SELECT id FROM modifier_groups 
       WHERE store_id IN (
         SELECT store_id FROM store_users 
-        WHERE user_id = auth.uid() AND role IN ('owner', 'manager')
+        WHERE user_id = auth.uid() AND role::text IN ('owner', 'manager')
       )
     )
   );
@@ -143,7 +143,7 @@ CREATE POLICY "Store members can manage product modifier links"
       SELECT id FROM products 
       WHERE store_id IN (
         SELECT store_id FROM store_users 
-        WHERE user_id = auth.uid() AND role IN ('owner', 'manager')
+        WHERE user_id = auth.uid() AND role::text IN ('owner', 'manager')
       )
     )
   );
