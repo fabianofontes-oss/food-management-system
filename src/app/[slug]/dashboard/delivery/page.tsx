@@ -8,7 +8,6 @@ import { useOrders } from '@/hooks/useOrders'
 import { useSettings } from '@/hooks/useSettings'
 import { useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { useLanguage } from '@/lib/LanguageContext'
 import { useRef } from 'react'
 
 export default function DeliveryPage() {
@@ -31,8 +30,6 @@ export default function DeliveryPage() {
   
   const { orders, loading, updateOrderStatus } = useOrders()
   const { settings } = useSettings(storeId)
-  
-  const { t, formatCurrency: formatCurrencyI18n, formatPhone } = useLanguage()
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null)
   const [drivers] = useState(['Carlos Entregador', 'Ana Delivery', 'José Motoboy'])
   const [assignedDriver, setAssignedDriver] = useState<Record<string, string>>({})
@@ -274,7 +271,7 @@ export default function DeliveryPage() {
             <div>
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900 flex items-center gap-3">
                 <Truck className="w-8 h-8 md:w-10 md:h-10 text-purple-600" />
-                {t('menu.delivery')}
+                Delivery
               </h1>
               <p className="text-gray-600 mt-1">Gestão de Entregas - Pressione F para fullscreen</p>
             </div>
@@ -336,7 +333,7 @@ export default function DeliveryPage() {
             <div className="flex-1">
               <div className="font-semibold text-blue-900 mb-1">Configurações de Entrega</div>
               <div className="text-sm text-blue-700 space-y-1">
-                <div>• Taxa: <span className="font-bold">{formatCurrencyI18n(settings?.delivery_fee || 0)}</span></div>
+                <div>• Taxa: <span className="font-bold">{formatCurrency(settings?.delivery_fee || 0)}</span></div>
                 <div>• Raio: <span className="font-bold">{settings?.delivery_radius || 0} km</span></div>
                 <div>• Tempo estimado: <span className="font-bold">{settings?.estimated_prep_time || 0} min</span></div>
               </div>
@@ -398,7 +395,7 @@ export default function DeliveryPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <Phone className="w-5 h-5 text-gray-600" />
-                      <span className="text-sm">{formatPhone(delivery.customer_phone || '')}</span>
+                      <span className="text-sm">{delivery.customer_phone || ''}</span>
                     </div>
                     <div className="flex gap-2 mt-2">
                       <button
@@ -423,14 +420,14 @@ export default function DeliveryPage() {
                       {orderItems[delivery.id].map((item: any) => (
                         <div key={item.id} className="flex justify-between text-sm">
                           <span>{item.quantity}x {item.products?.name || 'Produto'}</span>
-                          <span className="text-gray-500">{formatCurrencyI18n(item.unit_price)}</span>
+                          <span className="text-gray-500">{formatCurrency(item.unit_price)}</span>
                         </div>
                       ))}
                     </div>
                   )}
 
                   <div className="text-2xl font-bold text-purple-600 mb-3">
-                    Total: {formatCurrencyI18n(delivery.total_amount)}
+                    Total: {formatCurrency(delivery.total_amount)}
                   </div>
 
                   {/* Atribuição de Entregador */}
