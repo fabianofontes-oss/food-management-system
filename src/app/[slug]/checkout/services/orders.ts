@@ -1,0 +1,79 @@
+import { getStoreBySlug } from '@/lib/actions/menu'
+import { createOrder } from '@/lib/actions/orders'
+import type { OrderData } from '@/types/menu'
+import type { CheckoutFormData, CheckoutMode } from '../types'
+import type { CartItem } from '@/types/menu'
+
+export interface OrderSubmitResult {
+  success: boolean
+  orderId?: string
+  error?: string
+}
+
+export async function validateAndSubmitOrder(
+  slug: string,
+  formData: CheckoutFormData,
+  checkoutMode: CheckoutMode,
+  items: CartItem[]
+): Promise<OrderSubmitResult> {
+  try {
+    // Validar telefone baseado no modo de checkout
+    if (checkoutMode === 'phone_required' && !formData.phone.trim()) {
+      return {
+        success: false,
+        error: 'Telefone é obrigatório para finalizar o pedido'
+      }
+    }
+
+    const store = await getStoreBySlug(slug)
+    if (!store) {
+      return {
+        success: false,
+        error: 'Loja não encontrada'
+      }
+    }
+
+    const orderData: OrderData = {
+      customer: {
+        name: formData.name,
+        phone: formData.phone.trim() || undefined,
+        email: formData.email || undefined,
+      },
+      channel: formData.channel,
+      payment_method: formData.paymentMethod,
+      notes: formData.notes || undefined,
+    }
+
+    if (formData.channel === 'DELIVERY') {
+      orderData.delivery_address = {
+        street: formData.street,
+        number: formData.number,
+        complement: formData.complement || undefined,
+        district: formData.district,
+        city: formData.city,
+        state: formData.state,
+        zip_code: formData.zipCode,
+        reference: formData.reference || undefined,
+      }
+    }
+
+    const result = await createOrder(store.id, items, orderData)
+
+    if (result.success && result.orderId) {
+      return {
+        success: true,
+        orderId: result.orderId
+      }
+    } else {
+      return {
+        success: false,
+        error: result.error || 'Erro ao criar pedido'
+      }
+    }
+  } catch (err) {
+    return {
+      success: false,
+      error: 'Erro ao processar pedido'
+    }
+  }
+}
