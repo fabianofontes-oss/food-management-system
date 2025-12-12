@@ -13,18 +13,30 @@ export type Database = {
         Row: {
           id: string
           name: string
+          country: string
+          language: string
+          currency: string
+          timezone: string
           created_at: string
           updated_at: string
         }
         Insert: {
           id?: string
           name: string
+          country?: string
+          language?: string
+          currency?: string
+          timezone?: string
           created_at?: string
           updated_at?: string
         }
         Update: {
           id?: string
           name?: string
+          country?: string
+          language?: string
+          currency?: string
+          timezone?: string
           created_at?: string
           updated_at?: string
         }
