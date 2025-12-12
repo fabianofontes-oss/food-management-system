@@ -74,14 +74,6 @@ export default function DashboardClient({
       activeColor: 'bg-orange-100'
     },
     { 
-      href: `${base}/orders/entregas`, 
-      label: 'Entregas',
-      icon: Truck,
-      color: 'text-indigo-600',
-      bgColor: 'bg-indigo-50',
-      activeColor: 'bg-indigo-100'
-    },
-    { 
       href: `${base}/settings`, 
       label: t('menu.settings'),
       icon: Settings,
