@@ -27,6 +27,7 @@ export default function OrdersPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [typeFilter, setTypeFilter] = useState<string>('all')
   const [dateFilter, setDateFilter] = useState<string>('all')
+  const [paymentFilter, setPaymentFilter] = useState<string>('all')
   const [showFilters, setShowFilters] = useState(false)
   
   const [selectedOrder, setSelectedOrder] = useState<any>(null)
@@ -68,6 +69,14 @@ export default function OrdersPage() {
     setAvgOrderValue(orders.length > 0 ? orders.reduce((sum, o) => sum + o.total_amount, 0) / orders.length : 0)
   }, [orders])
 
+  // Calcular pagamentos pendentes (últimas 48h)
+  const pendingPaymentsCount = orders.filter(order => {
+    const orderDate = new Date(order.created_at)
+    const now = new Date()
+    const hoursDiff = (now.getTime() - orderDate.getTime()) / (1000 * 60 * 60)
+    return (order.payment_status === 'pending' || !order.payment_status) && hoursDiff <= 48
+  }).length
+
   const filteredOrders = orders.filter(order => {
     const matchSearch = searchTerm === '' || 
       order.order_code.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -76,6 +85,10 @@ export default function OrdersPage() {
 
     const matchStatus = statusFilter === 'all' || order.status === statusFilter
     const matchType = typeFilter === 'all' || order.order_type === typeFilter
+    
+    const matchPayment = paymentFilter === 'all' || 
+      (paymentFilter === 'pending' && (order.payment_status === 'pending' || !order.payment_status)) ||
+      (paymentFilter === 'paid' && order.payment_status === 'paid')
 
     let matchDate = true
     if (dateFilter !== 'all') {
@@ -93,7 +106,7 @@ export default function OrdersPage() {
       }
     }
 
-    return matchSearch && matchStatus && matchType && matchDate
+    return matchSearch && matchStatus && matchType && matchPayment && matchDate
   })
 
   const getStatusColor = (status: string) => {
