@@ -37,14 +37,12 @@ export default function TenantsPage() {
     e.preventDefault()
     
     if (editingTenant) {
-      // Editar tenant existente
       setTenants(tenants.map(t => 
         t.id === editingTenant.id 
           ? { ...t, ...formData }
           : t
       ))
     } else {
-      // Criar novo tenant
       const newTenant: Tenant = {
         id: Date.now().toString(),
         ...formData,
@@ -54,7 +52,6 @@ export default function TenantsPage() {
       setTenants([...tenants, newTenant])
     }
 
-    // Reset form
     setFormData({ name: '', slug: '', is_active: true })
     setShowForm(false)
     setEditingTenant(null)

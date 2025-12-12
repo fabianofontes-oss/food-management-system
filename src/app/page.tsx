@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, FormEvent } from "react";
 import Link from "next/link";
@@ -11,12 +11,12 @@ export default function HomePage() {
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!slug.trim()) return;
-    router.push(/);
+    router.push(`/${slug}`);
   }
 
   function goToDashboard() {
     if (!slug.trim()) return;
-    router.push(//dashboard);
+    router.push(`/${slug}/dashboard`);
   }
 
   const isEmpty = slug.trim().length === 0;

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Building2, Store, ChevronLeft, ChevronRight, Menu, LayoutDashboard } from 'lucide-react'
+import { Building2, Store, ChevronLeft, ChevronRight, Menu, LayoutDashboard, Users, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const menuItems = [
@@ -14,16 +14,28 @@ const menuItems = [
     description: 'Centro de Comando'
   },
   { 
-    href: '/tenants', 
+    href: '/admin/tenants', 
     label: 'Tenants', 
     icon: Building2,
     description: 'Gerenciar Redes'
   },
   { 
-    href: '/stores', 
+    href: '/admin/stores', 
     label: 'Lojas', 
     icon: Store,
     description: 'Gerenciar Lojas'
+  },
+  { 
+    href: '/admin/users', 
+    label: 'Usuários', 
+    icon: Users,
+    description: 'Gerenciar Usuários'
+  },
+  { 
+    href: '/admin/settings', 
+    label: 'Configurações', 
+    icon: Settings,
+    description: 'Configurações Sistema'
   },
 ]
 

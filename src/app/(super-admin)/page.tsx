@@ -125,7 +125,7 @@ export default function SuperAdminDashboard() {
 
         {/* Ações Rápidas */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Link href="/tenants">
+          <Link href="/admin/tenants">
             <Card className="hover:shadow-xl transition-all hover:scale-105 cursor-pointer bg-gradient-to-br from-indigo-500 to-indigo-600 text-white">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
@@ -140,7 +140,7 @@ export default function SuperAdminDashboard() {
             </Card>
           </Link>
 
-          <Link href="/stores">
+          <Link href="/admin/stores">
             <Card className="hover:shadow-xl transition-all hover:scale-105 cursor-pointer bg-gradient-to-br from-violet-500 to-violet-600 text-white">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
