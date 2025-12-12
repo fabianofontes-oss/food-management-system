@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import { 
   LayoutDashboard, ShoppingCart, ChefHat, Truck, 
   Package, Settings, ChevronLeft, ChevronRight, Menu,
-  Users, ShoppingBag
+  Users, ShoppingBag, ClipboardList, ChevronDown
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useLanguage } from '@/lib/LanguageContext'
@@ -20,9 +20,14 @@ export default function DashboardClient({
 }) {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isMobileOpen, setIsMobileOpen] = useState(false)
+  const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({ 'operacoes': true })
   const pathname = usePathname()
   const { t } = useLanguage()
   const base = `/${slug}/dashboard`
+  
+  const toggleMenu = (menuId: string) => {
+    setExpandedMenus(prev => ({ ...prev, [menuId]: !prev[menuId] }))
+  }
 
   const menuItems = [
     { 
@@ -42,12 +47,26 @@ export default function DashboardClient({
       activeColor: 'bg-blue-100'
     },
     { 
-      href: `${base}/orders`, 
-      label: 'Pedidos',
-      icon: ShoppingBag,
+      id: 'operacoes',
+      label: 'Operações',
+      icon: ClipboardList,
       color: 'text-teal-600',
       bgColor: 'bg-teal-50',
-      activeColor: 'bg-teal-100'
+      activeColor: 'bg-teal-100',
+      submenu: [
+        { 
+          href: `${base}/orders`, 
+          label: 'Pedidos',
+          icon: ShoppingBag,
+          color: 'text-teal-600'
+        },
+        { 
+          href: `${base}/orders/entregas`, 
+          label: 'Entregas',
+          icon: Truck,
+          color: 'text-indigo-600'
+        }
+      ]
     },
     { 
       href: `${base}/crm`, 
@@ -134,8 +153,72 @@ export default function DashboardClient({
 
           {/* Navigation */}
           <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-            {menuItems.map((item) => {
+            {menuItems.map((item: any) => {
               const Icon = item.icon
+              
+              if (item.submenu) {
+                const isExpanded = expandedMenus[item.id]
+                const isAnySubmenuActive = item.submenu.some((sub: any) => 
+                  pathname === sub.href || pathname.startsWith(sub.href + '/')
+                )
+                
+                return (
+                  <div key={item.id}>
+                    <button
+                      onClick={() => toggleMenu(item.id)}
+                      className={cn(
+                        'w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group',
+                        isAnySubmenuActive
+                          ? `${item.activeColor} ${item.color} shadow-sm`
+                          : 'text-gray-700 hover:bg-gray-100'
+                      )}
+                    >
+                      <div className={cn(
+                        'p-2 rounded-lg transition-colors',
+                        isAnySubmenuActive ? item.bgColor : 'bg-gray-50 group-hover:bg-gray-100'
+                      )}>
+                        <Icon className={cn('w-5 h-5', isAnySubmenuActive ? item.color : 'text-gray-600')} />
+                      </div>
+                      {!isCollapsed && (
+                        <>
+                          <span className="font-medium flex-1 text-left">{item.label}</span>
+                          <ChevronDown className={cn(
+                            'w-4 h-4 transition-transform',
+                            isExpanded ? 'rotate-180' : ''
+                          )} />
+                        </>
+                      )}
+                    </button>
+                    
+                    {isExpanded && !isCollapsed && (
+                      <div className="ml-4 mt-1 space-y-1">
+                        {item.submenu.map((subItem: any) => {
+                          const SubIcon = subItem.icon
+                          const isActive = pathname === subItem.href || pathname.startsWith(subItem.href + '/')
+                          
+                          return (
+                            <Link
+                              key={subItem.href}
+                              href={subItem.href}
+                              onClick={() => setIsMobileOpen(false)}
+                              className={cn(
+                                'flex items-center gap-3 px-4 py-2 rounded-lg transition-all',
+                                isActive
+                                  ? 'bg-gray-100 text-gray-900 font-medium'
+                                  : 'text-gray-600 hover:bg-gray-50'
+                              )}
+                            >
+                              <SubIcon className="w-4 h-4" />
+                              <span className="text-sm">{subItem.label}</span>
+                            </Link>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )
+              }
+              
               const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
               
               return (
