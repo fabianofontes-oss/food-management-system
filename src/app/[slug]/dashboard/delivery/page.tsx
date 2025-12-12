@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Truck, MapPin, Clock, Phone, Package, User, Navigation, CheckCircle, XCircle, Loader2, Search, Calendar, BarChart3, TrendingUp, Printer, X, UserPlus, Play, CheckCheck, Ban } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { Truck, MapPin, Clock, Phone, Package, User, Navigation, CheckCircle, XCircle, Loader2, Search, Calendar, BarChart3, TrendingUp, Printer, X, UserPlus, Play, CheckCheck, Ban, Bell, BellOff, Users, Edit, Trash2, Plus, Star } from 'lucide-react'
 import { useParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { supabase } from '@/lib/supabase'
@@ -10,6 +10,7 @@ import { formatCurrency } from '@/lib/utils'
 interface Delivery {
   id: string
   order_id: string
+  driver_id: string | null
   driver_name: string | null
   driver_phone: string | null
   status: 'pending' | 'assigned' | 'picked_up' | 'in_transit' | 'delivered' | 'cancelled'
@@ -25,14 +26,25 @@ interface Delivery {
     customer_name: string
     total_amount: number
   }
+  driver?: Driver
 }
 
 interface Driver {
   id: string
+  tenant_id: string
+  store_id: string
   name: string
   phone: string
+  email: string | null
+  vehicle_type: string | null
+  vehicle_plate: string | null
   is_available: boolean
+  is_active: boolean
   total_deliveries: number
+  rating: number
+  notes: string | null
+  created_at: string
+  updated_at: string
 }
 
 export default function DeliveryPage() {
@@ -48,7 +60,21 @@ export default function DeliveryPage() {
   const [showDriverModal, setShowDriverModal] = useState(false)
   const [selectedDelivery, setSelectedDelivery] = useState<Delivery | null>(null)
   const [showMetrics, setShowMetrics] = useState(false)
-  const [newDriver, setNewDriver] = useState({ name: '', phone: '' })
+  const [showDriversManager, setShowDriversManager] = useState(false)
+  const [showDriverForm, setShowDriverForm] = useState(false)
+  const [editingDriver, setEditingDriver] = useState<Driver | null>(null)
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true)
+  const [soundEnabled, setSoundEnabled] = useState(true)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const [newDriver, setNewDriver] = useState({
+    name: '',
+    phone: '',
+    email: '',
+    vehicle_type: 'moto',
+    vehicle_plate: '',
+    notes: ''
+  })
+  const [tenantId, setTenantId] = useState<string | null>(null)
 
   useEffect(() => {
     async function fetchStore() {
@@ -88,6 +114,13 @@ export default function DeliveryPage() {
             order_code,
             customer_name,
             total_amount
+          ),
+          driver:drivers(
+            id,
+            name,
+            phone,
+            vehicle_type,
+            rating
           )
         `)
         .eq('store_id', storeId)
@@ -99,6 +132,73 @@ export default function DeliveryPage() {
       console.error('Erro ao carregar entregas:', err)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchDrivers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('drivers')
+        .select('*')
+        .eq('store_id', storeId)
+        .eq('is_active', true)
+        .order('name')
+
+      if (error) throw error
+      setDrivers(data || [])
+    } catch (err) {
+      console.error('Erro ao carregar motoristas:', err)
+    }
+  }
+
+  const setupRealtimeSubscription = () => {
+    const channel = supabase
+      .channel('deliveries-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'deliveries',
+          filter: `store_id=eq.${storeId}`
+        },
+        (payload) => {
+          console.log('Delivery change:', payload)
+          
+          if (payload.eventType === 'INSERT') {
+            playNotificationSound()
+            showBrowserNotification('Nova Entrega!', 'Uma nova entrega foi criada')
+          }
+          
+          fetchDeliveries()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }
+
+  const requestNotificationPermission = async () => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      await Notification.requestPermission()
+    }
+  }
+
+  const playNotificationSound = () => {
+    if (soundEnabled && audioRef.current) {
+      audioRef.current.play().catch(err => console.log('Erro ao tocar som:', err))
+    }
+  }
+
+  const showBrowserNotification = (title: string, body: string) => {
+    if (notificationsEnabled && 'Notification' in window && Notification.permission === 'granted') {
+      new Notification(title, {
+        body,
+        icon: '/icon.png',
+        badge: '/badge.png'
+      })
     }
   }
 
@@ -170,7 +270,7 @@ export default function DeliveryPage() {
       await fetchDeliveries()
       setShowDriverModal(false)
       setSelectedDelivery(null)
-      setNewDriver({ name: '', phone: '' })
+      setNewDriver({ name: '', phone: '', email: '', vehicle_type: 'moto', vehicle_plate: '', notes: '' })
     } catch (err) {
       console.error('Erro ao atribuir motorista:', err)
       alert('Erro ao atribuir motorista')
@@ -535,7 +635,7 @@ export default function DeliveryPage() {
                   onClick={() => {
                     setShowDriverModal(false)
                     setSelectedDelivery(null)
-                    setNewDriver({ name: '', phone: '' })
+                    setNewDriver({ name: '', phone: '', email: '', vehicle_type: 'moto', vehicle_plate: '', notes: '' })
                   }}
                   className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 >
@@ -591,7 +691,7 @@ export default function DeliveryPage() {
                     onClick={() => {
                       setShowDriverModal(false)
                       setSelectedDelivery(null)
-                      setNewDriver({ name: '', phone: '' })
+                      setNewDriver({ name: '', phone: '', email: '', vehicle_type: 'moto', vehicle_plate: '', notes: '' })
                     }}
                     variant="outline"
                     className="flex-1"
