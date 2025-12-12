@@ -140,33 +140,127 @@ export default function ProductsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Gestão de Produtos</h1>
-          <button
-            onClick={() => {
-              setEditingProduct(null)
-              setShowModal(true)
-            }}
-            className="flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors"
-          >
-            <Plus className="w-5 h-5" />
-            Novo Produto
-          </button>
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white p-4 md:p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 flex items-center gap-3">
+                <Package className="w-8 h-8 md:w-10 md:h-10 text-blue-600" />
+                Produtos
+              </h1>
+              <p className="text-gray-600 mt-1">Gestão completa de produtos</p>
+            </div>
+            <button
+              onClick={() => {
+                setEditingProduct(null)
+                setShowModal(true)
+              }}
+              className="flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-xl hover:bg-green-700 transition-colors shadow-lg"
+            >
+              <Plus className="w-5 h-5" />
+              Novo Produto
+            </button>
+          </div>
+
+          {/* Estatísticas */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-4 text-white shadow-lg">
+              <div className="flex items-center gap-3 mb-2">
+                <Package className="w-6 h-6" />
+                <span className="text-sm font-medium opacity-90">Total de Produtos</span>
+              </div>
+              <div className="text-3xl font-bold">{totalProducts}</div>
+            </div>
+            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-4 text-white shadow-lg">
+              <div className="flex items-center gap-3 mb-2">
+                <Eye className="w-6 h-6" />
+                <span className="text-sm font-medium opacity-90">Produtos Ativos</span>
+              </div>
+              <div className="text-3xl font-bold">{activeProducts}</div>
+            </div>
+            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-4 text-white shadow-lg">
+              <div className="flex items-center gap-3 mb-2">
+                <DollarSign className="w-6 h-6" />
+                <span className="text-sm font-medium opacity-90">Preço Médio</span>
+              </div>
+              <div className="text-3xl font-bold">{formatCurrency(avgPrice)}</div>
+            </div>
+          </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Buscar produtos..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:outline-none"
-            />
+        {/* Busca e Filtros */}
+        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Buscar produtos..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none"
+              />
+            </div>
+            
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="px-6 py-3 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium transition-colors flex items-center gap-2"
+            >
+              <Filter className="w-5 h-5" />
+              Filtros
+            </button>
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`p-3 rounded-xl transition-colors ${viewMode === 'grid' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}
+                title="Visualização em Cards"
+              >
+                <Grid className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`p-3 rounded-xl transition-colors ${viewMode === 'list' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}
+                title="Visualização em Lista"
+              >
+                <List className="w-5 h-5" />
+              </button>
+            </div>
           </div>
+
+          {/* Filtros Expandidos */}
+          {showFilters && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 pt-4 border-t">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value as any)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="all">Todos</option>
+                  <option value="active">Ativos</option>
+                  <option value="inactive">Inativos</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Faixa de Preço</label>
+                <select
+                  value={priceFilter}
+                  onChange={(e) => setPriceFilter(e.target.value as any)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="all">Todos</option>
+                  <option value="low">Até R$ 20</option>
+                  <option value="medium">R$ 20 - R$ 50</option>
+                  <option value="high">Acima de R$ 50</option>
+                </select>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
