@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import { 
   LayoutDashboard, ShoppingCart, ChefHat, Truck, 
   Package, Settings, ChevronLeft, ChevronRight, Menu,
-  Users
+  Users, ShoppingBag
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useLanguage } from '@/lib/LanguageContext'
@@ -40,6 +40,14 @@ export default function DashboardClient({
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',
       activeColor: 'bg-blue-100'
+    },
+    { 
+      href: `${base}/orders`, 
+      label: 'Pedidos',
+      icon: ShoppingBag,
+      color: 'text-teal-600',
+      bgColor: 'bg-teal-50',
+      activeColor: 'bg-teal-100'
     },
     { 
       href: `${base}/crm`, 
