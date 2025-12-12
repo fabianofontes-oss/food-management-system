@@ -20,18 +20,14 @@ export const useProductsComplete = (storeId: string | null) => {
       setLoading(true)
       setError(null)
 
+      console.log('[useProductsComplete] Iniciando fetchData com storeId:', storeId)
+
       const [productsRes, categoriesRes, unitsRes] = await Promise.all([
         supabase
           .from('products')
           .select(`
             *,
-            category:categories(*),
-            unit:measurement_units(*),
-            ingredients:product_ingredients(
-              *,
-              ingredient:products(*),
-              unit:measurement_units(*)
-            )
+            category:categories(*)
           `)
           .eq('store_id', storeId)
           .order('name'),
@@ -46,6 +42,15 @@ export const useProductsComplete = (storeId: string | null) => {
           .order('name')
       ])
 
+      console.log('[useProductsComplete] Respostas recebidas:', {
+        products: productsRes.data?.length || 0,
+        productsError: productsRes.error,
+        categories: categoriesRes.data?.length || 0,
+        categoriesError: categoriesRes.error,
+        units: unitsRes.data?.length || 0,
+        unitsError: unitsRes.error
+      })
+
       if (productsRes.error) throw productsRes.error
       if (categoriesRes.error) throw categoriesRes.error
       if (unitsRes.error) throw unitsRes.error
@@ -54,7 +59,7 @@ export const useProductsComplete = (storeId: string | null) => {
       setCategories(categoriesRes.data || [])
       setUnits(unitsRes.data || [])
     } catch (err: any) {
-      console.error('Erro ao carregar dados:', err)
+      console.error('[useProductsComplete] Erro ao carregar dados:', err)
       setError(err.message)
     } finally {
       setLoading(false)
