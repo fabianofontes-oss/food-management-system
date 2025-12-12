@@ -10,6 +10,8 @@ import { CustomerSection } from './components/CustomerSection'
 import { AddressSection } from './components/AddressSection'
 import { PaymentMethodSelector } from './components/PaymentMethodSelector'
 import { OrderSummary } from './components/OrderSummary'
+import { OrderTypeSelector } from './components/OrderTypeSelector'
+import { NotesSection } from './components/NotesSection'
 import { loadStoreSettings } from './services/storeSettings'
 import { validateAndSubmitOrder } from './services/orders'
 import type { CheckoutFormData, CheckoutMode, PaymentMethod } from './types'
@@ -127,34 +129,10 @@ export function CheckoutClient({ slug }: CheckoutClientProps) {
             onChange={handleFieldChange}
           />
 
-          <div className="bg-white rounded-lg p-6 shadow-sm space-y-4">
-            <h2 className="font-bold text-lg">Tipo de pedido</h2>
-            
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setFormData({ ...formData, channel: 'DELIVERY' })}
-                className={`p-4 rounded-lg border-2 font-medium ${
-                  formData.channel === 'DELIVERY'
-                    ? 'border-green-500 bg-green-50 text-green-700'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                Delivery
-              </button>
-              <button
-                type="button"
-                onClick={() => setFormData({ ...formData, channel: 'TAKEAWAY' })}
-                className={`p-4 rounded-lg border-2 font-medium ${
-                  formData.channel === 'TAKEAWAY'
-                    ? 'border-green-500 bg-green-50 text-green-700'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                Retirada
-              </button>
-            </div>
-          </div>
+          <OrderTypeSelector
+            selectedChannel={formData.channel}
+            onSelect={(channel) => setFormData({ ...formData, channel })}
+          />
 
           {formData.channel === 'DELIVERY' && (
             <AddressSection
@@ -171,16 +149,10 @@ export function CheckoutClient({ slug }: CheckoutClientProps) {
             onSelect={(method) => setFormData({ ...formData, paymentMethod: method })}
           />
 
-          <div className="bg-white rounded-lg p-6 shadow-sm space-y-4">
-            <h2 className="font-bold text-lg">Observações</h2>
-            <textarea
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              placeholder="Alguma observação sobre o pedido?"
-              className="w-full p-3 border border-gray-300 rounded-lg resize-none"
-              rows={3}
-            />
-          </div>
+          <NotesSection
+            notes={formData.notes}
+            onChange={(notes) => setFormData({ ...formData, notes })}
+          />
 
           <OrderSummary
             subtotal={subtotal}
