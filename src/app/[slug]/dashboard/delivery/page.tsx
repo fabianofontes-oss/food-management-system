@@ -36,7 +36,6 @@ export default function DeliveryPage() {
   const [deliveryNotes, setDeliveryNotes] = useState<Record<string, string>>({})
   const [showNoteModal, setShowNoteModal] = useState<string | null>(null)
   const [noteInput, setNoteInput] = useState('')
-  const [isFullscreen, setIsFullscreen] = useState(false)
   const [soundEnabled, setSoundEnabled] = useState(true)
   const [lastOrderCount, setLastOrderCount] = useState(0)
   const audioRef = useRef<HTMLAudioElement | null>(null)
@@ -94,20 +93,7 @@ export default function DeliveryPage() {
     setLastOrderCount(pendingCount)
   }, [deliveryOrders, lastOrderCount, soundEnabled])
 
-  // Atalhos de teclado
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.key === 'f' || e.key === 'F') {
-        e.preventDefault()
-        toggleFullscreen()
-      }
-      if (e.key === 'Escape' && isFullscreen) {
-        toggleFullscreen()
-      }
-    }
-    window.addEventListener('keydown', handleKeyPress)
-    return () => window.removeEventListener('keydown', handleKeyPress)
-  }, [isFullscreen])
+  // Atalhos de teclado removidos para evitar conflitos com navegação
 
   // Carregar itens dos pedidos
   useEffect(() => {
@@ -148,16 +134,6 @@ export default function DeliveryPage() {
   const playNotificationSound = () => {
     if (audioRef.current) {
       audioRef.current.play().catch(e => console.log('Erro ao tocar som:', e))
-    }
-  }
-
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(e => console.log('Erro fullscreen:', e))
-      setIsFullscreen(true)
-    } else {
-      document.exitFullscreen().catch(e => console.log('Erro exit fullscreen:', e))
-      setIsFullscreen(false)
     }
   }
 
@@ -284,13 +260,6 @@ export default function DeliveryPage() {
                 title={soundEnabled ? 'Som ativado' : 'Som desativado'}
               >
                 <Bell className="w-5 h-5" />
-              </button>
-              <button
-                onClick={toggleFullscreen}
-                className="p-3 rounded-xl bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors"
-                title="Modo Fullscreen (F)"
-              >
-                {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
               </button>
             </div>
           </div>
