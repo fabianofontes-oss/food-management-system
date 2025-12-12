@@ -52,31 +52,40 @@ export default function DeliveryPage() {
 
   // Calcular estatísticas e tempo de entrega real
   useEffect(() => {
-    const today = new Date().toDateString()
-    const delivered = deliveryOrders.filter(d => 
-      d.status === 'delivered' && new Date(d.created_at).toDateString() === today
-    )
-    setDeliveredToday(delivered.length)
-    
-    // Calcular tempo de entrega para cada pedido em trânsito
-    const times: Record<string, number> = {}
-    deliveryOrders.forEach(order => {
-      if (order.status === 'out_for_delivery') {
-        const created = new Date(order.created_at).getTime()
-        const now = Date.now()
-        times[order.id] = Math.floor((now - created) / 60000)
+    const calculateStats = () => {
+      const today = new Date().toDateString()
+      const delivered = deliveryOrders.filter(d => 
+        d.status === 'delivered' && new Date(d.created_at).toDateString() === today
+      )
+      setDeliveredToday(delivered.length)
+      
+      // Calcular tempo de entrega para cada pedido em trânsito
+      const times: Record<string, number> = {}
+      deliveryOrders.forEach(order => {
+        if (order.status === 'out_for_delivery') {
+          const created = new Date(order.created_at).getTime()
+          const now = Date.now()
+          times[order.id] = Math.floor((now - created) / 60000)
+        }
+      })
+      setDeliveryTimes(times)
+      
+      if (delivered.length > 0) {
+        const totalTime = delivered.reduce((acc, order) => {
+          const created = new Date(order.created_at).getTime()
+          const completed = new Date(order.updated_at || order.created_at).getTime()
+          return acc + (completed - created)
+        }, 0)
+        setAvgDeliveryTime(Math.floor(totalTime / delivered.length / 60000))
       }
-    })
-    setDeliveryTimes(times)
-    
-    if (delivered.length > 0) {
-      const totalTime = delivered.reduce((acc, order) => {
-        const created = new Date(order.created_at).getTime()
-        const completed = new Date(order.updated_at || order.created_at).getTime()
-        return acc + (completed - created)
-      }, 0)
-      setAvgDeliveryTime(Math.floor(totalTime / delivered.length / 60000))
     }
+
+    calculateStats()
+    
+    // Atualizar a cada 30 segundos ao invés de a cada render
+    const interval = setInterval(calculateStats, 30000)
+    
+    return () => clearInterval(interval)
   }, [deliveryOrders])
 
   // Notificação sonora para novos pedidos
