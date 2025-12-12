@@ -348,6 +348,26 @@ export default function OrdersPage() {
           </div>
         </div>
 
+        {/* Alerta de Pagamentos Pendentes */}
+        {pendingPaymentsCount > 0 && (
+          <div className="bg-yellow-50 border-2 border-yellow-300 rounded-2xl p-4 mb-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <DollarSign className="w-6 h-6 text-yellow-700" />
+                <span className="font-bold text-yellow-900">
+                  Pagamentos Pendentes: {pendingPaymentsCount}
+                </span>
+              </div>
+              <Button
+                onClick={() => setPaymentFilter(paymentFilter === 'pending' ? 'all' : 'pending')}
+                className={paymentFilter === 'pending' ? 'bg-yellow-700 hover:bg-yellow-800' : 'bg-yellow-600 hover:bg-yellow-700'}
+              >
+                {paymentFilter === 'pending' ? 'Mostrar Todos' : 'Mostrar Pendentes'}
+              </Button>
+            </div>
+          </div>
+        )}
+
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
@@ -416,6 +436,19 @@ export default function OrdersPage() {
                   <option value="today">Hoje</option>
                   <option value="week">Última Semana</option>
                   <option value="month">Último Mês</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Pagamento</label>
+                <select
+                  value={paymentFilter}
+                  onChange={(e) => setPaymentFilter(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="all">Todos</option>
+                  <option value="pending">Pendente</option>
+                  <option value="paid">Pago</option>
                 </select>
               </div>
             </div>

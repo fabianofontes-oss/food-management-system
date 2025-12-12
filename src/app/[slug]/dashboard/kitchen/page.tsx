@@ -36,6 +36,10 @@ export default function KitchenPage() {
   const [avgPrepTime, setAvgPrepTime] = useState(0)
   const [channelFilter, setChannelFilter] = useState<'all' | 'delivery' | 'dine_in' | 'takeout'>('all')
   const [paymentStatusFilter, setPaymentStatusFilter] = useState<'all' | 'pending' | 'paid'>('all')
+  const [lateFilter, setLateFilter] = useState<'all' | 'late'>('all')
+
+  // Constante para pedidos atrasados
+  const LATE_MINUTES = 30
 
   // Auto-refresh a cada 30 segundos
   useEffect(() => {
@@ -276,8 +280,23 @@ export default function KitchenPage() {
     return ordersList.filter(o => (o.payment_status || 'pending') === paymentStatusFilter)
   }
 
-  const pendingOrders = filterByPaymentStatus(filterByChannel(orders.filter(o => o.status === 'pending' || o.status === 'confirmed')))
-  const preparingOrders = filterByPaymentStatus(filterByChannel(orders.filter(o => o.status === 'preparing')))
+  // Calcular pedidos atrasados
+  const isOrderLate = (order: any) => {
+    if (!['confirmed', 'preparing'].includes(order.status)) return false
+    const minutes = Math.floor((Date.now() - new Date(order.created_at).getTime()) / 60000)
+    return minutes > LATE_MINUTES
+  }
+
+  const lateOrdersCount = orders.filter(isOrderLate).length
+
+  // Filtrar por late
+  const filterByLate = (ordersList: any[]) => {
+    if (lateFilter === 'all') return ordersList
+    return ordersList.filter(isOrderLate)
+  }
+
+  const pendingOrders = filterByLate(filterByPaymentStatus(filterByChannel(orders.filter(o => o.status === 'pending' || o.status === 'confirmed'))))
+  const preparingOrders = filterByLate(filterByPaymentStatus(filterByChannel(orders.filter(o => o.status === 'preparing'))))
   const readyOrders = filterByPaymentStatus(filterByChannel(orders.filter(o => o.status === 'ready')))
 
   if (loading) {
