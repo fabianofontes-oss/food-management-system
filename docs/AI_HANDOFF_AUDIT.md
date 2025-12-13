@@ -8,20 +8,119 @@
 
 ## 📋 ÍNDICE
 
-1. [Visão Geral do Projeto](#1-visão-geral-do-projeto)
-2. [Stack Tecnológica](#2-stack-tecnológica)
-3. [Estrutura do Projeto](#3-estrutura-do-projeto)
-4. [Banco de Dados](#4-banco-de-dados)
-5. [Funcionalidades Implementadas](#5-funcionalidades-implementadas)
-6. [Funcionalidades Pendentes](#6-funcionalidades-pendentes)
-7. [Arquivos Críticos](#7-arquivos-críticos)
-8. [Problemas Conhecidos](#8-problemas-conhecidos)
-9. [Próximos Passos Prioritários](#9-próximos-passos-prioritários)
-10. [Guia de Implementação](#10-guia-de-implementação)
+1. [Mapa de URLs](#1-mapa-de-urls)
+2. [Visão Geral do Projeto](#2-visão-geral-do-projeto)
+3. [Stack Tecnológica](#3-stack-tecnológica)
+4. [Estrutura do Projeto](#4-estrutura-do-projeto)
+5. [Banco de Dados](#5-banco-de-dados)
+6. [Funcionalidades Implementadas](#6-funcionalidades-implementadas)
+7. [Funcionalidades Pendentes](#7-funcionalidades-pendentes)
+8. [Arquivos Críticos](#8-arquivos-críticos)
+9. [Problemas Conhecidos](#9-problemas-conhecidos)
+10. [Próximos Passos Prioritários](#10-próximos-passos-prioritários)
+11. [Guia de Implementação](#11-guia-de-implementação)
 
 ---
 
-## 1. VISÃO GERAL DO PROJETO
+## 1. MAPA DE URLs
+
+### 🌐 Rotas Públicas (Sem Autenticação)
+
+| URL | Descrição | Arquivo |
+|-----|-----------|---------|
+| `/` | Página inicial / Landing page | `src/app/page.tsx` |
+| `/[slug]` | Cardápio público da loja (ex: `/tropical-freeze`) | `src/app/[slug]/page.tsx` |
+| `/[slug]/cart` | Carrinho de compras | `src/app/[slug]/cart/page.tsx` |
+| `/[slug]/checkout` | Página de checkout | `src/app/[slug]/checkout/page.tsx` |
+| `/[slug]/order/[orderId]` | Acompanhamento do pedido | `src/app/[slug]/order/[orderId]/page.tsx` |
+
+### 🔐 Rotas de Autenticação
+
+| URL | Descrição | Arquivo |
+|-----|-----------|---------|
+| `/login` | Login de usuário | `src/app/(auth)/login/page.tsx` |
+| `/signup` | Cadastro de novo usuário | `src/app/(auth)/signup/page.tsx` |
+| `/reset-password` | Recuperação de senha | `src/app/(auth)/reset-password/page.tsx` |
+| `/update-password` | Atualização de senha | `src/app/(auth)/update-password/page.tsx` |
+
+### 📊 Dashboard da Loja (Requer Autenticação)
+
+| URL | Descrição | Arquivo |
+|-----|-----------|---------|
+| `/[slug]/dashboard` | Dashboard principal da loja | `src/app/[slug]/dashboard/page.tsx` |
+| `/[slug]/dashboard/products` | Gestão de produtos | `src/app/[slug]/dashboard/products/page.tsx` |
+| `/[slug]/dashboard/products/new` | Criar novo produto | `src/app/[slug]/dashboard/products/new/page.tsx` |
+| `/[slug]/dashboard/products/[id]` | Editar produto | `src/app/[slug]/dashboard/products/[id]/page.tsx` |
+| `/[slug]/dashboard/orders` | Lista de pedidos | `src/app/[slug]/dashboard/orders/page.tsx` |
+| `/[slug]/dashboard/orders/[orderId]` | Detalhes do pedido | `src/app/[slug]/dashboard/orders/[orderId]/page.tsx` |
+| `/[slug]/dashboard/kitchen` | Display da cozinha (KDS) | `src/app/[slug]/dashboard/kitchen/page.tsx` |
+| `/[slug]/dashboard/delivery` | Gestão de entregas | `src/app/[slug]/dashboard/delivery/page.tsx` |
+| `/[slug]/dashboard/pos` | Ponto de venda | `src/app/[slug]/dashboard/pos/page.tsx` |
+| `/[slug]/dashboard/crm` | Gestão de clientes | `src/app/[slug]/dashboard/crm/page.tsx` |
+| `/[slug]/dashboard/coupons` | Gestão de cupons | `src/app/[slug]/dashboard/coupons/page.tsx` |
+| `/[slug]/dashboard/reports` | Relatórios | `src/app/[slug]/dashboard/reports/page.tsx` |
+| `/[slug]/dashboard/team` | Gestão de equipe | `src/app/[slug]/dashboard/team/page.tsx` |
+| `/[slug]/dashboard/team/invite` | Convidar membro | `src/app/[slug]/dashboard/team/invite/page.tsx` |
+| `/[slug]/dashboard/settings` | Configurações da loja | `src/app/[slug]/dashboard/settings/page.tsx` |
+| `/[slug]/dashboard/settings/checkout` | Config. de checkout | `src/app/[slug]/dashboard/settings/checkout/page.tsx` |
+| `/[slug]/dashboard/settings/payments` | Config. de pagamentos | `src/app/[slug]/dashboard/settings/payments/page.tsx` |
+| `/[slug]/dashboard/settings/features` | Funcionalidades | `src/app/[slug]/dashboard/settings/features/page.tsx` |
+| `/[slug]/dashboard/onboarding` | Onboarding inicial | `src/app/[slug]/dashboard/onboarding/page.tsx` |
+
+### 👑 Super Admin (Requer Role Super Admin)
+
+| URL | Descrição | Arquivo |
+|-----|-----------|---------|
+| `/admin` | Dashboard do super admin | `src/app/(super-admin)/page.tsx` |
+| `/admin/analytics` | Analytics global | `src/app/(super-admin)/admin/analytics/page.tsx` |
+| `/admin/stores` | Gestão de lojas | `src/app/(super-admin)/admin/stores/page.tsx` |
+| `/admin/tenants` | Gestão de tenants | `src/app/(super-admin)/admin/tenants/page.tsx` |
+| `/admin/users` | Gestão de usuários | `src/app/(super-admin)/admin/users/page.tsx` |
+| `/admin/plans` | Gestão de planos | `src/app/(super-admin)/admin/plans/page.tsx` |
+| `/admin/plans/new` | Criar novo plano | `src/app/(super-admin)/admin/plans/new/page.tsx` |
+| `/admin/plans/[planId]` | Editar plano | `src/app/(super-admin)/admin/plans/[planId]/page.tsx` |
+| `/admin/features` | Feature flags | `src/app/(super-admin)/admin/features/page.tsx` |
+| `/admin/reports` | Relatórios globais | `src/app/(super-admin)/admin/reports/page.tsx` |
+| `/admin/logs` | Logs do sistema | `src/app/(super-admin)/admin/logs/page.tsx` |
+| `/admin/tickets` | Tickets de suporte | `src/app/(super-admin)/admin/tickets/page.tsx` |
+| `/admin/settings` | Configurações globais | `src/app/(super-admin)/admin/settings/page.tsx` |
+| `/admin/automations` | Automações | `src/app/(super-admin)/admin/automations/page.tsx` |
+
+### 🔧 Rotas Especiais
+
+| URL | Descrição | Arquivo |
+|-----|-----------|---------|
+| `/select-store` | Seleção de loja (multi-store) | `src/app/select-store/page.tsx` |
+| `/unauthorized` | Página de não autorizado | `src/app/unauthorized/page.tsx` |
+| `/qa` | Hub de QA (apenas desenvolvimento) | `src/app/qa/page.tsx` |
+
+### 📝 Exemplo de URLs em Produção
+
+Considerando a loja "Tropical Freeze" com slug `tropical-freeze`:
+
+```
+# Cliente
+https://seudominio.com/tropical-freeze              → Cardápio
+https://seudominio.com/tropical-freeze/cart         → Carrinho
+https://seudominio.com/tropical-freeze/checkout     → Checkout
+https://seudominio.com/tropical-freeze/order/abc123 → Acompanhar pedido
+
+# Loja (autenticado)
+https://seudominio.com/tropical-freeze/dashboard           → Dashboard
+https://seudominio.com/tropical-freeze/dashboard/products  → Produtos
+https://seudominio.com/tropical-freeze/dashboard/orders    → Pedidos
+https://seudominio.com/tropical-freeze/dashboard/kitchen   → Cozinha
+https://seudominio.com/tropical-freeze/dashboard/settings  → Configurações
+
+# Super Admin
+https://seudominio.com/admin          → Dashboard Admin
+https://seudominio.com/admin/stores   → Gerenciar Lojas
+https://seudominio.com/admin/tenants  → Gerenciar Tenants
+```
+
+---
+
+## 2. VISÃO GERAL DO PROJETO
 
 ### O que é
 Sistema SaaS multi-tenant para gestão de negócios de alimentação (restaurantes, lanchonetes, açaíterias, hamburguerias, etc.).
@@ -51,7 +150,7 @@ Tenant (Rede/Franquia)
 
 ---
 
-## 2. STACK TECNOLÓGICA
+## 3. STACK TECNOLÓGICA
 
 ### Frontend
 | Tecnologia | Versão | Uso |
@@ -101,7 +200,7 @@ Tenant (Rede/Franquia)
 
 ---
 
-## 3. ESTRUTURA DO PROJETO
+## 4. ESTRUTURA DO PROJETO
 
 ```
 food-management-system/
@@ -203,7 +302,7 @@ food-management-system/
 
 ---
 
-## 4. BANCO DE DADOS
+## 5. BANCO DE DADOS
 
 ### Tabelas Principais (29 tabelas)
 
@@ -283,7 +382,7 @@ Localização: `supabase/schema.sql` (~870 linhas)
 
 ---
 
-## 5. FUNCIONALIDADES IMPLEMENTADAS
+## 6. FUNCIONALIDADES IMPLEMENTADAS
 
 ### ✅ Menu Público (80% completo)
 - [x] Listagem de produtos por categoria
@@ -405,7 +504,7 @@ Localização: `supabase/schema.sql` (~870 linhas)
 
 ---
 
-## 6. FUNCIONALIDADES PENDENTES (CRÍTICAS)
+## 7. FUNCIONALIDADES PENDENTES (CRÍTICAS)
 
 ### 🔴 BLOCKER - Impedem produção
 
@@ -474,7 +573,7 @@ src/lib/
 
 ---
 
-## 7. ARQUIVOS CRÍTICOS
+## 8. ARQUIVOS CRÍTICOS
 
 ### Configuração
 
@@ -511,7 +610,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=xxx
 
 ---
 
-## 8. PROBLEMAS CONHECIDOS
+## 9. PROBLEMAS CONHECIDOS
 
 ### Bugs Ativos
 1. **Nenhum bug crítico identificado** - Sistema funcional para MVP
@@ -530,7 +629,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=xxx
 
 ---
 
-## 9. PRÓXIMOS PASSOS PRIORITÁRIOS
+## 10. PRÓXIMOS PASSOS PRIORITÁRIOS
 
 ### Sprint 1 (Semanas 1-2): Fundação
 
@@ -596,7 +695,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=xxx
 
 ---
 
-## 10. GUIA DE IMPLEMENTAÇÃO
+## 11. GUIA DE IMPLEMENTAÇÃO
 
 ### Como Rodar o Projeto
 
