@@ -5,7 +5,7 @@ export function createClient() {
   return createBrowserClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+  ) as any
 }
 
 export type Tenant = Database['public']['Tables']['tenants']['Row']
@@ -18,6 +18,47 @@ export type StoreUpdate = Database['public']['Tables']['stores']['Update']
 
 export type StoreWithTenant = Store & {
   tenant: Tenant
+}
+
+async function attachTenantsToStores(stores: Store[]): Promise<StoreWithTenant[]> {
+  const supabase = createClient()
+
+  const tenantIds = Array.from(new Set(stores.map((s) => s.tenant_id).filter(Boolean)))
+  if (tenantIds.length === 0) {
+    return []
+  }
+
+  const { data: tenants, error: tenantsError } = await supabase
+    .from('tenants')
+    .select('*')
+    .in('id', tenantIds)
+
+  if (tenantsError) throw tenantsError
+
+  const tenantsMap = new Map(((tenants || []) as Tenant[]).map((t) => [t.id, t]))
+
+  return stores.map((store) => {
+    const tenant = tenantsMap.get(store.tenant_id)
+    if (!tenant) {
+      return {
+        ...store,
+        tenant: {
+          id: store.tenant_id,
+          name: 'Tenant desconhecido',
+          country: 'BR',
+          language: 'pt-BR',
+          currency: 'BRL',
+          timezone: 'America/Sao_Paulo',
+          created_at: new Date(0).toISOString(),
+          updated_at: new Date(0).toISOString(),
+        },
+      }
+    }
+    return {
+      ...store,
+      tenant,
+    }
+  })
 }
 
 export async function getTenants() {
@@ -82,29 +123,24 @@ export async function getStores() {
   const supabase = createClient()
   const { data, error } = await supabase
     .from('stores')
-    .select(`
-      *,
-      tenant:tenants(*)
-    `)
+    .select('*')
     .order('created_at', { ascending: false })
 
   if (error) throw error
-  return data as StoreWithTenant[]
+  return attachTenantsToStores(data || [])
 }
 
 export async function getStoreById(id: string) {
   const supabase = createClient()
   const { data, error } = await supabase
     .from('stores')
-    .select(`
-      *,
-      tenant:tenants(*)
-    `)
+    .select('*')
     .eq('id', id)
     .single()
 
   if (error) throw error
-  return data as StoreWithTenant
+  const withTenant = await attachTenantsToStores([data])
+  return withTenant[0]
 }
 
 export async function createStore(store: StoreInsert) {
@@ -112,14 +148,12 @@ export async function createStore(store: StoreInsert) {
   const { data, error } = await supabase
     .from('stores')
     .insert(store as any)
-    .select(`
-      *,
-      tenant:tenants(*)
-    `)
+    .select('*')
     .single()
 
   if (error) throw error
-  return data as StoreWithTenant
+  const withTenant = await attachTenantsToStores([data])
+  return withTenant[0]
 }
 
 export async function updateStore(id: string, updates: StoreUpdate) {
@@ -128,14 +162,12 @@ export async function updateStore(id: string, updates: StoreUpdate) {
     .from('stores')
     .update(updates as any)
     .eq('id', id)
-    .select(`
-      *,
-      tenant:tenants(*)
-    `)
+    .select('*')
     .single()
 
   if (error) throw error
-  return data as StoreWithTenant
+  const withTenant = await attachTenantsToStores([data])
+  return withTenant[0]
 }
 
 export async function deleteStore(id: string) {
@@ -172,13 +204,10 @@ export async function getRecentStores(limit = 10) {
   const supabase = createClient()
   const { data, error } = await supabase
     .from('stores')
-    .select(`
-      *,
-      tenant:tenants(*)
-    `)
+    .select('*')
     .order('created_at', { ascending: false })
     .limit(limit)
 
   if (error) throw error
-  return data as StoreWithTenant[]
+  return attachTenantsToStores(data || [])
 }
