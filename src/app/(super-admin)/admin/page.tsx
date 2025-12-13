@@ -20,7 +20,7 @@ export default function SuperAdminDashboard() {
         const [tenants, stores, recent] = await Promise.all([
           getTenantsCount(),
           getStoresCount(),
-          getRecentStores(10)
+          getRecentStores(10),
         ])
         setTenantsCount(tenants)
         setStoresCount(stores)
@@ -51,8 +51,8 @@ export default function SuperAdminDashboard() {
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6 flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-600 mb-4">{error}</p>
-          <button 
-            onClick={() => window.location.reload()} 
+          <button
+            onClick={() => window.location.reload()}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
             Tentar Novamente
@@ -65,7 +65,6 @@ export default function SuperAdminDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
       <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-4xl font-bold text-gray-900 mb-2">Centro de Comando</h1>
@@ -79,13 +78,10 @@ export default function SuperAdminDashboard() {
           </div>
         </div>
 
-        {/* KPIs Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
-                Total de Tenants
-              </CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-600">Total de Tenants</CardTitle>
               <div className="p-2 rounded-lg bg-indigo-50">
                 <Building2 className="w-5 h-5 text-indigo-600" />
               </div>
@@ -98,9 +94,7 @@ export default function SuperAdminDashboard() {
 
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
-                Total de Lojas
-              </CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-600">Total de Lojas</CardTitle>
               <div className="p-2 rounded-lg bg-green-50">
                 <Store className="w-5 h-5 text-green-600" />
               </div>
@@ -112,7 +106,6 @@ export default function SuperAdminDashboard() {
           </Card>
         </div>
 
-        {/* Ações Rápidas */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Link href="/admin/tenants">
             <Card className="hover:shadow-xl transition-all hover:scale-105 cursor-pointer bg-gradient-to-br from-indigo-500 to-indigo-600 text-white">
@@ -145,7 +138,6 @@ export default function SuperAdminDashboard() {
           </Link>
         </div>
 
-        {/* Tabela de Atividade Recente */}
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl">Últimas Lojas Criadas</CardTitle>
@@ -177,15 +169,13 @@ export default function SuperAdminDashboard() {
                         <td className="py-3 px-4">
                           <code className="text-xs bg-gray-100 px-2 py-1 rounded">{store.slug}</code>
                         </td>
-                        <td className="py-3 px-4 text-gray-600">
-                          {new Date(store.created_at).toLocaleDateString('pt-BR')}
-                        </td>
+                        <td className="py-3 px-4 text-gray-600">{new Date(store.created_at).toLocaleDateString('pt-BR')}</td>
                         <td className="py-3 px-4">
-                          <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                            store.is_active 
-                              ? 'bg-green-100 text-green-700' 
-                              : 'bg-red-100 text-red-700'
-                          }`}>
+                          <span
+                            className={`px-3 py-1 rounded-full text-sm font-medium ${
+                              store.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                            }`}
+                          >
                             {store.is_active ? 'Ativa' : 'Inativa'}
                           </span>
                         </td>
@@ -218,7 +208,6 @@ export default function SuperAdminDashboard() {
           </CardContent>
         </Card>
 
-        {/* Footer Info */}
         <div className="text-center text-gray-500 text-sm py-4">
           <p>Food Management System • Multi-tenant SaaS Platform • v1.0.0</p>
         </div>
