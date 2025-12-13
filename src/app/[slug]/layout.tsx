@@ -33,17 +33,13 @@ export default async function StoreLayout({
   const validCountry: SupportedCountry = isValidCountry(country) ? country : 'BR'
 
   return (
-    <html lang={validLocale}>
-      <body>
-        <LanguageProviderWrapper
-          locale={validLocale}
-          country={validCountry}
-          currency={currency}
-          timezone={timezone}
-        >
-          {children}
-        </LanguageProviderWrapper>
-      </body>
-    </html>
+    <LanguageProviderWrapper
+      locale={validLocale}
+      country={validCountry}
+      currency={currency}
+      timezone={timezone}
+    >
+      {children}
+    </LanguageProviderWrapper>
   )
 }
