@@ -6,7 +6,8 @@ import { usePathname } from 'next/navigation'
 import { 
   LayoutDashboard, ShoppingCart, ChefHat, Truck, 
   Package, Settings, ChevronLeft, ChevronRight, Menu,
-  Users, ShoppingBag, ClipboardList, ChevronDown, UserCog, BarChart3, Ticket
+  Users, ShoppingBag, ClipboardList, ChevronDown, UserCog, BarChart3, Ticket,
+  DollarSign, Warehouse, LayoutGrid, PieChart, Star, Megaphone, CalendarDays
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useLanguage } from '@/lib/LanguageContext'
@@ -109,6 +110,62 @@ export default function DashboardClient({
       color: 'text-cyan-600',
       bgColor: 'bg-cyan-50',
       activeColor: 'bg-cyan-100'
+    },
+    { 
+      href: `${base}/financial`, 
+      label: 'Financeiro',
+      icon: DollarSign,
+      color: 'text-green-600',
+      bgColor: 'bg-green-50',
+      activeColor: 'bg-green-100'
+    },
+    { 
+      href: `${base}/inventory`, 
+      label: 'Estoque',
+      icon: Warehouse,
+      color: 'text-amber-600',
+      bgColor: 'bg-amber-50',
+      activeColor: 'bg-amber-100'
+    },
+    { 
+      href: `${base}/tables`, 
+      label: 'Mesas',
+      icon: LayoutGrid,
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-50',
+      activeColor: 'bg-orange-100'
+    },
+    { 
+      href: `${base}/analytics`, 
+      label: 'Analytics',
+      icon: PieChart,
+      color: 'text-indigo-600',
+      bgColor: 'bg-indigo-50',
+      activeColor: 'bg-indigo-100'
+    },
+    { 
+      href: `${base}/reviews`, 
+      label: 'Avaliações',
+      icon: Star,
+      color: 'text-yellow-600',
+      bgColor: 'bg-yellow-50',
+      activeColor: 'bg-yellow-100'
+    },
+    { 
+      href: `${base}/marketing`, 
+      label: 'Marketing',
+      icon: Megaphone,
+      color: 'text-pink-600',
+      bgColor: 'bg-pink-50',
+      activeColor: 'bg-pink-100'
+    },
+    { 
+      href: `${base}/reservations`, 
+      label: 'Reservas',
+      icon: CalendarDays,
+      color: 'text-teal-600',
+      bgColor: 'bg-teal-50',
+      activeColor: 'bg-teal-100'
     },
     { 
       href: `${base}/settings`, 
