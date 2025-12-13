@@ -1,16 +1,18 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { Ticket, Plus, Edit2, Trash2, Power, Loader2, AlertCircle, Check, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase/client'
 import { getCoupons, createCoupon, updateCoupon, deleteCoupon, toggleCouponStatus, type Coupon, type CouponType } from '@/lib/coupons/actions'
 import { formatCouponValue, isCouponDateValid, hasUsesRemaining } from '@/lib/coupons/utils'
 
 export default function CouponsPage() {
   const params = useParams()
   const slug = params.slug as string
+
+  const supabase = useMemo(() => createClient(), [])
   
   const [storeId, setStoreId] = useState<string | null>(null)
   const [coupons, setCoupons] = useState<Coupon[]>([])
@@ -43,14 +45,27 @@ export default function CouponsPage() {
   }, [storeId])
 
   async function loadStore() {
-    const { data } = await supabase
-      .from('stores')
-      .select('id')
-      .eq('slug', slug)
-      .single()
-    
-    if (data) {
+    try {
+      setLoading(true)
+      setError('')
+
+      const { data, error: storeError } = await supabase
+        .from('stores')
+        .select('id')
+        .eq('slug', slug)
+        .single()
+
+      if (storeError || !data) {
+        setError('Loja não encontrada')
+        return
+      }
+
       setStoreId(data.id)
+    } catch (err) {
+      console.error('Erro ao carregar loja (cupons):', err)
+      setError('Erro ao carregar loja')
+    } finally {
+      setLoading(false)
     }
   }
 

@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { Users, UserPlus, Loader2, Trash2, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { getTeamMembers, inviteMember, updateMemberRole, removeMember } from './actions'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase/client'
 
 type TeamMember = {
   id: string
@@ -20,6 +20,8 @@ type UserRole = 'owner' | 'manager' | 'staff'
 export default function TeamPage() {
   const params = useParams()
   const slug = params.slug as string
+
+  const supabase = useMemo(() => createClient(), [])
   
   const [loading, setLoading] = useState(true)
   const [members, setMembers] = useState<TeamMember[]>([])

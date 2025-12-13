@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { useMemo, useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase/client'
 import { Product, ProductFormData, ProductCategory, MeasurementUnit } from '@/types/products'
 
 export const useProductsComplete = (storeId: string | null) => {
+  const supabase = useMemo(() => createClient(), [])
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<ProductCategory[]>([])
   const [units, setUnits] = useState<MeasurementUnit[]>([])

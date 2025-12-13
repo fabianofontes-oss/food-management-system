@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { useMemo, useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase/client'
 
 export interface Order {
   id: string
@@ -21,6 +21,7 @@ export interface Order {
 }
 
 export function useOrders(storeId?: string) {
+  const supabase = useMemo(() => createClient(), [])
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
