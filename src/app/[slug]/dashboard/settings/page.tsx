@@ -2,7 +2,7 @@
 
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useState, useEffect } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { 
   Settings, ShoppingCart, ChefHat, Truck, Store, Package,
   DollarSign, CreditCard, Smartphone, Bell, Mail, Volume2,
@@ -12,7 +12,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { ToggleCard } from '@/components/settings/ToggleCard'
 import { settingsFormSchema, defaultSettings, type SettingsFormData } from '@/lib/validations/settings'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase/client'
 import { useParams } from 'next/navigation'
 import { CheckoutSection } from './components/CheckoutSection'
 import { PaymentsSection } from './components/PaymentsSection'
@@ -21,6 +21,7 @@ import { FunctionalitiesSection } from './components/FunctionalitiesSection'
 export default function SettingsPage() {
   const params = useParams()
   const slug = params.slug as string
+  const supabase = useMemo(() => createClient(), [])
   const [saving, setSaving] = useState(false)
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle')
   const [storeId, setStoreId] = useState<string | null>(null)

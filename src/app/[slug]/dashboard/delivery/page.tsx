@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useMemo, useState, useEffect, useRef } from 'react'
 import { Truck, MapPin, Clock, Phone, Package, User, Navigation, CheckCircle, XCircle, Loader2, Search, Calendar, BarChart3, TrendingUp, Printer, X, UserPlus, Play, CheckCheck, Ban, Bell, BellOff, Users, Edit, Trash2, Plus, Star } from 'lucide-react'
 import { useParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase/client'
 import { formatCurrency } from '@/lib/utils'
 
 interface Delivery {
@@ -50,7 +50,9 @@ interface Driver {
 export default function DeliveryPage() {
   const params = useParams()
   const slug = params.slug as string
+  const supabase = useMemo(() => createClient(), [])
   const [storeId, setStoreId] = useState<string | null>(null)
+  const [storeError, setStoreError] = useState('')
   const [deliveries, setDeliveries] = useState<Delivery[]>([])
   const [drivers, setDrivers] = useState<Driver[]>([])
   const [loading, setLoading] = useState(true)
@@ -80,23 +82,30 @@ export default function DeliveryPage() {
   useEffect(() => {
     async function fetchStore() {
       try {
+        setStoreError('')
         const { data, error } = await supabase
           .from('stores')
           .select('id')
           .eq('slug', slug)
           .single()
 
-        if (error) throw error
+        if (error || !data) {
+          setStoreError('Loja não encontrada')
+          setLoading(false)
+          return
+        }
         setStoreId(data.id)
       } catch (err) {
         console.error('Erro ao buscar loja:', err)
+        setStoreError('Erro ao carregar loja')
+        setLoading(false)
       }
     }
 
     if (slug) {
       fetchStore()
     }
-  }, [slug])
+  }, [slug, supabase])
 
   useEffect(() => {
     if (storeId) {

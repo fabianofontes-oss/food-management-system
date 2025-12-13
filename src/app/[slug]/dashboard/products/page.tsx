@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { Plus, Search, Filter, Loader2, Package, Tag } from 'lucide-react'
 import { useParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -8,13 +8,15 @@ import { ProductCard } from './components/ProductCard'
 import { ProductForm } from './components/ProductForm'
 import { useProductsComplete } from '@/hooks/useProductsComplete'
 import { Product, ProductFormData } from '@/types/products'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase/client'
 
 export default function ProductsPage() {
   const params = useParams()
   const slug = params.slug as string
+  const supabase = useMemo(() => createClient(), [])
   const [storeId, setStoreId] = useState<string | null>(null)
   const [loadingStore, setLoadingStore] = useState(true)
+  const [storeError, setStoreError] = useState('')
   
   const { products, categories, units, loading, error, createProduct, updateProduct, deleteProduct, createCategory, refreshData } = useProductsComplete(storeId)
   
@@ -28,16 +30,21 @@ export default function ProductsPage() {
   useEffect(() => {
     async function fetchStore() {
       try {
+        setStoreError('')
         const { data, error } = await supabase
           .from('stores')
           .select('id')
           .eq('slug', slug)
           .single()
 
-        if (error) throw error
+        if (error || !data) {
+          setStoreError('Loja não encontrada')
+          return
+        }
         setStoreId(data.id)
       } catch (err) {
         console.error('Erro ao buscar loja:', err)
+        setStoreError('Erro ao carregar loja')
       } finally {
         setLoadingStore(false)
       }
@@ -46,7 +53,7 @@ export default function ProductsPage() {
     if (slug) {
       fetchStore()
     }
-  }, [slug])
+  }, [slug, supabase])
 
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

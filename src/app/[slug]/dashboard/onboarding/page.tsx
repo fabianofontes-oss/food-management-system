@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Check, ChevronRight, ChevronLeft, Store, CreditCard, Clock, Package, Loader2, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase/client'
 
 type OnboardingStep = 'store_info' | 'payments' | 'hours' | 'first_product' | 'ready_check'
 
@@ -23,6 +23,7 @@ export default function OnboardingPage() {
   const params = useParams()
   const router = useRouter()
   const slug = params.slug as string
+  const supabase = useMemo(() => createClient(), [])
 
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)

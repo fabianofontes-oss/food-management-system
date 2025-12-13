@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase/client'
 import { formatCurrency } from '@/lib/utils'
 import { Calendar, DollarSign, ShoppingBag, TrendingUp, CreditCard, Loader2, AlertCircle, Award, Clock, Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -40,6 +40,7 @@ type DatePreset = 'today' | '7days' | '30days' | 'custom'
 export default function ReportsPage() {
   const params = useParams()
   const slug = params.slug as string
+  const supabase = useMemo(() => createClient(), [])
   const [storeId, setStoreId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -64,18 +65,27 @@ export default function ReportsPage() {
   // Carregar store_id
   useEffect(() => {
     async function loadStore() {
-      const { data } = await supabase
-        .from('stores')
-        .select('id')
-        .eq('slug', slug)
-        .single()
-      
-      if (data) {
+      try {
+        const { data, error: storeError } = await supabase
+          .from('stores')
+          .select('id')
+          .eq('slug', slug)
+          .single()
+        
+        if (storeError || !data) {
+          setError('Loja não encontrada')
+          setLoading(false)
+          return
+        }
         setStoreId(data.id)
+      } catch (err) {
+        console.error('Erro ao carregar loja:', err)
+        setError('Erro ao carregar loja')
+        setLoading(false)
       }
     }
     loadStore()
-  }, [slug])
+  }, [slug, supabase])
 
   // Calcular datas baseado no preset
   const getDateRange = () => {
