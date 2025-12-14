@@ -128,6 +128,10 @@ export interface ProductFormData {
   requires_kitchen: boolean
   is_active: boolean
   has_variations: boolean
+  sale_type: 'ready' | 'order' | 'both'
+  min_order_quantity: number
+  advance_days: number
+  max_daily_quantity: number | null
   ingredients: {
     ingredient_id: string
     quantity: number
