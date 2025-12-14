@@ -401,64 +401,317 @@ export const MODULES: Module[] = [
     ]
   },
 
-  // === INTEGRAÇÕES ===
+  // === INTEGRAÇÕES - DELIVERY ===
   {
     id: 'ifood',
     name: 'iFood',
-    description: 'Integração com iFood',
-    longDescription: 'Receba pedidos do iFood diretamente no seu painel.',
+    description: 'Receba pedidos do iFood',
+    longDescription: 'Integre com o iFood para receber pedidos diretamente no sistema. Requer conta iFood Partner.',
     icon: <Bike className="w-6 h-6" />,
     color: 'text-red-600',
     bgColor: 'bg-red-100',
     category: 'integrations',
     settings: [
-      { key: 'ifood_enabled', label: 'Integrar com iFood', description: 'Recebe pedidos do iFood', type: 'toggle', icon: <Bike className="w-4 h-4" />, defaultValue: false },
-      { key: 'ifood_merchant_id', label: 'Merchant ID', description: 'ID do restaurante no iFood', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'Seu ID iFood', defaultValue: '' },
-      { key: 'ifood_auto_accept', label: 'Aceitar Automaticamente', description: 'Aceita pedidos sem revisão', type: 'toggle', icon: <Zap className="w-4 h-4" />, defaultValue: false }
+      { key: 'ifood_enabled', label: 'Ativar iFood', description: 'Recebe pedidos do iFood no painel', type: 'toggle', icon: <Bike className="w-4 h-4" />, defaultValue: false },
+      { key: 'ifood_merchant_id', label: 'Merchant ID', description: 'ID do restaurante no iFood Partner', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'abc123-def456...', defaultValue: '' },
+      { key: 'ifood_client_id', label: 'Client ID', description: 'Credencial da API', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'Client ID da API', defaultValue: '' },
+      { key: 'ifood_client_secret', label: 'Client Secret', description: 'Chave secreta da API', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'Secret...', defaultValue: '' },
+      { key: 'ifood_auto_accept', label: 'Aceitar Automaticamente', description: 'Aceita pedidos sem confirmação manual', type: 'toggle', icon: <Zap className="w-4 h-4" />, defaultValue: false },
+      { key: 'ifood_auto_print', label: 'Imprimir Automaticamente', description: 'Imprime ao receber pedido', type: 'toggle', icon: <Printer className="w-4 h-4" />, defaultValue: true },
+      { key: 'ifood_sync_menu', label: 'Sincronizar Cardápio', description: 'Atualiza cardápio no iFood', type: 'toggle', icon: <Package className="w-4 h-4" />, defaultValue: false }
     ]
   },
   {
     id: 'rappi',
     name: 'Rappi',
-    description: 'Integração com Rappi',
-    longDescription: 'Receba pedidos da Rappi diretamente no seu painel.',
+    description: 'Receba pedidos da Rappi',
+    longDescription: 'Integre com a Rappi para receber pedidos. Requer conta Rappi Partner.',
     icon: <Car className="w-6 h-6" />,
     color: 'text-orange-600',
     bgColor: 'bg-orange-100',
     category: 'integrations',
     settings: [
-      { key: 'rappi_enabled', label: 'Integrar com Rappi', description: 'Recebe pedidos da Rappi', type: 'toggle', icon: <Car className="w-4 h-4" />, defaultValue: false },
-      { key: 'rappi_store_id', label: 'Store ID', description: 'ID da loja na Rappi', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'Seu ID Rappi', defaultValue: '' }
+      { key: 'rappi_enabled', label: 'Ativar Rappi', description: 'Recebe pedidos da Rappi', type: 'toggle', icon: <Car className="w-4 h-4" />, defaultValue: false },
+      { key: 'rappi_store_id', label: 'Store ID', description: 'ID da loja na Rappi', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'ID da loja', defaultValue: '' },
+      { key: 'rappi_api_key', label: 'API Key', description: 'Chave da API Rappi', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'API Key...', defaultValue: '' },
+      { key: 'rappi_auto_accept', label: 'Aceitar Automaticamente', description: 'Aceita pedidos sem confirmação', type: 'toggle', icon: <Zap className="w-4 h-4" />, defaultValue: false }
+    ]
+  },
+  {
+    id: 'ubereats',
+    name: 'Uber Eats',
+    description: 'Receba pedidos do Uber Eats',
+    longDescription: 'Integre com o Uber Eats para receber pedidos. Requer conta Uber Eats for Merchants.',
+    icon: <Car className="w-6 h-6" />,
+    color: 'text-green-600',
+    bgColor: 'bg-green-100',
+    category: 'integrations',
+    settings: [
+      { key: 'ubereats_enabled', label: 'Ativar Uber Eats', description: 'Recebe pedidos do Uber Eats', type: 'toggle', icon: <Car className="w-4 h-4" />, defaultValue: false },
+      { key: 'ubereats_store_id', label: 'Store ID', description: 'ID da loja no Uber Eats', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'Store ID', defaultValue: '' },
+      { key: 'ubereats_client_id', label: 'Client ID', description: 'OAuth Client ID', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'Client ID', defaultValue: '' },
+      { key: 'ubereats_client_secret', label: 'Client Secret', description: 'OAuth Client Secret', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'Secret', defaultValue: '' }
+    ]
+  },
+  {
+    id: 'aiqfome',
+    name: 'Aiqfome',
+    description: 'Receba pedidos do Aiqfome',
+    longDescription: 'Integre com o Aiqfome, popular em cidades do interior.',
+    icon: <Bike className="w-6 h-6" />,
+    color: 'text-purple-600',
+    bgColor: 'bg-purple-100',
+    category: 'integrations',
+    settings: [
+      { key: 'aiqfome_enabled', label: 'Ativar Aiqfome', description: 'Recebe pedidos do Aiqfome', type: 'toggle', icon: <Bike className="w-4 h-4" />, defaultValue: false },
+      { key: 'aiqfome_store_id', label: 'ID da Loja', description: 'ID no Aiqfome', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'ID', defaultValue: '' },
+      { key: 'aiqfome_token', label: 'Token', description: 'Token de integração', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'Token', defaultValue: '' }
+    ]
+  },
+
+  // === INTEGRAÇÕES - PAGAMENTOS ===
+  {
+    id: 'mercadopago',
+    name: 'Mercado Pago',
+    description: 'PIX, cartão e boleto',
+    longDescription: 'Receba pagamentos online via PIX, cartão de crédito/débito e boleto. Taxa: 0% PIX, 4.99% cartão.',
+    icon: <CreditCard className="w-6 h-6" />,
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-100',
+    category: 'integrations',
+    settings: [
+      { key: 'mercadopago_enabled', label: 'Ativar Mercado Pago', description: 'Recebe pagamentos online', type: 'toggle', icon: <CreditCard className="w-4 h-4" />, defaultValue: false },
+      { key: 'mercadopago_public_key', label: 'Public Key', description: 'Chave pública (começa com APP_USR)', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'APP_USR-...', defaultValue: '' },
+      { key: 'mercadopago_access_token', label: 'Access Token', description: 'Token de acesso (começa com APP_USR)', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'APP_USR-...', defaultValue: '' },
+      { key: 'mercadopago_pix', label: 'Aceitar PIX', description: 'Pagamento via PIX (0% taxa)', type: 'toggle', icon: <QrCode className="w-4 h-4" />, defaultValue: true },
+      { key: 'mercadopago_credit', label: 'Aceitar Crédito', description: 'Cartão de crédito', type: 'toggle', icon: <CreditCard className="w-4 h-4" />, defaultValue: true },
+      { key: 'mercadopago_debit', label: 'Aceitar Débito', description: 'Cartão de débito', type: 'toggle', icon: <CreditCard className="w-4 h-4" />, defaultValue: true },
+      { key: 'mercadopago_boleto', label: 'Aceitar Boleto', description: 'Boleto bancário', type: 'toggle', icon: <FileText className="w-4 h-4" />, defaultValue: false }
+    ]
+  },
+  {
+    id: 'pagseguro',
+    name: 'PagSeguro',
+    description: 'PIX, cartão e boleto',
+    longDescription: 'Receba pagamentos online via PagSeguro. Taxa: 0% PIX, 4.99% cartão.',
+    icon: <CreditCard className="w-6 h-6" />,
+    color: 'text-green-600',
+    bgColor: 'bg-green-100',
+    category: 'integrations',
+    settings: [
+      { key: 'pagseguro_enabled', label: 'Ativar PagSeguro', description: 'Recebe pagamentos online', type: 'toggle', icon: <CreditCard className="w-4 h-4" />, defaultValue: false },
+      { key: 'pagseguro_email', label: 'E-mail PagSeguro', description: 'E-mail da conta', type: 'text', icon: <Mail className="w-4 h-4" />, placeholder: 'seu@email.com', defaultValue: '' },
+      { key: 'pagseguro_token', label: 'Token', description: 'Token de integração', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'Token...', defaultValue: '' },
+      { key: 'pagseguro_sandbox', label: 'Modo Teste', description: 'Usar ambiente de testes', type: 'toggle', icon: <Zap className="w-4 h-4" />, defaultValue: false }
+    ]
+  },
+  {
+    id: 'stripe',
+    name: 'Stripe',
+    description: 'Cartões internacionais',
+    longDescription: 'Aceite cartões de crédito internacionais. Ideal para clientes estrangeiros. Taxa: 2.9% + R$0.39.',
+    icon: <CreditCard className="w-6 h-6" />,
+    color: 'text-purple-600',
+    bgColor: 'bg-purple-100',
+    category: 'integrations',
+    settings: [
+      { key: 'stripe_enabled', label: 'Ativar Stripe', description: 'Aceita cartões internacionais', type: 'toggle', icon: <CreditCard className="w-4 h-4" />, defaultValue: false },
+      { key: 'stripe_public_key', label: 'Publishable Key', description: 'Chave pública (pk_...)', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'pk_live_...', defaultValue: '' },
+      { key: 'stripe_secret_key', label: 'Secret Key', description: 'Chave secreta (sk_...)', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'sk_live_...', defaultValue: '' },
+      { key: 'stripe_webhook_secret', label: 'Webhook Secret', description: 'Para confirmar pagamentos', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'whsec_...', defaultValue: '' }
+    ]
+  },
+  {
+    id: 'asaas',
+    name: 'Asaas',
+    description: 'PIX, boleto e cobrança',
+    longDescription: 'Plataforma completa: PIX, boleto, cartão e cobrança recorrente. Taxa: 0% PIX, R$0.49 boleto.',
+    icon: <Wallet className="w-6 h-6" />,
+    color: 'text-cyan-600',
+    bgColor: 'bg-cyan-100',
+    category: 'integrations',
+    settings: [
+      { key: 'asaas_enabled', label: 'Ativar Asaas', description: 'Aceita pagamentos via Asaas', type: 'toggle', icon: <Wallet className="w-4 h-4" />, defaultValue: false },
+      { key: 'asaas_api_key', label: 'API Key', description: 'Chave da API', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: '$aas_...', defaultValue: '' },
+      { key: 'asaas_sandbox', label: 'Modo Teste', description: 'Usar ambiente sandbox', type: 'toggle', icon: <Zap className="w-4 h-4" />, defaultValue: false }
+    ]
+  },
+  {
+    id: 'pix_manual',
+    name: 'PIX Manual',
+    description: 'Chave PIX da loja',
+    longDescription: 'Exibe sua chave PIX para o cliente copiar e pagar. Sem taxas, você confere manualmente.',
+    icon: <QrCode className="w-6 h-6" />,
+    color: 'text-teal-600',
+    bgColor: 'bg-teal-100',
+    category: 'integrations',
+    settings: [
+      { key: 'pix_manual_enabled', label: 'Ativar PIX Manual', description: 'Mostra chave PIX ao cliente', type: 'toggle', icon: <QrCode className="w-4 h-4" />, defaultValue: false },
+      { key: 'pix_key_type', label: 'Tipo da Chave', description: 'Tipo da chave PIX', type: 'select', icon: <Hash className="w-4 h-4" />, options: [{ value: 'cpf', label: 'CPF' }, { value: 'cnpj', label: 'CNPJ' }, { value: 'email', label: 'E-mail' }, { value: 'phone', label: 'Telefone' }, { value: 'random', label: 'Aleatória' }], defaultValue: 'cpf' },
+      { key: 'pix_key', label: 'Chave PIX', description: 'Sua chave PIX', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'Sua chave...', defaultValue: '' },
+      { key: 'pix_holder_name', label: 'Nome do Titular', description: 'Nome que aparece no PIX', type: 'text', icon: <Users className="w-4 h-4" />, placeholder: 'Nome completo', defaultValue: '' }
+    ]
+  },
+
+  // === INTEGRAÇÕES - FISCAL ===
+  {
+    id: 'nfe',
+    name: 'Nota Fiscal (NF-e)',
+    description: 'Emissão de NF-e/NFC-e',
+    longDescription: 'Emita notas fiscais eletrônicas automaticamente. Requer certificado digital A1.',
+    icon: <FileText className="w-6 h-6" />,
+    color: 'text-slate-600',
+    bgColor: 'bg-slate-100',
+    category: 'integrations',
+    settings: [
+      { key: 'nfe_enabled', label: 'Ativar NF-e', description: 'Emite notas fiscais', type: 'toggle', icon: <FileText className="w-4 h-4" />, defaultValue: false },
+      { key: 'nfe_provider', label: 'Provedor', description: 'Serviço de emissão', type: 'select', icon: <Building2 className="w-4 h-4" />, options: [{ value: 'focus', label: 'Focus NFe' }, { value: 'tecnospeed', label: 'Tecnospeed' }, { value: 'enotas', label: 'eNotas' }, { value: 'nuvemfiscal', label: 'Nuvem Fiscal' }], defaultValue: 'focus' },
+      { key: 'nfe_api_token', label: 'Token da API', description: 'Token do provedor', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'Token...', defaultValue: '' },
+      { key: 'nfe_auto_emit', label: 'Emitir Automaticamente', description: 'Emite NF ao finalizar pedido', type: 'toggle', icon: <Zap className="w-4 h-4" />, defaultValue: false },
+      { key: 'nfe_environment', label: 'Ambiente', description: 'Produção ou homologação', type: 'select', icon: <Building2 className="w-4 h-4" />, options: [{ value: 'production', label: 'Produção' }, { value: 'homologation', label: 'Homologação (testes)' }], defaultValue: 'homologation' }
+    ]
+  },
+  {
+    id: 'bling',
+    name: 'Bling ERP',
+    description: 'Gestão empresarial',
+    longDescription: 'Sincronize pedidos, estoque e produtos com o Bling ERP.',
+    icon: <BarChart3 className="w-6 h-6" />,
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-100',
+    category: 'integrations',
+    settings: [
+      { key: 'bling_enabled', label: 'Ativar Bling', description: 'Sincroniza com Bling ERP', type: 'toggle', icon: <BarChart3 className="w-4 h-4" />, defaultValue: false },
+      { key: 'bling_api_key', label: 'API Key', description: 'Chave da API Bling', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'API Key...', defaultValue: '' },
+      { key: 'bling_sync_products', label: 'Sincronizar Produtos', description: 'Importa produtos do Bling', type: 'toggle', icon: <Package className="w-4 h-4" />, defaultValue: true },
+      { key: 'bling_sync_orders', label: 'Sincronizar Pedidos', description: 'Envia pedidos para o Bling', type: 'toggle', icon: <ShoppingBag className="w-4 h-4" />, defaultValue: true },
+      { key: 'bling_sync_stock', label: 'Sincronizar Estoque', description: 'Atualiza estoque bidirecionalmente', type: 'toggle', icon: <Archive className="w-4 h-4" />, defaultValue: true }
+    ]
+  },
+  {
+    id: 'tiny',
+    name: 'Tiny ERP',
+    description: 'Gestão empresarial',
+    longDescription: 'Sincronize pedidos, estoque e produtos com o Tiny ERP.',
+    icon: <BarChart3 className="w-6 h-6" />,
+    color: 'text-indigo-600',
+    bgColor: 'bg-indigo-100',
+    category: 'integrations',
+    settings: [
+      { key: 'tiny_enabled', label: 'Ativar Tiny', description: 'Sincroniza com Tiny ERP', type: 'toggle', icon: <BarChart3 className="w-4 h-4" />, defaultValue: false },
+      { key: 'tiny_token', label: 'Token', description: 'Token da API Tiny', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'Token...', defaultValue: '' },
+      { key: 'tiny_sync_orders', label: 'Enviar Pedidos', description: 'Envia pedidos para o Tiny', type: 'toggle', icon: <ShoppingBag className="w-4 h-4" />, defaultValue: true }
+    ]
+  },
+
+  // === INTEGRAÇÕES - COMUNICAÇÃO ===
+  {
+    id: 'whatsapp_api',
+    name: 'WhatsApp Business API',
+    description: 'Mensagens automáticas',
+    longDescription: 'Envie mensagens automáticas de status do pedido. Requer conta Meta Business verificada. Custo: ~R$0.40/msg.',
+    icon: <MessageSquare className="w-6 h-6" />,
+    color: 'text-green-600',
+    bgColor: 'bg-green-100',
+    category: 'integrations',
+    settings: [
+      { key: 'whatsapp_api_enabled', label: 'Ativar WhatsApp API', description: 'Envia mensagens automáticas', type: 'toggle', icon: <MessageSquare className="w-4 h-4" />, defaultValue: false },
+      { key: 'whatsapp_provider', label: 'Provedor', description: 'Serviço de envio', type: 'select', icon: <Building2 className="w-4 h-4" />, options: [{ value: 'meta', label: 'Meta (Oficial)' }, { value: 'zapi', label: 'Z-API' }, { value: 'evolution', label: 'Evolution API' }, { value: 'wppconnect', label: 'WPPConnect' }], defaultValue: 'meta' },
+      { key: 'whatsapp_api_token', label: 'Token da API', description: 'Token de acesso', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'Token...', defaultValue: '' },
+      { key: 'whatsapp_phone_id', label: 'Phone Number ID', description: 'ID do número (Meta)', type: 'text', icon: <Phone className="w-4 h-4" />, placeholder: 'ID...', defaultValue: '' },
+      { key: 'whatsapp_business_id', label: 'Business Account ID', description: 'ID da conta Business', type: 'text', icon: <Building2 className="w-4 h-4" />, placeholder: 'ID...', defaultValue: '' },
+      { key: 'whatsapp_notify_order_created', label: 'Notificar Pedido Criado', description: 'Confirma recebimento', type: 'toggle', icon: <Bell className="w-4 h-4" />, defaultValue: true },
+      { key: 'whatsapp_notify_order_ready', label: 'Notificar Pedido Pronto', description: 'Avisa quando está pronto', type: 'toggle', icon: <Bell className="w-4 h-4" />, defaultValue: true },
+      { key: 'whatsapp_notify_out_for_delivery', label: 'Notificar Saiu p/ Entrega', description: 'Avisa que saiu para entrega', type: 'toggle', icon: <Truck className="w-4 h-4" />, defaultValue: true },
+      { key: 'whatsapp_notify_delivered', label: 'Notificar Entregue', description: 'Confirma entrega + pede avaliação', type: 'toggle', icon: <Star className="w-4 h-4" />, defaultValue: true }
+    ]
+  },
+
+  // === INTEGRAÇÕES - ANALYTICS ===
+  {
+    id: 'google_analytics',
+    name: 'Google Analytics',
+    description: 'Rastrear visitantes',
+    longDescription: 'Acompanhe visitantes, conversões e comportamento no seu cardápio digital.',
+    icon: <BarChart3 className="w-6 h-6" />,
+    color: 'text-orange-600',
+    bgColor: 'bg-orange-100',
+    category: 'integrations',
+    settings: [
+      { key: 'ga_enabled', label: 'Ativar Analytics', description: 'Rastreia visitantes do cardápio', type: 'toggle', icon: <BarChart3 className="w-4 h-4" />, defaultValue: false },
+      { key: 'ga_measurement_id', label: 'Measurement ID', description: 'ID do GA4 (G-XXXXXXX)', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'G-XXXXXXXXXX', defaultValue: '' },
+      { key: 'ga_track_purchases', label: 'Rastrear Compras', description: 'Envia conversões de pedidos', type: 'toggle', icon: <ShoppingBag className="w-4 h-4" />, defaultValue: true }
+    ]
+  },
+  {
+    id: 'meta_pixel',
+    name: 'Meta Pixel (Facebook)',
+    description: 'Remarketing e conversões',
+    longDescription: 'Rastreie conversões e crie públicos para anúncios no Facebook e Instagram.',
+    icon: <Facebook className="w-6 h-6" />,
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-100',
+    category: 'integrations',
+    settings: [
+      { key: 'pixel_enabled', label: 'Ativar Meta Pixel', description: 'Rastreia para Facebook Ads', type: 'toggle', icon: <Facebook className="w-4 h-4" />, defaultValue: false },
+      { key: 'pixel_id', label: 'Pixel ID', description: 'ID do Pixel', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: '1234567890', defaultValue: '' },
+      { key: 'pixel_track_purchases', label: 'Rastrear Compras', description: 'Envia evento Purchase', type: 'toggle', icon: <ShoppingBag className="w-4 h-4" />, defaultValue: true },
+      { key: 'pixel_track_add_to_cart', label: 'Rastrear Add to Cart', description: 'Envia evento AddToCart', type: 'toggle', icon: <ShoppingCart className="w-4 h-4" />, defaultValue: true }
     ]
   },
   {
     id: 'google_business',
     name: 'Google Meu Negócio',
     description: 'Avaliações do Google',
-    longDescription: 'Conecte seu Google Meu Negócio para gerenciar avaliações.',
+    longDescription: 'Conecte seu Google Meu Negócio para gerenciar e responder avaliações. Requer autorização OAuth.',
     icon: <Building2 className="w-6 h-6" />,
     color: 'text-blue-600',
     bgColor: 'bg-blue-100',
     category: 'integrations',
     configPage: '/dashboard/reviews/integrations',
     settings: [
-      { key: 'google_enabled', label: 'Integrar com Google', description: 'Conecta Google Meu Negócio', type: 'toggle', icon: <Building2 className="w-4 h-4" />, defaultValue: false },
-      { key: 'google_place_id', label: 'Place ID', description: 'ID do local no Google', type: 'text', icon: <MapPin className="w-4 h-4" />, placeholder: 'ChIJ...', defaultValue: '' }
+      { key: 'google_business_enabled', label: 'Conectar Google', description: 'Gerencia avaliações do Google', type: 'toggle', icon: <Building2 className="w-4 h-4" />, defaultValue: false },
+      { key: 'google_place_id', label: 'Place ID', description: 'ID do local no Google Maps', type: 'text', icon: <MapPin className="w-4 h-4" />, placeholder: 'ChIJ...', defaultValue: '' },
+      { key: 'google_auto_reply', label: 'Resposta Automática', description: 'Responde avaliações automaticamente', type: 'toggle', icon: <MessageSquare className="w-4 h-4" />, defaultValue: false }
     ]
   },
+
+  // === INTEGRAÇÕES - IMPRESSÃO ===
   {
-    id: 'whatsapp_api',
-    name: 'WhatsApp Business API',
-    description: 'API oficial do WhatsApp',
-    longDescription: 'Use a API oficial do WhatsApp para enviar notificações automáticas.',
-    icon: <MessageSquare className="w-6 h-6" />,
+    id: 'printer',
+    name: 'Impressora',
+    description: 'Imprimir pedidos',
+    longDescription: 'Configure impressoras térmicas para imprimir cupons e comandas automaticamente.',
+    icon: <Printer className="w-6 h-6" />,
+    color: 'text-slate-600',
+    bgColor: 'bg-slate-100',
+    category: 'integrations',
+    settings: [
+      { key: 'printer_enabled', label: 'Ativar Impressão', description: 'Habilita impressão de pedidos', type: 'toggle', icon: <Printer className="w-4 h-4" />, defaultValue: false },
+      { key: 'printer_type', label: 'Tipo de Conexão', description: 'Como a impressora está conectada', type: 'select', icon: <Printer className="w-4 h-4" />, options: [{ value: 'usb', label: 'USB (local)' }, { value: 'network', label: 'Rede (IP)' }, { value: 'bluetooth', label: 'Bluetooth' }, { value: 'qztray', label: 'QZ Tray (navegador)' }], defaultValue: 'usb' },
+      { key: 'printer_name', label: 'Nome da Impressora', description: 'Nome no sistema', type: 'text', icon: <Printer className="w-4 h-4" />, placeholder: 'EPSON TM-T20', defaultValue: '' },
+      { key: 'printer_ip', label: 'IP da Impressora', description: 'Endereço IP (se rede)', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: '192.168.1.100', defaultValue: '' },
+      { key: 'printer_width', label: 'Largura do Papel', description: 'Largura em mm', type: 'select', icon: <Printer className="w-4 h-4" />, options: [{ value: '58', label: '58mm' }, { value: '80', label: '80mm' }], defaultValue: '80' },
+      { key: 'printer_auto_cut', label: 'Corte Automático', description: 'Corta papel após imprimir', type: 'toggle', icon: <Zap className="w-4 h-4" />, defaultValue: true },
+      { key: 'printer_open_drawer', label: 'Abrir Gaveta', description: 'Abre gaveta ao imprimir', type: 'toggle', icon: <Archive className="w-4 h-4" />, defaultValue: false },
+      { key: 'printer_copies', label: 'Cópias', description: 'Quantas vias imprimir', type: 'select', icon: <Receipt className="w-4 h-4" />, options: [{ value: '1', label: '1 via' }, { value: '2', label: '2 vias (cliente + cozinha)' }, { value: '3', label: '3 vias' }], defaultValue: '1' }
+    ]
+  },
+
+  // === INTEGRAÇÕES - MAPAS ===
+  {
+    id: 'google_maps',
+    name: 'Google Maps',
+    description: 'Cálculo de distância',
+    longDescription: 'Calcule distâncias e taxas de entrega automaticamente. Custo: ~$5/1000 requisições.',
+    icon: <MapPin className="w-6 h-6" />,
     color: 'text-green-600',
     bgColor: 'bg-green-100',
     category: 'integrations',
     settings: [
-      { key: 'whatsapp_api_enabled', label: 'Usar API WhatsApp', description: 'Ativa API oficial', type: 'toggle', icon: <MessageSquare className="w-4 h-4" />, defaultValue: false },
-      { key: 'whatsapp_api_token', label: 'Token da API', description: 'Token de acesso', type: 'text', icon: <Zap className="w-4 h-4" />, placeholder: 'Token...', defaultValue: '' },
-      { key: 'whatsapp_phone_id', label: 'Phone Number ID', description: 'ID do número', type: 'text', icon: <Phone className="w-4 h-4" />, placeholder: 'ID...', defaultValue: '' }
+      { key: 'gmaps_enabled', label: 'Ativar Google Maps', description: 'Calcula distância e taxa', type: 'toggle', icon: <MapPin className="w-4 h-4" />, defaultValue: false },
+      { key: 'gmaps_api_key', label: 'API Key', description: 'Chave da API Google Maps', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'AIza...', defaultValue: '' },
+      { key: 'gmaps_distance_matrix', label: 'Usar Distance Matrix', description: 'Calcula tempo de entrega', type: 'toggle', icon: <Truck className="w-4 h-4" />, defaultValue: true }
     ]
   },
 
@@ -527,22 +780,6 @@ export const MODULES: Module[] = [
   },
 
   // === NOTIFICAÇÕES ===
-  {
-    id: 'whatsapp',
-    name: 'WhatsApp',
-    description: 'Notificações via WhatsApp',
-    longDescription: 'Envie notificações de pedidos e promoções pelo WhatsApp.',
-    icon: <Smartphone className="w-6 h-6" />,
-    color: 'text-green-600',
-    bgColor: 'bg-green-100',
-    category: 'notifications',
-    settings: [
-      { key: 'whatsapp_enabled', label: 'Ativar WhatsApp', description: 'Habilita notificações WhatsApp', type: 'toggle', icon: <Smartphone className="w-4 h-4" />, defaultValue: false },
-      { key: 'whatsapp_number', label: 'Número WhatsApp', description: 'Número com DDD', type: 'text', icon: <Smartphone className="w-4 h-4" />, placeholder: '5511999999999', defaultValue: '' },
-      { key: 'notify_new_order', label: 'Notificar Novos Pedidos', description: 'Avisa quando chega pedido', type: 'toggle', icon: <Bell className="w-4 h-4" />, defaultValue: true },
-      { key: 'notify_customer', label: 'Notificar Cliente', description: 'Envia status ao cliente', type: 'toggle', icon: <Users className="w-4 h-4" />, defaultValue: true }
-    ]
-  },
   {
     id: 'email',
     name: 'E-mail',
