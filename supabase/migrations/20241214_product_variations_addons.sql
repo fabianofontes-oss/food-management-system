@@ -39,10 +39,18 @@ CREATE TABLE IF NOT EXISTS addons (
   addon_group_id UUID NOT NULL REFERENCES addon_groups(id) ON DELETE CASCADE,
   name VARCHAR(100) NOT NULL,
   price DECIMAL(10,2) NOT NULL DEFAULT 0,
+  quantity DECIMAL(10,2), -- quantidade em g, ml, un
+  unit VARCHAR(10) DEFAULT 'g', -- g, ml, un
+  image_url TEXT, -- foto do adicional
   sort_order INTEGER DEFAULT 0,
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Adicionar colunas se não existirem (para migração)
+ALTER TABLE addons ADD COLUMN IF NOT EXISTS quantity DECIMAL(10,2);
+ALTER TABLE addons ADD COLUMN IF NOT EXISTS unit VARCHAR(10) DEFAULT 'g';
+ALTER TABLE addons ADD COLUMN IF NOT EXISTS image_url TEXT;
 
 -- Relação produto <-> grupo de adicionais
 CREATE TABLE IF NOT EXISTS product_addon_groups (

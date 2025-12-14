@@ -15,6 +15,9 @@ interface Addon {
   addon_group_id: string
   name: string
   price: number
+  quantity: number | null
+  unit: string
+  image_url: string | null
   sort_order: number
   is_active: boolean
   stock_quantity?: number
@@ -59,7 +62,7 @@ export default function AddonsPage() {
   })
 
   const [showAddonForm, setShowAddonForm] = useState<string | null>(null)
-  const [addonForm, setAddonForm] = useState({ name: '', price: 0, stock_quantity: 0, min_stock: 0 })
+  const [addonForm, setAddonForm] = useState({ name: '', price: 0, quantity: '', unit: 'g', image_url: '', stock_quantity: 0, min_stock: 0 })
   const [editingAddon, setEditingAddon] = useState<Addon | null>(null)
   const [draggedGroupId, setDraggedGroupId] = useState<string | null>(null)
   const [draggedAddonId, setDraggedAddonId] = useState<string | null>(null)
@@ -296,16 +299,21 @@ export default function AddonsPage() {
     
     setSaving(true)
     try {
+      const addonData = {
+        name: addonForm.name,
+        price: addonForm.price || 0,
+        quantity: addonForm.quantity ? parseFloat(addonForm.quantity) : null,
+        unit: addonForm.unit || 'g',
+        image_url: addonForm.image_url || null,
+        stock_quantity: addonForm.stock_quantity || null,
+        min_stock: addonForm.min_stock || null
+      }
+
       if (editingAddon) {
         // Atualizar adicional existente
         await supabase
           .from('addons')
-          .update({
-            name: addonForm.name,
-            price: addonForm.price || 0,
-            stock_quantity: addonForm.stock_quantity || null,
-            min_stock: addonForm.min_stock || null
-          })
+          .update(addonData)
           .eq('id', editingAddon.id)
       } else {
         // Criar novo adicional
@@ -314,16 +322,13 @@ export default function AddonsPage() {
           .from('addons')
           .insert([{
             addon_group_id: groupId,
-            name: addonForm.name,
-            price: addonForm.price || 0,
-            sort_order: group?.addons?.length || 0,
-            stock_quantity: addonForm.stock_quantity || null,
-            min_stock: addonForm.min_stock || null
+            ...addonData,
+            sort_order: group?.addons?.length || 0
           }])
       }
       
       setShowAddonForm(null)
-      setAddonForm({ name: '', price: 0, stock_quantity: 0, min_stock: 0 })
+      setAddonForm({ name: '', price: 0, quantity: '', unit: 'g', image_url: '', stock_quantity: 0, min_stock: 0 })
       setEditingAddon(null)
       await fetchAddonGroups()
     } catch (err) {
@@ -338,6 +343,9 @@ export default function AddonsPage() {
     setAddonForm({
       name: addon.name,
       price: addon.price,
+      quantity: addon.quantity?.toString() || '',
+      unit: addon.unit || 'g',
+      image_url: addon.image_url || '',
       stock_quantity: addon.stock_quantity || 0,
       min_stock: addon.min_stock || 0
     })
@@ -727,7 +735,28 @@ export default function AddonsPage() {
                             />
                           </div>
                         </div>
+                        {/* Quantidade e Unidade */}
                         <div className="flex gap-2 flex-wrap items-center">
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs text-slate-500">Qtd:</span>
+                            <input
+                              type="number"
+                              step="0.1"
+                              value={addonForm.quantity}
+                              onChange={(e) => setAddonForm({ ...addonForm, quantity: e.target.value })}
+                              placeholder="30"
+                              className="w-16 px-2 py-2 border-2 border-slate-200 rounded-lg focus:border-pink-500 outline-none text-sm"
+                            />
+                            <select
+                              value={addonForm.unit}
+                              onChange={(e) => setAddonForm({ ...addonForm, unit: e.target.value })}
+                              className="px-2 py-2 border-2 border-slate-200 rounded-lg focus:border-pink-500 outline-none text-sm"
+                            >
+                              <option value="g">g</option>
+                              <option value="ml">ml</option>
+                              <option value="un">un</option>
+                            </select>
+                          </div>
                           <div className="flex items-center gap-1">
                             <Package className="w-4 h-4 text-slate-400" />
                             <input
@@ -737,7 +766,6 @@ export default function AddonsPage() {
                               placeholder="Estoque"
                               className="w-20 px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-pink-500 outline-none text-sm"
                             />
-                            <span className="text-xs text-slate-500">estoque</span>
                           </div>
                           <div className="flex items-center gap-1">
                             <AlertTriangle className="w-4 h-4 text-amber-500" />
@@ -748,8 +776,17 @@ export default function AddonsPage() {
                               placeholder="Mín"
                               className="w-16 px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-pink-500 outline-none text-sm"
                             />
-                            <span className="text-xs text-slate-500">mín</span>
                           </div>
+                        </div>
+                        {/* URL da Foto */}
+                        <div className="flex gap-2 items-center">
+                          <input
+                            type="url"
+                            value={addonForm.image_url}
+                            onChange={(e) => setAddonForm({ ...addonForm, image_url: e.target.value })}
+                            placeholder="URL da foto (opcional)"
+                            className="flex-1 px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-pink-500 outline-none text-sm"
+                          />
                           <div className="flex-1" />
                           <button
                             onClick={() => handleSaveAddon(group.id)}
@@ -762,7 +799,7 @@ export default function AddonsPage() {
                           <button
                             onClick={() => {
                               setShowAddonForm(null)
-                              setAddonForm({ name: '', price: 0, stock_quantity: 0, min_stock: 0 })
+                              setAddonForm({ name: '', price: 0, quantity: '', unit: 'g', image_url: '', stock_quantity: 0, min_stock: 0 })
                               setEditingAddon(null)
                             }}
                             className="p-2 text-slate-600 hover:bg-slate-200 rounded-lg"
