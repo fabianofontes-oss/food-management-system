@@ -61,140 +61,63 @@ const validateCNPJ = (cnpj: string) => {
   return true
 }
 
-// Schema para configurações de PIX
+// Schema para configurações de PIX (simplificado - permite salvar sem validar chave)
 const pixConfigSchema = z.object({
   enabled: z.boolean(),
   keyType: z.enum(['cpf', 'cnpj', 'email', 'phone', 'random']).optional(),
   keyValue: z.string().optional(),
-}).refine(
-  (data) => {
-    if (!data.enabled) return true
-    if (!data.keyType || !data.keyValue) return false
-    
-    switch (data.keyType) {
-      case 'cpf':
-        return validateCPF(data.keyValue)
-      case 'cnpj':
-        return validateCNPJ(data.keyValue)
-      case 'email':
-        return z.string().email().safeParse(data.keyValue).success
-      case 'phone':
-        const cleaned = data.keyValue.replace(/\D/g, '')
-        return cleaned.length >= 10 && cleaned.length <= 11
-      case 'random':
-        return data.keyValue.length >= 32
-      default:
-        return false
-    }
-  },
-  {
-    message: 'Chave PIX inválida para o tipo selecionado',
-    path: ['keyValue'],
-  }
-)
+})
 
-// Schema para configurações de Delivery
+// Schema para configurações de Delivery (simplificado)
 const deliveryConfigSchema = z.object({
   enabled: z.boolean(),
-  fee: z.number().min(0, 'Taxa deve ser maior ou igual a zero').optional(),
-  minRadius: z.number().min(0, 'Raio deve ser maior ou igual a zero').optional(),
-  avgTime: z.number().min(1, 'Tempo deve ser maior que zero').optional(),
-}).refine(
-  (data) => {
-    if (!data.enabled) return true
-    return data.fee !== undefined && data.minRadius !== undefined && data.avgTime !== undefined
-  },
-  {
-    message: 'Todos os campos de delivery são obrigatórios quando ativado',
-  }
-)
+  fee: z.number().min(0).optional(),
+  minRadius: z.number().min(0).optional(),
+  avgTime: z.number().min(1).optional(),
+})
 
-// Schema para WhatsApp
+// Schema para WhatsApp (simplificado)
 const whatsappConfigSchema = z.object({
   enabled: z.boolean(),
   phoneNumber: z.string().optional(),
   apiToken: z.string().optional(),
-}).refine(
-  (data) => {
-    if (!data.enabled) return true
-    if (!data.phoneNumber || !data.apiToken) return false
-    const cleaned = data.phoneNumber.replace(/\D/g, '')
-    return cleaned.length >= 10 && cleaned.length <= 11
-  },
-  {
-    message: 'Número de telefone e token da API são obrigatórios',
-  }
-)
+})
 
-// Schema para Programa de Fidelidade
+// Schema para Programa de Fidelidade (simplificado)
 const loyaltyConfigSchema = z.object({
   enabled: z.boolean(),
   pointsPerReal: z.number().min(0).optional(),
   minPointsToRedeem: z.number().min(0).optional(),
   rewardValue: z.number().min(0).optional(),
-}).refine(
-  (data) => {
-    if (!data.enabled) return true
-    return data.pointsPerReal !== undefined && 
-           data.minPointsToRedeem !== undefined && 
-           data.rewardValue !== undefined
-  },
-  {
-    message: 'Todos os campos do programa de fidelidade são obrigatórios',
-  }
-)
+})
 
-// Schema para iFood
+// Schema para iFood (simplificado)
 const ifoodConfigSchema = z.object({
   enabled: z.boolean(),
   merchantId: z.string().optional(),
   apiKey: z.string().optional(),
-}).refine(
-  (data) => {
-    if (!data.enabled) return true
-    return data.merchantId && data.apiKey && data.merchantId.length > 0 && data.apiKey.length > 0
-  },
-  {
-    message: 'Merchant ID e API Key são obrigatórios',
-  }
-)
+})
 
-// Schema para Rappi
+// Schema para Rappi (simplificado)
 const rappiConfigSchema = z.object({
   enabled: z.boolean(),
   storeId: z.string().optional(),
   apiKey: z.string().optional(),
-}).refine(
-  (data) => {
-    if (!data.enabled) return true
-    return data.storeId && data.apiKey && data.storeId.length > 0 && data.apiKey.length > 0
-  },
-  {
-    message: 'Store ID e API Key são obrigatórios',
-  }
-)
+})
 
-// Schema para Uber Eats
+// Schema para Uber Eats (simplificado)
 const uberEatsConfigSchema = z.object({
   enabled: z.boolean(),
   storeId: z.string().optional(),
   apiKey: z.string().optional(),
-}).refine(
-  (data) => {
-    if (!data.enabled) return true
-    return data.storeId && data.apiKey && data.storeId.length > 0 && data.apiKey.length > 0
-  },
-  {
-    message: 'Store ID e API Key são obrigatórios',
-  }
-)
+})
 
 // Schema para Checkout
 const checkoutConfigSchema = z.object({
   mode: z.enum(['guest', 'phone_required']).default('phone_required'),
 })
 
-// Schema para Payments (MVP - sem gateways)
+// Schema para Payments (MVP - simplificado)
 const paymentsConfigSchema = z.object({
   pix: z.object({
     enabled: z.boolean(),
@@ -204,37 +127,7 @@ const paymentsConfigSchema = z.object({
   }).optional(),
   cash: z.boolean().optional(),
   card_on_delivery: z.boolean().optional(),
-}).refine(
-  (data) => {
-    // Se PIX está habilitado, validar campos obrigatórios
-    if (data.pix?.enabled) {
-      if (!data.pix.key_type || !data.pix.key || !data.pix.receiver_name) {
-        return false
-      }
-      // Validar chave PIX baseado no tipo
-      switch (data.pix.key_type) {
-        case 'cpf':
-          return validateCPF(data.pix.key)
-        case 'cnpj':
-          return validateCNPJ(data.pix.key)
-        case 'email':
-          return z.string().email().safeParse(data.pix.key).success
-        case 'phone':
-          const cleaned = data.pix.key.replace(/\D/g, '')
-          return cleaned.length >= 10 && cleaned.length <= 11
-        case 'random':
-          return data.pix.key.length >= 32
-        default:
-          return false
-      }
-    }
-    return true
-  },
-  {
-    message: 'Configuração de PIX inválida',
-    path: ['pix'],
-  }
-)
+})
 
 // Schema principal de configurações
 export const settingsFormSchema = z.object({
@@ -296,18 +189,28 @@ export const defaultSettings: SettingsFormData = {
   enableDebitCard: true,
   pix: {
     enabled: false,
+    keyType: undefined,
+    keyValue: '',
   },
   delivery: {
     enabled: false,
+    fee: 5,
+    minRadius: 5,
+    avgTime: 30,
   },
   enableOrderNotifications: true,
   whatsapp: {
     enabled: false,
+    phoneNumber: '',
+    apiToken: '',
   },
   enableEmail: true,
   enableSoundAlerts: true,
   loyalty: {
     enabled: false,
+    pointsPerReal: 1,
+    minPointsToRedeem: 100,
+    rewardValue: 10,
   },
   enableCoupons: true,
   enableScheduling: false,
@@ -317,12 +220,18 @@ export const defaultSettings: SettingsFormData = {
   enableKitchenPrint: true,
   ifood: {
     enabled: false,
+    merchantId: '',
+    apiKey: '',
   },
   rappi: {
     enabled: false,
+    storeId: '',
+    apiKey: '',
   },
   uberEats: {
     enabled: false,
+    storeId: '',
+    apiKey: '',
   },
   checkout: {
     mode: 'phone_required',
@@ -330,6 +239,9 @@ export const defaultSettings: SettingsFormData = {
   payments: {
     pix: {
       enabled: false,
+      key: '',
+      receiver_name: '',
+      key_type: undefined,
     },
     cash: true,
     card_on_delivery: false,

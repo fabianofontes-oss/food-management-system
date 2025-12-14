@@ -1,7 +1,6 @@
 'use client'
 
 import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
 import { useMemo, useState, useEffect } from 'react'
 import { 
   Settings, ShoppingCart, ChefHat, Truck, Store, Package,
@@ -11,7 +10,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ToggleCard } from '@/components/settings/ToggleCard'
-import { settingsFormSchema, defaultSettings, type SettingsFormData } from '@/lib/validations/settings'
+import { defaultSettings, type SettingsFormData } from '@/lib/validations/settings'
 import { createClient } from '@/lib/supabase/client'
 import { useParams } from 'next/navigation'
 import { CheckoutSection } from './components/CheckoutSection'
@@ -27,7 +26,6 @@ export default function SettingsPage() {
   const [storeId, setStoreId] = useState<string | null>(null)
 
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<SettingsFormData>({
-    resolver: zodResolver(settingsFormSchema),
     defaultValues: defaultSettings,
   })
 
@@ -68,6 +66,50 @@ export default function SettingsPage() {
   const watchedValues = watch()
 
   const onSubmit = async (data: SettingsFormData) => {
+    console.log('🔍 [AUDITORIA] Tentando salvar configurações...')
+    console.log('🔍 [AUDITORIA] Store ID:', storeId)
+    console.log('🔍 [AUDITORIA] Dados a salvar:', JSON.stringify(data, null, 2))
+    
+    if (!storeId) {
+      console.error('❌ [AUDITORIA] Nenhuma loja selecionada!')
+      alert('Nenhuma loja selecionada')
+      return
+    }
+
+    setSaving(true)
+    setSaveStatus('idle')
+
+    try {
+      console.log('🔍 [AUDITORIA] Enviando para Supabase...')
+      const { error, data: result } = await supabase
+        .from('stores')
+        .update({ settings: data })
+        .eq('id', storeId)
+        .select()
+
+      if (error) {
+        console.error('❌ [AUDITORIA] Erro do Supabase:', error)
+        throw error
+      }
+
+      console.log('✅ [AUDITORIA] Salvo com sucesso! Resultado:', result)
+      setSaveStatus('success')
+      setTimeout(() => setSaveStatus('idle'), 3000)
+    } catch (error) {
+      console.error('❌ [AUDITORIA] Erro ao salvar configurações:', error)
+      setSaveStatus('error')
+      setTimeout(() => setSaveStatus('idle'), 3000)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  // Handler para salvar sem validação (bypass)
+  const handleSaveWithoutValidation = async () => {
+    console.log('🔍 [AUDITORIA] Salvando SEM validação...')
+    const data = watchedValues
+    console.log('🔍 [AUDITORIA] Dados atuais:', JSON.stringify(data, null, 2))
+    
     if (!storeId) {
       alert('Nenhuma loja selecionada')
       return
@@ -84,10 +126,11 @@ export default function SettingsPage() {
 
       if (error) throw error
 
+      console.log('✅ [AUDITORIA] Salvo sem validação!')
       setSaveStatus('success')
       setTimeout(() => setSaveStatus('idle'), 3000)
     } catch (error) {
-      console.error('Erro ao salvar configurações:', error)
+      console.error('❌ [AUDITORIA] Erro:', error)
       setSaveStatus('error')
       setTimeout(() => setSaveStatus('idle'), 3000)
     } finally {
@@ -114,9 +157,12 @@ export default function SettingsPage() {
           <p className="text-gray-600">Personalize as funcionalidades da sua loja</p>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={handleSubmit(onSubmit, (errors) => {
+          console.error('❌ [AUDITORIA] Erros de validação:', errors)
+          alert('Erro de validação. Verifique o console (F12) para detalhes.')
+        })} className="space-y-6">
           {/* Botões de Ação */}
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-wrap">
             <Button
               type="submit"
               disabled={saving}
@@ -133,6 +179,16 @@ export default function SettingsPage() {
                   Salvar Configurações
                 </>
               )}
+            </Button>
+            
+            <Button
+              type="button"
+              onClick={handleSaveWithoutValidation}
+              disabled={saving}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 flex items-center gap-2"
+            >
+              <Save className="w-5 h-5" />
+              Salvar (Forçar)
             </Button>
 
             <Button
