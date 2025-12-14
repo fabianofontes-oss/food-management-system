@@ -1,7 +1,8 @@
 import { 
   Store, Clock, Truck, CreditCard, Bell, Package, Star, Megaphone, Users, Tag, Calendar, UtensilsCrossed,
   Archive, Printer, ChefHat, BarChart3, FileText, MapPin, DollarSign, Percent, Timer, Hash, Smartphone, 
-  Mail, Volume2, Gift, ShoppingBag
+  Mail, Volume2, Gift, ShoppingBag, Wallet, QrCode, Banknote, Building2, Globe, Image, Palette, Phone,
+  Link2, Bike, Car, Zap, MessageSquare, Send, Instagram, Facebook
 } from 'lucide-react'
 
 export interface ModuleSetting {
@@ -25,20 +26,88 @@ export interface Module {
   icon: React.ReactNode
   color: string
   bgColor: string
-  category: 'sales' | 'operations' | 'marketing' | 'notifications'
+  category: 'store' | 'sales' | 'payments' | 'operations' | 'integrations' | 'marketing' | 'notifications'
   configPage?: string
   isCore?: boolean
   settings: ModuleSetting[]
 }
 
 export const CATEGORIES = [
+  { id: 'store', name: '🏪 Minha Loja', description: 'Dados e aparência' },
   { id: 'sales', name: '💰 Vendas', description: 'Canais de venda' },
+  { id: 'payments', name: '💳 Pagamentos', description: 'Formas de pagamento' },
   { id: 'operations', name: '⚙️ Operações', description: 'Gestão interna' },
+  { id: 'integrations', name: '🔗 Integrações', description: 'Plataformas externas' },
   { id: 'marketing', name: '📣 Marketing', description: 'Promoções e fidelidade' },
   { id: 'notifications', name: '🔔 Notificações', description: 'Comunicação' }
 ]
 
 export const MODULES: Module[] = [
+  // === MINHA LOJA ===
+  {
+    id: 'store_info',
+    name: 'Dados da Loja',
+    description: 'Informações básicas',
+    longDescription: 'Configure nome, descrição, telefone, e-mail e endereço da sua loja.',
+    icon: <Store className="w-6 h-6" />,
+    color: 'text-violet-600',
+    bgColor: 'bg-violet-100',
+    category: 'store',
+    isCore: true,
+    settings: [
+      { key: 'store_name', label: 'Nome da Loja', description: 'Nome exibido para clientes', type: 'text', icon: <Store className="w-4 h-4" />, placeholder: 'Minha Loja', defaultValue: '' },
+      { key: 'store_phone', label: 'Telefone', description: 'Contato principal', type: 'text', icon: <Phone className="w-4 h-4" />, placeholder: '(11) 99999-9999', defaultValue: '' },
+      { key: 'store_email', label: 'E-mail', description: 'E-mail de contato', type: 'text', icon: <Mail className="w-4 h-4" />, placeholder: 'contato@loja.com', defaultValue: '' },
+      { key: 'store_address', label: 'Endereço', description: 'Endereço completo', type: 'text', icon: <MapPin className="w-4 h-4" />, placeholder: 'Rua, número, bairro', defaultValue: '' }
+    ]
+  },
+  {
+    id: 'store_appearance',
+    name: 'Aparência',
+    description: 'Logo, cores e visual',
+    longDescription: 'Personalize a aparência da sua loja com cores e logo.',
+    icon: <Palette className="w-6 h-6" />,
+    color: 'text-pink-600',
+    bgColor: 'bg-pink-100',
+    category: 'store',
+    settings: [
+      { key: 'appearance_enabled', label: 'Personalização Ativa', description: 'Usa cores personalizadas', type: 'toggle', icon: <Palette className="w-4 h-4" />, defaultValue: true },
+      { key: 'primary_color', label: 'Cor Principal', description: 'Cor tema da loja', type: 'text', icon: <Palette className="w-4 h-4" />, placeholder: '#8B5CF6', defaultValue: '#8B5CF6' },
+      { key: 'logo_url', label: 'URL do Logo', description: 'Link da imagem do logo', type: 'text', icon: <Image className="w-4 h-4" />, placeholder: 'https://...', defaultValue: '' }
+    ]
+  },
+  {
+    id: 'store_hours',
+    name: 'Horários',
+    description: 'Funcionamento da loja',
+    longDescription: 'Configure os horários de funcionamento da sua loja.',
+    icon: <Clock className="w-6 h-6" />,
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-100',
+    category: 'store',
+    settings: [
+      { key: 'hours_enabled', label: 'Horários Ativados', description: 'Controla abertura automática', type: 'toggle', icon: <Clock className="w-4 h-4" />, defaultValue: true },
+      { key: 'open_time', label: 'Hora de Abertura', description: 'Horário padrão de abertura', type: 'text', icon: <Clock className="w-4 h-4" />, placeholder: '08:00', defaultValue: '08:00' },
+      { key: 'close_time', label: 'Hora de Fechamento', description: 'Horário padrão de fechamento', type: 'text', icon: <Clock className="w-4 h-4" />, placeholder: '22:00', defaultValue: '22:00' }
+    ]
+  },
+  {
+    id: 'social_media',
+    name: 'Redes Sociais',
+    description: 'Instagram, Facebook, site',
+    longDescription: 'Conecte suas redes sociais para seus clientes te encontrarem.',
+    icon: <Globe className="w-6 h-6" />,
+    color: 'text-cyan-600',
+    bgColor: 'bg-cyan-100',
+    category: 'store',
+    settings: [
+      { key: 'social_enabled', label: 'Mostrar Redes Sociais', description: 'Exibe links na loja', type: 'toggle', icon: <Globe className="w-4 h-4" />, defaultValue: true },
+      { key: 'instagram', label: 'Instagram', description: 'Seu @ do Instagram', type: 'text', icon: <Instagram className="w-4 h-4" />, placeholder: '@minhaloja', defaultValue: '' },
+      { key: 'facebook', label: 'Facebook', description: 'Link do Facebook', type: 'text', icon: <Facebook className="w-4 h-4" />, placeholder: 'facebook.com/minhaloja', defaultValue: '' },
+      { key: 'website', label: 'Site', description: 'Seu site oficial', type: 'text', icon: <Globe className="w-4 h-4" />, placeholder: 'www.minhaloja.com', defaultValue: '' }
+    ]
+  },
+
   // === VENDAS ===
   {
     id: 'delivery',
@@ -123,6 +192,66 @@ export const MODULES: Module[] = [
     ]
   },
 
+  // === PAGAMENTOS ===
+  {
+    id: 'pix',
+    name: 'PIX',
+    description: 'Pagamento instantâneo',
+    longDescription: 'Receba pagamentos via PIX com QR Code automático.',
+    icon: <QrCode className="w-6 h-6" />,
+    color: 'text-teal-600',
+    bgColor: 'bg-teal-100',
+    category: 'payments',
+    settings: [
+      { key: 'pix_enabled', label: 'Aceitar PIX', description: 'Habilita pagamento via PIX', type: 'toggle', icon: <QrCode className="w-4 h-4" />, defaultValue: true },
+      { key: 'pix_key_type', label: 'Tipo da Chave', description: 'CPF, CNPJ, E-mail ou Telefone', type: 'select', icon: <QrCode className="w-4 h-4" />, options: [{ value: 'cpf', label: 'CPF' }, { value: 'cnpj', label: 'CNPJ' }, { value: 'email', label: 'E-mail' }, { value: 'phone', label: 'Telefone' }, { value: 'random', label: 'Chave Aleatória' }], defaultValue: 'cpf' },
+      { key: 'pix_key', label: 'Chave PIX', description: 'Sua chave para receber', type: 'text', icon: <QrCode className="w-4 h-4" />, placeholder: 'Sua chave PIX', defaultValue: '' },
+      { key: 'pix_name', label: 'Nome do Beneficiário', description: 'Nome que aparece no PIX', type: 'text', icon: <Users className="w-4 h-4" />, placeholder: 'Nome completo', defaultValue: '' }
+    ]
+  },
+  {
+    id: 'credit_card',
+    name: 'Cartão de Crédito',
+    description: 'Crédito na entrega',
+    longDescription: 'Aceite cartão de crédito na máquina na entrega ou retirada.',
+    icon: <CreditCard className="w-6 h-6" />,
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-100',
+    category: 'payments',
+    settings: [
+      { key: 'credit_enabled', label: 'Aceitar Crédito', description: 'Habilita cartão de crédito', type: 'toggle', icon: <CreditCard className="w-4 h-4" />, defaultValue: true },
+      { key: 'credit_min_value', label: 'Valor Mínimo', description: 'Mínimo para aceitar cartão', type: 'currency', icon: <DollarSign className="w-4 h-4" />, placeholder: '10.00', prefix: 'R$', defaultValue: 0 },
+      { key: 'credit_installments', label: 'Parcelamento', description: 'Máximo de parcelas', type: 'number', icon: <CreditCard className="w-4 h-4" />, placeholder: '3', suffix: 'x', defaultValue: 1 }
+    ]
+  },
+  {
+    id: 'debit_card',
+    name: 'Cartão de Débito',
+    description: 'Débito na entrega',
+    longDescription: 'Aceite cartão de débito na máquina na entrega ou retirada.',
+    icon: <Wallet className="w-6 h-6" />,
+    color: 'text-green-600',
+    bgColor: 'bg-green-100',
+    category: 'payments',
+    settings: [
+      { key: 'debit_enabled', label: 'Aceitar Débito', description: 'Habilita cartão de débito', type: 'toggle', icon: <Wallet className="w-4 h-4" />, defaultValue: true }
+    ]
+  },
+  {
+    id: 'cash',
+    name: 'Dinheiro',
+    description: 'Pagamento em espécie',
+    longDescription: 'Aceite pagamento em dinheiro na entrega ou retirada.',
+    icon: <Banknote className="w-6 h-6" />,
+    color: 'text-emerald-600',
+    bgColor: 'bg-emerald-100',
+    category: 'payments',
+    settings: [
+      { key: 'cash_enabled', label: 'Aceitar Dinheiro', description: 'Habilita pagamento em dinheiro', type: 'toggle', icon: <Banknote className="w-4 h-4" />, defaultValue: true },
+      { key: 'cash_change', label: 'Troco Disponível', description: 'Oferece troco na entrega', type: 'toggle', icon: <DollarSign className="w-4 h-4" />, defaultValue: true }
+    ]
+  },
+
   // === OPERAÇÕES ===
   {
     id: 'inventory',
@@ -185,6 +314,67 @@ export const MODULES: Module[] = [
     settings: [
       { key: 'reports_enabled', label: 'Relatórios Ativados', description: 'Funcionalidade principal', type: 'toggle', icon: <BarChart3 className="w-4 h-4" />, defaultValue: true },
       { key: 'daily_summary', label: 'Resumo Diário', description: 'Envia resumo por e-mail', type: 'toggle', icon: <Mail className="w-4 h-4" />, defaultValue: false }
+    ]
+  },
+
+  // === INTEGRAÇÕES ===
+  {
+    id: 'ifood',
+    name: 'iFood',
+    description: 'Integração com iFood',
+    longDescription: 'Receba pedidos do iFood diretamente no seu painel.',
+    icon: <Bike className="w-6 h-6" />,
+    color: 'text-red-600',
+    bgColor: 'bg-red-100',
+    category: 'integrations',
+    settings: [
+      { key: 'ifood_enabled', label: 'Integrar com iFood', description: 'Recebe pedidos do iFood', type: 'toggle', icon: <Bike className="w-4 h-4" />, defaultValue: false },
+      { key: 'ifood_merchant_id', label: 'Merchant ID', description: 'ID do restaurante no iFood', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'Seu ID iFood', defaultValue: '' },
+      { key: 'ifood_auto_accept', label: 'Aceitar Automaticamente', description: 'Aceita pedidos sem revisão', type: 'toggle', icon: <Zap className="w-4 h-4" />, defaultValue: false }
+    ]
+  },
+  {
+    id: 'rappi',
+    name: 'Rappi',
+    description: 'Integração com Rappi',
+    longDescription: 'Receba pedidos da Rappi diretamente no seu painel.',
+    icon: <Car className="w-6 h-6" />,
+    color: 'text-orange-600',
+    bgColor: 'bg-orange-100',
+    category: 'integrations',
+    settings: [
+      { key: 'rappi_enabled', label: 'Integrar com Rappi', description: 'Recebe pedidos da Rappi', type: 'toggle', icon: <Car className="w-4 h-4" />, defaultValue: false },
+      { key: 'rappi_store_id', label: 'Store ID', description: 'ID da loja na Rappi', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'Seu ID Rappi', defaultValue: '' }
+    ]
+  },
+  {
+    id: 'google_business',
+    name: 'Google Meu Negócio',
+    description: 'Avaliações do Google',
+    longDescription: 'Conecte seu Google Meu Negócio para gerenciar avaliações.',
+    icon: <Building2 className="w-6 h-6" />,
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-100',
+    category: 'integrations',
+    configPage: '/dashboard/reviews/integrations',
+    settings: [
+      { key: 'google_enabled', label: 'Integrar com Google', description: 'Conecta Google Meu Negócio', type: 'toggle', icon: <Building2 className="w-4 h-4" />, defaultValue: false },
+      { key: 'google_place_id', label: 'Place ID', description: 'ID do local no Google', type: 'text', icon: <MapPin className="w-4 h-4" />, placeholder: 'ChIJ...', defaultValue: '' }
+    ]
+  },
+  {
+    id: 'whatsapp_api',
+    name: 'WhatsApp Business API',
+    description: 'API oficial do WhatsApp',
+    longDescription: 'Use a API oficial do WhatsApp para enviar notificações automáticas.',
+    icon: <MessageSquare className="w-6 h-6" />,
+    color: 'text-green-600',
+    bgColor: 'bg-green-100',
+    category: 'integrations',
+    settings: [
+      { key: 'whatsapp_api_enabled', label: 'Usar API WhatsApp', description: 'Ativa API oficial', type: 'toggle', icon: <MessageSquare className="w-4 h-4" />, defaultValue: false },
+      { key: 'whatsapp_api_token', label: 'Token da API', description: 'Token de acesso', type: 'text', icon: <Zap className="w-4 h-4" />, placeholder: 'Token...', defaultValue: '' },
+      { key: 'whatsapp_phone_id', label: 'Phone Number ID', description: 'ID do número', type: 'text', icon: <Phone className="w-4 h-4" />, placeholder: 'ID...', defaultValue: '' }
     ]
   },
 
