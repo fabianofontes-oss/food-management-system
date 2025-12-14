@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState, useEffect, useRef } from 'react'
-import { Truck, MapPin, Clock, Phone, Package, User, Navigation, CheckCircle, XCircle, Loader2, Search, Calendar, BarChart3, TrendingUp, Printer, X, UserPlus, Play, CheckCheck, Ban, Bell, BellOff, Users, Edit, Trash2, Plus, Star } from 'lucide-react'
+import { Truck, MapPin, Clock, Phone, Package, User, Navigation, CheckCircle, XCircle, Loader2, Search, Calendar, BarChart3, TrendingUp, Printer, X, UserPlus, Play, CheckCheck, Ban, Bell, BellOff, Users, Edit, Trash2, Plus, Star, History, DollarSign, Link2, Copy, ExternalLink, Percent } from 'lucide-react'
 import { useParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/client'
@@ -43,6 +43,8 @@ interface Driver {
   total_deliveries: number
   rating: number
   notes: string | null
+  commission_percent: number
+  total_earnings: number
   created_at: string
   updated_at: string
 }
@@ -75,8 +77,11 @@ export default function DeliveryPage() {
     email: '',
     vehicle_type: 'moto',
     vehicle_plate: '',
-    notes: ''
+    notes: '',
+    commission_percent: 10
   })
+  const [showDriverHistory, setShowDriverHistory] = useState<Driver | null>(null)
+  const [driverDeliveries, setDriverDeliveries] = useState<Delivery[]>([])
   const [tenantId, setTenantId] = useState<string | null>(null)
 
   useEffect(() => {
@@ -172,7 +177,7 @@ export default function DeliveryPage() {
           table: 'deliveries',
           filter: `store_id=eq.${storeId}`
         },
-        (payload) => {
+        (payload: { eventType: string }) => {
           console.log('Delivery change:', payload)
           
           if (payload.eventType === 'INSERT') {
@@ -309,7 +314,7 @@ export default function DeliveryPage() {
       await fetchDeliveries()
       setShowDriverModal(false)
       setSelectedDelivery(null)
-      setNewDriver({ name: '', phone: '', email: '', vehicle_type: 'moto', vehicle_plate: '', notes: '' })
+      setNewDriver({ name: '', phone: '', email: '', vehicle_type: 'moto', vehicle_plate: '', notes: '', commission_percent: 10 })
     } catch (err) {
       console.error('Erro ao atribuir motorista:', err)
       alert('Erro ao atribuir motorista')
@@ -340,7 +345,7 @@ export default function DeliveryPage() {
       
       await fetchDrivers()
       setShowDriverForm(false)
-      setNewDriver({ name: '', phone: '', email: '', vehicle_type: 'moto', vehicle_plate: '', notes: '' })
+      setNewDriver({ name: '', phone: '', email: '', vehicle_type: 'moto', vehicle_plate: '', notes: '', commission_percent: 10 })
       alert('Motorista cadastrado com sucesso!')
     } catch (err) {
       console.error('Erro ao criar motorista:', err)
@@ -373,7 +378,7 @@ export default function DeliveryPage() {
       await fetchDrivers()
       setShowDriverForm(false)
       setEditingDriver(null)
-      setNewDriver({ name: '', phone: '', email: '', vehicle_type: 'moto', vehicle_plate: '', notes: '' })
+      setNewDriver({ name: '', phone: '', email: '', vehicle_type: 'moto', vehicle_plate: '', notes: '', commission_percent: 10 })
       alert('Motorista atualizado com sucesso!')
     } catch (err) {
       console.error('Erro ao atualizar motorista:', err)
@@ -428,9 +433,56 @@ export default function DeliveryPage() {
       email: driver.email || '',
       vehicle_type: driver.vehicle_type || 'moto',
       vehicle_plate: driver.vehicle_plate || '',
-      notes: driver.notes || ''
+      notes: driver.notes || '',
+      commission_percent: driver.commission_percent || 10
     })
     setShowDriverForm(true)
+  }
+
+  // Buscar histórico de entregas do motorista
+  const fetchDriverHistory = async (driver: Driver) => {
+    try {
+      const { data } = await supabase
+        .from('deliveries')
+        .select(`
+          *,
+          order:orders(order_code, customer_name, total_amount)
+        `)
+        .eq('store_id', storeId)
+        .eq('driver_name', driver.name)
+        .order('created_at', { ascending: false })
+        .limit(50)
+
+      setDriverDeliveries(data || [])
+      setShowDriverHistory(driver)
+    } catch (err) {
+      console.error('Erro ao buscar histórico:', err)
+    }
+  }
+
+  // Calcular comissão do motorista
+  const calculateDriverEarnings = (driver: Driver) => {
+    const driverDelivs = deliveries.filter(d => d.driver_name === driver.name && d.status === 'delivered')
+    const totalFees = driverDelivs.reduce((acc, d) => acc + (d.delivery_fee || 0), 0)
+    const commission = (totalFees * (driver.commission_percent || 10)) / 100
+    return { total: totalFees, commission, count: driverDelivs.length }
+  }
+
+  // Gerar link de rastreio
+  const generateTrackingLink = (delivery: Delivery) => {
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
+    return `${baseUrl}/${slug}/rastreio/${delivery.id}`
+  }
+
+  // Copiar link para clipboard
+  const copyTrackingLink = async (delivery: Delivery) => {
+    const link = generateTrackingLink(delivery)
+    try {
+      await navigator.clipboard.writeText(link)
+      alert('Link copiado!')
+    } catch (err) {
+      console.error('Erro ao copiar:', err)
+    }
   }
 
   const printDelivery = (delivery: Delivery) => {
@@ -804,9 +856,24 @@ export default function DeliveryPage() {
                       <Printer className="w-4 h-4" />
                       Imprimir
                     </Button>
+                    <Button
+                      onClick={() => copyTrackingLink(delivery)}
+                      size="sm"
+                      variant="outline"
+                      className="flex items-center gap-1 text-purple-600 border-purple-300 hover:bg-purple-50"
+                    >
+                      <Link2 className="w-4 h-4" />
+                      Link Rastreio
+                    </Button>
                   </div>
-                  <div className="text-xs text-gray-500">
-                    Criado em {new Date(delivery.created_at).toLocaleString('pt-BR')}
+                  <div className="text-xs text-gray-500 flex items-center gap-4">
+                    <span>Criado em {new Date(delivery.created_at).toLocaleString('pt-BR')}</span>
+                    {delivery.driver_name && (
+                      <span className="flex items-center gap-1 text-emerald-600">
+                        <DollarSign className="w-3 h-3" />
+                        Comissão: {formatCurrency((delivery.delivery_fee || 0) * 0.1)}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -823,7 +890,7 @@ export default function DeliveryPage() {
                   onClick={() => {
                     setShowDriverModal(false)
                     setSelectedDelivery(null)
-                    setNewDriver({ name: '', phone: '', email: '', vehicle_type: 'moto', vehicle_plate: '', notes: '' })
+                    setNewDriver({ name: '', phone: '', email: '', vehicle_type: 'moto', vehicle_plate: '', notes: '', commission_percent: 10 })
                   }}
                   className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 >
@@ -879,7 +946,7 @@ export default function DeliveryPage() {
                     onClick={() => {
                       setShowDriverModal(false)
                       setSelectedDelivery(null)
-                      setNewDriver({ name: '', phone: '', email: '', vehicle_type: 'moto', vehicle_plate: '', notes: '' })
+                      setNewDriver({ name: '', phone: '', email: '', vehicle_type: 'moto', vehicle_plate: '', notes: '', commission_percent: 10 })
                     }}
                     variant="outline"
                     className="flex-1"
@@ -917,7 +984,7 @@ export default function DeliveryPage() {
                   <Button
                     onClick={() => {
                       setEditingDriver(null)
-                      setNewDriver({ name: '', phone: '', email: '', vehicle_type: 'moto', vehicle_plate: '', notes: '' })
+                      setNewDriver({ name: '', phone: '', email: '', vehicle_type: 'moto', vehicle_plate: '', notes: '', commission_percent: 10 })
                       setShowDriverForm(true)
                     }}
                     className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
@@ -939,7 +1006,7 @@ export default function DeliveryPage() {
                     <Button
                       onClick={() => {
                         setEditingDriver(null)
-                        setNewDriver({ name: '', phone: '', email: '', vehicle_type: 'moto', vehicle_plate: '', notes: '' })
+                        setNewDriver({ name: '', phone: '', email: '', vehicle_type: 'moto', vehicle_plate: '', notes: '', commission_percent: 10 })
                         setShowDriverForm(true)
                       }}
                       className="bg-green-600 hover:bg-green-700"
@@ -984,11 +1051,32 @@ export default function DeliveryPage() {
                               )}
                               <div className="flex items-center gap-2">
                                 <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                                {driver.rating.toFixed(1)} | {driver.total_deliveries} entregas
+                                {driver.rating?.toFixed(1) || '0.0'} | {driver.total_deliveries || 0} entregas
+                              </div>
+                              <div className="flex items-center gap-2 text-emerald-600 font-medium">
+                                <Percent className="w-4 h-4" />
+                                Comissão: {driver.commission_percent || 10}%
+                                {(() => {
+                                  const earnings = calculateDriverEarnings(driver)
+                                  return earnings.count > 0 ? (
+                                    <span className="ml-2 text-emerald-700">
+                                      ({formatCurrency(earnings.commission)} de {earnings.count} entregas)
+                                    </span>
+                                  ) : null
+                                })()}
                               </div>
                             </div>
                           </div>
-                          <div className="flex gap-2">
+                          <div className="flex flex-col gap-2">
+                            <Button
+                              onClick={() => fetchDriverHistory(driver)}
+                              size="sm"
+                              variant="outline"
+                              className="flex items-center gap-1"
+                            >
+                              <History className="w-4 h-4" />
+                              Histórico
+                            </Button>
                             <Button
                               onClick={() => toggleDriverAvailability(driver.id, driver.is_available)}
                               size="sm"
@@ -1036,7 +1124,7 @@ export default function DeliveryPage() {
                   onClick={() => {
                     setShowDriverForm(false)
                     setEditingDriver(null)
-                    setNewDriver({ name: '', phone: '', email: '', vehicle_type: 'moto', vehicle_plate: '', notes: '' })
+                    setNewDriver({ name: '', phone: '', email: '', vehicle_type: 'moto', vehicle_plate: '', notes: '', commission_percent: 10 })
                   }}
                   className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 >
@@ -1125,6 +1213,20 @@ export default function DeliveryPage() {
                   />
                 </div>
 
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Comissão (%)
+                  </label>
+                  <input
+                    type="number"
+                    value={newDriver.commission_percent}
+                    onChange={(e) => setNewDriver({ ...newDriver, commission_percent: parseInt(e.target.value) || 10 })}
+                    min="0"
+                    max="100"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
                 <div className="flex gap-3 pt-4">
                   <Button
                     onClick={editingDriver ? updateDriver : createDriver}
@@ -1137,7 +1239,7 @@ export default function DeliveryPage() {
                     onClick={() => {
                       setShowDriverForm(false)
                       setEditingDriver(null)
-                      setNewDriver({ name: '', phone: '', email: '', vehicle_type: 'moto', vehicle_plate: '', notes: '' })
+                      setNewDriver({ name: '', phone: '', email: '', vehicle_type: 'moto', vehicle_plate: '', notes: '', commission_percent: 10 })
                     }}
                     variant="outline"
                     className="flex-1"
@@ -1145,6 +1247,104 @@ export default function DeliveryPage() {
                     Cancelar
                   </Button>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal de Histórico do Motorista */}
+        {showDriverHistory && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden shadow-2xl">
+              <div className="p-6 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-indigo-600 to-violet-600 text-white">
+                <div>
+                  <h2 className="text-2xl font-bold flex items-center gap-2">
+                    <History className="w-6 h-6" />
+                    Histórico de {showDriverHistory.name}
+                  </h2>
+                  <p className="text-indigo-100 text-sm mt-1">
+                    {driverDeliveries.length} entregas encontradas
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowDriverHistory(null)
+                    setDriverDeliveries([])
+                  }}
+                  className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+                {/* Resumo */}
+                <div className="grid grid-cols-3 gap-4 mb-6">
+                  <div className="bg-blue-50 rounded-xl p-4 text-center">
+                    <div className="text-2xl font-bold text-blue-700">
+                      {driverDeliveries.filter(d => d.status === 'delivered').length}
+                    </div>
+                    <div className="text-sm text-blue-600">Entregues</div>
+                  </div>
+                  <div className="bg-emerald-50 rounded-xl p-4 text-center">
+                    <div className="text-2xl font-bold text-emerald-700">
+                      {formatCurrency(driverDeliveries.reduce((acc, d) => acc + (d.delivery_fee || 0), 0))}
+                    </div>
+                    <div className="text-sm text-emerald-600">Total Taxas</div>
+                  </div>
+                  <div className="bg-purple-50 rounded-xl p-4 text-center">
+                    <div className="text-2xl font-bold text-purple-700">
+                      {formatCurrency(driverDeliveries.reduce((acc, d) => acc + (d.delivery_fee || 0), 0) * ((showDriverHistory.commission_percent || 10) / 100))}
+                    </div>
+                    <div className="text-sm text-purple-600">Comissão ({showDriverHistory.commission_percent || 10}%)</div>
+                  </div>
+                </div>
+
+                {/* Lista de entregas */}
+                {driverDeliveries.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    Nenhuma entrega encontrada
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {driverDeliveries.map(delivery => (
+                      <div key={delivery.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                        <div>
+                          <div className="font-bold text-gray-900">
+                            #{delivery.order?.order_code}
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            {delivery.order?.customer_name}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {new Date(delivery.created_at).toLocaleString('pt-BR')}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(delivery.status)}`}>
+                            {getStatusLabel(delivery.status)}
+                          </div>
+                          <div className="text-sm font-medium text-emerald-600 mt-1">
+                            +{formatCurrency((delivery.delivery_fee || 0) * ((showDriverHistory.commission_percent || 10) / 100))}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="p-4 border-t bg-gray-50">
+                <Button
+                  onClick={() => {
+                    setShowDriverHistory(null)
+                    setDriverDeliveries([])
+                  }}
+                  className="w-full"
+                  variant="outline"
+                >
+                  Fechar
+                </Button>
               </div>
             </div>
           </div>
