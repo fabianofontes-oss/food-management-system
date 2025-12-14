@@ -2,7 +2,10 @@
 
 import { useMemo, useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
-import { Ticket, Plus, Edit2, Trash2, Power, Loader2, AlertCircle, Check, X } from 'lucide-react'
+import { 
+  Ticket, Plus, Edit2, Trash2, Power, Loader2, AlertCircle, Check, X,
+  Copy, BarChart3, Gift, Truck, Link, Users, Percent, DollarSign, Calendar
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/client'
 import { getCoupons, createCoupon, updateCoupon, deleteCoupon, toggleCouponStatus, type Coupon, type CouponType } from '@/lib/coupons/actions'
@@ -31,8 +34,14 @@ export default function CouponsPage() {
     starts_at: '',
     ends_at: '',
     max_uses: '',
-    min_order_amount: ''
+    min_order_amount: '',
+    coupon_type: 'standard',
+    one_per_customer: false,
+    auto_apply: false,
+    free_shipping: false
   })
+  
+  const [copiedCode, setCopiedCode] = useState<string | null>(null)
 
   useEffect(() => {
     loadStore()
@@ -96,7 +105,11 @@ export default function CouponsPage() {
       starts_at: '',
       ends_at: '',
       max_uses: '',
-      min_order_amount: ''
+      min_order_amount: '',
+      coupon_type: 'standard',
+      one_per_customer: false,
+      auto_apply: false,
+      free_shipping: false
     })
     setShowModal(true)
   }
@@ -111,9 +124,38 @@ export default function CouponsPage() {
       starts_at: coupon.starts_at ? coupon.starts_at.split('T')[0] : '',
       ends_at: coupon.ends_at ? coupon.ends_at.split('T')[0] : '',
       max_uses: coupon.max_uses?.toString() || '',
-      min_order_amount: coupon.min_order_amount?.toString() || ''
+      min_order_amount: coupon.min_order_amount?.toString() || '',
+      coupon_type: (coupon as any).coupon_type || 'standard',
+      one_per_customer: (coupon as any).one_per_customer || false,
+      auto_apply: (coupon as any).auto_apply || false,
+      free_shipping: (coupon as any).free_shipping || false
     })
     setShowModal(true)
+  }
+
+  function duplicateCoupon(coupon: Coupon) {
+    setEditingCoupon(null)
+    setFormData({
+      code: coupon.code + '_COPIA',
+      type: coupon.type,
+      value: coupon.value.toString(),
+      is_active: false,
+      starts_at: '',
+      ends_at: '',
+      max_uses: coupon.max_uses?.toString() || '',
+      min_order_amount: coupon.min_order_amount?.toString() || '',
+      coupon_type: (coupon as any).coupon_type || 'standard',
+      one_per_customer: (coupon as any).one_per_customer || false,
+      auto_apply: (coupon as any).auto_apply || false,
+      free_shipping: (coupon as any).free_shipping || false
+    })
+    setShowModal(true)
+  }
+
+  function copyCode(code: string) {
+    navigator.clipboard.writeText(code)
+    setCopiedCode(code)
+    setTimeout(() => setCopiedCode(null), 2000)
   }
 
   function validateForm(): string | null {
