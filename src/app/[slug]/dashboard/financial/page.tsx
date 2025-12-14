@@ -6,50 +6,15 @@ import { createClient } from '@/lib/supabase/client'
 import { formatCurrency } from '@/lib/utils'
 import { 
   DollarSign, TrendingUp, TrendingDown, Wallet, 
-  CreditCard, Banknote, PiggyBank, ArrowUpCircle, 
-  ArrowDownCircle, Calendar, Download, Plus, 
-  Loader2, AlertCircle, Receipt, BarChart3,
-  Clock, CheckCircle, XCircle
+  ArrowUpCircle, ArrowDownCircle, Download, 
+  Loader2, AlertCircle, BarChart3, Receipt
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { ExpensesTab } from './components/ExpensesTab'
+import { ReceivablesTab } from './components/ReceivablesTab'
+import { DRETab } from './components/DRETab'
 
-interface CashRegister {
-  id: string
-  opened_by: string
-  closed_by: string | null
-  opening_amount: number
-  closing_amount: number | null
-  expected_amount: number | null
-  difference: number | null
-  status: 'open' | 'closed'
-  opened_at: string
-  closed_at: string | null
-  notes: string | null
-}
-
-interface CashMovement {
-  id: string
-  register_id: string
-  type: 'sale' | 'withdrawal' | 'deposit' | 'adjustment'
-  amount: number
-  description: string | null
-  payment_method: string | null
-  created_at: string
-  created_by: string
-}
-
-interface FinancialSummary {
-  totalRevenue: number
-  totalExpenses: number
-  netProfit: number
-  cashInHand: number
-  pendingPayments: number
-  todaySales: number
-  weekSales: number
-  monthSales: number
-}
-
-type DateFilter = 'today' | 'week' | 'month' | 'custom'
+type TabType = 'resumo' | 'dre' | 'despesas' | 'receber'
 
 export default function FinancialPage() {
   const params = useParams()
@@ -58,6 +23,15 @@ export default function FinancialPage() {
   
   const [storeId, setStoreId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState<TabType>('resumo')
+  
+  const [summary, setSummary] = useState({
+    todaySales: 0,
+    weekSales: 0,
+    monthSales: 0,
+    pendingExpenses: 0,
+    pendingReceivables: 0
+  })
   const [error, setError] = useState('')
   
   const [dateFilter, setDateFilter] = useState<DateFilter>('month')
