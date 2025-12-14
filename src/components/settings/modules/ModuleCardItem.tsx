@@ -5,6 +5,7 @@ import { ChevronDown, ChevronRight, ExternalLink, Info, Power } from 'lucide-rea
 import { Button } from '@/components/ui/button'
 import type { Module } from '@/config/modules'
 import { StoreInfoCard } from './StoreInfoCard'
+import { HoursCard } from './HoursCard'
 
 interface ModuleCardItemProps {
   module: Module
@@ -88,12 +89,18 @@ export function ModuleCardItem({ module, slug, enabled, expanded, settings, onTo
       </div>
       
       {/* Configurações Expandidas */}
-      {(otherSettings.length > 0 || module.id === 'store_info') && (
+      {(otherSettings.length > 0 || module.id === 'store_info' || module.id === 'store_hours') && (
         <div className={`transition-all duration-300 ease-in-out ${expanded ? 'max-h-[3000px] opacity-100' : 'max-h-0 opacity-0'} overflow-hidden`}>
           <div className="px-4 pb-4 pt-4 border-t border-slate-100 bg-slate-50/50">
-            {/* Componente customizado para Dados da Loja */}
+            {/* Componentes customizados */}
             {module.id === 'store_info' ? (
               <StoreInfoCard 
+                settings={settings} 
+                enabled={enabled} 
+                onUpdateSetting={onUpdateSetting} 
+              />
+            ) : module.id === 'store_hours' ? (
+              <HoursCard 
                 settings={settings} 
                 enabled={enabled} 
                 onUpdateSetting={onUpdateSetting} 
