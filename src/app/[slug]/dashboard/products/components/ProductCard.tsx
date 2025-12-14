@@ -1,4 +1,4 @@
-import { Edit, Trash2, Clock, Package, DollarSign, AlertCircle } from 'lucide-react'
+import { Edit, Trash2, Clock, Package, DollarSign, AlertCircle, FileText } from 'lucide-react'
 import { Product } from '@/types/products'
 import { formatCurrency } from '@/lib/utils'
 
@@ -6,9 +6,10 @@ interface ProductCardProps {
   product: Product
   onEdit: (product: Product) => void
   onDelete: (id: string) => void
+  onRecipe?: (product: Product) => void
 }
 
-export const ProductCard = ({ product, onEdit, onDelete }: ProductCardProps) => {
+export const ProductCard = ({ product, onEdit, onDelete, onRecipe }: ProductCardProps) => {
   const isLowStock = (product.stock_quantity || 0) <= (product.min_stock || 0) && (product.min_stock || 0) > 0
   const margin = (product.base_price || 0) > 0 && (product.cost_price || 0) > 0 
     ? (((product.base_price || 0) - (product.cost_price || 0)) / (product.base_price || 0) * 100).toFixed(1)
@@ -29,6 +30,15 @@ export const ProductCard = ({ product, onEdit, onDelete }: ProductCardProps) => 
           )}
         </div>
         <div className="flex gap-1">
+          {onRecipe && (
+            <button
+              onClick={() => onRecipe(product)}
+              className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
+              title="Ficha Técnica"
+            >
+              <FileText className="w-4 h-4" />
+            </button>
+          )}
           <button
             onClick={() => onEdit(product)}
             className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"

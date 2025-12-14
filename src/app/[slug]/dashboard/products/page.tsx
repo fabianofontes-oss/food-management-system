@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { ProductCard } from './components/ProductCard'
 import { ProductForm } from './components/ProductForm'
 import { CategoryManager } from './components/CategoryManager'
+import { ProductRecipe } from './components/ProductRecipe'
 import { useProductsComplete } from '@/hooks/useProductsComplete'
 import { Product, ProductFormData } from '@/types/products'
 import { createClient } from '@/lib/supabase/client'
@@ -31,6 +32,7 @@ export default function ProductsPage() {
   const [showForm, setShowForm] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | undefined>()
   const [showCategoryManager, setShowCategoryManager] = useState(false)
+  const [recipeProduct, setRecipeProduct] = useState<Product | null>(null)
 
   useEffect(() => {
     async function fetchStore() {
@@ -261,6 +263,7 @@ export default function ProductsPage() {
                 product={product}
                 onEdit={handleEdit}
                 onDelete={deleteProduct}
+                onRecipe={setRecipeProduct}
               />
             ))}
           </div>
@@ -289,6 +292,17 @@ export default function ProductsPage() {
           onDeleteCategory={deleteCategory}
           onReorderCategories={reorderCategories}
           onClose={() => setShowCategoryManager(false)}
+        />
+      )}
+
+      {recipeProduct && storeId && (
+        <ProductRecipe
+          productId={recipeProduct.id}
+          productName={recipeProduct.name}
+          productPrice={recipeProduct.base_price}
+          storeId={storeId}
+          onClose={() => setRecipeProduct(null)}
+          onCostUpdate={() => refreshData()}
         />
       )}
     </div>
