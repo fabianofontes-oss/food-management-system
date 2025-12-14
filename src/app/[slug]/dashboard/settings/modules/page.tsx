@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Settings, Loader2, Save, CheckCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { MODULES, CATEGORIES } from '@/config/modules'
+import { MODULES, CATEGORIES, INTEGRATION_SUBCATEGORIES } from '@/config/modules'
 import { ModuleCardItem } from '@/components/settings/modules'
 
 export default function ModulesPage() {
@@ -120,6 +120,71 @@ export default function ModulesPage() {
         {/* Categorias e Módulos */}
         {CATEGORIES.map(category => {
           const categoryModules = MODULES.filter(m => m.category === category.id)
+          
+          // Para integrações, agrupar por subcategoria
+          if (category.id === 'integrations') {
+            return (
+              <div key={category.id} className="space-y-6">
+                <div className="flex items-center gap-2 border-b-2 border-violet-200 pb-3">
+                  <h2 className="text-2xl font-bold text-slate-800">{category.name}</h2>
+                  <span className="text-sm text-slate-400">{category.description}</span>
+                </div>
+                
+                {INTEGRATION_SUBCATEGORIES.map(subcat => {
+                  const subcatModules = categoryModules.filter(m => m.subcategory === subcat.id)
+                  if (subcatModules.length === 0) return null
+                  
+                  return (
+                    <div key={subcat.id} className="space-y-3">
+                      <div className="bg-gradient-to-r from-slate-100 to-slate-50 rounded-xl p-4 border border-slate-200">
+                        <h3 className="text-lg font-bold text-slate-700">{subcat.name}</h3>
+                        <p className="text-sm text-slate-500">{subcat.description}</p>
+                      </div>
+                      <div className="space-y-3 pl-2">
+                        {subcatModules.map(module => (
+                          <ModuleCardItem
+                            key={module.id}
+                            module={module}
+                            slug={slug}
+                            enabled={isModuleEnabled(module.id)}
+                            expanded={expandedModules.includes(module.id)}
+                            settings={moduleSettings[module.id] || {}}
+                            onToggleExpand={() => toggleExpanded(module.id)}
+                            onUpdateSetting={(key, value) => updateSetting(module.id, key, value)}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
+                
+                {/* Integrações sem subcategoria */}
+                {categoryModules.filter(m => !m.subcategory).length > 0 && (
+                  <div className="space-y-3">
+                    <div className="bg-gradient-to-r from-slate-100 to-slate-50 rounded-xl p-4 border border-slate-200">
+                      <h3 className="text-lg font-bold text-slate-700">🔗 Outras Integrações</h3>
+                      <p className="text-sm text-slate-500">Integrações adicionais</p>
+                    </div>
+                    <div className="space-y-3 pl-2">
+                      {categoryModules.filter(m => !m.subcategory).map(module => (
+                        <ModuleCardItem
+                          key={module.id}
+                          module={module}
+                          slug={slug}
+                          enabled={isModuleEnabled(module.id)}
+                          expanded={expandedModules.includes(module.id)}
+                          settings={moduleSettings[module.id] || {}}
+                          onToggleExpand={() => toggleExpanded(module.id)}
+                          onUpdateSetting={(key, value) => updateSetting(module.id, key, value)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          }
+          
           return (
             <div key={category.id} className="space-y-4">
               <div className="flex items-center gap-2 border-b border-slate-200 pb-2">

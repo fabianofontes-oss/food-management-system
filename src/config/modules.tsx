@@ -46,6 +46,18 @@ export const CATEGORIES = [
   { id: 'notifications', name: '🔔 Notificações', description: 'Comunicação' }
 ]
 
+export const INTEGRATION_SUBCATEGORIES = [
+  { id: 'delivery_platforms', name: '🚚 Plataformas de Delivery', description: 'Receba pedidos de marketplaces' },
+  { id: 'payment_gateways', name: '💳 Gateways de Pagamento', description: 'Pagamentos online (PIX, cartão, boleto)' },
+  { id: 'payment_machines', name: '🔌 Maquininhas', description: 'Integração com máquinas de cartão' },
+  { id: 'fiscal', name: '📄 Fiscal', description: 'Nota fiscal eletrônica' },
+  { id: 'erp', name: '🏢 ERP & Financeiro', description: 'Gestão empresarial e contábil' },
+  { id: 'analytics', name: '📊 Analytics & Marketing', description: 'Rastreamento e conversões' },
+  { id: 'maps', name: '🗺️ Mapas & Localização', description: 'Cálculo de distância e rotas' },
+  { id: 'communication', name: '💬 Comunicação', description: 'Notificações e mensagens' },
+  { id: 'crm', name: '👥 CRM', description: 'Gestão de relacionamento' }
+]
+
 export const MODULES: Module[] = [
   // === MINHA LOJA ===
   {
