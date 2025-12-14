@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { Users, UserPlus, Loader2, Trash2, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { getTeamMembers, inviteMember, updateMemberRole, removeMember } from './actions'
 import { createClient } from '@/lib/supabase/client'
 
 type TeamMember = {
@@ -25,8 +24,9 @@ export default function TeamPage() {
   
   const [loading, setLoading] = useState(true)
   const [members, setMembers] = useState<TeamMember[]>([])
-  const [currentUserRole, setCurrentUserRole] = useState<UserRole>('staff')
+  const [currentUserRole, setCurrentUserRole] = useState<UserRole>('owner')
   const [storeId, setStoreId] = useState<string>('')
+  const [currentUserId, setCurrentUserId] = useState<string>('')
   const [error, setError] = useState('')
   
   const [inviteEmail, setInviteEmail] = useState('')
@@ -47,6 +47,15 @@ export default function TeamPage() {
       setLoading(true)
       setError('')
 
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        setError('Faça login para acessar esta página')
+        setLoading(false)
+        return
+      }
+      setCurrentUserId(user.id)
+
       // Get store by slug
       const { data: store, error: storeError } = await supabase
         .from('stores')
@@ -62,17 +71,37 @@ export default function TeamPage() {
 
       setStoreId(store.id)
 
-      // Get team members
-      const result = await getTeamMembers(store.id)
+      // Get current user's role
+      const { data: access } = await supabase
+        .from('store_users')
+        .select('role')
+        .eq('store_id', store.id)
+        .eq('user_id', user.id)
+        .single()
 
-      if (result.error) {
-        setError(result.error)
+      if (access) {
+        setCurrentUserRole(access.role as UserRole)
+      }
+
+      // Get team members
+      const { data: membersData, error: membersError } = await supabase
+        .from('store_users')
+        .select('id, user_id, role, created_at')
+        .eq('store_id', store.id)
+        .order('created_at', { ascending: true })
+
+      if (membersError) {
+        setError('Erro ao carregar membros')
         setLoading(false)
         return
       }
 
-      setMembers(result.data || [])
-      setCurrentUserRole(result.currentUserRole || 'staff')
+      const membersWithEmail = (membersData || []).map((m: any) => ({
+        ...m,
+        email: m.user_id === user.id ? (user.email || 'Você') : 'Membro da equipe'
+      }))
+
+      setMembers(membersWithEmail)
       setLoading(false)
     } catch (err: any) {
       setError(err.message || 'Erro ao carregar equipe')
@@ -86,28 +115,19 @@ export default function TeamPage() {
     setInviteError('')
     setInviteSuccess('')
 
-    const result = await inviteMember(storeId, inviteEmail, inviteRole)
-
-    if (result.error) {
-      setInviteError(result.error)
-      setInviting(false)
-      return
-    }
-
-    setInviteSuccess(`Convite enviado para ${inviteEmail}`)
-    setInviteEmail('')
-    setInviteRole('staff')
+    // Convite por email requer configuração especial
+    setInviteError('Convite por email não está disponível no momento.')
     setInviting(false)
-    
-    setTimeout(() => setInviteSuccess(''), 3000)
-    loadStoreAndMembers()
   }
 
   async function handleRoleChange(memberId: string, newRole: UserRole) {
-    const result = await updateMemberRole(storeId, memberId, newRole)
+    const { error } = await supabase
+      .from('store_users')
+      .update({ role: newRole })
+      .eq('id', memberId)
 
-    if (result.error) {
-      alert(result.error)
+    if (error) {
+      alert('Erro ao alterar papel: ' + error.message)
       return
     }
 
@@ -117,10 +137,13 @@ export default function TeamPage() {
   async function handleRemove(memberId: string) {
     setRemovingId(memberId)
     
-    const result = await removeMember(storeId, memberId)
+    const { error } = await supabase
+      .from('store_users')
+      .delete()
+      .eq('id', memberId)
 
-    if (result.error) {
-      alert(result.error)
+    if (error) {
+      alert('Erro ao remover membro: ' + error.message)
       setRemovingId(null)
       setConfirmRemove(null)
       return
