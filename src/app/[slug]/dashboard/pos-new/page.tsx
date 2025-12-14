@@ -72,8 +72,8 @@ export default function POSNewPage() {
     loadConfig()
   }, [slug, supabase])
 
-  // Filtrar produtos
-  const storeProducts = storeId ? products.filter(p => p.store_id === storeId) : []
+  // Usar todos os produtos (mesmo padrão do PDV antigo)
+  const storeProducts = products
   const categories = useMemo(() => {
     const cats = new Set(storeProducts.map(p => p.category_id).filter(Boolean))
     return ['all', ...Array.from(cats)]
