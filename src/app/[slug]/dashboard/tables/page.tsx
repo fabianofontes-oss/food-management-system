@@ -369,6 +369,105 @@ export default function TablesPage() {
   // Obter reservas do dia para uma mesa
   const getTableReservations = (tableId: string) => reservations.filter(r => r.table_id === tableId)
 
+  // Imprimir comanda
+  const printComanda = (table: Table) => {
+    const printWindow = window.open('', '', 'width=400,height=600')
+    if (!printWindow) return
+
+    const occupiedTime = table.occupied_at ? getOccupiedTime(table.occupied_at) : '-'
+    
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Comanda Mesa ${table.number}</title>
+          <style>
+            body { font-family: 'Courier New', monospace; padding: 20px; max-width: 300px; margin: 0 auto; }
+            .header { text-align: center; border-bottom: 2px dashed #000; padding-bottom: 10px; margin-bottom: 10px; }
+            .info { margin: 10px 0; }
+            .footer { text-align: center; border-top: 2px dashed #000; padding-top: 10px; margin-top: 20px; font-size: 12px; }
+            h1 { font-size: 24px; margin: 0; }
+            h2 { font-size: 18px; margin: 5px 0; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>MESA ${table.number}</h1>
+            <h2>Capacidade: ${table.capacity} pessoas</h2>
+          </div>
+          <div class="info">
+            <p><strong>Status:</strong> ${table.status === 'occupied' ? 'Ocupada' : table.status}</p>
+            <p><strong>Tempo:</strong> ${occupiedTime}</p>
+            <p><strong>Data:</strong> ${new Date().toLocaleString('pt-BR')}</p>
+          </div>
+          ${tableOrder ? `
+            <div class="info">
+              <p><strong>Pedido:</strong> ${tableOrder.code}</p>
+              <p><strong>Total:</strong> R$ ${tableOrder.total_amount.toFixed(2)}</p>
+            </div>
+          ` : ''}
+          <div class="footer">
+            <p>Obrigado pela preferência!</p>
+          </div>
+        </body>
+      </html>
+    `)
+    printWindow.document.close()
+    printWindow.print()
+  }
+
+  // Juntar mesas
+  const handleMergeTables = async (targetTableId: string) => {
+    if (!selectedTable) return
+    
+    try {
+      const currentMerged = selectedTable.merged_with || []
+      const newMerged = [...currentMerged, targetTableId]
+      
+      await supabase.from('tables').update({ 
+        merged_with: newMerged 
+      }).eq('id', selectedTable.id)
+      
+      // Marcar mesa alvo como ocupada
+      await supabase.from('tables').update({ 
+        status: 'occupied',
+        occupied_at: new Date().toISOString()
+      }).eq('id', targetTableId)
+      
+      setShowMerge(false)
+      loadTables()
+      alert('Mesas unidas com sucesso!')
+    } catch (err) {
+      console.error('Erro:', err)
+    }
+  }
+
+  // Transferir pedido para outra mesa
+  const handleTransferTable = async (targetTableId: string) => {
+    if (!selectedTable || !selectedTable.current_order_id) return
+    
+    try {
+      // Transferir pedido
+      await supabase.from('tables').update({ 
+        current_order_id: selectedTable.current_order_id,
+        status: 'occupied',
+        occupied_at: new Date().toISOString()
+      }).eq('id', targetTableId)
+      
+      // Liberar mesa original
+      await supabase.from('tables').update({ 
+        current_order_id: null,
+        status: 'available',
+        occupied_at: null
+      }).eq('id', selectedTable.id)
+      
+      setShowDetails(false)
+      loadTables()
+      alert('Pedido transferido com sucesso!')
+    } catch (err) {
+      console.error('Erro:', err)
+    }
+  }
+
   async function handleDelete(id: string) {
     if (!confirm('Deseja realmente excluir esta mesa?')) return
     
@@ -744,6 +843,28 @@ export default function TablesPage() {
                 </Button>
               </div>
 
+              {/* Ações Premium */}
+              {selectedTable.status === 'occupied' && (
+                <div className="grid grid-cols-2 gap-2 pt-4 border-t">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowMerge(true)}
+                  >
+                    <Merge className="w-4 h-4 mr-1" />
+                    Juntar Mesas
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => printComanda(selectedTable)}
+                  >
+                    <FileText className="w-4 h-4 mr-1" />
+                    Imprimir
+                  </Button>
+                </div>
+              )}
+
               <div className="flex gap-2 pt-4 border-t">
                 <Button
                   variant="outline"
@@ -1023,12 +1144,18 @@ export default function TablesPage() {
             <div className="space-y-2 max-h-48 overflow-y-auto">
               {waiterCalls.map(call => {
                 const table = tables.find(t => t.id === call.table_id)
+                const callTypeLabels: Record<string, string> = {
+                  'assistance': '🔔 Garçom',
+                  'order': '🍽️ Pedido',
+                  'water': '💧 Água',
+                  'bill': '💳 Conta'
+                }
                 return (
                   <div key={call.id} className="flex items-center justify-between p-3 bg-red-50 rounded-xl">
                     <div>
                       <p className="font-bold">Mesa {table?.number}</p>
                       <p className="text-xs text-slate-500">
-                        {new Date(call.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                        {callTypeLabels[call.call_type] || call.call_type} • {new Date(call.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
                     <Button
@@ -1043,6 +1170,65 @@ export default function TablesPage() {
                 )
               })}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Juntar Mesas */}
+      {showMerge && selectedTable && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <Merge className="w-5 h-5 text-purple-600" />
+                Juntar com Mesa {selectedTable.number}
+              </h3>
+              <button onClick={() => setShowMerge(false)} className="p-2 hover:bg-slate-100 rounded-lg">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <p className="text-sm text-slate-500 mb-4">Selecione a mesa para unir:</p>
+            
+            <div className="grid grid-cols-4 gap-2 max-h-60 overflow-y-auto">
+              {tables
+                .filter(t => t.id !== selectedTable.id && t.status === 'available')
+                .map(t => (
+                  <button
+                    key={t.id}
+                    onClick={() => handleMergeTables(t.id)}
+                    className="p-3 bg-green-50 hover:bg-green-100 rounded-xl text-center border-2 border-green-200 hover:border-green-400 transition-colors"
+                  >
+                    <p className="font-bold text-green-700">{t.number}</p>
+                    <p className="text-xs text-green-600">{t.capacity}p</p>
+                  </button>
+                ))}
+            </div>
+            
+            {tables.filter(t => t.id !== selectedTable.id && t.status === 'available').length === 0 && (
+              <p className="text-center text-slate-400 py-4">Nenhuma mesa disponível para unir</p>
+            )}
+
+            {/* Transferir pedido */}
+            {selectedTable.current_order_id && (
+              <div className="mt-4 pt-4 border-t">
+                <h4 className="font-medium text-slate-700 mb-2">Ou transferir pedido para:</h4>
+                <div className="grid grid-cols-4 gap-2 max-h-40 overflow-y-auto">
+                  {tables
+                    .filter(t => t.id !== selectedTable.id && t.status === 'available')
+                    .map(t => (
+                      <button
+                        key={t.id}
+                        onClick={() => handleTransferTable(t.id)}
+                        className="p-3 bg-blue-50 hover:bg-blue-100 rounded-xl text-center border-2 border-blue-200 hover:border-blue-400 transition-colors"
+                      >
+                        <p className="font-bold text-blue-700">{t.number}</p>
+                        <p className="text-xs text-blue-600">{t.capacity}p</p>
+                      </button>
+                    ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
