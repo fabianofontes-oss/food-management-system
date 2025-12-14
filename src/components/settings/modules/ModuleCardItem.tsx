@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { ChevronDown, ChevronRight, ExternalLink, Info, Power } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import type { Module } from '@/config/modules'
+import { StoreInfoCard } from './StoreInfoCard'
 
 interface ModuleCardItemProps {
   module: Module
@@ -87,18 +88,27 @@ export function ModuleCardItem({ module, slug, enabled, expanded, settings, onTo
       </div>
       
       {/* Configurações Expandidas */}
-      {otherSettings.length > 0 && (
-        <div className={`transition-all duration-300 ease-in-out ${expanded ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'} overflow-hidden`}>
-          <div className="px-4 pb-4 pt-2 border-t border-slate-100 bg-slate-50/50">
-            {/* Descrição */}
-            <div className="flex items-start gap-2 bg-blue-50 p-3 rounded-xl mb-4">
-              <Info className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-slate-600">{module.longDescription}</p>
-            </div>
-            
-            {/* Grid de Configurações */}
-            <div className="space-y-3">
-              {otherSettings.map(setting => {
+      {(otherSettings.length > 0 || module.id === 'store_info') && (
+        <div className={`transition-all duration-300 ease-in-out ${expanded ? 'max-h-[3000px] opacity-100' : 'max-h-0 opacity-0'} overflow-hidden`}>
+          <div className="px-4 pb-4 pt-4 border-t border-slate-100 bg-slate-50/50">
+            {/* Componente customizado para Dados da Loja */}
+            {module.id === 'store_info' ? (
+              <StoreInfoCard 
+                settings={settings} 
+                enabled={enabled} 
+                onUpdateSetting={onUpdateSetting} 
+              />
+            ) : (
+              <>
+                {/* Descrição */}
+                <div className="flex items-start gap-2 bg-blue-50 p-3 rounded-xl mb-4">
+                  <Info className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
+                  <p className="text-sm text-slate-600">{module.longDescription}</p>
+                </div>
+                
+                {/* Grid de Configurações */}
+                <div className="space-y-3">
+                  {otherSettings.map(setting => {
                 const currentValue = settings[setting.key] ?? setting.defaultValue
                 const isToggle = setting.type === 'toggle'
                 
@@ -185,7 +195,9 @@ export function ModuleCardItem({ module, slug, enabled, expanded, settings, onTo
                   </div>
                 )
               })}
-            </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
