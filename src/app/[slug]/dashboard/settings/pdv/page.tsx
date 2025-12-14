@@ -43,7 +43,7 @@ export default function PDVSettingsPage() {
       const { data } = await supabase.from('stores').select('id, settings').eq('slug', slug).single()
       if (data) {
         setStoreId(data.id)
-        const storeSettings = (data.settings as any)?.pdv || {}
+        const storeSettings = (data.settings as any)?.sales?.pdv || (data.settings as any)?.pdv || {}
         setSettings(prev => ({ ...prev, ...storeSettings }))
       }
       setLoading(false)
