@@ -68,8 +68,12 @@ export default function PDVSettingsPage() {
     try {
       const { data: store } = await supabase.from('stores').select('settings').eq('id', storeId).single()
       const currentSettings = (store?.settings as any) || {}
+      const salesSettings = currentSettings.sales || {}
       const { error } = await supabase.from('stores').update({
-        settings: { ...currentSettings, pdv: settings }
+        settings: { 
+          ...currentSettings, 
+          sales: { ...salesSettings, pdv: settings }
+        }
       }).eq('id', storeId)
       if (error) throw error
       setSaveStatus('success')
