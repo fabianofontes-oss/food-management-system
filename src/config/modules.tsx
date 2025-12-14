@@ -254,6 +254,29 @@ export const MODULES: Module[] = [
 
   // === OPERAÇÕES ===
   {
+    id: 'drivers',
+    name: 'Entregadores',
+    description: 'Gestão de motoboys',
+    longDescription: 'Configure como pagar seus entregadores: por entrega, porcentagem ou turno.',
+    icon: <Bike className="w-6 h-6" />,
+    color: 'text-lime-600',
+    bgColor: 'bg-lime-100',
+    category: 'operations',
+    configPage: '/dashboard/delivery',
+    settings: [
+      { key: 'drivers_enabled', label: 'Gestão de Entregadores', description: 'Ativa controle de motoboys', type: 'toggle', icon: <Bike className="w-4 h-4" />, defaultValue: true },
+      { key: 'driver_payment_type', label: 'Tipo de Pagamento', description: 'Como pagar o entregador', type: 'select', icon: <DollarSign className="w-4 h-4" />, options: [{ value: 'per_delivery', label: 'Valor por Entrega' }, { value: 'percentage', label: 'Porcentagem (%)' }, { value: 'shift', label: 'Valor por Turno' }, { value: 'mixed', label: 'Combinado (Fixo + %)' }], defaultValue: 'per_delivery' },
+      { key: 'driver_fixed_value', label: 'Valor Fixo por Entrega', description: 'Quanto pagar por cada entrega', type: 'currency', icon: <Banknote className="w-4 h-4" />, placeholder: '5.00', prefix: 'R$', defaultValue: 5 },
+      { key: 'driver_percentage', label: 'Porcentagem do Pedido', description: '% do valor do pedido', type: 'number', icon: <Percent className="w-4 h-4" />, placeholder: '10', suffix: '%', defaultValue: 10 },
+      { key: 'driver_shift_value', label: 'Valor do Turno', description: 'Valor fixo por turno de trabalho', type: 'currency', icon: <Clock className="w-4 h-4" />, placeholder: '50.00', prefix: 'R$', defaultValue: 50 },
+      { key: 'driver_shift_hours', label: 'Horas por Turno', description: 'Duração do turno', type: 'number', icon: <Timer className="w-4 h-4" />, placeholder: '6', suffix: 'h', defaultValue: 6 },
+      { key: 'driver_min_guarantee', label: 'Garantia Mínima', description: 'Valor mínimo garantido por turno', type: 'currency', icon: <DollarSign className="w-4 h-4" />, placeholder: '30.00', prefix: 'R$', defaultValue: 0 },
+      { key: 'driver_bonus_enabled', label: 'Bônus por Meta', description: 'Paga bônus ao atingir meta', type: 'toggle', icon: <Gift className="w-4 h-4" />, defaultValue: false },
+      { key: 'driver_bonus_target', label: 'Meta de Entregas', description: 'Entregas para ganhar bônus', type: 'number', icon: <Hash className="w-4 h-4" />, placeholder: '20', suffix: 'entregas', defaultValue: 20 },
+      { key: 'driver_bonus_value', label: 'Valor do Bônus', description: 'Bônus ao atingir meta', type: 'currency', icon: <Gift className="w-4 h-4" />, placeholder: '20.00', prefix: 'R$', defaultValue: 20 }
+    ]
+  },
+  {
     id: 'inventory',
     name: 'Controle de Estoque',
     description: 'Gestão de insumos',
