@@ -152,6 +152,7 @@ export const MODULES: Module[] = [
     color: 'text-blue-600',
     bgColor: 'bg-blue-100',
     category: 'sales',
+    configPage: '/dashboard/settings/pdv',
     hasCustomCard: true,
     settings: [
       { key: 'pdv_enabled', label: 'Sistema PDV Ativo', description: 'Habilita o módulo de vendas no balcão', type: 'toggle', icon: <Monitor className="w-4 h-4" />, defaultValue: true },
