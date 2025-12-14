@@ -37,13 +37,33 @@ interface UnifiedStats {
 }
 
 const PLATFORMS = [
-  { id: 'google', name: 'Google Meu Negócio', icon: '🔍', color: 'bg-blue-500', instructions: 'Cole o link do seu perfil do Google' },
-  { id: 'ifood', name: 'iFood', icon: '🍔', color: 'bg-red-500', instructions: 'Cole o link do seu restaurante no iFood' },
-  { id: 'rappi', name: 'Rappi', icon: '🛵', color: 'bg-orange-500', instructions: 'Cole o link do seu restaurante na Rappi' },
-  { id: 'ubereats', name: 'Uber Eats', icon: '🚗', color: 'bg-green-600', instructions: 'Cole o link do seu restaurante no Uber Eats' },
-  { id: 'facebook', name: 'Facebook', icon: '📘', color: 'bg-blue-600', instructions: 'Cole o link da sua página do Facebook' },
-  { id: 'tripadvisor', name: 'TripAdvisor', icon: '🦉', color: 'bg-green-500', instructions: 'Cole o link do seu restaurante no TripAdvisor' }
+  { id: 'google', name: 'Google Meu Negócio', icon: '🔍', color: 'bg-blue-500', instructions: 'Conecte sua conta do Google', hasOAuth: true, apiStatus: 'available' },
+  { id: 'ifood', name: 'iFood', icon: '🍔', color: 'bg-red-500', instructions: 'Cadastro manual apenas', hasOAuth: false, apiStatus: 'closed' },
+  { id: 'rappi', name: 'Rappi', icon: '🛵', color: 'bg-orange-500', instructions: 'Cadastro manual apenas', hasOAuth: false, apiStatus: 'closed' },
+  { id: 'ubereats', name: 'Uber Eats', icon: '🚗', color: 'bg-green-600', instructions: 'Cadastro manual apenas', hasOAuth: false, apiStatus: 'closed' },
+  { id: 'facebook', name: 'Facebook', icon: '📘', color: 'bg-blue-600', instructions: 'Cadastro manual apenas', hasOAuth: false, apiStatus: 'limited' },
+  { id: 'tripadvisor', name: 'TripAdvisor', icon: '🦉', color: 'bg-green-500', instructions: 'Cadastro manual apenas', hasOAuth: false, apiStatus: 'closed' }
 ]
+
+// URL base para OAuth do Google
+const getGoogleAuthUrl = (storeId: string) => {
+  const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ''
+  const redirectUri = typeof window !== 'undefined' 
+    ? `${window.location.origin}/api/integrations/google/callback`
+    : ''
+  
+  const params = new URLSearchParams({
+    client_id: clientId,
+    redirect_uri: redirectUri,
+    response_type: 'code',
+    scope: 'https://www.googleapis.com/auth/business.manage',
+    access_type: 'offline',
+    prompt: 'consent',
+    state: storeId
+  })
+  
+  return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
+}
 
 export default function ReviewIntegrationsPage() {
   const params = useParams()
@@ -197,28 +217,64 @@ export default function ReviewIntegrationsPage() {
   }
 
   async function handleSync(integrationId: string) {
+    const integration = integrations.find(i => i.id === integrationId)
+    if (!integration) return
+
     setSyncing(integrationId)
     
-    // Simular sincronização (em produção, chamaria API externa)
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    
-    await supabase
-      .from('review_integrations')
-      .update({ 
-        last_sync_at: new Date().toISOString(),
-        last_sync_status: 'success'
-      })
-      .eq('id', integrationId)
+    try {
+      // Se for Google e estiver conectado, fazer sync real
+      if (integration.platform === 'google' && integration.is_connected) {
+        const response = await fetch('/api/integrations/google/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ integrationId, storeId })
+        })
+        
+        const result = await response.json()
+        
+        if (!response.ok) {
+          throw new Error(result.error || 'Erro na sincronização')
+        }
+        
+        alert(`Sincronização concluída! ${result.imported} importados, ${result.updated} atualizados.`)
+      } else {
+        // Para outras plataformas, apenas atualizar timestamp
+        await supabase
+          .from('review_integrations')
+          .update({ 
+            last_sync_at: new Date().toISOString(),
+            last_sync_status: 'success'
+          })
+          .eq('id', integrationId)
+      }
 
-    setIntegrations(prev => prev.map(i => 
-      i.id === integrationId ? { 
-        ...i, 
-        last_sync_at: new Date().toISOString(),
-        last_sync_status: 'success'
-      } : i
-    ))
-    
-    setSyncing(null)
+      setIntegrations(prev => prev.map(i => 
+        i.id === integrationId ? { 
+          ...i, 
+          last_sync_at: new Date().toISOString(),
+          last_sync_status: 'success'
+        } : i
+      ))
+      
+      loadIntegrations()
+    } catch (err: any) {
+      alert(`Erro: ${err.message}`)
+      setIntegrations(prev => prev.map(i => 
+        i.id === integrationId ? { 
+          ...i, 
+          last_sync_status: 'failed'
+        } : i
+      ))
+    } finally {
+      setSyncing(null)
+    }
+  }
+
+  // Conectar com Google OAuth
+  function handleConnectGoogle() {
+    if (!storeId) return
+    window.location.href = getGoogleAuthUrl(storeId)
   }
 
   async function handleDelete(integrationId: string) {
