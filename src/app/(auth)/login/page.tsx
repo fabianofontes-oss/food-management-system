@@ -48,56 +48,42 @@ export default function LoginPage() {
         return
       }
 
-      // Get user stores directly from store_users table
+      // Get user store associations
       const { data: storeUsers, error: storesError } = await supabase
         .from('store_users')
-        .select(`
-          store_id,
-          role,
-          stores:store_id (
-            id,
-            slug,
-            name
-          )
-        `)
+        .select('store_id, role')
         .eq('user_id', data.user.id)
 
       if (storesError) {
-        console.error('Error fetching stores:', storesError)
-        // Try alternative query without join
-        const { data: simpleStoreUsers } = await supabase
-          .from('store_users')
-          .select('store_id')
-          .eq('user_id', data.user.id)
-        
-        if (simpleStoreUsers && simpleStoreUsers.length > 0) {
-          const { data: store } = await supabase
-            .from('stores')
-            .select('slug')
-            .eq('id', simpleStoreUsers[0].store_id)
-            .single()
-          
-          if (store) {
-            router.push(`/${store.slug}/dashboard`)
-            return
-          }
-        }
-        
-        setError('Erro ao carregar suas lojas')
+        console.error('Error fetching store_users:', storesError)
+        setError('Erro ao carregar suas lojas. Verifique as permissões.')
         setLoading(false)
         return
       }
 
       if (!storeUsers || storeUsers.length === 0) {
-        setError('Nenhuma loja atribuída ainda. Entre em contato com o administrador.')
+        setError('Nenhuma loja atribuída. Entre em contato com o administrador.')
         setLoading(false)
         return
       }
 
-      // Redirect based on number of stores
+      // Get store details
+      const { data: store, error: storeError } = await supabase
+        .from('stores')
+        .select('slug, name')
+        .eq('id', storeUsers[0].store_id)
+        .single()
+
+      if (storeError || !store) {
+        console.error('Error fetching store:', storeError)
+        setError('Erro ao carregar dados da loja.')
+        setLoading(false)
+        return
+      }
+
+      // Redirect to dashboard
       if (storeUsers.length === 1) {
-        const store = storeUsers[0].stores as any
-        router.push(`/${store?.slug || 'acai-sabor-real'}/dashboard`)
+        router.push(`/${store.slug}/dashboard`)
       } else {
         router.push('/select-store')
       }
