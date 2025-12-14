@@ -7,7 +7,8 @@ import { formatCurrency } from '@/lib/utils'
 import { 
   User, UtensilsCrossed, ShoppingBag, Plus, Minus, 
   Send, X, Check, Clock, ChefHat, Loader2,
-  Search, ArrowLeft, Bell, Home
+  Search, ArrowLeft, Bell, Home, Receipt, CreditCard,
+  Banknote, QrCode, History, RefreshCw
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
@@ -38,6 +39,25 @@ interface Table {
   status: string
 }
 
+interface Order {
+  id: string
+  order_number: string
+  status: string
+  total_amount: number
+  created_at: string
+  items?: OrderItem[]
+}
+
+interface OrderItem {
+  id: string
+  product_name: string
+  quantity: number
+  unit_price: number
+  total_price: number
+  status: string
+  notes: string | null
+}
+
 export default function WaiterAppPage() {
   const params = useParams()
   const slug = params.slug as string
@@ -56,7 +76,11 @@ export default function WaiterAppPage() {
   const [cart, setCart] = useState<CartItem[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [sending, setSending] = useState(false)
-  const [view, setView] = useState<'tables' | 'menu' | 'cart'>('tables')
+  const [view, setView] = useState<'tables' | 'menu' | 'cart' | 'orders' | 'payment' | 'history'>('tables')
+  const [tableOrders, setTableOrders] = useState<Order[]>([])
+  const [selectedPayment, setSelectedPayment] = useState<'cash' | 'card' | 'pix'>('cash')
+  const [waiterHistory, setWaiterHistory] = useState<Order[]>([])
+  const [readyOrders, setReadyOrders] = useState<Order[]>([])
 
   useEffect(() => {
     async function loadStore() {
@@ -84,6 +108,40 @@ export default function WaiterAppPage() {
     setTables(tablesRes.data || [])
     setCategories(categoriesRes.data || [])
     setProducts(productsRes.data || [])
+    
+    // Carregar pedidos prontos
+    const { data: ready } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('store_id', storeId)
+      .eq('status', 'ready')
+      .order('created_at', { ascending: false })
+    setReadyOrders(ready || [])
+  }
+
+  async function loadTableOrders(tableId: string) {
+    const { data } = await supabase
+      .from('orders')
+      .select('*, items:order_items(*)')
+      .eq('table_id', tableId)
+      .in('status', ['pending', 'preparing', 'ready'])
+      .order('created_at', { ascending: false })
+    setTableOrders(data || [])
+  }
+
+  async function loadWaiterHistory() {
+    if (!storeId) return
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    
+    const { data } = await supabase
+      .from('orders')
+      .select('*, items:order_items(*)')
+      .eq('store_id', storeId)
+      .eq('waiter_name', waiterName)
+      .gte('created_at', today.toISOString())
+      .order('created_at', { ascending: false })
+    setWaiterHistory(data || [])
   }
 
   function handleLogin() {
@@ -95,7 +153,12 @@ export default function WaiterAppPage() {
 
   function selectTable(table: Table) {
     setSelectedTable(table)
-    setView('menu')
+    if (table.status === 'occupied') {
+      loadTableOrders(table.id)
+      setView('orders')
+    } else {
+      setView('menu')
+    }
     setCart([])
   }
 
@@ -244,9 +307,24 @@ export default function WaiterAppPage() {
               <p className="text-blue-100 text-sm">Olá, {waiterName}</p>
               <h1 className="text-xl font-bold">Selecione a Mesa</h1>
             </div>
-            <button className="p-2 bg-white/20 rounded-xl">
-              <Bell className="w-6 h-6" />
-            </button>
+            <div className="flex gap-2">
+              {readyOrders.length > 0 && (
+                <span className="px-2 py-1 bg-green-400 text-green-900 rounded-full text-xs font-bold animate-pulse">
+                  {readyOrders.length} pronto(s)
+                </span>
+              )}
+              <button onClick={() => { loadWaiterHistory(); setView('history') }} className="p-2 bg-white/20 rounded-xl">
+                <History className="w-6 h-6" />
+              </button>
+              <button className="p-2 bg-white/20 rounded-xl relative">
+                <Bell className="w-6 h-6" />
+                {readyOrders.length > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-xs flex items-center justify-center">
+                    {readyOrders.length}
+                  </span>
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -490,4 +568,288 @@ export default function WaiterAppPage() {
       </div>
     </div>
   )
+
+  // Tela de Pedidos da Mesa
+  if (view === 'orders') {
+    const totalMesa = tableOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0)
+    
+    return (
+      <div className="min-h-screen bg-slate-100 pb-32">
+        <div className="bg-white shadow-sm sticky top-0 z-10 p-4">
+          <div className="flex items-center gap-3">
+            <button onClick={() => setView('tables')} className="p-2 hover:bg-slate-100 rounded-xl">
+              <ArrowLeft className="w-6 h-6" />
+            </button>
+            <div className="flex-1">
+              <p className="text-sm text-slate-500">Mesa {selectedTable?.number}</p>
+              <h1 className="text-xl font-bold">Pedidos da Mesa</h1>
+            </div>
+            <button 
+              onClick={() => { if(selectedTable) loadTableOrders(selectedTable.id) }}
+              className="p-2 hover:bg-slate-100 rounded-xl"
+            >
+              <RefreshCw className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        {tableOrders.length === 0 ? (
+          <div className="p-8 text-center">
+            <Receipt className="w-16 h-16 text-slate-200 mx-auto mb-4" />
+            <p className="text-slate-500">Nenhum pedido ativo</p>
+            <button 
+              onClick={() => setView('menu')}
+              className="mt-4 px-6 py-3 bg-blue-500 text-white rounded-xl font-medium"
+            >
+              Fazer Pedido
+            </button>
+          </div>
+        ) : (
+          <div className="p-4 space-y-4">
+            {tableOrders.map(order => (
+              <div key={order.id} className="bg-white rounded-2xl shadow-sm overflow-hidden">
+                <div className="p-4 border-b flex items-center justify-between">
+                  <div>
+                    <p className="font-bold">Pedido #{order.order_number || order.id.slice(0,6)}</p>
+                    <p className="text-xs text-slate-500">
+                      {new Date(order.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  </div>
+                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                    order.status === 'ready' ? 'bg-green-100 text-green-700' :
+                    order.status === 'preparing' ? 'bg-yellow-100 text-yellow-700' :
+                    'bg-slate-100 text-slate-600'
+                  }`}>
+                    {order.status === 'ready' ? '✅ Pronto' :
+                     order.status === 'preparing' ? '👨‍🍳 Preparando' : '⏳ Pendente'}
+                  </span>
+                </div>
+                <div className="p-4 space-y-2">
+                  {order.items?.map(item => (
+                    <div key={item.id} className="flex justify-between text-sm">
+                      <span>{item.quantity}x {item.product_name}</span>
+                      <span className="font-medium">{formatCurrency(item.total_price)}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="p-4 bg-slate-50 flex justify-between items-center">
+                  <span className="text-slate-600">Subtotal</span>
+                  <span className="font-bold">{formatCurrency(order.total_amount)}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 shadow-lg space-y-3">
+          <div className="flex justify-between items-center">
+            <span className="text-lg font-medium">Total da Mesa</span>
+            <span className="text-2xl font-bold text-slate-800">{formatCurrency(totalMesa)}</span>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <button 
+              onClick={() => setView('menu')}
+              className="py-3 bg-blue-500 text-white rounded-xl font-medium flex items-center justify-center gap-2"
+            >
+              <Plus className="w-5 h-5" />
+              Adicionar
+            </button>
+            <button 
+              onClick={() => setView('payment')}
+              className="py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-medium flex items-center justify-center gap-2"
+            >
+              <CreditCard className="w-5 h-5" />
+              Fechar Conta
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Tela de Pagamento
+  if (view === 'payment') {
+    const totalMesa = tableOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0)
+
+    async function closeTable() {
+      if (!selectedTable || !storeId) return
+      setSending(true)
+
+      // Atualizar status dos pedidos para completed
+      for (const order of tableOrders) {
+        await supabase.from('orders').update({ 
+          status: 'completed',
+          payment_method: selectedPayment,
+          payment_status: 'paid'
+        }).eq('id', order.id)
+      }
+
+      // Liberar mesa
+      await supabase.from('tables').update({ status: 'available' }).eq('id', selectedTable.id)
+
+      setSending(false)
+      setView('tables')
+      setSelectedTable(null)
+      loadData(storeId)
+    }
+
+    return (
+      <div className="min-h-screen bg-slate-100 pb-32">
+        <div className="bg-white shadow-sm sticky top-0 z-10 p-4">
+          <div className="flex items-center gap-3">
+            <button onClick={() => setView('orders')} className="p-2 hover:bg-slate-100 rounded-xl">
+              <ArrowLeft className="w-6 h-6" />
+            </button>
+            <div>
+              <p className="text-sm text-slate-500">Mesa {selectedTable?.number}</p>
+              <h1 className="text-xl font-bold">Fechar Conta</h1>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-4 space-y-4">
+          {/* Resumo */}
+          <div className="bg-white rounded-2xl p-4 shadow-sm">
+            <h3 className="font-bold mb-3">Resumo</h3>
+            {tableOrders.map(order => (
+              <div key={order.id} className="flex justify-between py-2 border-b last:border-0">
+                <span className="text-slate-600">Pedido #{order.order_number || order.id.slice(0,6)}</span>
+                <span className="font-medium">{formatCurrency(order.total_amount)}</span>
+              </div>
+            ))}
+            <div className="flex justify-between pt-3 mt-2 border-t">
+              <span className="font-bold">Total</span>
+              <span className="text-xl font-bold text-green-600">{formatCurrency(totalMesa)}</span>
+            </div>
+          </div>
+
+          {/* Forma de Pagamento */}
+          <div className="bg-white rounded-2xl p-4 shadow-sm">
+            <h3 className="font-bold mb-3">Forma de Pagamento</h3>
+            <div className="grid grid-cols-3 gap-3">
+              <button
+                onClick={() => setSelectedPayment('cash')}
+                className={`p-4 rounded-xl flex flex-col items-center gap-2 transition-all ${
+                  selectedPayment === 'cash' 
+                    ? 'bg-green-100 border-2 border-green-500' 
+                    : 'bg-slate-50 border-2 border-transparent'
+                }`}
+              >
+                <Banknote className={`w-8 h-8 ${selectedPayment === 'cash' ? 'text-green-600' : 'text-slate-400'}`} />
+                <span className="text-sm font-medium">Dinheiro</span>
+              </button>
+              <button
+                onClick={() => setSelectedPayment('card')}
+                className={`p-4 rounded-xl flex flex-col items-center gap-2 transition-all ${
+                  selectedPayment === 'card' 
+                    ? 'bg-blue-100 border-2 border-blue-500' 
+                    : 'bg-slate-50 border-2 border-transparent'
+                }`}
+              >
+                <CreditCard className={`w-8 h-8 ${selectedPayment === 'card' ? 'text-blue-600' : 'text-slate-400'}`} />
+                <span className="text-sm font-medium">Cartão</span>
+              </button>
+              <button
+                onClick={() => setSelectedPayment('pix')}
+                className={`p-4 rounded-xl flex flex-col items-center gap-2 transition-all ${
+                  selectedPayment === 'pix' 
+                    ? 'bg-purple-100 border-2 border-purple-500' 
+                    : 'bg-slate-50 border-2 border-transparent'
+                }`}
+              >
+                <QrCode className={`w-8 h-8 ${selectedPayment === 'pix' ? 'text-purple-600' : 'text-slate-400'}`} />
+                <span className="text-sm font-medium">PIX</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 shadow-lg">
+          <button 
+            onClick={closeTable}
+            disabled={sending}
+            className="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-2xl font-bold text-lg flex items-center justify-center gap-2 disabled:opacity-50"
+          >
+            {sending ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <>
+                <Check className="w-5 h-5" />
+                Confirmar Pagamento
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // Tela de Histórico
+  if (view === 'history') {
+    const totalHoje = waiterHistory.reduce((sum, o) => sum + (o.total_amount || 0), 0)
+    
+    return (
+      <div className="min-h-screen bg-slate-100 pb-8">
+        <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-4 sticky top-0 z-10">
+          <div className="flex items-center gap-3">
+            <button onClick={() => setView('tables')} className="p-2 hover:bg-white/20 rounded-xl">
+              <ArrowLeft className="w-6 h-6" />
+            </button>
+            <div className="flex-1">
+              <p className="text-blue-100 text-sm">Meu Histórico</p>
+              <h1 className="text-xl font-bold">Hoje</h1>
+            </div>
+            <button 
+              onClick={loadWaiterHistory}
+              className="p-2 hover:bg-white/20 rounded-xl"
+            >
+              <RefreshCw className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Resumo */}
+        <div className="p-4">
+          <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-4 text-white">
+            <p className="text-green-100">Total Vendido Hoje</p>
+            <p className="text-3xl font-bold">{formatCurrency(totalHoje)}</p>
+            <p className="text-green-200 text-sm mt-1">{waiterHistory.length} pedidos</p>
+          </div>
+        </div>
+
+        {/* Lista */}
+        <div className="px-4 space-y-3">
+          {waiterHistory.map(order => (
+            <div key={order.id} className="bg-white rounded-xl p-4 shadow-sm">
+              <div className="flex justify-between items-start mb-2">
+                <div>
+                  <p className="font-bold">#{order.order_number || order.id.slice(0,6)}</p>
+                  <p className="text-xs text-slate-500">
+                    {new Date(order.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                </div>
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  order.status === 'completed' ? 'bg-green-100 text-green-700' :
+                  order.status === 'ready' ? 'bg-blue-100 text-blue-700' :
+                  'bg-slate-100 text-slate-600'
+                }`}>
+                  {order.status === 'completed' ? 'Finalizado' : order.status}
+                </span>
+              </div>
+              <div className="text-sm text-slate-600">
+                {order.items?.slice(0, 2).map(i => `${i.quantity}x ${i.product_name}`).join(', ')}
+                {order.items && order.items.length > 2 && ` +${order.items.length - 2} itens`}
+              </div>
+              <div className="mt-2 pt-2 border-t flex justify-between">
+                <span className="text-slate-500">Total</span>
+                <span className="font-bold">{formatCurrency(order.total_amount)}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  return null
 }
