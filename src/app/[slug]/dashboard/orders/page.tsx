@@ -291,31 +291,33 @@ export default function OrdersPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600 text-lg">Carregando pedidos...</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 flex items-center justify-center">
+        <div className="text-center bg-white/80 backdrop-blur-sm p-8 rounded-3xl shadow-xl shadow-slate-200/50">
+          <Loader2 className="w-14 h-14 text-blue-600 animate-spin mx-auto mb-4" />
+          <p className="text-slate-600 text-lg font-medium">Carregando pedidos...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white p-4 md:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 p-4 md:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 flex items-center gap-3">
-                <ShoppingBag className="w-8 h-8 md:w-10 md:h-10 text-blue-600" />
+              <h1 className="text-2xl md:text-3xl font-bold text-slate-800 flex items-center gap-3">
+                <div className="p-2.5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg shadow-blue-500/25">
+                  <ShoppingBag className="w-6 h-6 md:w-7 md:h-7 text-white" />
+                </div>
                 Pedidos
               </h1>
-              <p className="text-gray-600 mt-1">Gestão completa de pedidos</p>
+              <p className="text-slate-500 mt-2 ml-14">Gestão completa de pedidos</p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               <Button
                 onClick={exportToCSV}
-                className="bg-green-600 hover:bg-green-700"
+                className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-lg shadow-emerald-500/25"
               >
                 <Download className="w-4 h-4 mr-2" />
                 Exportar
@@ -323,44 +325,52 @@ export default function OrdersPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-4 text-white shadow-lg">
-              <div className="flex items-center gap-3 mb-2">
-                <DollarSign className="w-6 h-6" />
-                <span className="text-sm font-medium opacity-90">Receita Total</span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
+            <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-5 text-white shadow-xl shadow-emerald-500/20 hover:shadow-2xl hover:shadow-emerald-500/30 transition-all duration-300 hover:-translate-y-0.5">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <DollarSign className="w-5 h-5" />
+                </div>
+                <span className="text-sm font-medium text-white/90">Receita Total</span>
               </div>
-              <div className="text-3xl font-bold">{formatCurrencyI18n(totalRevenue)}</div>
+              <div className="text-3xl font-bold tracking-tight">{formatCurrencyI18n(totalRevenue)}</div>
             </div>
-            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-4 text-white shadow-lg">
-              <div className="flex items-center gap-3 mb-2">
-                <Package className="w-6 h-6" />
-                <span className="text-sm font-medium opacity-90">Pedidos Hoje</span>
+            <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-5 text-white shadow-xl shadow-blue-500/20 hover:shadow-2xl hover:shadow-blue-500/30 transition-all duration-300 hover:-translate-y-0.5">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <Package className="w-5 h-5" />
+                </div>
+                <span className="text-sm font-medium text-white/90">Pedidos Hoje</span>
               </div>
-              <div className="text-3xl font-bold">{todayOrders}</div>
+              <div className="text-3xl font-bold tracking-tight">{todayOrders}</div>
             </div>
-            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-4 text-white shadow-lg">
-              <div className="flex items-center gap-3 mb-2">
-                <TrendingUp className="w-6 h-6" />
-                <span className="text-sm font-medium opacity-90">Ticket Médio</span>
+            <div className="bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl p-5 text-white shadow-xl shadow-violet-500/20 hover:shadow-2xl hover:shadow-violet-500/30 transition-all duration-300 hover:-translate-y-0.5">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <TrendingUp className="w-5 h-5" />
+                </div>
+                <span className="text-sm font-medium text-white/90">Ticket Médio</span>
               </div>
-              <div className="text-3xl font-bold">{formatCurrencyI18n(avgOrderValue)}</div>
+              <div className="text-3xl font-bold tracking-tight">{formatCurrencyI18n(avgOrderValue)}</div>
             </div>
           </div>
         </div>
 
         {/* Alerta de Pagamentos Pendentes */}
         {pendingPaymentsCount > 0 && (
-          <div className="bg-yellow-50 border-2 border-yellow-300 rounded-2xl p-4 mb-6">
+          <div className="bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-2xl p-5 mb-6 shadow-lg shadow-amber-100/50">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <DollarSign className="w-6 h-6 text-yellow-700" />
-                <span className="font-bold text-yellow-900">
+                <div className="p-2 bg-amber-100 rounded-xl">
+                  <DollarSign className="w-5 h-5 text-amber-600" />
+                </div>
+                <span className="font-bold text-amber-800">
                   Pagamentos Pendentes: {pendingPaymentsCount}
                 </span>
               </div>
               <Button
                 onClick={() => setPaymentFilter(paymentFilter === 'pending' ? 'all' : 'pending')}
-                className={paymentFilter === 'pending' ? 'bg-yellow-700 hover:bg-yellow-800' : 'bg-yellow-600 hover:bg-yellow-700'}
+                className={paymentFilter === 'pending' ? 'bg-amber-700 hover:bg-amber-800 shadow-lg shadow-amber-500/25' : 'bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 shadow-lg shadow-amber-500/25'}
               >
                 {paymentFilter === 'pending' ? 'Mostrar Todos' : 'Mostrar Pendentes'}
               </Button>
@@ -368,26 +378,26 @@ export default function OrdersPage() {
           </div>
         )}
 
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+        <div className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-6 mb-6">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
               <input
                 type="text"
                 placeholder="Buscar por código, cliente ou telefone..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none"
+                className="w-full pl-12 pr-4 py-3.5 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:outline-none transition-all"
               />
             </div>
 
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="px-6 py-3 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium transition-colors flex items-center gap-2"
+              className="px-6 py-3.5 bg-slate-100 hover:bg-slate-200 rounded-xl font-medium transition-all flex items-center gap-2 hover:shadow-md"
             >
-              <Filter className="w-5 h-5" />
+              <Filter className="w-5 h-5 text-slate-600" />
               Filtros
-              <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
             </button>
           </div>
 
@@ -455,24 +465,27 @@ export default function OrdersPage() {
           )}
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-gray-900">
+        <div className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-6">
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-xl font-bold text-slate-800">
               {filteredOrders.length} {filteredOrders.length === 1 ? 'Pedido' : 'Pedidos'}
             </h2>
           </div>
 
           {filteredOrders.length === 0 ? (
-            <div className="text-center py-12">
-              <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 text-lg">Nenhum pedido encontrado</p>
+            <div className="text-center py-16">
+              <div className="w-20 h-20 mx-auto mb-4 bg-slate-100 rounded-2xl flex items-center justify-center">
+                <Package className="w-10 h-10 text-slate-300" />
+              </div>
+              <p className="text-slate-400 font-medium text-lg">Nenhum pedido encontrado</p>
+              <p className="text-slate-400 text-sm mt-1">Ajuste os filtros ou aguarde novos pedidos</p>
             </div>
           ) : (
             <div className="space-y-3">
               {filteredOrders.map((order) => (
                 <div
                   key={order.id}
-                  className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
+                  className="flex items-center justify-between p-5 bg-gradient-to-r from-slate-50 to-slate-100/50 rounded-xl border border-slate-200/50 hover:shadow-md hover:border-slate-200 transition-all"
                 >
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
@@ -506,7 +519,7 @@ export default function OrdersPage() {
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="text-right mr-4">
-                      <div className="text-2xl font-bold text-green-600">
+                      <div className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
                         {formatCurrencyI18n(order.total_amount)}
                       </div>
                     </div>
@@ -516,14 +529,14 @@ export default function OrdersPage() {
                           setSelectedOrder(order)
                           setShowDetailsModal(true)
                         }}
-                        className="p-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg transition-colors"
+                        className="p-2.5 bg-blue-100 hover:bg-blue-200 text-blue-600 rounded-xl transition-all hover:shadow-md"
                         title="Ver Detalhes"
                       >
                         <Eye className="w-5 h-5" />
                       </button>
                       <button
                         onClick={() => printOrder(order)}
-                        className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+                        className="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition-all hover:shadow-md"
                         title="Imprimir"
                       >
                         <Printer className="w-5 h-5" />
