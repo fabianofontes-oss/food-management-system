@@ -51,7 +51,7 @@ export default function PDVNovoPage() {
     loadConfig()
   }, [slug, supabase])
 
-  const storeProducts = products.filter(p => !storeId || p.store_id === storeId)
+  const storeProducts = storeId ? products.filter(p => p.store_id === storeId) : []
 
   const addToCart = (product: Product) => {
     const existing = cart.find(item => item.id === product.id)
@@ -102,7 +102,7 @@ export default function PDVNovoPage() {
                 PDV - Ponto de Venda
               </h1>
               <p className={`text-sm ${pdvConfig.theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
-                Sistema de caixa
+                {storeProducts.length} produtos • {cart.length} no carrinho
               </p>
             </div>
           </div>
@@ -136,8 +136,26 @@ export default function PDVNovoPage() {
             </div>
 
             {/* Grid de Produtos */}
-            <div className={`grid gap-3 ${pdvConfig.layout === 'list' ? 'grid-cols-1' : pdvConfig.layout === 'compact' ? 'grid-cols-4' : 'grid-cols-3'}`}>
-              {filteredProducts.map(product => (
+            {filteredProducts.length === 0 ? (
+              <div className={`text-center py-16 ${pdvConfig.theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
+                <Package className="w-20 h-20 mx-auto mb-4 opacity-30" />
+                <p className="text-xl font-medium mb-2">Nenhum produto encontrado</p>
+                <p className="text-sm mb-4">
+                  {storeProducts.length === 0 
+                    ? 'Adicione produtos na página de Produtos' 
+                    : 'Tente buscar por outro termo'}
+                </p>
+                {storeProducts.length === 0 && (
+                  <Link href={`/${slug}/dashboard/products`}>
+                    <Button style={{ backgroundColor: pdvConfig.primaryColor }}>
+                      Adicionar Produtos
+                    </Button>
+                  </Link>
+                )}
+              </div>
+            ) : (
+              <div className={`grid gap-3 ${pdvConfig.layout === 'list' ? 'grid-cols-1' : pdvConfig.layout === 'compact' ? 'grid-cols-4' : 'grid-cols-3'}`}>
+                {filteredProducts.map(product => (
                 <div
                   key={product.id}
                   onClick={() => addToCart(product)}
@@ -159,7 +177,8 @@ export default function PDVNovoPage() {
                   </div>
                 </div>
               ))}
-            </div>
+              </div>
+            )}
           </div>
 
           {/* Carrinho */}
