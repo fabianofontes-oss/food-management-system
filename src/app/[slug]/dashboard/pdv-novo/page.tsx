@@ -53,6 +53,18 @@ export default function PDVNovoPage() {
 
   const storeProducts = storeId ? products.filter(p => p.store_id === storeId) : []
 
+  // Debug logs
+  useEffect(() => {
+    console.log('🔍 PDV Debug:', {
+      slug,
+      storeId,
+      totalProducts: products.length,
+      storeProducts: storeProducts.length,
+      products: products.map(p => ({ id: p.id, name: p.name, store_id: p.store_id })),
+      pdvConfig
+    })
+  }, [slug, storeId, products, storeProducts, pdvConfig])
+
   const addToCart = (product: Product) => {
     const existing = cart.find(item => item.id === product.id)
     if (existing) {
