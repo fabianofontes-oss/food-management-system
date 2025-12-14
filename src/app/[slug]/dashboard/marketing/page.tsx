@@ -7,21 +7,31 @@ import {
   Megaphone, Plus, Send, Users, MessageSquare, Bell,
   Loader2, AlertCircle, Calendar, Clock, Target,
   Edit, Trash2, Play, Pause, CheckCircle, Gift,
-  Smartphone, Mail, MessageCircle
+  Smartphone, Mail, MessageCircle, Zap, FileText,
+  TrendingUp, DollarSign, BarChart3, Settings, Copy
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 
 interface Campaign {
   id: string
   name: string
-  type: 'promotion' | 'notification' | 'announcement'
-  channel: 'push' | 'whatsapp' | 'email' | 'sms'
-  status: 'draft' | 'scheduled' | 'active' | 'completed' | 'paused'
+  type: 'promotion' | 'notification' | 'announcement' | 'remarketing' | 'loyalty'
+  channel: 'push' | 'whatsapp' | 'email' | 'sms' | 'all'
+  status: 'draft' | 'scheduled' | 'sending' | 'active' | 'completed' | 'paused' | 'cancelled'
   message: string
-  target_audience: 'all' | 'new' | 'inactive' | 'vip'
+  subject: string | null
+  target_audience: 'all' | 'new' | 'inactive' | 'vip' | 'birthday' | 'custom'
   scheduled_at: string | null
   sent_count: number
+  delivered_count: number
+  opened_count: number
+  clicked_count: number
+  converted_count: number
   open_rate: number
+  click_rate: number
+  conversion_rate: number
+  revenue_generated: number
   created_at: string
 }
 
@@ -31,6 +41,26 @@ interface CampaignStats {
   scheduled: number
   totalSent: number
   avgOpenRate: number
+  avgConversionRate: number
+  totalRevenue: number
+  automationsActive: number
+}
+
+interface Automation {
+  id: string
+  name: string
+  trigger_type: string
+  channel: string
+  is_active: boolean
+  total_sent: number
+  total_converted: number
+}
+
+interface Template {
+  id: string
+  name: string
+  category: string
+  message: string
 }
 
 export default function MarketingPage() {
@@ -48,8 +78,14 @@ export default function MarketingPage() {
     active: 0,
     scheduled: 0,
     totalSent: 0,
-    avgOpenRate: 0
+    avgOpenRate: 0,
+    avgConversionRate: 0,
+    totalRevenue: 0,
+    automationsActive: 0
   })
+  const [automations, setAutomations] = useState<Automation[]>([])
+  const [templates, setTemplates] = useState<Template[]>([])
+  const [activeTab, setActiveTab] = useState<'campaigns' | 'automations' | 'templates'>('campaigns')
   const [showForm, setShowForm] = useState(false)
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null)
   
@@ -94,58 +130,135 @@ export default function MarketingPage() {
     try {
       setLoading(true)
       
-      // Mock data - em produção criar tabela campaigns
-      const mockCampaigns: Campaign[] = [
-        {
-          id: '1',
-          name: 'Promoção de Verão',
-          type: 'promotion',
-          channel: 'whatsapp',
-          status: 'active',
-          message: '🌞 Verão chegou! Açaí 500ml por apenas R$15,90. Use o código VERAO2024',
-          target_audience: 'all',
-          scheduled_at: null,
-          sent_count: 245,
-          open_rate: 68,
-          created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
-        },
-        {
-          id: '2',
-          name: 'Lembrete Clientes Inativos',
-          type: 'notification',
-          channel: 'whatsapp',
-          status: 'scheduled',
-          message: 'Sentimos sua falta! 😊 Volte e ganhe 10% de desconto no seu pedido.',
-          target_audience: 'inactive',
-          scheduled_at: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
-          sent_count: 0,
-          open_rate: 0,
-          created_at: new Date().toISOString()
-        },
-        {
-          id: '3',
-          name: 'Novidade no Cardápio',
-          type: 'announcement',
-          channel: 'push',
-          status: 'completed',
-          message: '🆕 Novidade! Experimentem nosso novo Açaí Premium com Whey Protein!',
-          target_audience: 'all',
-          scheduled_at: null,
-          sent_count: 512,
-          open_rate: 45,
-          created_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString()
-        }
-      ]
+      // Tentar buscar do banco de dados
+      const { data: dbCampaigns } = await supabase
+        .from('campaigns')
+        .select('*')
+        .eq('store_id', storeId)
+        .order('created_at', { ascending: false })
 
-      setCampaigns(mockCampaigns)
+      let campaignsData: Campaign[] = []
+
+      if (!dbCampaigns || dbCampaigns.length === 0) {
+        // Mock data
+        campaignsData = [
+          {
+            id: '1',
+            name: 'Promoção de Verão',
+            type: 'promotion',
+            channel: 'whatsapp',
+            status: 'active',
+            subject: null,
+            message: '🌞 Verão chegou! Açaí 500ml por apenas R$15,90. Use o código VERAO2024',
+            target_audience: 'all',
+            scheduled_at: null,
+            sent_count: 245,
+            delivered_count: 238,
+            opened_count: 167,
+            clicked_count: 89,
+            converted_count: 34,
+            open_rate: 68,
+            click_rate: 53,
+            conversion_rate: 38,
+            revenue_generated: 1250.50,
+            created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+          },
+          {
+            id: '2',
+            name: 'Lembrete Clientes Inativos',
+            type: 'remarketing',
+            channel: 'whatsapp',
+            status: 'scheduled',
+            subject: null,
+            message: 'Sentimos sua falta! 😊 Volte e ganhe 10% de desconto no seu pedido.',
+            target_audience: 'inactive',
+            scheduled_at: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+            sent_count: 0,
+            delivered_count: 0,
+            opened_count: 0,
+            clicked_count: 0,
+            converted_count: 0,
+            open_rate: 0,
+            click_rate: 0,
+            conversion_rate: 0,
+            revenue_generated: 0,
+            created_at: new Date().toISOString()
+          },
+          {
+            id: '3',
+            name: 'Novidade no Cardápio',
+            type: 'announcement',
+            channel: 'push',
+            status: 'completed',
+            subject: null,
+            message: '🆕 Novidade! Experimentem nosso novo Açaí Premium com Whey Protein!',
+            target_audience: 'all',
+            scheduled_at: null,
+            sent_count: 512,
+            delivered_count: 498,
+            opened_count: 230,
+            clicked_count: 78,
+            converted_count: 22,
+            open_rate: 45,
+            click_rate: 34,
+            conversion_rate: 28,
+            revenue_generated: 890.00,
+            created_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString()
+          }
+        ]
+      } else {
+        campaignsData = dbCampaigns
+      }
+
+      setCampaigns(campaignsData)
+
+      // Buscar automações
+      const { data: dbAutomations } = await supabase
+        .from('marketing_automations')
+        .select('*')
+        .eq('store_id', storeId)
+
+      if (dbAutomations) {
+        setAutomations(dbAutomations)
+      } else {
+        setAutomations([
+          { id: '1', name: 'Boas-vindas', trigger_type: 'welcome', channel: 'whatsapp', is_active: true, total_sent: 45, total_converted: 12 },
+          { id: '2', name: 'Aniversário', trigger_type: 'birthday', channel: 'whatsapp', is_active: true, total_sent: 23, total_converted: 8 },
+          { id: '3', name: 'Cliente Inativo', trigger_type: 'inactive', channel: 'whatsapp', is_active: false, total_sent: 156, total_converted: 34 }
+        ])
+      }
+
+      // Buscar templates
+      const { data: dbTemplates } = await supabase
+        .from('message_templates')
+        .select('*')
+        .eq('store_id', storeId)
+
+      if (dbTemplates) {
+        setTemplates(dbTemplates)
+      } else {
+        setTemplates([
+          { id: '1', name: 'Boas-vindas', category: 'welcome', message: 'Olá {nome}! 👋 Seja bem-vindo(a) à {loja}!' },
+          { id: '2', name: 'Promoção', category: 'promotion', message: '🔥 {nome}, temos uma oferta especial! Use {cupom} e ganhe {desconto}!' },
+          { id: '3', name: 'Aniversário', category: 'birthday', message: '🎂 Parabéns, {nome}! Ganhe {desconto} OFF com o cupom {cupom}!' }
+        ])
+      }
+
+      const activeAutomations = automations.filter(a => a.is_active).length
       
       setStats({
-        total: mockCampaigns.length,
-        active: mockCampaigns.filter(c => c.status === 'active').length,
-        scheduled: mockCampaigns.filter(c => c.status === 'scheduled').length,
-        totalSent: mockCampaigns.reduce((sum, c) => sum + c.sent_count, 0),
-        avgOpenRate: mockCampaigns.filter(c => c.sent_count > 0).reduce((sum, c) => sum + c.open_rate, 0) / 
-                     mockCampaigns.filter(c => c.sent_count > 0).length || 0
+        total: campaignsData.length,
+        active: campaignsData.filter(c => c.status === 'active').length,
+        scheduled: campaignsData.filter(c => c.status === 'scheduled').length,
+        totalSent: campaignsData.reduce((sum, c) => sum + c.sent_count, 0),
+        avgOpenRate: campaignsData.filter(c => c.sent_count > 0).length > 0 
+          ? campaignsData.filter(c => c.sent_count > 0).reduce((sum, c) => sum + c.open_rate, 0) / campaignsData.filter(c => c.sent_count > 0).length 
+          : 0,
+        avgConversionRate: campaignsData.filter(c => c.sent_count > 0).length > 0
+          ? campaignsData.filter(c => c.sent_count > 0).reduce((sum, c) => sum + c.conversion_rate, 0) / campaignsData.filter(c => c.sent_count > 0).length
+          : 0,
+        totalRevenue: campaignsData.reduce((sum, c) => sum + c.revenue_generated, 0),
+        automationsActive: activeAutomations
       })
     } catch (err) {
       console.error('Erro ao carregar campanhas:', err)
@@ -160,10 +273,18 @@ export default function MarketingPage() {
     const newCampaign: Campaign = {
       id: Date.now().toString(),
       ...formData,
+      subject: null,
       status: formData.scheduled_at ? 'scheduled' : 'draft',
       scheduled_at: formData.scheduled_at || null,
       sent_count: 0,
+      delivered_count: 0,
+      opened_count: 0,
+      clicked_count: 0,
+      converted_count: 0,
       open_rate: 0,
+      click_rate: 0,
+      conversion_rate: 0,
+      revenue_generated: 0,
       created_at: new Date().toISOString()
     }
     
@@ -192,16 +313,20 @@ export default function MarketingPage() {
     const styles: Record<Campaign['status'], string> = {
       draft: 'bg-gray-100 text-gray-700',
       scheduled: 'bg-blue-100 text-blue-700',
+      sending: 'bg-cyan-100 text-cyan-700',
       active: 'bg-green-100 text-green-700',
       completed: 'bg-purple-100 text-purple-700',
-      paused: 'bg-yellow-100 text-yellow-700'
+      paused: 'bg-yellow-100 text-yellow-700',
+      cancelled: 'bg-red-100 text-red-700'
     }
     const labels: Record<Campaign['status'], string> = {
       draft: 'Rascunho',
       scheduled: 'Agendada',
+      sending: 'Enviando',
       active: 'Ativa',
       completed: 'Concluída',
-      paused: 'Pausada'
+      paused: 'Pausada',
+      cancelled: 'Cancelada'
     }
     return (
       <span className={`px-2 py-1 text-xs font-medium rounded-full ${styles[status]}`}>
