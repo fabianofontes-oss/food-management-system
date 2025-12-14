@@ -3,6 +3,8 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { useSettings } from '@/hooks/useSettings'
+import { PDVSettings, DEFAULT_PDV_SETTINGS } from '@/types/settings'
 import {
   Monitor, Save, Loader2, CheckCircle, ChevronDown, ChevronUp,
   LayoutGrid, Grid3X3, Image, Package, ScanBarcode, Scale, Percent, Users,
@@ -12,107 +14,6 @@ import {
   ShoppingCart, X, Search, RotateCcw
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-
-interface PDVSettings {
-  // Interface
-  pdv_enabled: boolean
-  pdv_theme: 'light' | 'dark' | 'auto'
-  pdv_layout: 'grid' | 'list' | 'compact'
-  pdv_product_size: 'small' | 'medium' | 'large'
-  pdv_show_images: boolean
-  pdv_font_size: 'small' | 'medium' | 'large'
-  pdv_primary_color: string
-  
-  // Estoque
-  pdv_show_stock: boolean
-  pdv_low_stock_alert: number
-  pdv_hide_out_of_stock: boolean
-  
-  // Hardware
-  pdv_barcode_enabled: boolean
-  pdv_scale_enabled: boolean
-  pdv_open_drawer: boolean
-  pdv_sound_enabled: boolean
-  
-  // Impressão
-  pdv_auto_print: boolean
-  pdv_print_copies: string
-  pdv_print_customer_copy: boolean
-  pdv_print_kitchen: boolean
-  
-  // Descontos e Permissões
-  pdv_discount_enabled: boolean
-  pdv_max_discount: number
-  pdv_manager_discount: number
-  pdv_require_customer: boolean
-  pdv_allow_obs: boolean
-  pdv_cancel_item_password: boolean
-  pdv_reprint_password: boolean
-  
-  // Pagamentos
-  pdv_default_payment: 'money' | 'debit' | 'credit' | 'pix'
-  pdv_allow_split_payment: boolean
-  pdv_calculate_change: boolean
-  pdv_tip_enabled: boolean
-  pdv_tip_suggestions: string
-  
-  // Caixa
-  pdv_sangria_enabled: boolean
-  pdv_suprimento_enabled: boolean
-  pdv_blind_close: boolean
-  pdv_auto_logout: number
-  pdv_shift_required: boolean
-  
-  // Atalhos
-  pdv_quick_sale: boolean
-  pdv_shortcut_f1: string
-  pdv_shortcut_f2: string
-  pdv_shortcut_f3: string
-  pdv_shortcut_f4: string
-}
-
-const DEFAULT_SETTINGS: PDVSettings = {
-  pdv_enabled: true,
-  pdv_theme: 'light',
-  pdv_layout: 'grid',
-  pdv_product_size: 'medium',
-  pdv_show_images: true,
-  pdv_font_size: 'medium',
-  pdv_primary_color: '#8B5CF6',
-  pdv_show_stock: true,
-  pdv_low_stock_alert: 5,
-  pdv_hide_out_of_stock: false,
-  pdv_barcode_enabled: true,
-  pdv_scale_enabled: false,
-  pdv_open_drawer: true,
-  pdv_sound_enabled: true,
-  pdv_auto_print: true,
-  pdv_print_copies: '1',
-  pdv_print_customer_copy: false,
-  pdv_print_kitchen: true,
-  pdv_discount_enabled: true,
-  pdv_max_discount: 10,
-  pdv_manager_discount: 30,
-  pdv_require_customer: false,
-  pdv_allow_obs: true,
-  pdv_cancel_item_password: false,
-  pdv_reprint_password: false,
-  pdv_default_payment: 'money',
-  pdv_allow_split_payment: true,
-  pdv_calculate_change: true,
-  pdv_tip_enabled: false,
-  pdv_tip_suggestions: '5,10,15',
-  pdv_sangria_enabled: true,
-  pdv_suprimento_enabled: true,
-  pdv_blind_close: false,
-  pdv_auto_logout: 0,
-  pdv_shift_required: false,
-  pdv_quick_sale: true,
-  pdv_shortcut_f1: 'search',
-  pdv_shortcut_f2: 'quick_sale',
-  pdv_shortcut_f3: 'discount',
-  pdv_shortcut_f4: 'cancel'
-}
 
 const SECTIONS = [
   { id: 'interface', name: '🎨 Interface', icon: Palette },
@@ -134,7 +35,7 @@ export default function PDVSettingsPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle')
-  const [settings, setSettings] = useState<PDVSettings>(DEFAULT_SETTINGS)
+  const [settings, setSettings] = useState<PDVSettings>(DEFAULT_PDV_SETTINGS)
   const [expandedSections, setExpandedSections] = useState<string[]>(['interface'])
 
   useEffect(() => {
@@ -236,13 +137,13 @@ export default function PDVSettingsPage() {
                   </div>
                 </div>
                 <button
-                  onClick={() => updateSetting('pdv_enabled', !settings.pdv_enabled)}
+                  onClick={() => updateSetting('enabled', !settings.enabled)}
                   className={`relative w-14 h-7 rounded-full transition-colors ${
-                    settings.pdv_enabled ? 'bg-blue-500' : 'bg-slate-300'
+                    settings.enabled ? 'bg-blue-500' : 'bg-slate-300'
                   }`}
                 >
                   <span className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow transition-transform ${
-                    settings.pdv_enabled ? 'left-8' : 'left-1'
+                    settings.enabled ? 'left-8' : 'left-1'
                   }`} />
                 </button>
               </div>
@@ -269,89 +170,89 @@ export default function PDVSettingsPage() {
                   <div className="px-4 pb-4 space-y-4 border-t border-slate-100 pt-4">
                     {section.id === 'interface' && (
                       <>
-                        <SettingSelect label="Tema" value={settings.pdv_theme} onChange={v => updateSetting('pdv_theme', v as any)}
+                        <SettingSelect label="Tema" value={settings.theme} onChange={v => updateSetting('theme', v as any)}
                           options={[{ value: 'light', label: '☀️ Claro' }, { value: 'dark', label: '🌙 Escuro' }, { value: 'auto', label: '🔄 Automático' }]} />
-                        <SettingSelect label="Layout" value={settings.pdv_layout} onChange={v => updateSetting('pdv_layout', v as any)}
+                        <SettingSelect label="Layout" value={settings.layout} onChange={v => updateSetting('layout', v as any)}
                           options={[{ value: 'grid', label: 'Grade' }, { value: 'list', label: 'Lista' }, { value: 'compact', label: 'Compacto' }]} />
-                        <SettingSelect label="Tamanho dos Cards" value={settings.pdv_product_size} onChange={v => updateSetting('pdv_product_size', v as any)}
+                        <SettingSelect label="Tamanho dos Cards" value={settings.productSize} onChange={v => updateSetting('productSize', v as any)}
                           options={[{ value: 'small', label: 'Pequeno' }, { value: 'medium', label: 'Médio' }, { value: 'large', label: 'Grande' }]} />
-                        <SettingSelect label="Tamanho da Fonte" value={settings.pdv_font_size} onChange={v => updateSetting('pdv_font_size', v as any)}
+                        <SettingSelect label="Tamanho da Fonte" value={settings.fontSize} onChange={v => updateSetting('fontSize', v as any)}
                           options={[{ value: 'small', label: 'Pequena' }, { value: 'medium', label: 'Média' }, { value: 'large', label: 'Grande' }]} />
-                        <SettingToggle label="Exibir Fotos" checked={settings.pdv_show_images} onChange={v => updateSetting('pdv_show_images', v)} />
-                        <SettingColor label="Cor Principal" value={settings.pdv_primary_color} onChange={v => updateSetting('pdv_primary_color', v)} />
+                        <SettingToggle label="Exibir Fotos" checked={settings.showImages} onChange={v => updateSetting('showImages', v)} />
+                        <SettingColor label="Cor Principal" value={settings.primaryColor} onChange={v => updateSetting('primaryColor', v)} />
                       </>
                     )}
 
                     {section.id === 'stock' && (
                       <>
-                        <SettingToggle label="Exibir Estoque" checked={settings.pdv_show_stock} onChange={v => updateSetting('pdv_show_stock', v)} />
-                        <SettingNumber label="Alerta Estoque Baixo" value={settings.pdv_low_stock_alert} onChange={v => updateSetting('pdv_low_stock_alert', v)} suffix="unidades" />
-                        <SettingToggle label="Ocultar Sem Estoque" checked={settings.pdv_hide_out_of_stock} onChange={v => updateSetting('pdv_hide_out_of_stock', v)} />
+                        <SettingToggle label="Exibir Estoque" checked={settings.showStock} onChange={v => updateSetting('showStock', v)} />
+                        <SettingNumber label="Alerta Estoque Baixo" value={settings.lowStockAlert} onChange={v => updateSetting('lowStockAlert', v)} suffix="unidades" />
+                        <SettingToggle label="Ocultar Sem Estoque" checked={settings.hideOutOfStock} onChange={v => updateSetting('hideOutOfStock', v)} />
                       </>
                     )}
 
                     {section.id === 'hardware' && (
                       <>
-                        <SettingToggle label="Leitor Código de Barras" checked={settings.pdv_barcode_enabled} onChange={v => updateSetting('pdv_barcode_enabled', v)} />
-                        <SettingToggle label="Integração com Balança" checked={settings.pdv_scale_enabled} onChange={v => updateSetting('pdv_scale_enabled', v)} />
-                        <SettingToggle label="Abrir Gaveta Automático" checked={settings.pdv_open_drawer} onChange={v => updateSetting('pdv_open_drawer', v)} />
-                        <SettingToggle label="Sons de Feedback" checked={settings.pdv_sound_enabled} onChange={v => updateSetting('pdv_sound_enabled', v)} />
+                        <SettingToggle label="Leitor Código de Barras" checked={settings.barcodeEnabled} onChange={v => updateSetting('barcodeEnabled', v)} />
+                        <SettingToggle label="Integração com Balança" checked={settings.scaleEnabled} onChange={v => updateSetting('scaleEnabled', v)} />
+                        <SettingToggle label="Abrir Gaveta Automático" checked={settings.openDrawer} onChange={v => updateSetting('openDrawer', v)} />
+                        <SettingToggle label="Sons de Feedback" checked={settings.soundEnabled} onChange={v => updateSetting('soundEnabled', v)} />
                       </>
                     )}
 
                     {section.id === 'printing' && (
                       <>
-                        <SettingToggle label="Impressão Automática" checked={settings.pdv_auto_print} onChange={v => updateSetting('pdv_auto_print', v)} />
-                        <SettingSelect label="Cópias do Cupom" value={settings.pdv_print_copies} onChange={v => updateSetting('pdv_print_copies', v)}
+                        <SettingToggle label="Impressão Automática" checked={settings.autoPrint} onChange={v => updateSetting('autoPrint', v)} />
+                        <SettingSelect label="Cópias do Cupom" value={settings.printCopies} onChange={v => updateSetting('printCopies', v)}
                           options={[{ value: '1', label: '1 via' }, { value: '2', label: '2 vias' }, { value: '3', label: '3 vias' }]} />
-                        <SettingToggle label="Via do Cliente" checked={settings.pdv_print_customer_copy} onChange={v => updateSetting('pdv_print_customer_copy', v)} />
-                        <SettingToggle label="Imprimir para Cozinha" checked={settings.pdv_print_kitchen} onChange={v => updateSetting('pdv_print_kitchen', v)} />
+                        <SettingToggle label="Via do Cliente" checked={settings.printCustomerCopy} onChange={v => updateSetting('printCustomerCopy', v)} />
+                        <SettingToggle label="Imprimir para Cozinha" checked={settings.printKitchen} onChange={v => updateSetting('printKitchen', v)} />
                       </>
                     )}
 
                     {section.id === 'permissions' && (
                       <>
-                        <SettingToggle label="Permitir Descontos" checked={settings.pdv_discount_enabled} onChange={v => updateSetting('pdv_discount_enabled', v)} />
-                        <SettingNumber label="Desconto Máximo (Operador)" value={settings.pdv_max_discount} onChange={v => updateSetting('pdv_max_discount', v)} suffix="%" />
-                        <SettingNumber label="Desconto Máximo (Gerente)" value={settings.pdv_manager_discount} onChange={v => updateSetting('pdv_manager_discount', v)} suffix="%" />
-                        <SettingToggle label="Exigir Cliente" checked={settings.pdv_require_customer} onChange={v => updateSetting('pdv_require_customer', v)} />
-                        <SettingToggle label="Observações nos Itens" checked={settings.pdv_allow_obs} onChange={v => updateSetting('pdv_allow_obs', v)} />
-                        <SettingToggle label="Senha p/ Cancelar Item" checked={settings.pdv_cancel_item_password} onChange={v => updateSetting('pdv_cancel_item_password', v)} />
-                        <SettingToggle label="Senha p/ Reimprimir" checked={settings.pdv_reprint_password} onChange={v => updateSetting('pdv_reprint_password', v)} />
+                        <SettingToggle label="Permitir Descontos" checked={settings.discountEnabled} onChange={v => updateSetting('discountEnabled', v)} />
+                        <SettingNumber label="Desconto Máximo (Operador)" value={settings.maxDiscount} onChange={v => updateSetting('maxDiscount', v)} suffix="%" />
+                        <SettingNumber label="Desconto Máximo (Gerente)" value={settings.managerDiscount} onChange={v => updateSetting('managerDiscount', v)} suffix="%" />
+                        <SettingToggle label="Exigir Cliente" checked={settings.requireCustomer} onChange={v => updateSetting('requireCustomer', v)} />
+                        <SettingToggle label="Observações nos Itens" checked={settings.allowObs} onChange={v => updateSetting('allowObs', v)} />
+                        <SettingToggle label="Senha p/ Cancelar Item" checked={settings.cancelItemPassword} onChange={v => updateSetting('cancelItemPassword', v)} />
+                        <SettingToggle label="Senha p/ Reimprimir" checked={settings.reprintPassword} onChange={v => updateSetting('reprintPassword', v)} />
                       </>
                     )}
 
                     {section.id === 'payments' && (
                       <>
-                        <SettingSelect label="Pagamento Padrão" value={settings.pdv_default_payment} onChange={v => updateSetting('pdv_default_payment', v as any)}
+                        <SettingSelect label="Pagamento Padrão" value={settings.defaultPayment} onChange={v => updateSetting('defaultPayment', v as any)}
                           options={[{ value: 'money', label: '💵 Dinheiro' }, { value: 'debit', label: '💳 Débito' }, { value: 'credit', label: '💳 Crédito' }, { value: 'pix', label: '📱 PIX' }]} />
-                        <SettingToggle label="Pagamento Dividido" checked={settings.pdv_allow_split_payment} onChange={v => updateSetting('pdv_allow_split_payment', v)} />
-                        <SettingToggle label="Calcular Troco" checked={settings.pdv_calculate_change} onChange={v => updateSetting('pdv_calculate_change', v)} />
-                        <SettingToggle label="Gorjeta" checked={settings.pdv_tip_enabled} onChange={v => updateSetting('pdv_tip_enabled', v)} />
-                        {settings.pdv_tip_enabled && (
-                          <SettingText label="Sugestões de Gorjeta (%)" value={settings.pdv_tip_suggestions} onChange={v => updateSetting('pdv_tip_suggestions', v)} placeholder="5,10,15" />
+                        <SettingToggle label="Pagamento Dividido" checked={settings.allowSplitPayment} onChange={v => updateSetting('allowSplitPayment', v)} />
+                        <SettingToggle label="Calcular Troco" checked={settings.calculateChange} onChange={v => updateSetting('calculateChange', v)} />
+                        <SettingToggle label="Gorjeta" checked={settings.tipEnabled} onChange={v => updateSetting('tipEnabled', v)} />
+                        {settings.tipEnabled && (
+                          <SettingText label="Sugestões de Gorjeta (%)" value={settings.tipSuggestions} onChange={v => updateSetting('tipSuggestions', v)} placeholder="5,10,15" />
                         )}
                       </>
                     )}
 
                     {section.id === 'cashier' && (
                       <>
-                        <SettingToggle label="Sangria de Caixa" checked={settings.pdv_sangria_enabled} onChange={v => updateSetting('pdv_sangria_enabled', v)} />
-                        <SettingToggle label="Suprimento de Caixa" checked={settings.pdv_suprimento_enabled} onChange={v => updateSetting('pdv_suprimento_enabled', v)} />
-                        <SettingToggle label="Fechamento Cego" checked={settings.pdv_blind_close} onChange={v => updateSetting('pdv_blind_close', v)} />
-                        <SettingToggle label="Exigir Abertura de Turno" checked={settings.pdv_shift_required} onChange={v => updateSetting('pdv_shift_required', v)} />
-                        <SettingNumber label="Logout Automático" value={settings.pdv_auto_logout} onChange={v => updateSetting('pdv_auto_logout', v)} suffix="min (0 = desativado)" />
+                        <SettingToggle label="Sangria de Caixa" checked={settings.sangriaEnabled} onChange={v => updateSetting('sangriaEnabled', v)} />
+                        <SettingToggle label="Suprimento de Caixa" checked={settings.suprimentoEnabled} onChange={v => updateSetting('suprimentoEnabled', v)} />
+                        <SettingToggle label="Fechamento Cego" checked={settings.blindClose} onChange={v => updateSetting('blindClose', v)} />
+                        <SettingToggle label="Exigir Abertura de Turno" checked={settings.shiftRequired} onChange={v => updateSetting('shiftRequired', v)} />
+                        <SettingNumber label="Logout Automático" value={settings.autoLogout} onChange={v => updateSetting('autoLogout', v)} suffix="min (0 = desativado)" />
                       </>
                     )}
 
                     {section.id === 'shortcuts' && (
                       <>
-                        <SettingToggle label="Venda Rápida (F2)" checked={settings.pdv_quick_sale} onChange={v => updateSetting('pdv_quick_sale', v)} />
-                        <SettingSelect label="F1" value={settings.pdv_shortcut_f1} onChange={v => updateSetting('pdv_shortcut_f1', v)}
+                        <SettingToggle label="Venda Rápida (F2)" checked={settings.quickSale} onChange={v => updateSetting('quickSale', v)} />
+                        <SettingSelect label="F1" value={settings.shortcutF1} onChange={v => updateSetting('shortcutF1', v)}
                           options={[{ value: 'search', label: '🔍 Buscar Produto' }, { value: 'customer', label: '👤 Buscar Cliente' }, { value: 'none', label: 'Nenhum' }]} />
-                        <SettingSelect label="F3" value={settings.pdv_shortcut_f3} onChange={v => updateSetting('pdv_shortcut_f3', v)}
+                        <SettingSelect label="F3" value={settings.shortcutF3} onChange={v => updateSetting('shortcutF3', v)}
                           options={[{ value: 'discount', label: '💰 Desconto' }, { value: 'obs', label: '📝 Observação' }, { value: 'none', label: 'Nenhum' }]} />
-                        <SettingSelect label="F4" value={settings.pdv_shortcut_f4} onChange={v => updateSetting('pdv_shortcut_f4', v)}
+                        <SettingSelect label="F4" value={settings.shortcutF4} onChange={v => updateSetting('shortcutF4', v)}
                           options={[{ value: 'cancel', label: '❌ Cancelar Venda' }, { value: 'clear', label: '🗑️ Limpar Carrinho' }, { value: 'none', label: 'Nenhum' }]} />
                       </>
                     )}
@@ -370,50 +271,50 @@ export default function PDVSettingsPage() {
               </div>
 
               {/* Mini PDV Preview */}
-              <div className={`p-4 ${settings.pdv_theme === 'dark' ? 'bg-slate-900' : 'bg-white'}`}>
+              <div className={`p-4 ${settings.theme === 'dark' ? 'bg-slate-900' : 'bg-white'}`}>
                 {/* Header do PDV */}
-                <div className={`flex items-center justify-between mb-4 pb-3 border-b ${settings.pdv_theme === 'dark' ? 'border-slate-700' : 'border-slate-200'}`}>
+                <div className={`flex items-center justify-between mb-4 pb-3 border-b ${settings.theme === 'dark' ? 'border-slate-700' : 'border-slate-200'}`}>
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: settings.pdv_primary_color }}>
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: settings.primaryColor }}>
                       <ShoppingCart className="w-4 h-4 text-white" />
                     </div>
-                    <span className={`font-bold ${settings.pdv_theme === 'dark' ? 'text-white' : 'text-slate-800'} ${settings.pdv_font_size === 'small' ? 'text-sm' : settings.pdv_font_size === 'large' ? 'text-lg' : ''}`}>
+                    <span className={`font-bold ${settings.theme === 'dark' ? 'text-white' : 'text-slate-800'} ${settings.fontSize === 'small' ? 'text-sm' : settings.fontSize === 'large' ? 'text-lg' : ''}`}>
                       PDV
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    {settings.pdv_barcode_enabled && (
-                      <div className={`p-1.5 rounded ${settings.pdv_theme === 'dark' ? 'bg-slate-700' : 'bg-slate-100'}`}>
-                        <ScanBarcode className={`w-4 h-4 ${settings.pdv_theme === 'dark' ? 'text-slate-300' : 'text-slate-500'}`} />
+                    {settings.barcodeEnabled && (
+                      <div className={`p-1.5 rounded ${settings.theme === 'dark' ? 'bg-slate-700' : 'bg-slate-100'}`}>
+                        <ScanBarcode className={`w-4 h-4 ${settings.theme === 'dark' ? 'text-slate-300' : 'text-slate-500'}`} />
                       </div>
                     )}
-                    <div className={`p-1.5 rounded ${settings.pdv_theme === 'dark' ? 'bg-slate-700' : 'bg-slate-100'}`}>
-                      <Search className={`w-4 h-4 ${settings.pdv_theme === 'dark' ? 'text-slate-300' : 'text-slate-500'}`} />
+                    <div className={`p-1.5 rounded ${settings.theme === 'dark' ? 'bg-slate-700' : 'bg-slate-100'}`}>
+                      <Search className={`w-4 h-4 ${settings.theme === 'dark' ? 'text-slate-300' : 'text-slate-500'}`} />
                     </div>
                   </div>
                 </div>
 
                 {/* Produtos Grid/List */}
-                <div className={`mb-4 ${settings.pdv_layout === 'grid' ? 'grid grid-cols-3 gap-2' : 'space-y-2'}`}>
+                <div className={`mb-4 ${settings.layout === 'grid' ? 'grid grid-cols-3 gap-2' : 'space-y-2'}`}>
                   {[1, 2, 3, 4, 5, 6].map(i => (
                     <div
                       key={i}
-                      className={`rounded-lg border overflow-hidden ${settings.pdv_theme === 'dark' ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-slate-50'} ${
-                        settings.pdv_layout === 'list' ? 'flex items-center gap-2 p-2' : ''
+                      className={`rounded-lg border overflow-hidden ${settings.theme === 'dark' ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-slate-50'} ${
+                        settings.layout === 'list' ? 'flex items-center gap-2 p-2' : ''
                       }`}
                       style={{
-                        height: settings.pdv_layout === 'grid' ? 
-                          (settings.pdv_product_size === 'small' ? 60 : settings.pdv_product_size === 'large' ? 100 : 80) : 'auto'
+                        height: settings.layout === 'grid' ? 
+                          (settings.productSize === 'small' ? 60 : settings.productSize === 'large' ? 100 : 80) : 'auto'
                       }}
                     >
-                      {settings.pdv_show_images && (
-                        <div className={`bg-gradient-to-br from-slate-200 to-slate-300 ${settings.pdv_layout === 'list' ? 'w-10 h-10 rounded' : 'w-full h-1/2'}`} />
+                      {settings.showImages && (
+                        <div className={`bg-gradient-to-br from-slate-200 to-slate-300 ${settings.layout === 'list' ? 'w-10 h-10 rounded' : 'w-full h-1/2'}`} />
                       )}
-                      <div className={`p-1 ${settings.pdv_layout === 'list' ? 'flex-1' : ''}`}>
-                        <div className={`h-2 rounded ${settings.pdv_theme === 'dark' ? 'bg-slate-600' : 'bg-slate-300'} w-3/4 mb-1`} />
-                        <div className={`h-2 rounded w-1/2`} style={{ backgroundColor: settings.pdv_primary_color, opacity: 0.7 }} />
-                        {settings.pdv_show_stock && (
-                          <div className={`h-1.5 rounded ${settings.pdv_theme === 'dark' ? 'bg-slate-700' : 'bg-slate-200'} w-1/3 mt-1`} />
+                      <div className={`p-1 ${settings.layout === 'list' ? 'flex-1' : ''}`}>
+                        <div className={`h-2 rounded ${settings.theme === 'dark' ? 'bg-slate-600' : 'bg-slate-300'} w-3/4 mb-1`} />
+                        <div className={`h-2 rounded w-1/2`} style={{ backgroundColor: settings.primaryColor, opacity: 0.7 }} />
+                        {settings.showStock && (
+                          <div className={`h-1.5 rounded ${settings.theme === 'dark' ? 'bg-slate-700' : 'bg-slate-200'} w-1/3 mt-1`} />
                         )}
                       </div>
                     </div>
@@ -421,22 +322,22 @@ export default function PDVSettingsPage() {
                 </div>
 
                 {/* Carrinho */}
-                <div className={`rounded-lg border p-3 ${settings.pdv_theme === 'dark' ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-slate-50'}`}>
+                <div className={`rounded-lg border p-3 ${settings.theme === 'dark' ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-slate-50'}`}>
                   <div className="flex items-center justify-between mb-2">
-                    <span className={`text-xs font-medium ${settings.pdv_theme === 'dark' ? 'text-slate-300' : 'text-slate-600'}`}>Carrinho</span>
-                    <span className={`text-xs ${settings.pdv_theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>3 itens</span>
+                    <span className={`text-xs font-medium ${settings.theme === 'dark' ? 'text-slate-300' : 'text-slate-600'}`}>Carrinho</span>
+                    <span className={`text-xs ${settings.theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>3 itens</span>
                   </div>
                   <div className="space-y-1">
                     {[1, 2, 3].map(i => (
-                      <div key={i} className={`flex items-center justify-between py-1 ${i < 3 ? `border-b ${settings.pdv_theme === 'dark' ? 'border-slate-700' : 'border-slate-200'}` : ''}`}>
-                        <div className={`h-2 rounded ${settings.pdv_theme === 'dark' ? 'bg-slate-600' : 'bg-slate-300'} w-1/3`} />
-                        <div className={`h-2 rounded w-1/5`} style={{ backgroundColor: settings.pdv_primary_color }} />
+                      <div key={i} className={`flex items-center justify-between py-1 ${i < 3 ? `border-b ${settings.theme === 'dark' ? 'border-slate-700' : 'border-slate-200'}` : ''}`}>
+                        <div className={`h-2 rounded ${settings.theme === 'dark' ? 'bg-slate-600' : 'bg-slate-300'} w-1/3`} />
+                        <div className={`h-2 rounded w-1/5`} style={{ backgroundColor: settings.primaryColor }} />
                       </div>
                     ))}
                   </div>
-                  <div className={`mt-3 pt-2 border-t ${settings.pdv_theme === 'dark' ? 'border-slate-600' : 'border-slate-300'} flex justify-between`}>
-                    <span className={`font-bold ${settings.pdv_theme === 'dark' ? 'text-white' : 'text-slate-800'}`}>Total</span>
-                    <span className="font-bold" style={{ color: settings.pdv_primary_color }}>R$ 45,90</span>
+                  <div className={`mt-3 pt-2 border-t ${settings.theme === 'dark' ? 'border-slate-600' : 'border-slate-300'} flex justify-between`}>
+                    <span className={`font-bold ${settings.theme === 'dark' ? 'text-white' : 'text-slate-800'}`}>Total</span>
+                    <span className="font-bold" style={{ color: settings.primaryColor }}>R$ 45,90</span>
                   </div>
                 </div>
 
@@ -446,11 +347,11 @@ export default function PDVSettingsPage() {
                     <button
                       key={i}
                       className={`p-2 rounded-lg text-center text-sm ${
-                        i === ['money', 'debit', 'credit', 'pix'].indexOf(settings.pdv_default_payment) 
+                        i === ['money', 'debit', 'credit', 'pix'].indexOf(settings.defaultPayment) 
                           ? '' 
-                          : settings.pdv_theme === 'dark' ? 'bg-slate-700' : 'bg-slate-100'
+                          : settings.theme === 'dark' ? 'bg-slate-700' : 'bg-slate-100'
                       }`}
-                      style={i === ['money', 'debit', 'credit', 'pix'].indexOf(settings.pdv_default_payment) ? { backgroundColor: settings.pdv_primary_color } : {}}
+                      style={i === ['money', 'debit', 'credit', 'pix'].indexOf(settings.defaultPayment) ? { backgroundColor: settings.primaryColor } : {}}
                     >
                       {icon}
                     </button>
@@ -458,8 +359,8 @@ export default function PDVSettingsPage() {
                 </div>
 
                 {/* Atalhos */}
-                {settings.pdv_quick_sale && (
-                  <div className={`mt-3 p-2 rounded-lg text-center text-xs ${settings.pdv_theme === 'dark' ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
+                {settings.quickSale && (
+                  <div className={`mt-3 p-2 rounded-lg text-center text-xs ${settings.theme === 'dark' ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
                     F2 = Venda Rápida em Dinheiro
                   </div>
                 )}
