@@ -675,6 +675,14 @@ export default function WaiterAppPage() {
       if (!selectedTable || !storeId) return
       setSending(true)
 
+      // Buscar caixa aberto
+      const { data: openRegister } = await supabase
+        .from('cash_registers')
+        .select('id')
+        .eq('store_id', storeId)
+        .eq('status', 'open')
+        .single()
+
       // Atualizar status dos pedidos para completed
       for (const order of tableOrders) {
         await supabase.from('orders').update({ 
@@ -682,6 +690,18 @@ export default function WaiterAppPage() {
           payment_method: selectedPayment,
           payment_status: 'paid'
         }).eq('id', order.id)
+
+        // Registrar no caixa (cash_movements)
+        await supabase.from('cash_movements').insert({
+          store_id: storeId,
+          register_id: openRegister?.id || null,
+          type: 'sale',
+          amount: order.total_amount,
+          description: `Mesa ${selectedTable.number} - Pedido #${order.order_number || order.id.slice(0,6)}`,
+          payment_method: selectedPayment,
+          order_id: order.id,
+          created_by_name: waiterName
+        })
       }
 
       // Liberar mesa
