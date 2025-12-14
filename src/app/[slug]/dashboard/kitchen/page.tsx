@@ -301,36 +301,38 @@ export default function KitchenPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-orange-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600 text-lg">Carregando pedidos...</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-orange-50/30 flex items-center justify-center">
+        <div className="text-center bg-white/80 backdrop-blur-sm p-8 rounded-3xl shadow-xl shadow-slate-200/50">
+          <Loader2 className="w-14 h-14 text-orange-600 animate-spin mx-auto mb-4" />
+          <p className="text-slate-600 text-lg font-medium">Carregando pedidos...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white p-4 md:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-orange-50/30 p-4 md:p-6 lg:p-8">
       {/* Audio para notificação */}
       <audio ref={audioRef} src="/notification.mp3" preload="auto" />
       
       <div className="max-w-7xl mx-auto">
         {/* Header com controles */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 flex items-center gap-3">
-                <ChefHat className="w-8 h-8 md:w-10 md:h-10 text-orange-600" />
+              <h1 className="text-2xl md:text-3xl font-bold text-slate-800 flex items-center gap-3">
+                <div className="p-2.5 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl shadow-lg shadow-orange-500/25">
+                  <ChefHat className="w-6 h-6 md:w-7 md:h-7 text-white" />
+                </div>
                 {t('menu.kitchen')}
               </h1>
-              <p className="text-gray-600 mt-1">Kitchen Display System - Pressione F para fullscreen</p>
+              <p className="text-slate-500 mt-2 ml-14">Kitchen Display System - Pressione F para fullscreen</p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               <button
                 onClick={() => setSoundEnabled(!soundEnabled)}
-                className={`p-3 rounded-xl transition-colors ${
-                  soundEnabled ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'
+                className={`p-3 rounded-xl transition-all shadow-md ${
+                  soundEnabled ? 'bg-emerald-100 text-emerald-700 shadow-emerald-100' : 'bg-slate-100 text-slate-400 shadow-slate-100'
                 }`}
                 title={soundEnabled ? 'Som ativado' : 'Som desativado'}
               >
@@ -338,7 +340,7 @@ export default function KitchenPage() {
               </button>
               <button
                 onClick={toggleFullscreen}
-                className="p-3 rounded-xl bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors"
+                className="p-3 rounded-xl bg-blue-100 text-blue-700 hover:bg-blue-200 transition-all shadow-md shadow-blue-100"
                 title="Modo Fullscreen (F)"
               >
                 {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
@@ -347,14 +349,14 @@ export default function KitchenPage() {
           </div>
 
           {/* Filtros */}
-          <div className="bg-white rounded-xl p-4 mb-6 shadow-sm">
+          <div className="bg-white rounded-2xl p-5 mb-6 shadow-lg shadow-slate-200/50 border border-slate-100">
             <div className="flex gap-4">
               <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Tipo de Pedido</label>
+                <label className="block text-sm font-medium text-slate-600 mb-2">Tipo de Pedido</label>
                 <select
                   value={channelFilter}
                   onChange={(e) => setChannelFilter(e.target.value as any)}
-                  className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-orange-500 focus:outline-none"
+                  className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 focus:outline-none transition-all"
                 >
                   <option value="all">Todos</option>
                   <option value="delivery">Delivery</option>
@@ -363,11 +365,11 @@ export default function KitchenPage() {
                 </select>
               </div>
               <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Status do Pagamento</label>
+                <label className="block text-sm font-medium text-slate-600 mb-2">Status do Pagamento</label>
                 <select
                   value={paymentStatusFilter}
                   onChange={(e) => setPaymentStatusFilter(e.target.value as any)}
-                  className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-orange-500 focus:outline-none"
+                  className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 focus:outline-none transition-all"
                 >
                   <option value="all">Todos</option>
                   <option value="pending">Pendente</option>
@@ -378,41 +380,49 @@ export default function KitchenPage() {
           </div>
 
           {/* Painel de Estatísticas */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-4 text-white shadow-lg">
-              <div className="flex items-center gap-3 mb-2">
-                <PackageIcon className="w-6 h-6" />
-                <span className="text-sm font-medium opacity-90">Pendentes</span>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-6">
+            <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-5 text-white shadow-xl shadow-blue-500/20 hover:shadow-2xl hover:shadow-blue-500/30 transition-all duration-300 hover:-translate-y-0.5">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <PackageIcon className="w-5 h-5" />
+                </div>
+                <span className="text-sm font-medium text-white/90">Pendentes</span>
               </div>
-              <div className="text-3xl font-bold">{pendingOrders.length}</div>
+              <div className="text-3xl font-bold tracking-tight">{pendingOrders.length}</div>
             </div>
-            <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-2xl p-4 text-white shadow-lg">
-              <div className="flex items-center gap-3 mb-2">
-                <Timer className="w-6 h-6" />
-                <span className="text-sm font-medium opacity-90">Em Preparo</span>
+            <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-5 text-white shadow-xl shadow-amber-500/20 hover:shadow-2xl hover:shadow-amber-500/30 transition-all duration-300 hover:-translate-y-0.5">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <Timer className="w-5 h-5" />
+                </div>
+                <span className="text-sm font-medium text-white/90">Em Preparo</span>
               </div>
-              <div className="text-3xl font-bold">{preparingOrders.length}</div>
+              <div className="text-3xl font-bold tracking-tight">{preparingOrders.length}</div>
             </div>
-            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-4 text-white shadow-lg">
-              <div className="flex items-center gap-3 mb-2">
-                <CheckCircle className="w-6 h-6" />
-                <span className="text-sm font-medium opacity-90">Concluídos Hoje</span>
+            <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-5 text-white shadow-xl shadow-emerald-500/20 hover:shadow-2xl hover:shadow-emerald-500/30 transition-all duration-300 hover:-translate-y-0.5">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <CheckCircle className="w-5 h-5" />
+                </div>
+                <span className="text-sm font-medium text-white/90">Concluídos Hoje</span>
               </div>
-              <div className="text-3xl font-bold">{completedToday}</div>
+              <div className="text-3xl font-bold tracking-tight">{completedToday}</div>
             </div>
-            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-4 text-white shadow-lg">
-              <div className="flex items-center gap-3 mb-2">
-                <TrendingUp className="w-6 h-6" />
-                <span className="text-sm font-medium opacity-90">Tempo Médio</span>
+            <div className="bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl p-5 text-white shadow-xl shadow-violet-500/20 hover:shadow-2xl hover:shadow-violet-500/30 transition-all duration-300 hover:-translate-y-0.5">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <TrendingUp className="w-5 h-5" />
+                </div>
+                <span className="text-sm font-medium text-white/90">Tempo Médio</span>
               </div>
-              <div className="text-3xl font-bold">{avgPrepTime || '--'} min</div>
+              <div className="text-3xl font-bold tracking-tight">{avgPrepTime || '--'} min</div>
             </div>
           </div>
         </div>
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Pendentes */}
           <div>
-            <div className="bg-red-100 text-red-800 p-4 rounded-t-2xl font-bold text-lg flex items-center justify-between">
+            <div className="bg-gradient-to-r from-red-500 to-rose-600 text-white p-4 rounded-t-2xl font-bold text-lg flex items-center justify-between shadow-lg">
               <span>Pendentes ({pendingOrders.length})</span>
               <AlertCircle className="w-6 h-6" />
             </div>
@@ -423,7 +433,7 @@ export default function KitchenPage() {
                 const isCritical = minutes > 15
                 
                 return (
-                <div key={order.id} className={`bg-white rounded-2xl shadow-lg p-5 border-l-4 border-red-500 relative ${isUrgent ? 'animate-pulse' : ''}`}>
+                <div key={order.id} className={`bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-5 border-l-4 border-red-500 relative ${isUrgent ? 'animate-pulse' : ''}`}>
                   {isUrgent && (
                     <div className="absolute -top-2 -right-2 bg-red-600 text-white px-3 py-1 rounded-full text-xs font-bold animate-bounce shadow-lg">
                       🔥 URGENTE!
@@ -563,13 +573,13 @@ export default function KitchenPage() {
 
           {/* Em Preparo */}
           <div>
-            <div className="bg-yellow-100 text-yellow-800 p-4 rounded-t-2xl font-bold text-lg flex items-center justify-between">
+            <div className="bg-gradient-to-r from-amber-500 to-yellow-500 text-white p-4 rounded-t-2xl font-bold text-lg flex items-center justify-between shadow-lg">
               <span>Em Preparo ({preparingOrders.length})</span>
               <Clock className="w-6 h-6" />
             </div>
             <div className="space-y-4 mt-4">
               {preparingOrders.map(order => (
-                <div key={order.id} className="bg-white rounded-2xl shadow-lg p-5 border-l-4 border-yellow-500">
+                <div key={order.id} className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-5 border-l-4 border-amber-500">
                   <div className="flex items-center justify-between mb-3">
                     <div className="text-3xl font-bold text-gray-900">{order.order_code}</div>
                     <div className={`px-3 py-1 rounded-full text-sm font-semibold ${getChannelColor(order.order_type)}`}>
@@ -638,13 +648,13 @@ export default function KitchenPage() {
 
           {/* Prontos */}
           <div>
-            <div className="bg-green-100 text-green-800 p-4 rounded-t-2xl font-bold text-lg flex items-center justify-between">
+            <div className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white p-4 rounded-t-2xl font-bold text-lg flex items-center justify-between shadow-lg">
               <span>Prontos ({readyOrders.length})</span>
               <CheckCircle className="w-6 h-6" />
             </div>
             <div className="space-y-4 mt-4">
               {readyOrders.map(order => (
-                <div key={order.id} className="bg-white rounded-2xl shadow-lg p-5 border-l-4 border-green-500">
+                <div key={order.id} className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-5 border-l-4 border-emerald-500">
                   <div className="flex items-center justify-between mb-3">
                     <div className="text-3xl font-bold text-gray-900">{order.order_code}</div>
                     <div className={`px-3 py-1 rounded-full text-sm font-semibold ${getChannelColor(order.order_type)}`}>
