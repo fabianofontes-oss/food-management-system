@@ -2,7 +2,8 @@ import {
   Store, Clock, Truck, CreditCard, Bell, Package, Star, Megaphone, Users, Tag, Calendar, UtensilsCrossed,
   Archive, Printer, ChefHat, BarChart3, FileText, MapPin, DollarSign, Percent, Timer, Hash, Smartphone, 
   Mail, Volume2, Gift, ShoppingBag, Wallet, QrCode, Banknote, Building2, Globe, Image, Palette, Phone,
-  Link2, Bike, Car, Zap, MessageSquare, Send, Instagram, Facebook
+  Link2, Bike, Car, Zap, MessageSquare, Send, Instagram, Facebook, Monitor, ScanBarcode, Scale, Calculator,
+  Receipt, CreditCard as CardIcon, Layers, Eye, EyeOff, Grid3X3, LayoutGrid, ShoppingCart, Utensils
 } from 'lucide-react'
 
 export interface ModuleSetting {
@@ -110,6 +111,29 @@ export const MODULES: Module[] = [
 
   // === VENDAS ===
   {
+    id: 'pdv',
+    name: 'PDV (Ponto de Venda)',
+    description: 'Sistema de caixa',
+    longDescription: 'Configure o que aparece na tela do PDV. Desative funções que você não usa para simplificar a interface.',
+    icon: <Monitor className="w-6 h-6" />,
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-100',
+    category: 'sales',
+    configPage: '/dashboard/pdv',
+    settings: [
+      { key: 'pdv_enabled', label: 'Ativar PDV', description: 'Habilita sistema de caixa', type: 'toggle', icon: <Monitor className="w-4 h-4" />, defaultValue: true },
+      { key: 'pdv_show_scale', label: 'Balança', description: 'Mostrar botão de balança (kg/g)', type: 'toggle', icon: <Scale className="w-4 h-4" />, defaultValue: false },
+      { key: 'pdv_show_barcode', label: 'Leitor de Código', description: 'Mostrar campo de código de barras', type: 'toggle', icon: <ScanBarcode className="w-4 h-4" />, defaultValue: false },
+      { key: 'pdv_show_calculator', label: 'Calculadora', description: 'Mostrar calculadora de troco', type: 'toggle', icon: <Calculator className="w-4 h-4" />, defaultValue: true },
+      { key: 'pdv_show_customer', label: 'Identificar Cliente', description: 'Campo para buscar/cadastrar cliente', type: 'toggle', icon: <Users className="w-4 h-4" />, defaultValue: true },
+      { key: 'pdv_show_discount', label: 'Botão de Desconto', description: 'Permite aplicar desconto manual', type: 'toggle', icon: <Percent className="w-4 h-4" />, defaultValue: true },
+      { key: 'pdv_show_obs', label: 'Observações', description: 'Campo de observações no item', type: 'toggle', icon: <FileText className="w-4 h-4" />, defaultValue: true },
+      { key: 'pdv_show_categories', label: 'Categorias', description: 'Filtro de categorias de produtos', type: 'toggle', icon: <Grid3X3 className="w-4 h-4" />, defaultValue: true },
+      { key: 'pdv_grid_size', label: 'Tamanho dos Produtos', description: 'Como mostrar os produtos', type: 'select', icon: <LayoutGrid className="w-4 h-4" />, options: [{ value: 'small', label: 'Pequeno (mais itens)' }, { value: 'medium', label: 'Médio' }, { value: 'large', label: 'Grande (com foto)' }], defaultValue: 'medium' },
+      { key: 'pdv_auto_print', label: 'Imprimir Automaticamente', description: 'Imprime ao finalizar venda', type: 'toggle', icon: <Printer className="w-4 h-4" />, defaultValue: false }
+    ]
+  },
+  {
     id: 'delivery',
     name: 'Delivery',
     description: 'Entregas na casa do cliente',
@@ -156,7 +180,10 @@ export const MODULES: Module[] = [
       { key: 'tables_enabled', label: 'Ativar Mesas', description: 'Habilita gestão de mesas', type: 'toggle', icon: <UtensilsCrossed className="w-4 h-4" />, defaultValue: false },
       { key: 'table_count', label: 'Número de Mesas', description: 'Quantidade total de mesas', type: 'number', icon: <Hash className="w-4 h-4" />, placeholder: '20', defaultValue: 10 },
       { key: 'service_fee', label: 'Taxa de Serviço', description: 'Gorjeta sugerida (10%)', type: 'number', icon: <Percent className="w-4 h-4" />, placeholder: '10', suffix: '%', defaultValue: 10 },
-      { key: 'table_qrcode', label: 'QR Code nas Mesas', description: 'Cliente faz pedido pelo celular', type: 'toggle', icon: <Smartphone className="w-4 h-4" />, defaultValue: true }
+      { key: 'table_qrcode', label: 'QR Code nas Mesas', description: 'Cliente faz pedido pelo celular', type: 'toggle', icon: <Smartphone className="w-4 h-4" />, defaultValue: true },
+      { key: 'table_show_waiter', label: 'Mostrar Garçom', description: 'Exibe qual garçom atende cada mesa', type: 'toggle', icon: <Users className="w-4 h-4" />, defaultValue: true },
+      { key: 'table_show_time', label: 'Tempo na Mesa', description: 'Mostra quanto tempo cliente está na mesa', type: 'toggle', icon: <Timer className="w-4 h-4" />, defaultValue: true },
+      { key: 'table_split_bill', label: 'Dividir Conta', description: 'Permite dividir conta entre pessoas', type: 'toggle', icon: <Users className="w-4 h-4" />, defaultValue: true }
     ]
   },
   {
@@ -305,7 +332,11 @@ export const MODULES: Module[] = [
     settings: [
       { key: 'kitchen_enabled', label: 'Ativar Cozinha', description: 'Habilita painel da cozinha', type: 'toggle', icon: <ChefHat className="w-4 h-4" />, defaultValue: true },
       { key: 'auto_accept', label: 'Aceitar Automaticamente', description: 'Pedidos aceitos sem revisão', type: 'toggle', icon: <Clock className="w-4 h-4" />, defaultValue: false },
-      { key: 'prep_time_alert', label: 'Alerta de Atraso', description: 'Minutos para alertar atraso', type: 'number', icon: <Timer className="w-4 h-4" />, placeholder: '30', suffix: 'min', defaultValue: 30 }
+      { key: 'prep_time_alert', label: 'Alerta de Atraso', description: 'Minutos para alertar atraso', type: 'number', icon: <Timer className="w-4 h-4" />, placeholder: '30', suffix: 'min', defaultValue: 30 },
+      { key: 'kitchen_show_customer', label: 'Mostrar Nome do Cliente', description: 'Exibe nome no painel', type: 'toggle', icon: <Users className="w-4 h-4" />, defaultValue: true },
+      { key: 'kitchen_show_obs', label: 'Destacar Observações', description: 'Observações em destaque', type: 'toggle', icon: <FileText className="w-4 h-4" />, defaultValue: true },
+      { key: 'kitchen_group_items', label: 'Agrupar Itens Iguais', description: 'Agrupa itens iguais do mesmo pedido', type: 'toggle', icon: <Layers className="w-4 h-4" />, defaultValue: true },
+      { key: 'kitchen_sound', label: 'Som de Novo Pedido', description: 'Toca som quando chega pedido', type: 'toggle', icon: <Volume2 className="w-4 h-4" />, defaultValue: true }
     ]
   },
   {
