@@ -6,7 +6,10 @@ import { useRouter } from 'next/navigation'
 import { Lock, Mail, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
-const SUPER_ADMIN_EMAILS = process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAILS?.split(',').map(e => e.trim()) || []
+const SUPER_ADMIN_EMAILS = [
+  'fabianobraga@me.com',
+  ...(process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAILS?.split(',').map(e => e.trim()) || [])
+]
 
 export default function LoginPage() {
   const router = useRouter()
