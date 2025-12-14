@@ -1,13 +1,16 @@
 'use client'
 
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect, useRef } from 'react'
 import { useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { formatCurrency } from '@/lib/utils'
 import { 
   LayoutGrid, Plus, Users, Clock, Receipt,
   Loader2, AlertCircle, Edit, Trash2, QrCode,
-  CheckCircle, XCircle, ArrowRight, Utensils
+  CheckCircle, XCircle, ArrowRight, Utensils,
+  Bell, BellRing, Calendar, History, Link2, Copy,
+  Phone, Mail, Timer, Merge, Volume2, VolumeX, Zap,
+  X, Download, ExternalLink, Coffee, FileText
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
@@ -19,6 +22,39 @@ interface Table {
   status: 'available' | 'occupied' | 'reserved' | 'cleaning'
   current_order_id: string | null
   is_active: boolean
+  occupied_at: string | null
+  merged_with: string[] | null
+  waiter_called: boolean
+  waiter_called_at: string | null
+}
+
+interface Reservation {
+  id: string
+  table_id: string
+  customer_name: string
+  customer_phone: string | null
+  party_size: number
+  reservation_date: string
+  reservation_time: string
+  status: string
+  notes: string | null
+}
+
+interface WaiterCall {
+  id: string
+  table_id: string
+  call_type: string
+  status: string
+  created_at: string
+}
+
+interface TableSession {
+  id: string
+  table_id: string
+  order_id: string | null
+  started_at: string
+  ended_at: string | null
+  total_amount: number
 }
 
 interface TableOrder {
@@ -44,6 +80,26 @@ export default function TablesPage() {
   const [tableOrder, setTableOrder] = useState<TableOrder | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [showDetails, setShowDetails] = useState(false)
+  
+  // Premium features states
+  const [waiterCalls, setWaiterCalls] = useState<WaiterCall[]>([])
+  const [reservations, setReservations] = useState<Reservation[]>([])
+  const [tableHistory, setTableHistory] = useState<TableSession[]>([])
+  const [showReservations, setShowReservations] = useState(false)
+  const [showHistory, setShowHistory] = useState(false)
+  const [showQRCode, setShowQRCode] = useState(false)
+  const [showMerge, setShowMerge] = useState(false)
+  const [soundEnabled, setSoundEnabled] = useState(true)
+  const [isRealtimeConnected, setIsRealtimeConnected] = useState(false)
+  const [currentTime, setCurrentTime] = useState(new Date())
+  const [reservationForm, setReservationForm] = useState({
+    customer_name: '',
+    customer_phone: '',
+    party_size: '2',
+    reservation_date: '',
+    reservation_time: '',
+    notes: ''
+  })
   
   const [formData, setFormData] = useState({
     number: '',
@@ -75,8 +131,86 @@ export default function TablesPage() {
   }, [slug, supabase])
 
   useEffect(() => {
-    if (storeId) loadTables()
+    if (storeId) {
+      loadTables()
+      loadWaiterCalls()
+      loadReservations()
+    }
   }, [storeId])
+
+  // Timer para atualizar tempo de ocupação
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000)
+    return () => clearInterval(timer)
+  }, [])
+
+  // Realtime para mesas e chamadas
+  useEffect(() => {
+    if (!storeId) return
+
+    const channel = supabase
+      .channel('tables-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tables', filter: `store_id=eq.${storeId}` },
+        () => loadTables()
+      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'waiter_calls', filter: `store_id=eq.${storeId}` },
+        (payload: { eventType: string }) => {
+          loadWaiterCalls()
+          if (payload.eventType === 'INSERT') playNotificationSound()
+        }
+      )
+      .subscribe((status: string) => setIsRealtimeConnected(status === 'SUBSCRIBED'))
+
+    return () => { supabase.removeChannel(channel) }
+  }, [storeId])
+
+  const playNotificationSound = () => {
+    if (!soundEnabled) return
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)()
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.frequency.value = 880
+      gain.gain.value = 0.3
+      osc.start()
+      setTimeout(() => { osc.stop(); ctx.close() }, 300)
+    } catch (e) { console.log('Som erro:', e) }
+  }
+
+  async function loadWaiterCalls() {
+    const { data } = await supabase
+      .from('waiter_calls')
+      .select('*')
+      .eq('store_id', storeId)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false })
+    setWaiterCalls(data || [])
+  }
+
+  async function loadReservations() {
+    const today = new Date().toISOString().split('T')[0]
+    const { data } = await supabase
+      .from('table_reservations')
+      .select('*')
+      .eq('store_id', storeId)
+      .gte('reservation_date', today)
+      .in('status', ['pending', 'confirmed'])
+      .order('reservation_date')
+      .order('reservation_time')
+    setReservations(data || [])
+  }
+
+  async function loadTableHistory(tableId: string) {
+    const { data } = await supabase
+      .from('table_sessions')
+      .select('*')
+      .eq('table_id', tableId)
+      .order('started_at', { ascending: false })
+      .limit(20)
+    setTableHistory(data || [])
+  }
 
   async function loadTables() {
     try {
@@ -131,15 +265,109 @@ export default function TablesPage() {
 
   async function handleChangeStatus(table: Table, newStatus: Table['status']) {
     try {
-      await supabase
-        .from('tables')
-        .update({ status: newStatus })
-        .eq('id', table.id)
+      const updateData: any = { status: newStatus }
+      
+      if (newStatus === 'occupied' && table.status !== 'occupied') {
+        updateData.occupied_at = new Date().toISOString()
+        // Criar sessão da mesa
+        await supabase.from('table_sessions').insert({
+          store_id: storeId,
+          table_id: table.id,
+          started_at: new Date().toISOString()
+        })
+      } else if (newStatus === 'available' && table.status === 'occupied') {
+        updateData.occupied_at = null
+        updateData.waiter_called = false
+        // Fechar sessão da mesa
+        await supabase.from('table_sessions')
+          .update({ ended_at: new Date().toISOString() })
+          .eq('table_id', table.id)
+          .is('ended_at', null)
+      }
+      
+      await supabase.from('tables').update(updateData).eq('id', table.id)
       loadTables()
     } catch (err) {
       console.error('Erro ao alterar status:', err)
     }
   }
+
+  // Atender chamada de garçom
+  async function handleAcknowledgeCall(callId: string) {
+    await supabase.from('waiter_calls')
+      .update({ status: 'completed', completed_at: new Date().toISOString() })
+      .eq('id', callId)
+    
+    // Limpar flag na mesa
+    const call = waiterCalls.find(c => c.id === callId)
+    if (call) {
+      await supabase.from('tables')
+        .update({ waiter_called: false, waiter_called_at: null })
+        .eq('id', call.table_id)
+    }
+    
+    loadWaiterCalls()
+    loadTables()
+  }
+
+  // Criar reserva
+  async function handleCreateReservation() {
+    if (!selectedTable || !reservationForm.customer_name || !reservationForm.reservation_date) return
+    
+    await supabase.from('table_reservations').insert({
+      store_id: storeId,
+      table_id: selectedTable.id,
+      customer_name: reservationForm.customer_name,
+      customer_phone: reservationForm.customer_phone || null,
+      party_size: parseInt(reservationForm.party_size) || 2,
+      reservation_date: reservationForm.reservation_date,
+      reservation_time: reservationForm.reservation_time || '19:00',
+      notes: reservationForm.notes || null,
+      status: 'confirmed'
+    })
+    
+    setReservationForm({ customer_name: '', customer_phone: '', party_size: '2', reservation_date: '', reservation_time: '', notes: '' })
+    setShowReservations(false)
+    loadReservations()
+  }
+
+  // Cancelar reserva
+  async function handleCancelReservation(reservationId: string) {
+    await supabase.from('table_reservations')
+      .update({ status: 'cancelled' })
+      .eq('id', reservationId)
+    loadReservations()
+  }
+
+  // Gerar QR Code URL
+  const getQRCodeUrl = (table: Table) => {
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
+    return `${baseUrl}/${slug}?mesa=${table.number}`
+  }
+
+  // Copiar link da mesa
+  const copyTableLink = async (table: Table) => {
+    const link = getQRCodeUrl(table)
+    await navigator.clipboard.writeText(link)
+    alert('Link copiado!')
+  }
+
+  // Calcular tempo de ocupação
+  const getOccupiedTime = (occupiedAt: string | null) => {
+    if (!occupiedAt) return null
+    const diff = currentTime.getTime() - new Date(occupiedAt).getTime()
+    const minutes = Math.floor(diff / 60000)
+    if (minutes < 60) return `${minutes}min`
+    const hours = Math.floor(minutes / 60)
+    const mins = minutes % 60
+    return `${hours}h${mins > 0 ? ` ${mins}min` : ''}`
+  }
+
+  // Verificar se mesa tem chamada pendente
+  const hasWaiterCall = (tableId: string) => waiterCalls.some(c => c.table_id === tableId)
+  
+  // Obter reservas do dia para uma mesa
+  const getTableReservations = (tableId: string) => reservations.filter(r => r.table_id === tableId)
 
   async function handleDelete(id: string) {
     if (!confirm('Deseja realmente excluir esta mesa?')) return
@@ -227,23 +455,60 @@ export default function TablesPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-orange-50/30 p-4 md:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-slate-800 flex items-center gap-3">
             <div className="p-2.5 bg-gradient-to-br from-orange-500 to-amber-600 rounded-xl shadow-lg shadow-orange-500/25">
               <LayoutGrid className="w-6 h-6 md:w-7 md:h-7 text-white" />
             </div>
             Mesas
+            {/* Indicador Realtime */}
+            <span className={`text-xs px-2 py-1 rounded-full flex items-center gap-1 ${
+              isRealtimeConnected ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+            }`}>
+              <Zap className="w-3 h-3" />
+              {isRealtimeConnected ? 'Ao vivo' : 'Offline'}
+            </span>
           </h1>
-          <p className="text-slate-500 mt-2 ml-14">Gestão de mesas e comandas</p>
+          <p className="text-slate-500 mt-2 ml-14">Gestão premium de mesas e comandas</p>
         </div>
-        <Button 
-          onClick={() => { setSelectedTable(null); setShowForm(true); }}
-          className="bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 shadow-lg shadow-orange-500/25"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Nova Mesa
-        </Button>
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Chamadas de garçom pendentes */}
+          {waiterCalls.length > 0 && (
+            <div className="flex items-center gap-2 px-3 py-2 bg-red-100 text-red-700 rounded-xl animate-pulse">
+              <BellRing className="w-5 h-5" />
+              <span className="font-bold">{waiterCalls.length} chamada{waiterCalls.length > 1 ? 's' : ''}</span>
+            </div>
+          )}
+          {/* Toggle Som */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setSoundEnabled(!soundEnabled)}
+            className={soundEnabled ? '' : 'opacity-50'}
+          >
+            {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+          </Button>
+          {/* Reservas */}
+          <Button
+            variant="outline"
+            onClick={() => setShowReservations(true)}
+            className="flex items-center gap-2"
+          >
+            <Calendar className="w-4 h-4" />
+            Reservas
+            {reservations.length > 0 && (
+              <span className="px-1.5 py-0.5 bg-amber-500 text-white text-xs rounded-full">{reservations.length}</span>
+            )}
+          </Button>
+          <Button 
+            onClick={() => { setSelectedTable(null); setShowForm(true); }}
+            className="bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 shadow-lg shadow-orange-500/25"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Nova Mesa
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -313,16 +578,39 @@ export default function TablesPage() {
               onClick={() => handleViewDetails(table)}
               className={`relative p-5 rounded-2xl border-2 cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-xl ${getStatusColor(table.status)} shadow-lg`}
             >
+              {/* Indicador de chamada de garçom */}
+              {hasWaiterCall(table.id) && (
+                <div className="absolute -top-2 -left-2 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center shadow-lg animate-bounce">
+                  <BellRing className="w-4 h-4 text-white" />
+                </div>
+              )}
+              
               <div className="text-center">
                 <div className="w-12 h-12 mx-auto mb-3 bg-white/50 rounded-xl flex items-center justify-center">
                   <Utensils className="w-6 h-6 opacity-70" />
                 </div>
                 <p className="text-2xl font-bold">{table.number}</p>
                 <p className="text-xs mt-1 font-medium">{getStatusLabel(table.status)}</p>
-                <div className="flex items-center justify-center gap-1 mt-3 text-xs opacity-80">
+                
+                {/* Timer de ocupação */}
+                {table.status === 'occupied' && table.occupied_at && (
+                  <div className="flex items-center justify-center gap-1 mt-2 text-xs font-bold text-red-600 bg-red-50 rounded-full px-2 py-0.5">
+                    <Timer className="w-3 h-3" />
+                    {getOccupiedTime(table.occupied_at)}
+                  </div>
+                )}
+                
+                <div className="flex items-center justify-center gap-1 mt-2 text-xs opacity-80">
                   <Users className="w-3.5 h-3.5" />
                   <span className="font-medium">{table.capacity}</span>
                 </div>
+                
+                {/* Reservas do dia */}
+                {getTableReservations(table.id).length > 0 && (
+                  <div className="mt-2 text-xs bg-amber-100 text-amber-700 rounded-full px-2 py-0.5">
+                    {getTableReservations(table.id).length} reserva{getTableReservations(table.id).length > 1 ? 's' : ''}
+                  </div>
+                )}
               </div>
               
               {table.status === 'occupied' && (
@@ -484,6 +772,28 @@ export default function TablesPage() {
               </div>
             </div>
             
+            {/* Botões Premium */}
+            <div className="flex gap-2 pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => { setShowQRCode(true); }}
+                className="flex-1"
+              >
+                <QrCode className="w-4 h-4 mr-1" />
+                QR Code
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => { loadTableHistory(selectedTable.id); setShowHistory(true); }}
+                className="flex-1"
+              >
+                <History className="w-4 h-4 mr-1" />
+                Histórico
+              </Button>
+            </div>
+
             <Button 
               variant="outline" 
               className="w-full mt-4" 
@@ -491,6 +801,248 @@ export default function TablesPage() {
             >
               Fechar
             </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal QR Code */}
+      {showQRCode && selectedTable && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl text-center">
+            <h3 className="text-lg font-semibold mb-4">QR Code - Mesa {selectedTable.number}</h3>
+            
+            <div className="bg-white p-4 rounded-xl border-2 border-dashed border-slate-200 mb-4">
+              <img 
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(getQRCodeUrl(selectedTable))}`}
+                alt="QR Code"
+                className="mx-auto"
+              />
+            </div>
+            
+            <p className="text-sm text-slate-500 mb-4">
+              Cliente escaneia e faz pedido direto no celular
+            </p>
+            
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => copyTableLink(selectedTable)}
+              >
+                <Copy className="w-4 h-4 mr-1" />
+                Copiar Link
+              </Button>
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => window.open(getQRCodeUrl(selectedTable), '_blank')}
+              >
+                <ExternalLink className="w-4 h-4 mr-1" />
+                Abrir
+              </Button>
+            </div>
+            
+            <Button 
+              variant="outline" 
+              className="w-full mt-4" 
+              onClick={() => setShowQRCode(false)}
+            >
+              Fechar
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Histórico */}
+      {showHistory && selectedTable && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl max-h-[80vh] overflow-hidden flex flex-col">
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <History className="w-5 h-5 text-slate-600" />
+              Histórico - Mesa {selectedTable.number}
+            </h3>
+            
+            <div className="flex-1 overflow-y-auto space-y-3">
+              {tableHistory.length === 0 ? (
+                <p className="text-center text-slate-400 py-8">Nenhum histórico</p>
+              ) : (
+                tableHistory.map(session => (
+                  <div key={session.id} className="p-3 bg-slate-50 rounded-xl">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="text-sm font-medium">
+                          {new Date(session.started_at).toLocaleDateString('pt-BR')}
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          {new Date(session.started_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                          {session.ended_at && ` - ${new Date(session.ended_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`}
+                        </p>
+                      </div>
+                      {session.total_amount > 0 && (
+                        <span className="font-bold text-emerald-600">
+                          {formatCurrency(session.total_amount)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+            
+            <Button 
+              variant="outline" 
+              className="w-full mt-4" 
+              onClick={() => setShowHistory(false)}
+            >
+              Fechar
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Reservas */}
+      {showReservations && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-lg shadow-2xl max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-amber-600" />
+                Reservas
+              </h3>
+              <button onClick={() => setShowReservations(false)} className="p-2 hover:bg-slate-100 rounded-lg">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            {/* Formulário de nova reserva */}
+            <div className="p-4 bg-amber-50 rounded-xl mb-4">
+              <h4 className="font-medium text-amber-800 mb-3">Nova Reserva</h4>
+              <div className="grid grid-cols-2 gap-3">
+                <input
+                  type="text"
+                  placeholder="Nome do cliente"
+                  value={reservationForm.customer_name}
+                  onChange={e => setReservationForm(prev => ({ ...prev, customer_name: e.target.value }))}
+                  className="col-span-2 px-3 py-2 border rounded-lg text-sm"
+                />
+                <input
+                  type="tel"
+                  placeholder="Telefone"
+                  value={reservationForm.customer_phone}
+                  onChange={e => setReservationForm(prev => ({ ...prev, customer_phone: e.target.value }))}
+                  className="px-3 py-2 border rounded-lg text-sm"
+                />
+                <select
+                  value={reservationForm.party_size}
+                  onChange={e => setReservationForm(prev => ({ ...prev, party_size: e.target.value }))}
+                  className="px-3 py-2 border rounded-lg text-sm"
+                >
+                  {[1,2,3,4,5,6,8,10,12].map(n => (
+                    <option key={n} value={n}>{n} pessoa{n > 1 ? 's' : ''}</option>
+                  ))}
+                </select>
+                <input
+                  type="date"
+                  value={reservationForm.reservation_date}
+                  onChange={e => setReservationForm(prev => ({ ...prev, reservation_date: e.target.value }))}
+                  className="px-3 py-2 border rounded-lg text-sm"
+                />
+                <input
+                  type="time"
+                  value={reservationForm.reservation_time}
+                  onChange={e => setReservationForm(prev => ({ ...prev, reservation_time: e.target.value }))}
+                  className="px-3 py-2 border rounded-lg text-sm"
+                />
+                <select
+                  value={selectedTable?.id || ''}
+                  onChange={e => setSelectedTable(tables.find(t => t.id === e.target.value) || null)}
+                  className="col-span-2 px-3 py-2 border rounded-lg text-sm"
+                >
+                  <option value="">Selecione a mesa</option>
+                  {tables.map(t => (
+                    <option key={t.id} value={t.id}>Mesa {t.number} ({t.capacity} pessoas)</option>
+                  ))}
+                </select>
+              </div>
+              <Button
+                onClick={handleCreateReservation}
+                disabled={!selectedTable || !reservationForm.customer_name || !reservationForm.reservation_date}
+                className="w-full mt-3 bg-amber-600 hover:bg-amber-700"
+                size="sm"
+              >
+                <Plus className="w-4 h-4 mr-1" />
+                Criar Reserva
+              </Button>
+            </div>
+            
+            {/* Lista de reservas */}
+            <div className="flex-1 overflow-y-auto space-y-3">
+              {reservations.length === 0 ? (
+                <p className="text-center text-slate-400 py-8">Nenhuma reserva agendada</p>
+              ) : (
+                reservations.map(reservation => (
+                  <div key={reservation.id} className="p-4 bg-slate-50 rounded-xl flex items-start justify-between">
+                    <div>
+                      <p className="font-medium">{reservation.customer_name}</p>
+                      <p className="text-sm text-slate-500">
+                        Mesa {tables.find(t => t.id === reservation.table_id)?.number} • {reservation.party_size} pessoas
+                      </p>
+                      <p className="text-sm text-amber-600 font-medium">
+                        {new Date(reservation.reservation_date).toLocaleDateString('pt-BR')} às {reservation.reservation_time}
+                      </p>
+                      {reservation.customer_phone && (
+                        <p className="text-xs text-slate-400 flex items-center gap-1 mt-1">
+                          <Phone className="w-3 h-3" /> {reservation.customer_phone}
+                        </p>
+                      )}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-red-600"
+                      onClick={() => handleCancelReservation(reservation.id)}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Painel de Chamadas de Garçom */}
+      {waiterCalls.length > 0 && (
+        <div className="fixed bottom-4 right-4 z-40">
+          <div className="bg-white rounded-2xl shadow-2xl border border-red-200 p-4 max-w-sm">
+            <h4 className="font-bold text-red-700 flex items-center gap-2 mb-3">
+              <BellRing className="w-5 h-5" />
+              Chamadas Pendentes
+            </h4>
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {waiterCalls.map(call => {
+                const table = tables.find(t => t.id === call.table_id)
+                return (
+                  <div key={call.id} className="flex items-center justify-between p-3 bg-red-50 rounded-xl">
+                    <div>
+                      <p className="font-bold">Mesa {table?.number}</p>
+                      <p className="text-xs text-slate-500">
+                        {new Date(call.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
+                    <Button
+                      size="sm"
+                      onClick={() => handleAcknowledgeCall(call.id)}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      <CheckCircle className="w-4 h-4 mr-1" />
+                      Atender
+                    </Button>
+                  </div>
+                )
+              })}
+            </div>
           </div>
         </div>
       )}
