@@ -48,26 +48,56 @@ export default function LoginPage() {
         return
       }
 
-      // Get user stores
-      const { data: stores, error: storesError } = await supabase
-        .rpc('get_user_stores')
+      // Get user stores directly from store_users table
+      const { data: storeUsers, error: storesError } = await supabase
+        .from('store_users')
+        .select(`
+          store_id,
+          role,
+          stores:store_id (
+            id,
+            slug,
+            name
+          )
+        `)
+        .eq('user_id', data.user.id)
 
       if (storesError) {
         console.error('Error fetching stores:', storesError)
+        // Try alternative query without join
+        const { data: simpleStoreUsers } = await supabase
+          .from('store_users')
+          .select('store_id')
+          .eq('user_id', data.user.id)
+        
+        if (simpleStoreUsers && simpleStoreUsers.length > 0) {
+          const { data: store } = await supabase
+            .from('stores')
+            .select('slug')
+            .eq('id', simpleStoreUsers[0].store_id)
+            .single()
+          
+          if (store) {
+            router.push(`/${store.slug}/dashboard`)
+            return
+          }
+        }
+        
         setError('Erro ao carregar suas lojas')
         setLoading(false)
         return
       }
 
-      if (!stores || stores.length === 0) {
+      if (!storeUsers || storeUsers.length === 0) {
         setError('Nenhuma loja atribuída ainda. Entre em contato com o administrador.')
         setLoading(false)
         return
       }
 
       // Redirect based on number of stores
-      if (stores.length === 1) {
-        router.push(`/${stores[0].store_slug}/dashboard`)
+      if (storeUsers.length === 1) {
+        const store = storeUsers[0].stores as any
+        router.push(`/${store?.slug || 'acai-sabor-real'}/dashboard`)
       } else {
         router.push('/select-store')
       }
