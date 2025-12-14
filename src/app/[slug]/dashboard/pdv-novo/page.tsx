@@ -6,19 +6,12 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { PDVSettings, DEFAULT_PDV_SETTINGS } from '@/types/settings'
 import { formatCurrency } from '@/lib/utils'
+import { useProducts, Product } from '@/hooks/useProducts'
 import {
   ShoppingCart, Plus, Minus, Trash2, CreditCard, DollarSign, Smartphone,
   Loader2, Search, Settings, X, Package
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-
-interface Product {
-  id: string
-  name: string
-  base_price: number
-  image_url?: string
-  category_id?: string
-}
 
 interface CartItem {
   id: string
@@ -32,16 +25,16 @@ export default function PDVNovoPage() {
   const slug = params.slug as string
   const supabase = useMemo(() => createClient(), [])
 
-  const [loading, setLoading] = useState(true)
-  const [products, setProducts] = useState<Product[]>([])
+  const { products, loading: productsLoading } = useProducts()
+  const [storeId, setStoreId] = useState<string | null>(null)
   const [cart, setCart] = useState<CartItem[]>([])
   const [search, setSearch] = useState('')
   const [selectedPayment, setSelectedPayment] = useState<'money' | 'debit' | 'credit' | 'pix'>('money')
   const [pdvConfig, setPdvConfig] = useState<PDVSettings>(DEFAULT_PDV_SETTINGS)
+  const [configLoading, setConfigLoading] = useState(true)
 
   useEffect(() => {
-    async function loadData() {
-      // Carregar loja e configurações
+    async function loadConfig() {
       const { data: store } = await supabase
         .from('stores')
         .select('id, settings')
@@ -49,22 +42,16 @@ export default function PDVNovoPage() {
         .single()
 
       if (store) {
+        setStoreId(store.id)
         const config = store.settings?.sales?.pdv || store.settings?.pdv || {}
         setPdvConfig({ ...DEFAULT_PDV_SETTINGS, ...config })
-
-        // Carregar produtos
-        const { data: prods } = await supabase
-          .from('products')
-          .select('id, name, base_price, image_url, category_id')
-          .eq('store_id', store.id)
-          .eq('is_active', true)
-
-        if (prods) setProducts(prods)
       }
-      setLoading(false)
+      setConfigLoading(false)
     }
-    loadData()
+    loadConfig()
   }, [slug, supabase])
+
+  const storeProducts = products.filter(p => !storeId || p.store_id === storeId)
 
   const addToCart = (product: Product) => {
     const existing = cart.find(item => item.id === product.id)
@@ -91,9 +78,9 @@ export default function PDVNovoPage() {
   const clearCart = () => setCart([])
 
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
-  const filteredProducts = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()))
+  const filteredProducts = storeProducts.filter(p => p.name.toLowerCase().includes(search.toLowerCase()))
 
-  if (loading) {
+  if (productsLoading || configLoading) {
     return (
       <div className={`min-h-screen flex items-center justify-center ${pdvConfig.theme === 'dark' ? 'bg-slate-900' : 'bg-slate-50'}`}>
         <Loader2 className="w-10 h-10 text-blue-500 animate-spin" />
