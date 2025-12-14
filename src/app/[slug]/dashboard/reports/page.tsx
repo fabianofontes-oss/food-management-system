@@ -1,11 +1,22 @@
 'use client'
 
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect, useRef } from 'react'
 import { useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { formatCurrency } from '@/lib/utils'
-import { Calendar, DollarSign, ShoppingBag, TrendingUp, CreditCard, Loader2, AlertCircle, Award, Clock, Download } from 'lucide-react'
+import { 
+  Calendar, DollarSign, ShoppingBag, TrendingUp, CreditCard, Loader2, 
+  AlertCircle, Award, Clock, Download, FileText, PieChart, BarChart3,
+  Users, Percent, ArrowUpRight, ArrowDownRight, Minus, Filter,
+  Mail, Printer, FileSpreadsheet, TrendingDown, Layers, UserCheck,
+  XCircle, RefreshCw, ChevronDown, ChevronUp
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import {
+  LineChart, Line, BarChart, Bar, PieChart as RechartsPie, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+  AreaChart, Area, ComposedChart
+} from 'recharts'
 
 interface ReportMetrics {
   total_orders: number
@@ -35,7 +46,44 @@ interface PeakHour {
   average_ticket: number
 }
 
-type DatePreset = 'today' | '7days' | '30days' | 'custom'
+interface DailyData {
+  date: string
+  orders: number
+  revenue: number
+  ticket: number
+}
+
+interface CategoryData {
+  category: string
+  revenue: number
+  quantity: number
+  percentage: number
+}
+
+interface ComparisonData {
+  current: { orders: number; revenue: number; ticket: number }
+  previous: { orders: number; revenue: number; ticket: number }
+  change: { orders: number; revenue: number; ticket: number }
+}
+
+interface CancellationData {
+  total: number
+  rate: number
+  reasons: { reason: string; count: number }[]
+}
+
+interface TopCustomer {
+  phone: string
+  name: string
+  orders: number
+  total_spent: number
+  last_order: string
+}
+
+type DatePreset = 'today' | '7days' | '30days' | '90days' | 'thisMonth' | 'lastMonth' | 'custom'
+type ReportTab = 'overview' | 'products' | 'payments' | 'customers' | 'dre' | 'comparison'
+
+const CHART_COLORS = ['#8B5CF6', '#06B6D4', '#10B981', '#F59E0B', '#EF4444', '#EC4899', '#6366F1', '#14B8A6']
 
 export default function ReportsPage() {
   const params = useParams()
@@ -60,7 +108,17 @@ export default function ReportsPage() {
   const [paymentBreakdown, setPaymentBreakdown] = useState<PaymentBreakdown[]>([])
   const [topProducts, setTopProducts] = useState<TopProduct[]>([])
   const [peakHours, setPeakHours] = useState<PeakHour[]>([])
-  const [topN, setTopN] = useState<number>(5)
+  const [topN, setTopN] = useState<number>(10)
+  
+  const [activeTab, setActiveTab] = useState<ReportTab>('overview')
+  const [dailyData, setDailyData] = useState<DailyData[]>([])
+  const [categoryData, setCategoryData] = useState<CategoryData[]>([])
+  const [comparison, setComparison] = useState<ComparisonData | null>(null)
+  const [topCustomers, setTopCustomers] = useState<TopCustomer[]>([])
+  const [cancellations, setCancellations] = useState<CancellationData>({ total: 0, rate: 0, reasons: [] })
+  const [channelFilter, setChannelFilter] = useState<string>('all')
+  const [showFilters, setShowFilters] = useState(false)
+  const reportRef = useRef<HTMLDivElement>(null)
 
   // Carregar store_id
   useEffect(() => {
@@ -88,7 +146,7 @@ export default function ReportsPage() {
   }, [slug, supabase])
 
   // Calcular datas baseado no preset
-  const getDateRange = () => {
+  const getDateRange = (): { start: string; end: string } => {
     const now = new Date()
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
     
@@ -99,18 +157,32 @@ export default function ReportsPage() {
           end: new Date(today.getTime() + 24 * 60 * 60 * 1000).toISOString()
         }
       case '7days':
-        const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
         return {
-          start: sevenDaysAgo.toISOString(),
+          start: new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString(),
           end: new Date().toISOString()
         }
       case '30days':
-        const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000)
         return {
-          start: thirtyDaysAgo.toISOString(),
+          start: new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString(),
           end: new Date().toISOString()
         }
+      case '90days':
+        return {
+          start: new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString(),
+          end: new Date().toISOString()
+        }
+      case 'thisMonth':
+        return {
+          start: new Date(now.getFullYear(), now.getMonth(), 1).toISOString(),
+          end: new Date().toISOString()
+        }
+      case 'lastMonth':
+        return {
+          start: new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString(),
+          end: new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59).toISOString()
+        }
       case 'custom':
+      default:
         return {
           start: startDate ? new Date(startDate).toISOString() : today.toISOString(),
           end: endDate ? new Date(endDate + 'T23:59:59').toISOString() : new Date().toISOString()
@@ -251,6 +323,111 @@ export default function ReportsPage() {
           .sort((a, b) => b.total_orders - a.total_orders)
 
         setPeakHours(peakHoursArray)
+
+        // Calcular dados diários para gráfico
+        const dailyStats: Record<string, { orders: number; revenue: number }> = {}
+        orders.forEach((order: any) => {
+          const date = new Date(order.created_at).toISOString().split('T')[0]
+          if (!dailyStats[date]) {
+            dailyStats[date] = { orders: 0, revenue: 0 }
+          }
+          dailyStats[date].orders++
+          dailyStats[date].revenue += order.total_amount || 0
+        })
+        
+        const dailyArray = Object.entries(dailyStats)
+          .map(([date, stats]) => ({
+            date,
+            orders: stats.orders,
+            revenue: stats.revenue,
+            ticket: stats.orders > 0 ? stats.revenue / stats.orders : 0
+          }))
+          .sort((a, b) => a.date.localeCompare(b.date))
+        
+        setDailyData(dailyArray)
+
+        // Buscar pedidos do período anterior para comparação
+        const days = datePreset === '7days' ? 7 : datePreset === '30days' ? 30 : datePreset === '90days' ? 90 : 1
+        const previousStart = new Date(new Date(start).getTime() - days * 24 * 60 * 60 * 1000).toISOString()
+        
+        const { data: previousOrders } = await supabase
+          .from('orders')
+          .select('id, total_amount')
+          .eq('store_id', storeId)
+          .neq('status', 'cancelled')
+          .gte('created_at', previousStart)
+          .lt('created_at', start)
+
+        if (previousOrders) {
+          const prevTotal = previousOrders.length
+          const prevRevenue = previousOrders.reduce((sum: number, o: any) => sum + (o.total_amount || 0), 0)
+          const prevTicket = prevTotal > 0 ? prevRevenue / prevTotal : 0
+
+          const calcChange = (curr: number, prev: number) => prev > 0 ? ((curr - prev) / prev) * 100 : 0
+
+          setComparison({
+            current: { orders: totalOrders, revenue: totalRevenue, ticket: averageTicket },
+            previous: { orders: prevTotal, revenue: prevRevenue, ticket: prevTicket },
+            change: {
+              orders: calcChange(totalOrders, prevTotal),
+              revenue: calcChange(totalRevenue, prevRevenue),
+              ticket: calcChange(averageTicket, prevTicket)
+            }
+          })
+        }
+
+        // Buscar top clientes
+        const customerStats: Record<string, { orders: number; total: number; last: string }> = {}
+        orders.forEach((order: any) => {
+          const phone = order.customer_phone || 'Não informado'
+          if (!customerStats[phone]) {
+            customerStats[phone] = { orders: 0, total: 0, last: order.created_at }
+          }
+          customerStats[phone].orders++
+          customerStats[phone].total += order.total_amount || 0
+          if (order.created_at > customerStats[phone].last) {
+            customerStats[phone].last = order.created_at
+          }
+        })
+
+        const topCustomersArray = Object.entries(customerStats)
+          .filter(([phone]) => phone !== 'Não informado')
+          .map(([phone, stats]) => ({
+            phone,
+            name: phone,
+            orders: stats.orders,
+            total_spent: stats.total,
+            last_order: stats.last
+          }))
+          .sort((a, b) => b.total_spent - a.total_spent)
+          .slice(0, 10)
+
+        setTopCustomers(topCustomersArray)
+
+        // Calcular cancelamentos
+        const { data: cancelledOrders } = await supabase
+          .from('orders')
+          .select('id, cancellation_reason')
+          .eq('store_id', storeId)
+          .eq('status', 'cancelled')
+          .gte('created_at', start)
+          .lte('created_at', end)
+
+        if (cancelledOrders) {
+          const reasons: Record<string, number> = {}
+          cancelledOrders.forEach((o: any) => {
+            const reason = o.cancellation_reason || 'Não informado'
+            reasons[reason] = (reasons[reason] || 0) + 1
+          })
+
+          setCancellations({
+            total: cancelledOrders.length,
+            rate: (orders.length + cancelledOrders.length) > 0 
+              ? (cancelledOrders.length / (orders.length + cancelledOrders.length)) * 100 
+              : 0,
+            reasons: Object.entries(reasons).map(([reason, count]) => ({ reason, count }))
+          })
+        }
       } catch (err) {
         console.error('Erro ao carregar relatórios:', err)
         setError('Erro ao carregar relatórios')
@@ -260,7 +437,7 @@ export default function ReportsPage() {
     }
 
     loadReports()
-  }, [storeId, datePreset, startDate, endDate, topN])
+  }, [storeId, datePreset, startDate, endDate, topN, channelFilter])
 
   const getPaymentMethodLabel = (method: string) => {
     const labels: Record<string, string> = {
@@ -348,31 +525,25 @@ export default function ReportsPage() {
             <h2 className="text-lg font-bold text-gray-900">Período</h2>
           </div>
           
-          <div className="flex flex-wrap gap-3 mb-4">
-            <Button
-              onClick={() => setDatePreset('today')}
-              className={datePreset === 'today' ? 'bg-blue-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}
-            >
-              Hoje
-            </Button>
-            <Button
-              onClick={() => setDatePreset('7days')}
-              className={datePreset === '7days' ? 'bg-blue-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}
-            >
-              Últimos 7 dias
-            </Button>
-            <Button
-              onClick={() => setDatePreset('30days')}
-              className={datePreset === '30days' ? 'bg-blue-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}
-            >
-              Últimos 30 dias
-            </Button>
-            <Button
-              onClick={() => setDatePreset('custom')}
-              className={datePreset === 'custom' ? 'bg-blue-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}
-            >
-              Personalizado
-            </Button>
+          <div className="flex flex-wrap gap-2 mb-4">
+            {[
+              { key: 'today', label: 'Hoje' },
+              { key: '7days', label: '7 dias' },
+              { key: '30days', label: '30 dias' },
+              { key: '90days', label: '90 dias' },
+              { key: 'thisMonth', label: 'Este mês' },
+              { key: 'lastMonth', label: 'Mês anterior' },
+              { key: 'custom', label: 'Personalizado' }
+            ].map(({ key, label }) => (
+              <Button
+                key={key}
+                size="sm"
+                onClick={() => setDatePreset(key as DatePreset)}
+                className={datePreset === key ? 'bg-blue-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}
+              >
+                {label}
+              </Button>
+            ))}
           </div>
 
           {datePreset === 'custom' && (
@@ -449,6 +620,80 @@ export default function ReportsPage() {
                 </div>
               </div>
             </div>
+
+            {/* Comparação com período anterior */}
+            {comparison && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+                  <p className="text-sm text-slate-500 mb-1">Pedidos vs Período Anterior</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl font-bold">{comparison.current.orders}</span>
+                    <span className={`flex items-center text-sm font-medium ${comparison.change.orders >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {comparison.change.orders >= 0 ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
+                      {Math.abs(comparison.change.orders).toFixed(1)}%
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-1">Anterior: {comparison.previous.orders}</p>
+                </div>
+                <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+                  <p className="text-sm text-slate-500 mb-1">Receita vs Período Anterior</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl font-bold">{formatCurrency(comparison.current.revenue)}</span>
+                    <span className={`flex items-center text-sm font-medium ${comparison.change.revenue >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {comparison.change.revenue >= 0 ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
+                      {Math.abs(comparison.change.revenue).toFixed(1)}%
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-1">Anterior: {formatCurrency(comparison.previous.revenue)}</p>
+                </div>
+                <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+                  <p className="text-sm text-slate-500 mb-1">Ticket vs Período Anterior</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl font-bold">{formatCurrency(comparison.current.ticket)}</span>
+                    <span className={`flex items-center text-sm font-medium ${comparison.change.ticket >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {comparison.change.ticket >= 0 ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
+                      {Math.abs(comparison.change.ticket).toFixed(1)}%
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-1">Anterior: {formatCurrency(comparison.previous.ticket)}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Gráfico de Evolução Diária */}
+            {dailyData.length > 1 && (
+              <div className="bg-white rounded-2xl p-6 shadow-sm mb-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <BarChart3 className="w-6 h-6 text-indigo-600" />
+                  Evolução Diária
+                </h2>
+                <div className="h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart data={dailyData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                      <XAxis 
+                        dataKey="date" 
+                        tickFormatter={(date) => new Date(date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
+                        stroke="#9CA3AF"
+                        fontSize={12}
+                      />
+                      <YAxis yAxisId="left" stroke="#9CA3AF" fontSize={12} />
+                      <YAxis yAxisId="right" orientation="right" stroke="#9CA3AF" fontSize={12} tickFormatter={(v) => `R$${(v/1000).toFixed(0)}k`} />
+                      <Tooltip 
+                        formatter={(value: number, name: string) => [
+                          name === 'revenue' ? formatCurrency(value) : value,
+                          name === 'revenue' ? 'Receita' : 'Pedidos'
+                        ]}
+                        labelFormatter={(date) => new Date(date).toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' })}
+                      />
+                      <Legend />
+                      <Bar yAxisId="left" dataKey="orders" name="Pedidos" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
+                      <Line yAxisId="right" type="monotone" dataKey="revenue" name="Receita" stroke="#10B981" strokeWidth={2} dot={{ fill: '#10B981' }} />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            )}
 
             {/* Breakdown por Método de Pagamento */}
             <div className="bg-white rounded-2xl p-6 shadow-sm">
@@ -612,6 +857,103 @@ export default function ReportsPage() {
                 </>
               )}
             </div>
+
+            {/* Grid de 2 colunas: Clientes e Cancelamentos */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+              {/* Top Clientes */}
+              <div className="bg-white rounded-2xl p-6 shadow-sm">
+                <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <Users className="w-6 h-6 text-blue-600" />
+                  Top 10 Clientes
+                </h2>
+                {topCustomers.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    Nenhum cliente identificado no período
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {topCustomers.map((customer, i) => (
+                      <div key={customer.phone} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                        <span className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm font-bold">
+                          {i + 1}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{customer.phone}</p>
+                          <p className="text-xs text-gray-500">{customer.orders} pedidos</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-green-600">{formatCurrency(customer.total_spent)}</p>
+                          <p className="text-xs text-gray-400">
+                            Último: {new Date(customer.last_order).toLocaleDateString('pt-BR')}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Cancelamentos */}
+              <div className="bg-white rounded-2xl p-6 shadow-sm">
+                <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <XCircle className="w-6 h-6 text-red-600" />
+                  Cancelamentos
+                </h2>
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div className="bg-red-50 rounded-xl p-4 text-center">
+                    <p className="text-3xl font-bold text-red-600">{cancellations.total}</p>
+                    <p className="text-sm text-red-700">Cancelados</p>
+                  </div>
+                  <div className="bg-orange-50 rounded-xl p-4 text-center">
+                    <p className="text-3xl font-bold text-orange-600">{cancellations.rate.toFixed(1)}%</p>
+                    <p className="text-sm text-orange-700">Taxa</p>
+                  </div>
+                </div>
+                {cancellations.reasons.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-700 mb-2">Motivos:</h3>
+                    <div className="space-y-2">
+                      {cancellations.reasons.map(({ reason, count }) => (
+                        <div key={reason} className="flex justify-between items-center text-sm">
+                          <span className="text-gray-600">{reason}</span>
+                          <span className="font-medium">{count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Gráfico Pizza de Pagamentos */}
+            {paymentBreakdown.length > 0 && (
+              <div className="bg-white rounded-2xl p-6 shadow-sm mt-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <PieChart className="w-6 h-6 text-cyan-600" />
+                  Distribuição por Forma de Pagamento
+                </h2>
+                <div className="h-72">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RechartsPie>
+                      <Pie
+                        data={paymentBreakdown.map(p => ({ ...p, name: getPaymentMethodLabel(p.method) }))}
+                        dataKey="total"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={100}
+                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      >
+                        {paymentBreakdown.map((_, index) => (
+                          <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                    </RechartsPie>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            )}
           </>
         )}
       </div>
