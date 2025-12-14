@@ -93,141 +93,73 @@ export function StoreInfoCard({ settings, enabled, onUpdateSetting }: StoreInfoC
 
   return (
     <div className={`space-y-6 ${!enabled ? 'opacity-50 pointer-events-none' : ''}`}>
-      {/* Nome + Logo */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="md:col-span-2">
-          <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
-            <Store className="w-4 h-4 text-violet-500" />
-            Nome da Loja
-          </label>
-          <input
-            type="text"
-            value={settings.store_name || ''}
-            onChange={e => onUpdateSetting('store_name', e.target.value)}
-            placeholder="Ex: Açaí do João"
-            className="w-full px-4 py-3 text-lg font-medium border-2 border-slate-200 rounded-xl focus:border-violet-500 focus:outline-none bg-white"
-          />
-          <p className="text-xs text-slate-500 mt-1">Nome que aparece para seus clientes</p>
-        </div>
-        <div>
-          <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
-            <ImageIcon className="w-4 h-4 text-pink-500" />
-            Logo
-          </label>
-          {settings.store_logo ? (
-            <div className="relative w-full h-[88px] border-2 border-violet-200 rounded-xl overflow-hidden bg-white">
-              <img src={settings.store_logo} alt="Logo" className="w-full h-full object-contain p-2" />
-              <button onClick={removeLogo} className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600">
-                <X className="w-3 h-3" />
-              </button>
-            </div>
-          ) : (
-            <button onClick={() => fileInputRef.current?.click()} className="w-full h-[88px] border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center gap-1 hover:border-violet-400 hover:bg-violet-50 transition-colors">
-              <Upload className="w-5 h-5 text-slate-400" />
-              <span className="text-xs text-slate-500">200x200px</span>
-            </button>
-          )}
-          <input ref={fileInputRef} type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
-        </div>
-      </div>
-
-      {/* Dados Fiscais */}
-      <div className="bg-blue-50 rounded-2xl p-4 space-y-3">
-        <h3 className="flex items-center gap-2 font-semibold text-slate-700 text-sm">
-          <FileText className="w-4 h-4 text-blue-500" />
-          Dados Fiscais
+      
+      {/* ========== SEÇÃO 1: DADOS DA LOJA ========== */}
+      <div className="bg-violet-50 rounded-2xl p-4 space-y-4">
+        <h3 className="flex items-center gap-2 font-semibold text-violet-800">
+          <Store className="w-5 h-5 text-violet-600" />
+          Informações da Loja
+          <span className="text-xs font-normal text-violet-600 ml-2">Visíveis para os clientes</span>
         </h3>
-        <div className="grid grid-cols-3 gap-3">
-          <div>
-            <label className="text-xs font-medium text-slate-600 mb-1 block">Tipo</label>
-            <select
-              value={settings.store_document_type || 'cnpj'}
-              onChange={e => onUpdateSetting('store_document_type', e.target.value)}
-              className="w-full px-3 py-2.5 border-2 border-slate-200 rounded-xl focus:border-violet-500 focus:outline-none bg-white text-sm"
-            >
-              <option value="cnpj">CNPJ</option>
-              <option value="cpf">CPF</option>
-            </select>
-          </div>
-          <div className="col-span-2">
-            <label className="text-xs font-medium text-slate-600 mb-1 block">{settings.store_document_type === 'cpf' ? 'CPF' : 'CNPJ'}</label>
+
+        {/* Nome + Logo */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="md:col-span-2">
+            <label className="text-xs font-medium text-slate-600 mb-1 block">Nome da Loja</label>
             <input
               type="text"
-              value={settings.store_document || ''}
-              onChange={e => onUpdateSetting('store_document', formatCnpjCpf(e.target.value))}
-              placeholder={settings.store_document_type === 'cpf' ? '000.000.000-00' : '00.000.000/0001-00'}
-              maxLength={settings.store_document_type === 'cpf' ? 14 : 18}
-              className="w-full px-3 py-2.5 border-2 border-slate-200 rounded-xl focus:border-violet-500 focus:outline-none text-sm"
+              value={settings.store_name || ''}
+              onChange={e => onUpdateSetting('store_name', e.target.value)}
+              placeholder="Ex: Açaí do João"
+              className="w-full px-4 py-3 text-lg font-medium border-2 border-slate-200 rounded-xl focus:border-violet-500 focus:outline-none bg-white"
             />
           </div>
+          <div>
+            <label className="text-xs font-medium text-slate-600 mb-1 block">Logo (200x200px)</label>
+            {settings.store_logo ? (
+              <div className="relative w-full h-[72px] border-2 border-violet-200 rounded-xl overflow-hidden bg-white">
+                <img src={settings.store_logo} alt="Logo" className="w-full h-full object-contain p-2" />
+                <button onClick={removeLogo} className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600">
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            ) : (
+              <button onClick={() => fileInputRef.current?.click()} className="w-full h-[72px] border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center gap-1 hover:border-violet-400 hover:bg-violet-50/50 transition-colors bg-white">
+                <Upload className="w-5 h-5 text-slate-400" />
+                <span className="text-xs text-slate-500">Enviar</span>
+              </button>
+            )}
+            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
+          </div>
         </div>
-      </div>
 
-      {/* Responsável Legal */}
-      <div className="bg-green-50 rounded-2xl p-4 space-y-3">
-        <h3 className="flex items-center gap-2 font-semibold text-slate-700 text-sm">
-          <User className="w-4 h-4 text-green-600" />
-          Responsável Legal
-        </h3>
+        {/* Telefone e Email DA LOJA */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
-            <label className="text-xs font-medium text-slate-600 mb-1 block">Nome Completo</label>
+            <label className="text-xs font-medium text-slate-600 mb-1 block">Telefone da Loja</label>
             <input
-              type="text"
-              value={settings.owner_name || ''}
-              onChange={e => onUpdateSetting('owner_name', e.target.value)}
-              placeholder="João da Silva"
-              className="w-full px-3 py-2.5 border-2 border-slate-200 rounded-xl focus:border-violet-500 focus:outline-none text-sm"
+              type="tel"
+              value={settings.store_phone || ''}
+              onChange={e => handlePhoneChange(e.target.value)}
+              placeholder="(11) 3333-4444"
+              maxLength={15}
+              className="w-full px-3 py-2.5 border-2 border-slate-200 rounded-xl focus:border-violet-500 focus:outline-none bg-white"
             />
           </div>
           <div>
-            <label className="text-xs font-medium text-slate-600 mb-1 block">CPF</label>
+            <label className="text-xs font-medium text-slate-600 mb-1 block">E-mail da Loja</label>
             <input
-              type="text"
-              value={settings.owner_cpf || ''}
-              onChange={e => onUpdateSetting('owner_cpf', formatCnpjCpf(e.target.value))}
-              placeholder="000.000.000-00"
-              maxLength={14}
-              className="w-full px-3 py-2.5 border-2 border-slate-200 rounded-xl focus:border-violet-500 focus:outline-none text-sm"
+              type="email"
+              value={settings.store_email || ''}
+              onChange={e => onUpdateSetting('store_email', e.target.value)}
+              placeholder="contato@minhaloja.com"
+              className="w-full px-3 py-2.5 border-2 border-slate-200 rounded-xl focus:border-violet-500 focus:outline-none bg-white"
             />
           </div>
         </div>
       </div>
 
-      {/* Contato - WhatsApp do Responsável + Email da Loja */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
-            <Phone className="w-4 h-4 text-green-500" />
-            WhatsApp do Responsável
-          </label>
-          <input
-            type="tel"
-            value={settings.store_phone || ''}
-            onChange={e => handlePhoneChange(e.target.value)}
-            placeholder="(11) 99999-9999"
-            maxLength={15}
-            className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-violet-500 focus:outline-none"
-          />
-          <p className="text-xs text-slate-500 mt-1">Usado para notificações de pedidos</p>
-        </div>
-        <div>
-          <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
-            <Mail className="w-4 h-4 text-blue-500" />
-            E-mail da Loja
-          </label>
-          <input
-            type="email"
-            value={settings.store_email || ''}
-            onChange={e => onUpdateSetting('store_email', e.target.value)}
-            placeholder="contato@minhaloja.com"
-            className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-violet-500 focus:outline-none"
-          />
-          <p className="text-xs text-slate-500 mt-1">Exibido para clientes entrarem em contato</p>
-        </div>
-      </div>
-
-      {/* Endereço - Seção Completa */}
+      {/* ========== SEÇÃO 2: ENDEREÇO DA LOJA ========== */}
       <div className="bg-slate-50 rounded-2xl p-4 space-y-4">
         <h3 className="flex items-center gap-2 font-semibold text-slate-700">
           <MapPin className="w-5 h-5 text-red-500" />
@@ -332,7 +264,86 @@ export function StoreInfoCard({ settings, enabled, onUpdateSetting }: StoreInfoC
         </div>
       </div>
 
-      {/* Dica */}
+      {/* ========== SEÇÃO 3: DADOS FISCAIS ========== */}
+      <div className="bg-blue-50 rounded-2xl p-4 space-y-3">
+        <h3 className="flex items-center gap-2 font-semibold text-blue-800">
+          <FileText className="w-5 h-5 text-blue-600" />
+          Dados Fiscais da Empresa
+        </h3>
+        <div className="grid grid-cols-3 gap-3">
+          <div>
+            <label className="text-xs font-medium text-slate-600 mb-1 block">Tipo</label>
+            <select
+              value={settings.store_document_type || 'cnpj'}
+              onChange={e => onUpdateSetting('store_document_type', e.target.value)}
+              className="w-full px-3 py-2.5 border-2 border-slate-200 rounded-xl focus:border-violet-500 focus:outline-none bg-white text-sm"
+            >
+              <option value="cnpj">CNPJ</option>
+              <option value="cpf">CPF (MEI)</option>
+            </select>
+          </div>
+          <div className="col-span-2">
+            <label className="text-xs font-medium text-slate-600 mb-1 block">{settings.store_document_type === 'cpf' ? 'CPF' : 'CNPJ'}</label>
+            <input
+              type="text"
+              value={settings.store_document || ''}
+              onChange={e => onUpdateSetting('store_document', formatCnpjCpf(e.target.value))}
+              placeholder={settings.store_document_type === 'cpf' ? '000.000.000-00' : '00.000.000/0001-00'}
+              maxLength={settings.store_document_type === 'cpf' ? 14 : 18}
+              className="w-full px-3 py-2.5 border-2 border-slate-200 rounded-xl focus:border-violet-500 focus:outline-none text-sm bg-white"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* ========== SEÇÃO 4: RESPONSÁVEL LEGAL ========== */}
+      <div className="bg-green-50 rounded-2xl p-4 space-y-3">
+        <h3 className="flex items-center gap-2 font-semibold text-green-800">
+          <User className="w-5 h-5 text-green-600" />
+          Responsável Legal
+          <span className="text-xs font-normal text-green-600 ml-2">Dados pessoais do proprietário</span>
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div>
+            <label className="text-xs font-medium text-slate-600 mb-1 block">Nome Completo</label>
+            <input
+              type="text"
+              value={settings.owner_name || ''}
+              onChange={e => onUpdateSetting('owner_name', e.target.value)}
+              placeholder="João da Silva"
+              className="w-full px-3 py-2.5 border-2 border-slate-200 rounded-xl focus:border-violet-500 focus:outline-none text-sm bg-white"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-slate-600 mb-1 block">CPF Pessoal</label>
+            <input
+              type="text"
+              value={settings.owner_cpf || ''}
+              onChange={e => onUpdateSetting('owner_cpf', formatCnpjCpf(e.target.value))}
+              placeholder="000.000.000-00"
+              maxLength={14}
+              className="w-full px-3 py-2.5 border-2 border-slate-200 rounded-xl focus:border-violet-500 focus:outline-none text-sm bg-white"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-slate-600 mb-1 block">WhatsApp Pessoal</label>
+            <input
+              type="tel"
+              value={settings.owner_phone || ''}
+              onChange={e => onUpdateSetting('owner_phone', formatPhone(e.target.value))}
+              placeholder="(11) 99999-9999"
+              maxLength={15}
+              className="w-full px-3 py-2.5 border-2 border-slate-200 rounded-xl focus:border-violet-500 focus:outline-none text-sm bg-white"
+            />
+          </div>
+        </div>
+        <p className="text-xs text-green-700 flex items-center gap-1">
+          <Phone className="w-3 h-3" />
+          O WhatsApp pessoal é usado para você receber notificações de novos pedidos
+        </p>
+      </div>
+
+      {/* Dica CEP */}
       <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl p-3">
         <Building2 className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
         <div>
