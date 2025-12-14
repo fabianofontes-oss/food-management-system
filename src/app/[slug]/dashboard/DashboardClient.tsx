@@ -8,7 +8,7 @@ import {
   Package, Settings, ChevronLeft, ChevronRight, Menu, X,
   Users, ShoppingBag, UserCog, BarChart3, Ticket, Store,
   DollarSign, Warehouse, LayoutGrid, PieChart, Star, Megaphone, CalendarDays, LogOut,
-  Sparkles, TrendingUp, Bell, Search, ExternalLink
+  Sparkles, TrendingUp, Bell, Search, ExternalLink, Coffee
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -37,9 +37,10 @@ export default function DashboardClient({
       title: 'Operações',
       items: [
         { href: `${base}/products`, label: 'Produtos', icon: Package, gradient: 'from-orange-500 to-amber-600' },
+        { href: `${base}/addons`, label: 'Adicionais', icon: Coffee, gradient: 'from-pink-500 to-rose-600' },
         { href: `${base}/kitchen`, label: 'Cozinha', icon: ChefHat, gradient: 'from-red-500 to-rose-600' },
         { href: `${base}/delivery`, label: 'Delivery', icon: Truck, gradient: 'from-indigo-500 to-blue-600' },
-        { href: `${base}/tables`, label: 'Mesas', icon: LayoutGrid, gradient: 'from-pink-500 to-rose-600' },
+        { href: `${base}/tables`, label: 'Mesas', icon: LayoutGrid, gradient: 'from-fuchsia-500 to-pink-600' },
         { href: `${base}/inventory`, label: 'Estoque', icon: Warehouse, gradient: 'from-amber-500 to-yellow-600' },
       ]
     },
