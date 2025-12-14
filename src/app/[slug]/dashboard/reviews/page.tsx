@@ -8,9 +8,10 @@ import {
   Loader2, AlertCircle, Filter, Search, Calendar,
   User, Clock, Reply, Flag, Send, FileText, Eye, EyeOff,
   Award, Sparkles, Camera, Download, Settings, ChevronDown,
-  BarChart3, Percent
+  BarChart3, Percent, Link2
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 
 interface Review {
   id: string
@@ -383,6 +384,12 @@ export default function ReviewsPage() {
           </h1>
           <p className="text-slate-500 mt-2 ml-14">Feedback dos seus clientes</p>
         </div>
+        <Link href={`/${slug}/dashboard/reviews/integrations`}>
+          <Button variant="outline" className="gap-2">
+            <Link2 className="w-4 h-4" />
+            Integrações
+          </Button>
+        </Link>
       </div>
 
       {/* Stats Cards */}
