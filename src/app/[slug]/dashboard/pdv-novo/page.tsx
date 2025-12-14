@@ -55,15 +55,26 @@ export default function PDVNovoPage() {
 
   // Debug logs
   useEffect(() => {
-    console.log('🔍 PDV Debug:', {
+    const debugInfo = {
       slug,
       storeId,
       totalProducts: products.length,
       storeProducts: storeProducts.length,
       products: products.map(p => ({ id: p.id, name: p.name, store_id: p.store_id })),
       pdvConfig
-    })
-  }, [slug, storeId, products, storeProducts, pdvConfig])
+    }
+    console.log('🔍 PDV Debug:', debugInfo)
+    console.table(products)
+    
+    // Alerta visual se não tiver produtos
+    if (!productsLoading && !configLoading && storeId && storeProducts.length === 0) {
+      console.error('⚠️ PROBLEMA: Nenhum produto encontrado para esta loja!', {
+        storeId,
+        totalProducts: products.length,
+        allStoreIds: [...new Set(products.map(p => p.store_id))]
+      })
+    }
+  }, [slug, storeId, products, storeProducts, pdvConfig, productsLoading, configLoading])
 
   const addToCart = (product: Product) => {
     const existing = cart.find(item => item.id === product.id)
