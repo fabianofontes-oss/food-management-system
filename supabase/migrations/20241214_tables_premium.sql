@@ -1,5 +1,5 @@
 -- SISTEMA PREMIUM DE MESAS
--- QR Code, Reservas, Chamar Garçom, Timer, Histórico
+-- QR Code, Reservas, Chamar Garçom, Timer, Histórico, Garçom por Mesa
 
 -- Adicionar novos campos na tabela tables
 ALTER TABLE tables ADD COLUMN IF NOT EXISTS occupied_at TIMESTAMPTZ;
@@ -7,6 +7,13 @@ ALTER TABLE tables ADD COLUMN IF NOT EXISTS merged_with UUID[];
 ALTER TABLE tables ADD COLUMN IF NOT EXISTS waiter_called BOOLEAN DEFAULT false;
 ALTER TABLE tables ADD COLUMN IF NOT EXISTS waiter_called_at TIMESTAMPTZ;
 ALTER TABLE tables ADD COLUMN IF NOT EXISTS notes TEXT;
+ALTER TABLE tables ADD COLUMN IF NOT EXISTS location VARCHAR(50); -- Área Interna, Varanda, Terraço, etc
+ALTER TABLE tables ADD COLUMN IF NOT EXISTS waiter_id UUID; -- Garçom responsável
+ALTER TABLE tables ADD COLUMN IF NOT EXISTS waiter_name VARCHAR(100); -- Nome do garçom (cache)
+ALTER TABLE tables ADD COLUMN IF NOT EXISTS min_consumption DECIMAL(10,2) DEFAULT 0; -- Consumo mínimo
+ALTER TABLE tables ADD COLUMN IF NOT EXISTS is_smoking BOOLEAN DEFAULT false; -- Área fumante
+ALTER TABLE tables ADD COLUMN IF NOT EXISTS is_accessible BOOLEAN DEFAULT false; -- Acessível PCD
+ALTER TABLE tables ADD COLUMN IF NOT EXISTS shape VARCHAR(20) DEFAULT 'square'; -- square, round, rectangle
 
 -- Tabela de reservas
 CREATE TABLE IF NOT EXISTS table_reservations (

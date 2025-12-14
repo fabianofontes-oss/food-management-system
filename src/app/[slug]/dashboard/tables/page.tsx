@@ -103,8 +103,15 @@ export default function TablesPage() {
   
   const [formData, setFormData] = useState({
     number: '',
-    capacity: '4'
+    capacity: '4',
+    location: '',
+    waiter_name: '',
+    min_consumption: '',
+    is_smoking: false,
+    is_accessible: false,
+    shape: 'square'
   })
+  const [storeWaiters, setStoreWaiters] = useState<{id: string, name: string}[]>([])
 
   useEffect(() => {
     async function loadStore() {
@@ -234,29 +241,36 @@ export default function TablesPage() {
   async function handleSaveTable() {
     if (!storeId || !formData.number) return
     
+    const tableData = {
+      number: formData.number,
+      capacity: parseInt(formData.capacity) || 4,
+      location: formData.location || null,
+      waiter_name: formData.waiter_name || null,
+      min_consumption: parseFloat(formData.min_consumption) || 0,
+      is_smoking: formData.is_smoking,
+      is_accessible: formData.is_accessible,
+      shape: formData.shape
+    }
+    
     try {
       if (selectedTable) {
         await supabase
           .from('tables')
-          .update({
-            number: formData.number,
-            capacity: parseInt(formData.capacity) || 4
-          })
+          .update(tableData)
           .eq('id', selectedTable.id)
       } else {
         await supabase
           .from('tables')
           .insert({
             store_id: storeId,
-            number: formData.number,
-            capacity: parseInt(formData.capacity) || 4,
+            ...tableData,
             status: 'available'
           })
       }
       
       setShowForm(false)
       setSelectedTable(null)
-      setFormData({ number: '', capacity: '4' })
+      setFormData({ number: '', capacity: '4', location: '', waiter_name: '', min_consumption: '', is_smoking: false, is_accessible: false, shape: 'square' })
       loadTables()
     } catch (err) {
       console.error('Erro ao salvar mesa:', err)
@@ -730,33 +744,118 @@ export default function TablesPage() {
               {selectedTable ? 'Editar Mesa' : 'Nova Mesa'}
             </h3>
             
-            <div className="space-y-4">
+            <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Número/Nome
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.number}
+                    onChange={e => setFormData(prev => ({ ...prev, number: e.target.value }))}
+                    className="w-full px-3 py-2 border rounded-lg"
+                    placeholder="Ex: 01, A1..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Capacidade
+                  </label>
+                  <select
+                    value={formData.capacity}
+                    onChange={e => setFormData(prev => ({ ...prev, capacity: e.target.value }))}
+                    className="w-full px-3 py-2 border rounded-lg"
+                  >
+                    {[2, 4, 6, 8, 10, 12, 15, 20].map(n => (
+                      <option key={n} value={n}>{n} pessoas</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Localização/Setor
+                  </label>
+                  <select
+                    value={formData.location}
+                    onChange={e => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                    className="w-full px-3 py-2 border rounded-lg"
+                  >
+                    <option value="">Selecione...</option>
+                    <option value="interno">Área Interna</option>
+                    <option value="externo">Área Externa</option>
+                    <option value="varanda">Varanda</option>
+                    <option value="terraco">Terraço</option>
+                    <option value="jardim">Jardim</option>
+                    <option value="vip">Área VIP</option>
+                    <option value="reservado">Reservado</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Formato
+                  </label>
+                  <select
+                    value={formData.shape}
+                    onChange={e => setFormData(prev => ({ ...prev, shape: e.target.value }))}
+                    className="w-full px-3 py-2 border rounded-lg"
+                  >
+                    <option value="square">Quadrada</option>
+                    <option value="round">Redonda</option>
+                    <option value="rectangle">Retangular</option>
+                  </select>
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Número/Nome da Mesa
+                  Garçom Responsável
                 </label>
                 <input
                   type="text"
-                  value={formData.number}
-                  onChange={e => setFormData(prev => ({ ...prev, number: e.target.value }))}
+                  value={formData.waiter_name}
+                  onChange={e => setFormData(prev => ({ ...prev, waiter_name: e.target.value }))}
                   className="w-full px-3 py-2 border rounded-lg"
-                  placeholder="Ex: 01, A1, Varanda..."
+                  placeholder="Nome do garçom responsável"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Capacidade (pessoas)
+                  Consumo Mínimo (R$)
                 </label>
-                <select
-                  value={formData.capacity}
-                  onChange={e => setFormData(prev => ({ ...prev, capacity: e.target.value }))}
+                <input
+                  type="number"
+                  step="0.01"
+                  value={formData.min_consumption}
+                  onChange={e => setFormData(prev => ({ ...prev, min_consumption: e.target.value }))}
                   className="w-full px-3 py-2 border rounded-lg"
-                >
-                  {[2, 4, 6, 8, 10, 12].map(n => (
-                    <option key={n} value={n}>{n} pessoas</option>
-                  ))}
-                </select>
+                  placeholder="0.00"
+                />
+              </div>
+
+              <div className="flex gap-4">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.is_accessible}
+                    onChange={e => setFormData(prev => ({ ...prev, is_accessible: e.target.checked }))}
+                    className="w-4 h-4 rounded border-gray-300"
+                  />
+                  <span className="text-sm text-gray-700">♿ Acessível PCD</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.is_smoking}
+                    onChange={e => setFormData(prev => ({ ...prev, is_smoking: e.target.checked }))}
+                    className="w-4 h-4 rounded border-gray-300"
+                  />
+                  <span className="text-sm text-gray-700">🚬 Área Fumante</span>
+                </label>
               </div>
             </div>
             
@@ -872,7 +971,13 @@ export default function TablesPage() {
                   onClick={() => {
                     setFormData({
                       number: selectedTable.number,
-                      capacity: selectedTable.capacity.toString()
+                      capacity: selectedTable.capacity.toString(),
+                      location: (selectedTable as any).location || '',
+                      waiter_name: (selectedTable as any).waiter_name || '',
+                      min_consumption: (selectedTable as any).min_consumption?.toString() || '',
+                      is_smoking: (selectedTable as any).is_smoking || false,
+                      is_accessible: (selectedTable as any).is_accessible || false,
+                      shape: (selectedTable as any).shape || 'square'
                     })
                     setShowDetails(false)
                     setShowForm(true)
