@@ -6,7 +6,8 @@ import { createClient } from '@/lib/supabase/client'
 import { 
   Star, Loader2, AlertCircle, Link2, Unlink, RefreshCw, 
   CheckCircle, XCircle, Settings, ExternalLink, Clock,
-  ArrowLeft, Plus, Trash2, Eye, EyeOff, Copy, ChevronDown
+  ArrowLeft, Plus, Trash2, Eye, EyeOff, Copy, ChevronDown,
+  Upload, FileText, PenLine, Info, Lock, Unlock
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
@@ -60,6 +61,22 @@ export default function ReviewIntegrationsPage() {
   const [externalUrl, setExternalUrl] = useState('')
   const [saving, setSaving] = useState(false)
   const [syncing, setSyncing] = useState<string | null>(null)
+  
+  // Cadastro manual
+  const [showManualModal, setShowManualModal] = useState(false)
+  const [manualForm, setManualForm] = useState({
+    platform: 'ifood',
+    customer_name: '',
+    rating: 5,
+    comment: '',
+    review_date: new Date().toISOString().split('T')[0]
+  })
+  
+  // Import CSV
+  const [showCsvModal, setShowCsvModal] = useState(false)
+  const [csvData, setCsvData] = useState('')
+  const [csvPlatform, setCsvPlatform] = useState('ifood')
+  const [importing, setImporting] = useState(false)
 
   useEffect(() => {
     async function loadStore() {
@@ -221,6 +238,83 @@ export default function ReviewIntegrationsPage() {
     }
   }
 
+  // Cadastro manual de avaliação
+  async function handleManualSubmit() {
+    if (!manualForm.customer_name.trim() || !storeId) return
+    
+    setSaving(true)
+    try {
+      await supabase
+        .from('external_reviews')
+        .insert({
+          store_id: storeId,
+          platform: manualForm.platform,
+          external_id: `manual_${Date.now()}`,
+          customer_name: manualForm.customer_name,
+          rating: manualForm.rating,
+          comment: manualForm.comment,
+          review_date: manualForm.review_date,
+          is_visible: true
+        })
+
+      setShowManualModal(false)
+      setManualForm({
+        platform: 'ifood',
+        customer_name: '',
+        rating: 5,
+        comment: '',
+        review_date: new Date().toISOString().split('T')[0]
+      })
+      loadIntegrations()
+      alert('Avaliação cadastrada com sucesso!')
+    } catch (err) {
+      console.error('Erro ao cadastrar:', err)
+      alert('Erro ao cadastrar. A tabela pode não existir ainda.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  // Import CSV
+  async function handleCsvImport() {
+    if (!csvData.trim() || !storeId) return
+    
+    setImporting(true)
+    try {
+      const lines = csvData.trim().split('\n')
+      let imported = 0
+      
+      for (const line of lines) {
+        const [customer_name, rating, comment, date] = line.split(';').map(s => s.trim())
+        if (customer_name && rating) {
+          await supabase
+            .from('external_reviews')
+            .insert({
+              store_id: storeId,
+              platform: csvPlatform,
+              external_id: `csv_${Date.now()}_${imported}`,
+              customer_name,
+              rating: parseInt(rating) || 5,
+              comment: comment || null,
+              review_date: date || new Date().toISOString(),
+              is_visible: true
+            })
+          imported++
+        }
+      }
+
+      setShowCsvModal(false)
+      setCsvData('')
+      loadIntegrations()
+      alert(`${imported} avaliações importadas com sucesso!`)
+    } catch (err) {
+      console.error('Erro ao importar:', err)
+      alert('Erro ao importar. Verifique o formato do CSV.')
+    } finally {
+      setImporting(false)
+    }
+  }
+
   if (loading && !storeId) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-yellow-50/30 flex items-center justify-center">
@@ -271,6 +365,78 @@ export default function ReviewIntegrationsPage() {
             <Plus className="w-4 h-4 mr-2" />
             Adicionar
           </Button>
+        </div>
+
+        {/* Aviso sobre APIs */}
+        <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-5">
+          <div className="flex items-start gap-4">
+            <div className="p-2 bg-amber-100 rounded-xl">
+              <Info className="w-5 h-5 text-amber-600" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-amber-800 mb-2">Sobre as Integrações</h3>
+              <p className="text-sm text-amber-700 mb-3">
+                A maioria das plataformas (iFood, Rappi, Uber Eats) <strong>não disponibiliza API pública</strong> para 
+                importar avaliações automaticamente. Por isso, oferecemos formas alternativas:
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="bg-white/80 rounded-xl p-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Lock className="w-4 h-4 text-red-500" />
+                    <span className="text-xs font-medium text-slate-600">API Fechada</span>
+                  </div>
+                  <p className="text-xs text-slate-500">iFood, Rappi, Uber Eats</p>
+                </div>
+                <div className="bg-white/80 rounded-xl p-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Unlock className="w-4 h-4 text-green-500" />
+                    <span className="text-xs font-medium text-slate-600">API Disponível</span>
+                  </div>
+                  <p className="text-xs text-slate-500">Google (com credenciais)</p>
+                </div>
+                <div className="bg-white/80 rounded-xl p-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <PenLine className="w-4 h-4 text-blue-500" />
+                    <span className="text-xs font-medium text-slate-600">Solução</span>
+                  </div>
+                  <p className="text-xs text-slate-500">Cadastro manual ou CSV</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Botões de Ação */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <button
+            onClick={() => setShowManualModal(true)}
+            className="bg-white rounded-2xl p-5 shadow-lg shadow-slate-200/50 border border-slate-100 hover:border-emerald-300 hover:shadow-xl transition-all text-left group"
+          >
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-emerald-100 rounded-xl group-hover:bg-emerald-200 transition-colors">
+                <PenLine className="w-6 h-6 text-emerald-600" />
+              </div>
+              <div>
+                <p className="font-semibold text-slate-800">Cadastro Manual</p>
+                <p className="text-sm text-slate-500">Adicione avaliações uma a uma</p>
+              </div>
+            </div>
+          </button>
+          
+          <button
+            onClick={() => setShowCsvModal(true)}
+            className="bg-white rounded-2xl p-5 shadow-lg shadow-slate-200/50 border border-slate-100 hover:border-blue-300 hover:shadow-xl transition-all text-left group"
+          >
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-blue-100 rounded-xl group-hover:bg-blue-200 transition-colors">
+                <Upload className="w-6 h-6 text-blue-600" />
+              </div>
+              <div>
+                <p className="font-semibold text-slate-800">Importar CSV</p>
+                <p className="text-sm text-slate-500">Importe várias avaliações de uma vez</p>
+              </div>
+            </div>
+          </button>
         </div>
 
         {/* Stats Unificados */}
@@ -528,6 +694,162 @@ export default function ReviewIntegrationsPage() {
                   Salvar
                 </Button>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Cadastro Manual */}
+      {showManualModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+            <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+              <PenLine className="w-5 h-5 text-emerald-600" />
+              Cadastrar Avaliação Manual
+            </h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Plataforma</label>
+                <select
+                  value={manualForm.platform}
+                  onChange={e => setManualForm(prev => ({ ...prev, platform: e.target.value }))}
+                  className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-emerald-500 focus:outline-none"
+                >
+                  {PLATFORMS.map(p => (
+                    <option key={p.id} value={p.id}>{p.icon} {p.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Nome do Cliente</label>
+                <input
+                  type="text"
+                  value={manualForm.customer_name}
+                  onChange={e => setManualForm(prev => ({ ...prev, customer_name: e.target.value }))}
+                  placeholder="Ex: João Silva"
+                  className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-emerald-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Nota (1-5)</label>
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4, 5].map(n => (
+                    <button
+                      key={n}
+                      onClick={() => setManualForm(prev => ({ ...prev, rating: n }))}
+                      className={`flex-1 py-3 rounded-xl border-2 font-medium transition-all ${
+                        manualForm.rating === n 
+                          ? 'border-yellow-400 bg-yellow-50 text-yellow-700' 
+                          : 'border-slate-200 hover:border-slate-300'
+                      }`}
+                    >
+                      {n} ⭐
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Comentário</label>
+                <textarea
+                  value={manualForm.comment}
+                  onChange={e => setManualForm(prev => ({ ...prev, comment: e.target.value }))}
+                  placeholder="Cole ou digite o comentário do cliente..."
+                  rows={3}
+                  className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-emerald-500 focus:outline-none resize-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Data da Avaliação</label>
+                <input
+                  type="date"
+                  value={manualForm.review_date}
+                  onChange={e => setManualForm(prev => ({ ...prev, review_date: e.target.value }))}
+                  className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-emerald-500 focus:outline-none"
+                />
+              </div>
+            </div>
+            
+            <div className="flex gap-3 mt-6">
+              <Button variant="outline" className="flex-1" onClick={() => setShowManualModal(false)}>
+                Cancelar
+              </Button>
+              <Button 
+                className="flex-1 bg-gradient-to-r from-emerald-500 to-green-600"
+                onClick={handleManualSubmit}
+                disabled={saving || !manualForm.customer_name.trim()}
+              >
+                {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                Cadastrar
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Import CSV */}
+      {showCsvModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6">
+            <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+              <Upload className="w-5 h-5 text-blue-600" />
+              Importar CSV
+            </h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Plataforma de Origem</label>
+                <select
+                  value={csvPlatform}
+                  onChange={e => setCsvPlatform(e.target.value)}
+                  className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:outline-none"
+                >
+                  {PLATFORMS.map(p => (
+                    <option key={p.id} value={p.id}>{p.icon} {p.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Dados (formato CSV)</label>
+                <textarea
+                  value={csvData}
+                  onChange={e => setCsvData(e.target.value)}
+                  placeholder="Nome;Nota;Comentário;Data&#10;João Silva;5;Excelente!;2024-12-14&#10;Maria Santos;4;Muito bom;2024-12-13"
+                  rows={6}
+                  className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:outline-none resize-none font-mono text-sm"
+                />
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                <p className="text-sm text-blue-800 font-medium mb-2">📋 Formato esperado:</p>
+                <code className="text-xs text-blue-700 block bg-blue-100 p-2 rounded">
+                  Nome;Nota;Comentário;Data
+                </code>
+                <p className="text-xs text-blue-600 mt-2">
+                  • Separador: ponto e vírgula (;)<br/>
+                  • Nota: 1 a 5<br/>
+                  • Data: YYYY-MM-DD (opcional)
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex gap-3 mt-6">
+              <Button variant="outline" className="flex-1" onClick={() => setShowCsvModal(false)}>
+                Cancelar
+              </Button>
+              <Button 
+                className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600"
+                onClick={handleCsvImport}
+                disabled={importing || !csvData.trim()}
+              >
+                {importing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                Importar
+              </Button>
             </div>
           </div>
         </div>
