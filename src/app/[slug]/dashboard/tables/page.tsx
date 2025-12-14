@@ -92,6 +92,8 @@ export default function TablesPage() {
   const [soundEnabled, setSoundEnabled] = useState(true)
   const [isRealtimeConnected, setIsRealtimeConnected] = useState(false)
   const [currentTime, setCurrentTime] = useState(new Date())
+  const [filterWaiter, setFilterWaiter] = useState<string>('')
+  const [filterLocation, setFilterLocation] = useState<string>('')
   const [reservationForm, setReservationForm] = useState({
     customer_name: '',
     customer_phone: '',
@@ -664,6 +666,40 @@ export default function TablesPage() {
         </div>
       </div>
 
+      {/* Filtros de mesas */}
+      <div className="flex flex-wrap gap-3">
+        <select
+          value={filterWaiter}
+          onChange={e => setFilterWaiter(e.target.value)}
+          className="px-3 py-2 border rounded-xl text-sm bg-white"
+        >
+          <option value="">👨‍🍳 Todos os garçons</option>
+          {[...new Set(tables.map(t => (t as any).waiter_name).filter(Boolean))].map(name => (
+            <option key={name} value={name}>{name}</option>
+          ))}
+        </select>
+        <select
+          value={filterLocation}
+          onChange={e => setFilterLocation(e.target.value)}
+          className="px-3 py-2 border rounded-xl text-sm bg-white"
+        >
+          <option value="">📍 Todas as áreas</option>
+          <option value="interno">Área Interna</option>
+          <option value="externo">Área Externa</option>
+          <option value="varanda">Varanda</option>
+          <option value="terraco">Terraço</option>
+          <option value="vip">VIP</option>
+        </select>
+        {(filterWaiter || filterLocation) && (
+          <button
+            onClick={() => { setFilterWaiter(''); setFilterLocation(''); }}
+            className="px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-xl"
+          >
+            ✕ Limpar filtros
+          </button>
+        )}
+      </div>
+
       {/* Grid de Mesas */}
       {loading ? (
         <div className="flex items-center justify-center py-16">
@@ -685,7 +721,10 @@ export default function TablesPage() {
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5">
-          {tables.map(table => (
+          {tables
+            .filter(t => !filterWaiter || (t as any).waiter_name === filterWaiter)
+            .filter(t => !filterLocation || (t as any).location === filterLocation)
+            .map(table => (
             <div
               key={table.id}
               onClick={() => handleViewDetails(table)}

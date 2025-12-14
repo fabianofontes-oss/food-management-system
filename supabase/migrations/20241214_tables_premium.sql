@@ -15,6 +15,73 @@ ALTER TABLE tables ADD COLUMN IF NOT EXISTS is_smoking BOOLEAN DEFAULT false; --
 ALTER TABLE tables ADD COLUMN IF NOT EXISTS is_accessible BOOLEAN DEFAULT false; -- Acessível PCD
 ALTER TABLE tables ADD COLUMN IF NOT EXISTS shape VARCHAR(20) DEFAULT 'square'; -- square, round, rectangle
 
+-- Tabela de garçons da loja
+CREATE TABLE IF NOT EXISTS store_waiters (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES auth.users(id),
+  name VARCHAR(100) NOT NULL,
+  phone VARCHAR(20),
+  email VARCHAR(255),
+  photo_url TEXT,
+  commission_percent DECIMAL(5,2) DEFAULT 0, -- % de comissão
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Tabela de escalas/turnos
+CREATE TABLE IF NOT EXISTS waiter_schedules (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+  waiter_id UUID NOT NULL REFERENCES store_waiters(id) ON DELETE CASCADE,
+  schedule_date DATE NOT NULL,
+  shift VARCHAR(20) NOT NULL, -- morning, afternoon, evening, night
+  start_time TIME,
+  end_time TIME,
+  tables_assigned TEXT[], -- Lista de números de mesas
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Tabela de comissões
+CREATE TABLE IF NOT EXISTS waiter_commissions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+  waiter_id UUID NOT NULL REFERENCES store_waiters(id) ON DELETE CASCADE,
+  order_id UUID REFERENCES orders(id),
+  table_id UUID REFERENCES tables(id),
+  order_amount DECIMAL(12,2) NOT NULL,
+  commission_percent DECIMAL(5,2) NOT NULL,
+  commission_amount DECIMAL(12,2) NOT NULL,
+  status VARCHAR(20) DEFAULT 'pending', -- pending, paid
+  paid_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Índices
+CREATE INDEX IF NOT EXISTS idx_store_waiters_store ON store_waiters(store_id);
+CREATE INDEX IF NOT EXISTS idx_waiter_schedules_date ON waiter_schedules(schedule_date);
+CREATE INDEX IF NOT EXISTS idx_waiter_commissions_waiter ON waiter_commissions(waiter_id);
+
+-- RLS
+ALTER TABLE store_waiters ENABLE ROW LEVEL SECURITY;
+ALTER TABLE waiter_schedules ENABLE ROW LEVEL SECURITY;
+ALTER TABLE waiter_commissions ENABLE ROW LEVEL SECURITY;
+
+-- Policies garçons
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'store_waiters_all') THEN
+    CREATE POLICY "store_waiters_all" ON store_waiters FOR ALL USING (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'waiter_schedules_all') THEN
+    CREATE POLICY "waiter_schedules_all" ON waiter_schedules FOR ALL USING (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'waiter_commissions_all') THEN
+    CREATE POLICY "waiter_commissions_all" ON waiter_commissions FOR ALL USING (true);
+  END IF;
+END $$;
+
 -- Tabela de reservas
 CREATE TABLE IF NOT EXISTS table_reservations (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
