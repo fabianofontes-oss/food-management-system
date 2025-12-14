@@ -1,167 +1,153 @@
-import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+'use client'
 
-export interface StoreSettings {
-  id?: string
-  store_id?: string
-  enable_pos: boolean
-  enable_kitchen: boolean
-  enable_delivery: boolean
-  enable_dine_in: boolean
-  enable_takeout: boolean
-  enable_cash: boolean
-  enable_credit_card: boolean
-  enable_debit_card: boolean
-  enable_pix: boolean
-  enable_order_notifications: boolean
-  enable_whatsapp_notifications: boolean
-  enable_email_notifications: boolean
-  enable_sound_alerts: boolean
-  enable_loyalty_program: boolean
-  enable_coupons: boolean
-  enable_scheduled_orders: boolean
-  enable_table_management: boolean
-  enable_inventory_control: boolean
-  enable_auto_print: boolean
-  enable_kitchen_print: boolean
-  enable_ifood: boolean
-  enable_rappi: boolean
-  enable_uber_eats: boolean
-  minimum_order_value: number
-  delivery_fee: number
-  delivery_radius: number
-  estimated_prep_time: number
+import { useState, useEffect, useCallback } from 'react'
+import { settingsService } from '@/services/settings.service'
+import type { 
+  StoreSettings, 
+  SalesSettings, 
+  PaymentSettings, 
+  NotificationSettings, 
+  IntegrationSettings,
+  BusinessHour,
+  StoreInfo
+} from '@/types/settings'
+import { DEFAULT_STORE_SETTINGS } from '@/types/settings'
+
+// Re-exporta tipos para compatibilidade
+export type { StoreSettings } from '@/types/settings'
+
+interface UseSettingsReturn {
+  settings: StoreSettings
+  loading: boolean
+  saving: boolean
+  error: string | null
+  saveStatus: 'idle' | 'success' | 'error'
+  save: () => Promise<boolean>
+  updateInfo: (info: Partial<StoreInfo>) => void
+  updateBusinessHours: (hours: BusinessHour[]) => void
+  updateSales: (sales: Partial<SalesSettings>) => void
+  updatePayments: (payments: Partial<PaymentSettings>) => void
+  updateNotifications: (notifications: Partial<NotificationSettings>) => void
+  updateIntegrations: (integrations: Partial<IntegrationSettings>) => void
+  reload: () => Promise<void>
 }
 
-const DEFAULT_SETTINGS: StoreSettings = {
-  enable_pos: true,
-  enable_kitchen: true,
-  enable_delivery: true,
-  enable_dine_in: true,
-  enable_takeout: true,
-  enable_cash: true,
-  enable_credit_card: true,
-  enable_debit_card: true,
-  enable_pix: true,
-  enable_order_notifications: true,
-  enable_whatsapp_notifications: false,
-  enable_email_notifications: true,
-  enable_sound_alerts: true,
-  enable_loyalty_program: false,
-  enable_coupons: true,
-  enable_scheduled_orders: false,
-  enable_table_management: false,
-  enable_inventory_control: false,
-  enable_auto_print: false,
-  enable_kitchen_print: true,
-  enable_ifood: false,
-  enable_rappi: false,
-  enable_uber_eats: false,
-  minimum_order_value: 15,
-  delivery_fee: 5,
-  delivery_radius: 5,
-  estimated_prep_time: 30
-}
-
-export function useSettings(storeId?: string) {
-  const [settings, setSettings] = useState<StoreSettings>(DEFAULT_SETTINGS)
+export function useSettings(storeId?: string): UseSettingsReturn {
+  const [settings, setSettings] = useState<StoreSettings>(DEFAULT_STORE_SETTINGS)
   const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle')
 
-  useEffect(() => {
-    if (storeId) {
-      loadSettings(storeId)
-    } else {
+  const loadSettings = useCallback(async () => {
+    if (!storeId) {
       setLoading(false)
+      return
     }
-  }, [storeId])
 
-  const loadSettings = async (id: string) => {
     try {
       setLoading(true)
       setError(null)
-
-      const { data, error: fetchError } = await supabase
-        .from('store_settings')
-        .select('*')
-        .eq('store_id', id)
-        .single()
-
-      if (fetchError) {
-        if (fetchError.code === 'PGRST116') {
-          await createDefaultSettings(id)
-          return
-        }
-        throw fetchError
-      }
-
-      if (data) {
-        setSettings(data as StoreSettings)
-      }
+      const data = await settingsService.load(storeId)
+      setSettings(data)
     } catch (err) {
-      console.error('Error loading settings:', err)
+      console.error('Erro ao carregar configurações:', err)
       setError('Erro ao carregar configurações')
     } finally {
       setLoading(false)
     }
-  }
+  }, [storeId])
 
-  const createDefaultSettings = async (id: string) => {
-    try {
-      const { data, error: insertError } = await supabase
-        .from('store_settings')
-        .insert({ store_id: id, ...DEFAULT_SETTINGS })
-        .select()
-        .single()
+  useEffect(() => {
+    loadSettings()
+  }, [loadSettings])
 
-      if (insertError) throw insertError
-
-      if (data) {
-        setSettings(data as StoreSettings)
-      }
-    } catch (err) {
-      console.error('Error creating default settings:', err)
-      setError('Erro ao criar configurações padrão')
-    }
-  }
-
-  const updateSettings = async (updates: Partial<StoreSettings>) => {
+  const save = useCallback(async (): Promise<boolean> => {
     if (!storeId) {
       setError('Store ID não fornecido')
       return false
     }
 
     try {
+      setSaving(true)
+      setSaveStatus('idle')
       setError(null)
 
-      const newSettings = { ...settings, ...updates }
+      const success = await settingsService.save(storeId, settings)
 
-      const { error: updateError } = await supabase
-        .from('store_settings')
-        .update(updates)
-        .eq('store_id', storeId)
-
-      if (updateError) throw updateError
-
-      setSettings(newSettings)
-      return true
+      if (success) {
+        setSaveStatus('success')
+        setTimeout(() => setSaveStatus('idle'), 3000)
+        return true
+      } else {
+        throw new Error('Falha ao salvar')
+      }
     } catch (err) {
-      console.error('Error updating settings:', err)
+      console.error('Erro ao salvar configurações:', err)
       setError('Erro ao salvar configurações')
+      setSaveStatus('error')
+      setTimeout(() => setSaveStatus('idle'), 3000)
       return false
+    } finally {
+      setSaving(false)
     }
-  }
+  }, [storeId, settings])
 
-  const resetToDefaults = async () => {
-    return await updateSettings(DEFAULT_SETTINGS)
-  }
+  const updateInfo = useCallback((info: Partial<StoreInfo>) => {
+    setSettings(prev => ({
+      ...prev,
+      info: { ...prev.info, ...info }
+    }))
+  }, [])
+
+  const updateBusinessHours = useCallback((hours: BusinessHour[]) => {
+    setSettings(prev => ({
+      ...prev,
+      businessHours: hours
+    }))
+  }, [])
+
+  const updateSales = useCallback((sales: Partial<SalesSettings>) => {
+    setSettings(prev => ({
+      ...prev,
+      sales: { ...prev.sales, ...sales }
+    }))
+  }, [])
+
+  const updatePayments = useCallback((payments: Partial<PaymentSettings>) => {
+    setSettings(prev => ({
+      ...prev,
+      payments: { ...prev.payments, ...payments }
+    }))
+  }, [])
+
+  const updateNotifications = useCallback((notifications: Partial<NotificationSettings>) => {
+    setSettings(prev => ({
+      ...prev,
+      notifications: { ...prev.notifications, ...notifications }
+    }))
+  }, [])
+
+  const updateIntegrations = useCallback((integrations: Partial<IntegrationSettings>) => {
+    setSettings(prev => ({
+      ...prev,
+      integrations: { ...prev.integrations, ...integrations }
+    }))
+  }, [])
 
   return {
     settings,
     loading,
+    saving,
     error,
-    updateSettings,
-    resetToDefaults,
-    refreshSettings: () => storeId && loadSettings(storeId)
+    saveStatus,
+    save,
+    updateInfo,
+    updateBusinessHours,
+    updateSales,
+    updatePayments,
+    updateNotifications,
+    updateIntegrations,
+    reload: loadSettings
   }
 }
