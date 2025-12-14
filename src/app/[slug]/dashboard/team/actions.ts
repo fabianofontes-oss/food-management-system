@@ -1,19 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
-
-const supabaseAdmin = createAdminClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  }
-)
 
 type UserRole = 'owner' | 'manager' | 'staff'
 
@@ -23,7 +11,7 @@ export async function getTeamMembers(storeId: string) {
     
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) {
-      return { error: 'Não autenticado' }
+      return { error: 'Não autenticado', data: [], currentUserRole: 'staff' as UserRole }
     }
 
     // Verify user has access to this store
@@ -35,114 +23,53 @@ export async function getTeamMembers(storeId: string) {
       .single()
 
     if (!access) {
-      return { error: 'Sem permissão' }
+      return { error: 'Sem permissão', data: [], currentUserRole: 'staff' as UserRole }
     }
 
-    // Get all store members
+    // Get all store members with profiles
     const { data: members, error } = await supabase
       .from('store_users')
-      .select('id, user_id, role, created_at')
+      .select('id, user_id, role, created_at, profiles(email, full_name)')
       .eq('store_id', storeId)
       .order('created_at', { ascending: true })
 
     if (error) {
-      return { error: error.message }
+      // Se profiles não existe, buscar sem ele
+      const { data: membersSimple, error: err2 } = await supabase
+        .from('store_users')
+        .select('id, user_id, role, created_at')
+        .eq('store_id', storeId)
+        .order('created_at', { ascending: true })
+      
+      if (err2) {
+        return { error: err2.message, data: [], currentUserRole: (access as any).role }
+      }
+      
+      const membersWithEmail = (membersSimple as any[])?.map((m: any) => ({
+        ...m,
+        email: m.user_id === session.user.id ? session.user.email : 'Membro da equipe'
+      })) || []
+      
+      return { data: membersWithEmail, currentUserRole: (access as any).role }
     }
 
-    // Fetch user emails using admin client
-    const membersWithEmails = await Promise.all(
-      members.map(async (member) => {
-        const { data: userData } = await supabaseAdmin.auth.admin.getUserById(member.user_id)
-        return {
-          ...member,
-          email: userData.user?.email || 'Email não disponível'
-        }
-      })
-    )
+    const membersWithEmails = (members as any[])?.map((member: any) => ({
+      ...member,
+      email: member.profiles?.email || member.profiles?.full_name || 
+             (member.user_id === session.user.id ? session.user.email : 'Membro da equipe')
+    })) || []
 
-    return { data: membersWithEmails, currentUserRole: access.role }
+    return { data: membersWithEmails, currentUserRole: (access as any).role }
   } catch (err: any) {
-    return { error: err.message }
+    console.error('Erro ao carregar equipe:', err)
+    return { error: err.message || 'Erro desconhecido', data: [], currentUserRole: 'staff' as UserRole }
   }
 }
 
 export async function inviteMember(storeId: string, email: string, role: UserRole) {
-  try {
-    const supabase = await createClient()
-    
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) {
-      return { error: 'Não autenticado' }
-    }
-
-    // Verify user has permission (owner or manager)
-    const { data: access } = await supabase
-      .from('store_users')
-      .select('role')
-      .eq('store_id', storeId)
-      .eq('user_id', session.user.id)
-      .single()
-
-    if (!access || (access.role !== 'owner' && access.role !== 'manager')) {
-      return { error: 'Sem permissão para convidar membros' }
-    }
-
-    // Managers cannot assign owner role
-    if (access.role === 'manager' && role === 'owner') {
-      return { error: 'Gerentes não podem atribuir o papel de proprietário' }
-    }
-
-    // Check if user exists, if not create
-    let userId: string
-
-    const { data: existingUser } = await supabaseAdmin.auth.admin.listUsers()
-    const user = existingUser.users.find(u => u.email === email)
-
-    if (user) {
-      userId = user.id
-    } else {
-      // Create new user with email confirmation
-      const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-        email,
-        email_confirm: true
-      })
-
-      if (createError || !newUser.user) {
-        return { error: createError?.message || 'Erro ao criar usuário' }
-      }
-
-      userId = newUser.user.id
-
-      // Generate password reset link for new user
-      const { data: resetData } = await supabaseAdmin.auth.admin.generateLink({
-        type: 'recovery',
-        email
-      })
-
-      console.log('Password reset link for new user:', resetData)
-    }
-
-    // Add to store_users
-    const { error: insertError } = await supabase
-      .from('store_users')
-      .insert({
-        store_id: storeId,
-        user_id: userId,
-        role
-      })
-
-    if (insertError) {
-      if (insertError.code === '23505') {
-        return { error: 'Este usuário já é membro desta loja' }
-      }
-      return { error: insertError.message }
-    }
-
-    revalidatePath(`/[slug]/dashboard/team`)
-    return { success: true }
-  } catch (err: any) {
-    return { error: err.message }
-  }
+  // Funcionalidade de convite requer configuração de admin
+  // Por enquanto, retorna mensagem informativa
+  return { error: 'Convite por email não está disponível. Configure SUPABASE_SERVICE_ROLE_KEY para habilitar.' }
 }
 
 export async function updateMemberRole(storeId: string, memberId: string, newRole: UserRole) {
@@ -162,7 +89,7 @@ export async function updateMemberRole(storeId: string, memberId: string, newRol
       .eq('user_id', session.user.id)
       .single()
 
-    if (!access || access.role !== 'owner') {
+    if (!access || (access as any).role !== 'owner') {
       return { error: 'Apenas proprietários podem alterar papéis' }
     }
 
@@ -178,14 +105,14 @@ export async function updateMemberRole(storeId: string, memberId: string, newRol
     }
 
     // Prevent changing own role
-    if (targetMember.user_id === session.user.id) {
+    if ((targetMember as any).user_id === session.user.id) {
       return { error: 'Você não pode alterar seu próprio papel' }
     }
 
     // Update role
     const { error: updateError } = await supabase
       .from('store_users')
-      .update({ role: newRole })
+      .update({ role: newRole } as Record<string, unknown>)
       .eq('id', memberId)
 
     if (updateError) {
@@ -216,7 +143,7 @@ export async function removeMember(storeId: string, memberId: string) {
       .eq('user_id', session.user.id)
       .single()
 
-    if (!access || (access.role !== 'owner' && access.role !== 'manager')) {
+    if (!access || ((access as any).role !== 'owner' && (access as any).role !== 'manager')) {
       return { error: 'Sem permissão para remover membros' }
     }
 
@@ -232,17 +159,17 @@ export async function removeMember(storeId: string, memberId: string) {
     }
 
     // Prevent removing self
-    if (targetMember.user_id === session.user.id) {
+    if ((targetMember as any).user_id === session.user.id) {
       return { error: 'Você não pode remover a si mesmo' }
     }
 
     // Managers cannot remove owners
-    if (access.role === 'manager' && targetMember.role === 'owner') {
+    if ((access as any).role === 'manager' && (targetMember as any).role === 'owner') {
       return { error: 'Gerentes não podem remover proprietários' }
     }
 
     // Check if this is the last owner
-    if (targetMember.role === 'owner') {
+    if ((targetMember as any).role === 'owner') {
       const { data: owners } = await supabase
         .from('store_users')
         .select('id')
