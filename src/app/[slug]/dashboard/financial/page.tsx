@@ -11,8 +11,9 @@ import {
 import { ExpensesTab } from './components/ExpensesTab'
 import { ReceivablesTab } from './components/ReceivablesTab'
 import { DRETab } from './components/DRETab'
+import { CashControlTab } from './components/CashControlTab'
 
-type TabType = 'resumo' | 'despesas' | 'receber'
+type TabType = 'resumo' | 'caixa' | 'despesas' | 'receber'
 
 export default function FinancialPage() {
   const params = useParams()
@@ -164,6 +165,7 @@ export default function FinancialPage() {
         <div className="flex gap-2 border-b pb-2">
           {([
             { id: 'resumo' as TabType, label: 'DRE / Resumo' },
+            { id: 'caixa' as TabType, label: 'Controle de Caixa' },
             { id: 'despesas' as TabType, label: 'Contas a Pagar' },
             { id: 'receber' as TabType, label: 'Contas a Receber' }
           ]).map(tab => (
@@ -183,6 +185,7 @@ export default function FinancialPage() {
 
         <div className="bg-white rounded-2xl shadow-lg border p-6">
           {activeTab === 'resumo' && storeId && <DRETab storeId={storeId} />}
+          {activeTab === 'caixa' && storeId && <CashControlTab storeId={storeId} />}
           {activeTab === 'despesas' && storeId && <ExpensesTab storeId={storeId} />}
           {activeTab === 'receber' && storeId && <ReceivablesTab storeId={storeId} />}
         </div>
