@@ -168,10 +168,10 @@ export default function TeamPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-green-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600 text-lg">Carregando equipe...</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50/30 flex items-center justify-center">
+        <div className="text-center bg-white/80 backdrop-blur-sm p-8 rounded-3xl shadow-xl shadow-slate-200/50">
+          <Loader2 className="w-14 h-14 text-indigo-600 animate-spin mx-auto mb-4" />
+          <p className="text-slate-600 text-lg font-medium">Carregando equipe...</p>
         </div>
       </div>
     )
@@ -179,32 +179,38 @@ export default function TeamPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full text-center">
-          <AlertCircle className="w-12 h-12 text-red-600 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Erro</h2>
-          <p className="text-gray-600 mb-6">{error}</p>
-          <Button onClick={loadStoreAndMembers}>Tentar novamente</Button>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-red-50/30 flex items-center justify-center p-4">
+        <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl shadow-slate-200/50 p-8 max-w-md w-full text-center">
+          <div className="p-4 bg-red-100 rounded-2xl w-fit mx-auto mb-4">
+            <AlertCircle className="w-12 h-12 text-red-500" />
+          </div>
+          <h2 className="text-2xl font-bold text-slate-800 mb-2">Erro</h2>
+          <p className="text-slate-600 mb-6">{error}</p>
+          <Button onClick={loadStoreAndMembers} className="bg-gradient-to-r from-indigo-600 to-violet-600">Tentar novamente</Button>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-6">
-          <div className="flex items-center gap-3 mb-2">
-            <Users className="w-8 h-8 text-green-600" />
-            <h1 className="text-3xl font-bold text-gray-900">Equipe</h1>
-          </div>
-          <p className="text-gray-600">Gerencie os membros da sua loja</p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50/30 p-4 md:p-6 lg:p-8">
+      <div className="max-w-6xl mx-auto space-y-8">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-800 flex items-center gap-3">
+            <div className="p-2.5 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-xl shadow-lg shadow-indigo-500/25">
+              <Users className="w-6 h-6 md:w-7 md:h-7 text-white" />
+            </div>
+            Equipe
+          </h1>
+          <p className="text-slate-500 mt-2 ml-14">Gerencie os membros da sua loja</p>
         </div>
 
         {canInvite && (
-          <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <UserPlus className="w-5 h-5" />
+          <div className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-6">
+            <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+              <div className="p-2 bg-indigo-100 rounded-lg">
+                <UserPlus className="w-5 h-5 text-indigo-600" />
+              </div>
               Convidar membro
             </h2>
             
@@ -219,7 +225,7 @@ export default function TeamPage() {
                     required
                     value={inviteEmail}
                     onChange={(e) => setInviteEmail(e.target.value)}
-                    className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:outline-none"
+                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 focus:outline-none transition-all"
                     placeholder="email@exemplo.com"
                   />
                 </div>
@@ -232,7 +238,7 @@ export default function TeamPage() {
                     value={inviteRole}
                     onChange={(e) => setInviteRole(e.target.value as UserRole)}
                     disabled={currentUserRole === 'manager'}
-                    className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:outline-none disabled:bg-gray-100"
+                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 focus:outline-none transition-all disabled:bg-slate-100"
                   >
                     {currentUserRole === 'owner' && <option value="owner">Proprietário</option>}
                     {currentUserRole === 'owner' && <option value="manager">Gerente</option>}
@@ -256,7 +262,7 @@ export default function TeamPage() {
               <Button
                 type="submit"
                 disabled={inviting}
-                className="w-full md:w-auto"
+                className="w-full md:w-auto bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 shadow-lg shadow-indigo-500/25"
               >
                 {inviting ? (
                   <>
@@ -274,22 +280,24 @@ export default function TeamPage() {
           </div>
         )}
 
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-bold text-gray-900">
+        <div className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 overflow-hidden">
+          <div className="p-6 border-b border-slate-100">
+            <h2 className="text-xl font-bold text-slate-800">
               Membros ({members.length})
             </h2>
           </div>
 
           {members.length === 0 ? (
-            <div className="p-12 text-center">
-              <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 text-lg">Nenhum membro ainda</p>
+            <div className="p-16 text-center">
+              <div className="w-20 h-20 mx-auto mb-4 bg-slate-100 rounded-2xl flex items-center justify-center">
+                <Users className="w-10 h-10 text-slate-300" />
+              </div>
+              <p className="text-slate-400 font-medium">Nenhum membro ainda</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-gradient-to-r from-slate-50 to-slate-100/50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Email

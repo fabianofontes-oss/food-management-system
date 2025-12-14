@@ -200,99 +200,110 @@ export default function ReviewsPage() {
 
   if (loading && !storeId) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-yellow-50/30 flex items-center justify-center">
+        <div className="text-center bg-white/80 backdrop-blur-sm p-8 rounded-3xl shadow-xl shadow-slate-200/50">
+          <Loader2 className="w-14 h-14 text-yellow-500 animate-spin mx-auto mb-4" />
+          <p className="text-slate-600 text-lg font-medium">Carregando avaliações...</p>
+        </div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-        <AlertCircle className="w-12 h-12 text-red-500" />
-        <p className="text-gray-600">{error}</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-red-50/30 flex items-center justify-center">
+        <div className="text-center bg-white/80 backdrop-blur-sm p-8 rounded-3xl shadow-xl shadow-slate-200/50">
+          <div className="p-4 bg-red-100 rounded-2xl w-fit mx-auto mb-4">
+            <AlertCircle className="w-12 h-12 text-red-500" />
+          </div>
+          <p className="text-slate-600">{error}</p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-yellow-50/30 p-4 md:p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Star className="w-7 h-7 text-yellow-500" />
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-800 flex items-center gap-3">
+            <div className="p-2.5 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-xl shadow-lg shadow-yellow-500/25">
+              <Star className="w-6 h-6 md:w-7 md:h-7 text-white" />
+            </div>
             Avaliações
           </h1>
-          <p className="text-gray-500">Feedback dos seus clientes</p>
+          <p className="text-slate-500 mt-2 ml-14">Feedback dos seus clientes</p>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl p-6 shadow-sm border">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+        <div className="bg-white rounded-2xl p-6 shadow-lg shadow-slate-200/50 border border-slate-100 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center">
-              <span className="text-2xl font-bold text-yellow-600">{stats.average.toFixed(1)}</span>
+            <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-2xl flex items-center justify-center shadow-lg shadow-yellow-500/25">
+              <span className="text-2xl font-bold text-white">{stats.average.toFixed(1)}</span>
             </div>
             <div>
               {renderStars(Math.round(stats.average), 'md')}
-              <p className="text-sm text-gray-500 mt-1">{stats.total} avaliações</p>
+              <p className="text-sm text-slate-500 mt-1">{stats.total} avaliações</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-sm border col-span-2">
-          <p className="text-sm text-gray-500 mb-3">Distribuição</p>
+        <div className="bg-white rounded-2xl p-6 shadow-lg shadow-slate-200/50 border border-slate-100 col-span-2 hover:shadow-xl transition-all duration-300">
+          <p className="text-sm font-medium text-slate-500 mb-3">Distribuição</p>
           <div className="space-y-2">
             {stats.distribution.map(d => (
               <div key={d.stars} className="flex items-center gap-2">
-                <span className="text-sm w-12">{d.stars} <Star className="w-3 h-3 inline fill-yellow-400 text-yellow-400" /></span>
-                <div className="flex-1 bg-gray-100 rounded-full h-2 overflow-hidden">
+                <span className="text-sm w-12 text-slate-600">{d.stars} <Star className="w-3 h-3 inline fill-yellow-400 text-yellow-400" /></span>
+                <div className="flex-1 bg-slate-100 rounded-full h-2.5 overflow-hidden">
                   <div 
-                    className="bg-yellow-400 h-full rounded-full"
+                    className="bg-gradient-to-r from-yellow-400 to-amber-500 h-full rounded-full transition-all duration-500"
                     style={{ width: `${d.percentage}%` }}
                   />
                 </div>
-                <span className="text-sm text-gray-500 w-8">{d.count}</span>
+                <span className="text-sm text-slate-500 w-8">{d.count}</span>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-sm border">
+        <div className="bg-white rounded-2xl p-6 shadow-lg shadow-slate-200/50 border border-slate-100 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500">Respondidas</span>
-              <span className="font-bold text-green-600">{stats.responded}</span>
+              <span className="text-sm font-medium text-slate-500">Respondidas</span>
+              <span className="text-xl font-bold text-emerald-600">{stats.responded}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500">Pendentes</span>
-              <span className="font-bold text-orange-600">{stats.pending}</span>
+              <span className="text-sm font-medium text-slate-500">Pendentes</span>
+              <span className="text-xl font-bold text-amber-600">{stats.pending}</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Filtros */}
-      <div className="flex gap-4 items-center">
+      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
           <input
             type="text"
             placeholder="Buscar avaliação..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border rounded-lg"
+            className="w-full pl-12 pr-4 py-3 border-2 border-slate-200 rounded-xl focus:border-yellow-500 focus:ring-4 focus:ring-yellow-500/10 focus:outline-none transition-all"
           />
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {(['all', 'pending', 'responded', 'featured'] as FilterType[]).map(f => (
             <Button
               key={f}
               variant={filter === f ? 'default' : 'outline'}
               size="sm"
               onClick={() => setFilter(f)}
+              className={filter === f ? 'bg-gradient-to-r from-yellow-400 to-amber-500 shadow-lg shadow-yellow-500/25' : 'hover:shadow-md transition-all'}
             >
               {f === 'all' ? 'Todas' : 
                f === 'pending' ? 'Pendentes' : 
@@ -305,17 +316,19 @@ export default function ReviewsPage() {
       {/* Lista de Avaliações */}
       <div className="space-y-4">
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="w-10 h-10 animate-spin text-yellow-500" />
           </div>
         ) : filteredReviews.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
-            <Star className="w-12 h-12 mx-auto text-gray-300 mb-4" />
-            <p className="text-gray-500">Nenhuma avaliação encontrada</p>
+          <div className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-16 text-center">
+            <div className="w-20 h-20 mx-auto mb-4 bg-slate-100 rounded-2xl flex items-center justify-center">
+              <Star className="w-10 h-10 text-slate-300" />
+            </div>
+            <p className="text-slate-400 font-medium">Nenhuma avaliação encontrada</p>
           </div>
         ) : (
           filteredReviews.map(review => (
-            <div key={review.id} className="bg-white rounded-xl shadow-sm border p-6">
+            <div key={review.id} className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-6 hover:shadow-xl transition-all">
               <div className="flex items-start justify-between">
                 <div className="flex items-start gap-4">
                   <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
@@ -394,6 +407,7 @@ export default function ReviewsPage() {
             </div>
           ))
         )}
+      </div>
       </div>
     </div>
   )
