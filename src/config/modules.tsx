@@ -28,9 +28,11 @@ export interface Module {
   color: string
   bgColor: string
   category: 'store' | 'sales' | 'payments' | 'operations' | 'integrations' | 'marketing' | 'notifications'
+  subcategory?: 'delivery_platforms' | 'payment_gateways' | 'payment_machines' | 'fiscal' | 'erp' | 'communication' | 'analytics' | 'maps' | 'crm'
   configPage?: string
   isCore?: boolean
   hasCustomCard?: boolean
+  requiresSuperadmin?: boolean
   settings: ModuleSetting[]
 }
 
@@ -708,10 +710,500 @@ export const MODULES: Module[] = [
     color: 'text-green-600',
     bgColor: 'bg-green-100',
     category: 'integrations',
+    subcategory: 'maps',
+    requiresSuperadmin: true,
     settings: [
       { key: 'gmaps_enabled', label: 'Ativar Google Maps', description: 'Calcula distância e taxa', type: 'toggle', icon: <MapPin className="w-4 h-4" />, defaultValue: false },
       { key: 'gmaps_api_key', label: 'API Key', description: 'Chave da API Google Maps', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'AIza...', defaultValue: '' },
       { key: 'gmaps_distance_matrix', label: 'Usar Distance Matrix', description: 'Calcula tempo de entrega', type: 'toggle', icon: <Truck className="w-4 h-4" />, defaultValue: true }
+    ]
+  },
+  {
+    id: 'mapbox',
+    name: 'Mapbox',
+    description: 'Alternativa ao Google Maps',
+    longDescription: 'Mapas e cálculo de rotas. Mais barato que Google Maps. 100k requisições grátis/mês.',
+    icon: <MapPin className="w-6 h-6" />,
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-100',
+    category: 'integrations',
+    subcategory: 'maps',
+    settings: [
+      { key: 'mapbox_enabled', label: 'Ativar Mapbox', description: 'Usa Mapbox para mapas', type: 'toggle', icon: <MapPin className="w-4 h-4" />, defaultValue: false },
+      { key: 'mapbox_access_token', label: 'Access Token', description: 'Token público do Mapbox', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'pk.eyJ1...', defaultValue: '' }
+    ]
+  },
+  {
+    id: 'here_maps',
+    name: 'HERE Maps',
+    description: 'Rotas e logística',
+    longDescription: 'Especializado em rotas de entrega e logística. 250k requisições grátis/mês.',
+    icon: <MapPin className="w-6 h-6" />,
+    color: 'text-cyan-600',
+    bgColor: 'bg-cyan-100',
+    category: 'integrations',
+    subcategory: 'maps',
+    settings: [
+      { key: 'here_enabled', label: 'Ativar HERE', description: 'Usa HERE para rotas', type: 'toggle', icon: <MapPin className="w-4 h-4" />, defaultValue: false },
+      { key: 'here_api_key', label: 'API Key', description: 'Chave da API HERE', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'API Key...', defaultValue: '' }
+    ]
+  },
+
+  // === INTEGRAÇÕES - DELIVERY EXTRA ===
+  {
+    id: '99food',
+    name: '99Food',
+    description: 'Receba pedidos do 99Food',
+    longDescription: 'Integre com o 99Food para receber pedidos. Popular em grandes capitais.',
+    icon: <Car className="w-6 h-6" />,
+    color: 'text-yellow-600',
+    bgColor: 'bg-yellow-100',
+    category: 'integrations',
+    subcategory: 'delivery_platforms',
+    settings: [
+      { key: '99food_enabled', label: 'Ativar 99Food', description: 'Recebe pedidos do 99Food', type: 'toggle', icon: <Car className="w-4 h-4" />, defaultValue: false },
+      { key: '99food_store_id', label: 'Store ID', description: 'ID da loja no 99Food', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'ID da loja', defaultValue: '' },
+      { key: '99food_api_key', label: 'API Key', description: 'Chave da API', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'API Key...', defaultValue: '' }
+    ]
+  },
+  {
+    id: 'james_delivery',
+    name: 'James Delivery',
+    description: 'Receba pedidos do James',
+    longDescription: 'Integre com o James Delivery. Popular no Sul e Sudeste.',
+    icon: <Bike className="w-6 h-6" />,
+    color: 'text-red-600',
+    bgColor: 'bg-red-100',
+    category: 'integrations',
+    subcategory: 'delivery_platforms',
+    settings: [
+      { key: 'james_enabled', label: 'Ativar James', description: 'Recebe pedidos do James', type: 'toggle', icon: <Bike className="w-4 h-4" />, defaultValue: false },
+      { key: 'james_store_id', label: 'Store ID', description: 'ID da loja', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'ID', defaultValue: '' },
+      { key: 'james_token', label: 'Token', description: 'Token de integração', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'Token...', defaultValue: '' }
+    ]
+  },
+  {
+    id: 'delivery_much',
+    name: 'Delivery Much',
+    description: 'Receba pedidos do Much',
+    longDescription: 'Integre com o Delivery Much. Forte no interior do Brasil.',
+    icon: <Bike className="w-6 h-6" />,
+    color: 'text-pink-600',
+    bgColor: 'bg-pink-100',
+    category: 'integrations',
+    subcategory: 'delivery_platforms',
+    settings: [
+      { key: 'much_enabled', label: 'Ativar Delivery Much', description: 'Recebe pedidos do Much', type: 'toggle', icon: <Bike className="w-4 h-4" />, defaultValue: false },
+      { key: 'much_store_id', label: 'Store ID', description: 'ID da loja', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'ID', defaultValue: '' },
+      { key: 'much_api_key', label: 'API Key', description: 'Chave da API', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'API Key...', defaultValue: '' }
+    ]
+  },
+  {
+    id: 'anota_ai',
+    name: 'Anota AI',
+    description: 'Atendimento WhatsApp com IA',
+    longDescription: 'Automatize pedidos via WhatsApp com inteligência artificial. Os pedidos entram automaticamente.',
+    icon: <MessageSquare className="w-6 h-6" />,
+    color: 'text-green-600',
+    bgColor: 'bg-green-100',
+    category: 'integrations',
+    subcategory: 'delivery_platforms',
+    settings: [
+      { key: 'anotaai_enabled', label: 'Ativar Anota AI', description: 'Recebe pedidos do Anota AI', type: 'toggle', icon: <MessageSquare className="w-4 h-4" />, defaultValue: false },
+      { key: 'anotaai_store_id', label: 'Store ID', description: 'ID da loja no Anota AI', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'ID', defaultValue: '' },
+      { key: 'anotaai_token', label: 'Token', description: 'Token de integração', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'Token...', defaultValue: '' }
+    ]
+  },
+  {
+    id: 'goomer',
+    name: 'Goomer',
+    description: 'Cardápio digital avançado',
+    longDescription: 'Cardápio digital com QR Code e integração de pedidos.',
+    icon: <Smartphone className="w-6 h-6" />,
+    color: 'text-orange-600',
+    bgColor: 'bg-orange-100',
+    category: 'integrations',
+    subcategory: 'delivery_platforms',
+    settings: [
+      { key: 'goomer_enabled', label: 'Ativar Goomer', description: 'Integra com Goomer', type: 'toggle', icon: <Smartphone className="w-4 h-4" />, defaultValue: false },
+      { key: 'goomer_api_key', label: 'API Key', description: 'Chave da API Goomer', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'API Key...', defaultValue: '' }
+    ]
+  },
+
+  // === INTEGRAÇÕES - PAGAMENTOS EXTRA ===
+  {
+    id: 'picpay',
+    name: 'PicPay',
+    description: 'Pagamento via PicPay',
+    longDescription: 'Aceite pagamentos via PicPay. Popular entre jovens. Taxa: 1.99%.',
+    icon: <Smartphone className="w-6 h-6" />,
+    color: 'text-green-600',
+    bgColor: 'bg-green-100',
+    category: 'integrations',
+    subcategory: 'payment_gateways',
+    settings: [
+      { key: 'picpay_enabled', label: 'Ativar PicPay', description: 'Aceita pagamentos PicPay', type: 'toggle', icon: <Smartphone className="w-4 h-4" />, defaultValue: false },
+      { key: 'picpay_token', label: 'Token', description: 'Token do PicPay', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'Token...', defaultValue: '' },
+      { key: 'picpay_seller_token', label: 'Seller Token', description: 'Token do vendedor', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'Seller Token...', defaultValue: '' }
+    ]
+  },
+  {
+    id: 'ame_digital',
+    name: 'Ame Digital',
+    description: 'Pagamento com cashback',
+    longDescription: 'Aceite pagamentos via Ame Digital. Oferece cashback aos clientes.',
+    icon: <Wallet className="w-6 h-6" />,
+    color: 'text-pink-600',
+    bgColor: 'bg-pink-100',
+    category: 'integrations',
+    subcategory: 'payment_gateways',
+    settings: [
+      { key: 'ame_enabled', label: 'Ativar Ame', description: 'Aceita Ame Digital', type: 'toggle', icon: <Wallet className="w-4 h-4" />, defaultValue: false },
+      { key: 'ame_client_id', label: 'Client ID', description: 'ID do cliente', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'Client ID...', defaultValue: '' },
+      { key: 'ame_client_secret', label: 'Client Secret', description: 'Chave secreta', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'Secret...', defaultValue: '' }
+    ]
+  },
+  {
+    id: 'pagarme',
+    name: 'Pagar.me',
+    description: 'Gateway simples',
+    longDescription: 'Gateway de pagamento simples e fácil de integrar. PIX, cartão e boleto.',
+    icon: <CreditCard className="w-6 h-6" />,
+    color: 'text-green-600',
+    bgColor: 'bg-green-100',
+    category: 'integrations',
+    subcategory: 'payment_gateways',
+    settings: [
+      { key: 'pagarme_enabled', label: 'Ativar Pagar.me', description: 'Aceita via Pagar.me', type: 'toggle', icon: <CreditCard className="w-4 h-4" />, defaultValue: false },
+      { key: 'pagarme_api_key', label: 'API Key', description: 'Chave da API', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'ak_live_...', defaultValue: '' },
+      { key: 'pagarme_encryption_key', label: 'Encryption Key', description: 'Chave de criptografia', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'ek_live_...', defaultValue: '' }
+    ]
+  },
+  {
+    id: 'iugu',
+    name: 'Iugu',
+    description: 'Cobrança recorrente',
+    longDescription: 'Especializado em assinaturas e cobranças recorrentes.',
+    icon: <CreditCard className="w-6 h-6" />,
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-100',
+    category: 'integrations',
+    subcategory: 'payment_gateways',
+    settings: [
+      { key: 'iugu_enabled', label: 'Ativar Iugu', description: 'Aceita via Iugu', type: 'toggle', icon: <CreditCard className="w-4 h-4" />, defaultValue: false },
+      { key: 'iugu_account_id', label: 'Account ID', description: 'ID da conta', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'Account ID...', defaultValue: '' },
+      { key: 'iugu_api_token', label: 'API Token', description: 'Token da API', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'Token...', defaultValue: '' }
+    ]
+  },
+  {
+    id: 'vindi',
+    name: 'Vindi',
+    description: 'Assinaturas e recorrência',
+    longDescription: 'Plataforma para cobranças recorrentes e assinaturas.',
+    icon: <CreditCard className="w-6 h-6" />,
+    color: 'text-purple-600',
+    bgColor: 'bg-purple-100',
+    category: 'integrations',
+    subcategory: 'payment_gateways',
+    settings: [
+      { key: 'vindi_enabled', label: 'Ativar Vindi', description: 'Aceita via Vindi', type: 'toggle', icon: <CreditCard className="w-4 h-4" />, defaultValue: false },
+      { key: 'vindi_api_key', label: 'API Key', description: 'Chave da API', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'API Key...', defaultValue: '' }
+    ]
+  },
+  {
+    id: 'paygo_c6',
+    name: 'PayGo C6',
+    description: 'Maquininha C6 Bank',
+    longDescription: 'Integre sua maquininha PayGo do C6 Bank para vendas presenciais.',
+    icon: <CreditCard className="w-6 h-6" />,
+    color: 'text-slate-600',
+    bgColor: 'bg-slate-100',
+    category: 'integrations',
+    subcategory: 'payment_machines',
+    settings: [
+      { key: 'paygo_enabled', label: 'Ativar PayGo C6', description: 'Integra maquininha C6', type: 'toggle', icon: <CreditCard className="w-4 h-4" />, defaultValue: false },
+      { key: 'paygo_terminal_id', label: 'Terminal ID', description: 'ID do terminal', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'ID do terminal', defaultValue: '' },
+      { key: 'paygo_api_key', label: 'API Key', description: 'Chave da API', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'API Key...', defaultValue: '' }
+    ]
+  },
+  {
+    id: 'stone',
+    name: 'Stone',
+    description: 'Maquininha Stone',
+    longDescription: 'Integre sua maquininha Stone para vendas presenciais.',
+    icon: <CreditCard className="w-6 h-6" />,
+    color: 'text-green-600',
+    bgColor: 'bg-green-100',
+    category: 'integrations',
+    subcategory: 'payment_machines',
+    settings: [
+      { key: 'stone_enabled', label: 'Ativar Stone', description: 'Integra maquininha Stone', type: 'toggle', icon: <CreditCard className="w-4 h-4" />, defaultValue: false },
+      { key: 'stone_stone_code', label: 'Stone Code', description: 'Código Stone', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'Stone Code...', defaultValue: '' },
+      { key: 'stone_sak', label: 'SAK', description: 'Chave de ativação', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'SAK...', defaultValue: '' }
+    ]
+  },
+  {
+    id: 'cielo',
+    name: 'Cielo',
+    description: 'Maquininha Cielo',
+    longDescription: 'Integre sua maquininha Cielo para vendas presenciais.',
+    icon: <CreditCard className="w-6 h-6" />,
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-100',
+    category: 'integrations',
+    subcategory: 'payment_machines',
+    settings: [
+      { key: 'cielo_enabled', label: 'Ativar Cielo', description: 'Integra maquininha Cielo', type: 'toggle', icon: <CreditCard className="w-4 h-4" />, defaultValue: false },
+      { key: 'cielo_merchant_id', label: 'Merchant ID', description: 'ID do lojista', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'Merchant ID...', defaultValue: '' },
+      { key: 'cielo_merchant_key', label: 'Merchant Key', description: 'Chave do lojista', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'Merchant Key...', defaultValue: '' }
+    ]
+  },
+  {
+    id: 'getnet',
+    name: 'Getnet',
+    description: 'Maquininha Getnet',
+    longDescription: 'Integre sua maquininha Getnet (Santander) para vendas presenciais.',
+    icon: <CreditCard className="w-6 h-6" />,
+    color: 'text-red-600',
+    bgColor: 'bg-red-100',
+    category: 'integrations',
+    subcategory: 'payment_machines',
+    settings: [
+      { key: 'getnet_enabled', label: 'Ativar Getnet', description: 'Integra maquininha Getnet', type: 'toggle', icon: <CreditCard className="w-4 h-4" />, defaultValue: false },
+      { key: 'getnet_seller_id', label: 'Seller ID', description: 'ID do vendedor', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'Seller ID...', defaultValue: '' },
+      { key: 'getnet_client_id', label: 'Client ID', description: 'OAuth Client ID', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'Client ID...', defaultValue: '' },
+      { key: 'getnet_client_secret', label: 'Client Secret', description: 'OAuth Secret', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'Secret...', defaultValue: '' }
+    ]
+  },
+  {
+    id: 'rede',
+    name: 'Rede',
+    description: 'Maquininha Rede',
+    longDescription: 'Integre sua maquininha Rede (Itaú) para vendas presenciais.',
+    icon: <CreditCard className="w-6 h-6" />,
+    color: 'text-orange-600',
+    bgColor: 'bg-orange-100',
+    category: 'integrations',
+    subcategory: 'payment_machines',
+    settings: [
+      { key: 'rede_enabled', label: 'Ativar Rede', description: 'Integra maquininha Rede', type: 'toggle', icon: <CreditCard className="w-4 h-4" />, defaultValue: false },
+      { key: 'rede_pv', label: 'PV (Nº Filiação)', description: 'Número de filiação', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'PV...', defaultValue: '' },
+      { key: 'rede_token', label: 'Token', description: 'Token de integração', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'Token...', defaultValue: '' }
+    ]
+  },
+
+  // === INTEGRAÇÕES - ANALYTICS EXTRA ===
+  {
+    id: 'hotjar',
+    name: 'Hotjar',
+    description: 'Mapas de calor',
+    longDescription: 'Veja onde os clientes clicam e como navegam no seu cardápio. Gratuito até 35 sessões/dia.',
+    icon: <Eye className="w-6 h-6" />,
+    color: 'text-red-600',
+    bgColor: 'bg-red-100',
+    category: 'integrations',
+    subcategory: 'analytics',
+    settings: [
+      { key: 'hotjar_enabled', label: 'Ativar Hotjar', description: 'Rastreia comportamento', type: 'toggle', icon: <Eye className="w-4 h-4" />, defaultValue: false },
+      { key: 'hotjar_site_id', label: 'Site ID', description: 'ID do site no Hotjar', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: '1234567', defaultValue: '' }
+    ]
+  },
+  {
+    id: 'clarity',
+    name: 'Microsoft Clarity',
+    description: 'Analytics gratuito',
+    longDescription: 'Mapas de calor e gravação de sessões. 100% gratuito da Microsoft.',
+    icon: <Eye className="w-6 h-6" />,
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-100',
+    category: 'integrations',
+    subcategory: 'analytics',
+    settings: [
+      { key: 'clarity_enabled', label: 'Ativar Clarity', description: 'Analytics gratuito', type: 'toggle', icon: <Eye className="w-4 h-4" />, defaultValue: false },
+      { key: 'clarity_project_id', label: 'Project ID', description: 'ID do projeto', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'abc123xyz', defaultValue: '' }
+    ]
+  },
+  {
+    id: 'gtm',
+    name: 'Google Tag Manager',
+    description: 'Gerenciador de tags',
+    longDescription: 'Gerencie todas as tags (Analytics, Pixel, etc) em um só lugar.',
+    icon: <BarChart3 className="w-6 h-6" />,
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-100',
+    category: 'integrations',
+    subcategory: 'analytics',
+    requiresSuperadmin: true,
+    settings: [
+      { key: 'gtm_enabled', label: 'Ativar GTM', description: 'Usa Google Tag Manager', type: 'toggle', icon: <BarChart3 className="w-4 h-4" />, defaultValue: false },
+      { key: 'gtm_container_id', label: 'Container ID', description: 'ID do container (GTM-XXXX)', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'GTM-XXXXXXX', defaultValue: '' }
+    ]
+  },
+  {
+    id: 'tiktok_pixel',
+    name: 'TikTok Pixel',
+    description: 'Anúncios TikTok',
+    longDescription: 'Rastreie conversões para campanhas no TikTok Ads.',
+    icon: <Zap className="w-6 h-6" />,
+    color: 'text-slate-600',
+    bgColor: 'bg-slate-100',
+    category: 'integrations',
+    subcategory: 'analytics',
+    settings: [
+      { key: 'tiktok_enabled', label: 'Ativar TikTok Pixel', description: 'Rastreia para TikTok Ads', type: 'toggle', icon: <Zap className="w-4 h-4" />, defaultValue: false },
+      { key: 'tiktok_pixel_id', label: 'Pixel ID', description: 'ID do Pixel TikTok', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'Pixel ID...', defaultValue: '' }
+    ]
+  },
+  {
+    id: 'pinterest_tag',
+    name: 'Pinterest Tag',
+    description: 'Anúncios Pinterest',
+    longDescription: 'Rastreie conversões para campanhas no Pinterest Ads.',
+    icon: <Image className="w-6 h-6" />,
+    color: 'text-red-600',
+    bgColor: 'bg-red-100',
+    category: 'integrations',
+    subcategory: 'analytics',
+    settings: [
+      { key: 'pinterest_enabled', label: 'Ativar Pinterest Tag', description: 'Rastreia para Pinterest Ads', type: 'toggle', icon: <Image className="w-4 h-4" />, defaultValue: false },
+      { key: 'pinterest_tag_id', label: 'Tag ID', description: 'ID da Tag Pinterest', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'Tag ID...', defaultValue: '' }
+    ]
+  },
+
+  // === INTEGRAÇÕES - CRM ===
+  {
+    id: 'rdstation',
+    name: 'RD Station',
+    description: 'Marketing e CRM',
+    longDescription: 'Capture leads e automatize marketing com RD Station.',
+    icon: <Users className="w-6 h-6" />,
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-100',
+    category: 'integrations',
+    subcategory: 'crm',
+    requiresSuperadmin: true,
+    settings: [
+      { key: 'rdstation_enabled', label: 'Ativar RD Station', description: 'Integra CRM RD', type: 'toggle', icon: <Users className="w-4 h-4" />, defaultValue: false },
+      { key: 'rdstation_api_token', label: 'API Token', description: 'Token da API', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'Token...', defaultValue: '' },
+      { key: 'rdstation_client_id', label: 'Client ID', description: 'OAuth Client ID', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'Client ID...', defaultValue: '' },
+      { key: 'rdstation_client_secret', label: 'Client Secret', description: 'OAuth Secret', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'Secret...', defaultValue: '' }
+    ]
+  },
+  {
+    id: 'hubspot',
+    name: 'HubSpot',
+    description: 'CRM completo',
+    longDescription: 'CRM, marketing e vendas em uma única plataforma.',
+    icon: <Users className="w-6 h-6" />,
+    color: 'text-orange-600',
+    bgColor: 'bg-orange-100',
+    category: 'integrations',
+    subcategory: 'crm',
+    requiresSuperadmin: true,
+    settings: [
+      { key: 'hubspot_enabled', label: 'Ativar HubSpot', description: 'Integra CRM HubSpot', type: 'toggle', icon: <Users className="w-4 h-4" />, defaultValue: false },
+      { key: 'hubspot_api_key', label: 'API Key', description: 'Chave da API', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'API Key...', defaultValue: '' },
+      { key: 'hubspot_portal_id', label: 'Portal ID', description: 'ID do portal', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'Portal ID...', defaultValue: '' }
+    ]
+  },
+
+  // === INTEGRAÇÕES - ERP/FINANCEIRO EXTRA ===
+  {
+    id: 'omie',
+    name: 'Omie',
+    description: 'ERP robusto',
+    longDescription: 'Sistema de gestão empresarial completo. Financeiro, fiscal, estoque.',
+    icon: <BarChart3 className="w-6 h-6" />,
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-100',
+    category: 'integrations',
+    subcategory: 'erp',
+    settings: [
+      { key: 'omie_enabled', label: 'Ativar Omie', description: 'Sincroniza com Omie', type: 'toggle', icon: <BarChart3 className="w-4 h-4" />, defaultValue: false },
+      { key: 'omie_app_key', label: 'App Key', description: 'Chave do aplicativo', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'App Key...', defaultValue: '' },
+      { key: 'omie_app_secret', label: 'App Secret', description: 'Segredo do aplicativo', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'App Secret...', defaultValue: '' },
+      { key: 'omie_sync_orders', label: 'Sincronizar Pedidos', description: 'Envia pedidos para Omie', type: 'toggle', icon: <ShoppingBag className="w-4 h-4" />, defaultValue: true }
+    ]
+  },
+  {
+    id: 'contaazul',
+    name: 'ContaAzul',
+    description: 'Contabilidade online',
+    longDescription: 'Gestão financeira e contábil para pequenas empresas.',
+    icon: <FileText className="w-6 h-6" />,
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-100',
+    category: 'integrations',
+    subcategory: 'erp',
+    settings: [
+      { key: 'contaazul_enabled', label: 'Ativar ContaAzul', description: 'Sincroniza com ContaAzul', type: 'toggle', icon: <FileText className="w-4 h-4" />, defaultValue: false },
+      { key: 'contaazul_client_id', label: 'Client ID', description: 'OAuth Client ID', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'Client ID...', defaultValue: '' },
+      { key: 'contaazul_client_secret', label: 'Client Secret', description: 'OAuth Secret', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'Secret...', defaultValue: '' }
+    ]
+  },
+  {
+    id: 'nibo',
+    name: 'Nibo',
+    description: 'Gestão financeira',
+    longDescription: 'Software de gestão financeira para escritórios contábeis.',
+    icon: <DollarSign className="w-6 h-6" />,
+    color: 'text-green-600',
+    bgColor: 'bg-green-100',
+    category: 'integrations',
+    subcategory: 'erp',
+    settings: [
+      { key: 'nibo_enabled', label: 'Ativar Nibo', description: 'Sincroniza com Nibo', type: 'toggle', icon: <DollarSign className="w-4 h-4" />, defaultValue: false },
+      { key: 'nibo_api_token', label: 'API Token', description: 'Token da API', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'Token...', defaultValue: '' }
+    ]
+  },
+  {
+    id: 'granatum',
+    name: 'Granatum',
+    description: 'Gestão financeira',
+    longDescription: 'Controle financeiro, fluxo de caixa e conciliação bancária.',
+    icon: <DollarSign className="w-6 h-6" />,
+    color: 'text-orange-600',
+    bgColor: 'bg-orange-100',
+    category: 'integrations',
+    subcategory: 'erp',
+    settings: [
+      { key: 'granatum_enabled', label: 'Ativar Granatum', description: 'Sincroniza com Granatum', type: 'toggle', icon: <DollarSign className="w-4 h-4" />, defaultValue: false },
+      { key: 'granatum_api_key', label: 'API Key', description: 'Chave da API', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'API Key...', defaultValue: '' }
+    ]
+  },
+
+  // === INTEGRAÇÕES - COMUNICAÇÃO EXTRA ===
+  {
+    id: 'discord',
+    name: 'Discord',
+    description: 'Notificações Discord',
+    longDescription: 'Receba notificações de pedidos no Discord via webhook. Gratuito.',
+    icon: <MessageSquare className="w-6 h-6" />,
+    color: 'text-indigo-600',
+    bgColor: 'bg-indigo-100',
+    category: 'integrations',
+    subcategory: 'communication',
+    settings: [
+      { key: 'discord_enabled', label: 'Ativar Discord', description: 'Envia notificações no Discord', type: 'toggle', icon: <MessageSquare className="w-4 h-4" />, defaultValue: false },
+      { key: 'discord_webhook_url', label: 'Webhook URL', description: 'URL do webhook do canal', type: 'text', icon: <Link2 className="w-4 h-4" />, placeholder: 'https://discord.com/api/webhooks/...', defaultValue: '' },
+      { key: 'discord_notify_orders', label: 'Novos Pedidos', description: 'Notifica pedidos', type: 'toggle', icon: <ShoppingBag className="w-4 h-4" />, defaultValue: true },
+      { key: 'discord_notify_reviews', label: 'Avaliações', description: 'Notifica avaliações', type: 'toggle', icon: <Star className="w-4 h-4" />, defaultValue: true }
+    ]
+  },
+  {
+    id: 'slack',
+    name: 'Slack',
+    description: 'Notificações Slack',
+    longDescription: 'Receba notificações de pedidos no Slack via webhook.',
+    icon: <MessageSquare className="w-6 h-6" />,
+    color: 'text-purple-600',
+    bgColor: 'bg-purple-100',
+    category: 'integrations',
+    subcategory: 'communication',
+    settings: [
+      { key: 'slack_enabled', label: 'Ativar Slack', description: 'Envia notificações no Slack', type: 'toggle', icon: <MessageSquare className="w-4 h-4" />, defaultValue: false },
+      { key: 'slack_webhook_url', label: 'Webhook URL', description: 'URL do webhook', type: 'text', icon: <Link2 className="w-4 h-4" />, placeholder: 'https://hooks.slack.com/...', defaultValue: '' },
+      { key: 'slack_channel', label: 'Canal', description: 'Nome do canal', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: '#pedidos', defaultValue: '' }
     ]
   },
 
