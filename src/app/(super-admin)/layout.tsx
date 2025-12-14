@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Building2, Store, ChevronLeft, ChevronRight, Menu, LayoutDashboard, Users, Settings, CreditCard, BarChart3, FileText, Ticket, Flag, Zap, FileSpreadsheet } from 'lucide-react'
+import { Building2, Store, ChevronLeft, ChevronRight, Menu, LayoutDashboard, Users, Settings, CreditCard, BarChart3, FileText, Ticket, Flag, Zap, FileSpreadsheet, LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { LanguageProvider } from '@/lib/LanguageContext'
 
@@ -176,8 +176,15 @@ export default function SuperAdminLayout({
             })}
           </nav>
 
-          {/* Footer */}
-          <div className="p-4 border-t border-gray-700">
+          {/* Footer com Logout */}
+          <div className="p-4 border-t border-gray-700 space-y-2">
+            <Link
+              href="/logout"
+              className="flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all"
+            >
+              <LogOut className="w-5 h-5 flex-shrink-0" />
+              {!isCollapsed && <span className="font-medium">Sair</span>}
+            </Link>
             {!isCollapsed && (
               <div className="text-xs text-gray-400 text-center">
                 Sistema Multi-Tenant
