@@ -194,12 +194,12 @@ export function StoreInfoCard({ settings, enabled, onUpdateSetting }: StoreInfoC
         </div>
       </div>
 
-      {/* Telefone e Email */}
+      {/* Contato - WhatsApp do Responsável + Email da Loja */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
             <Phone className="w-4 h-4 text-green-500" />
-            Telefone / WhatsApp
+            WhatsApp do Responsável
           </label>
           <input
             type="tel"
@@ -209,11 +209,12 @@ export function StoreInfoCard({ settings, enabled, onUpdateSetting }: StoreInfoC
             maxLength={15}
             className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-violet-500 focus:outline-none"
           />
+          <p className="text-xs text-slate-500 mt-1">Usado para notificações de pedidos</p>
         </div>
         <div>
           <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
             <Mail className="w-4 h-4 text-blue-500" />
-            E-mail
+            E-mail da Loja
           </label>
           <input
             type="email"
@@ -222,6 +223,7 @@ export function StoreInfoCard({ settings, enabled, onUpdateSetting }: StoreInfoC
             placeholder="contato@minhaloja.com"
             className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-violet-500 focus:outline-none"
           />
+          <p className="text-xs text-slate-500 mt-1">Exibido para clientes entrarem em contato</p>
         </div>
       </div>
 
