@@ -19,6 +19,7 @@ export interface Order {
   status: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'out_for_delivery' | 'delivered' | 'cancelled'
   notes: string | null
   created_at: string
+  updated_at: string
 }
 
 export function useOrders(storeId?: string) {
@@ -110,6 +111,7 @@ export function useOrders(storeId?: string) {
     error,
     fetchOrders,
     createOrder,
-    updateOrderStatus
+    updateOrderStatus,
+    refreshOrders: fetchOrders
   }
 }

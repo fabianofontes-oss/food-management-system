@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { Clock, CheckCircle, XCircle, AlertCircle, Loader2, ChefHat, Bell, Maximize, Minimize, Printer, User, MessageSquare, TrendingUp, Timer, Package as PackageIcon } from 'lucide-react'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { Clock, CheckCircle, XCircle, AlertCircle, Loader2, ChefHat, Bell, Maximize, Minimize, Printer, User, MessageSquare, TrendingUp, Timer, Package as PackageIcon, Users, Plus, Trash2, RefreshCw, Filter, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { formatCurrency } from '@/lib/utils'
 import { useOrders } from '@/hooks/useOrders'
 import { useLanguage } from '@/lib/LanguageContext'
 import { supabase } from '@/lib/supabase'
+import { useParams } from 'next/navigation'
 
 type OrderItem = {
   id: string
@@ -18,9 +19,17 @@ type OrderItem = {
   }
 }
 
+interface Chef {
+  id: string
+  name: string
+  is_active: boolean
+}
+
 export default function KitchenPage() {
+  const params = useParams()
+  const slug = params.slug as string
   const { t, formatCurrency: formatCurrencyI18n } = useLanguage()
-  const { orders, loading, updateOrderStatus } = useOrders()
+  const { orders, loading, updateOrderStatus, refreshOrders } = useOrders()
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null)
   const [orderItems, setOrderItems] = useState<Record<string, OrderItem[]>>({})
   const [lastOrderCount, setLastOrderCount] = useState(0)
@@ -31,21 +40,88 @@ export default function KitchenPage() {
   const [kitchenNotes, setKitchenNotes] = useState<Record<string, string>>({})
   const [showNoteModal, setShowNoteModal] = useState<string | null>(null)
   const [noteInput, setNoteInput] = useState('')
-  const [chefs] = useState(['João', 'Maria', 'Carlos', 'Ana'])
+  const [chefs, setChefs] = useState<Chef[]>([])
+  const [showChefManager, setShowChefManager] = useState(false)
+  const [newChefName, setNewChefName] = useState('')
   const [completedToday, setCompletedToday] = useState(0)
   const [avgPrepTime, setAvgPrepTime] = useState(0)
   const [channelFilter, setChannelFilter] = useState<'all' | 'delivery' | 'dine_in' | 'takeout'>('all')
   const [paymentStatusFilter, setPaymentStatusFilter] = useState<'all' | 'pending' | 'paid'>('all')
   const [lateFilter, setLateFilter] = useState<'all' | 'late'>('all')
+  const [storeId, setStoreId] = useState<string | null>(null)
+  const [isRealtimeConnected, setIsRealtimeConnected] = useState(false)
+  const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
 
   // Constante para pedidos atrasados
   const LATE_MINUTES = 30
 
-  // Auto-refresh a cada 30 segundos
+  // Buscar store_id
+  useEffect(() => {
+    async function fetchStore() {
+      const { data } = await supabase
+        .from('stores')
+        .select('id')
+        .eq('slug', slug)
+        .single()
+      if (data) setStoreId(data.id)
+    }
+    if (slug) fetchStore()
+  }, [slug])
+
+  // Buscar cozinheiros do banco
+  useEffect(() => {
+    async function fetchChefs() {
+      if (!storeId) return
+      const { data } = await supabase
+        .from('kitchen_chefs')
+        .select('*')
+        .eq('store_id', storeId)
+        .eq('is_active', true)
+        .order('name')
+      if (data) setChefs(data)
+    }
+    fetchChefs()
+  }, [storeId])
+
+  // Realtime subscription para pedidos
+  useEffect(() => {
+    if (!storeId) return
+
+    const channel = supabase
+      .channel('kitchen-orders')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'orders',
+          filter: `store_id=eq.${storeId}`
+        },
+        (payload) => {
+          console.log('Realtime update:', payload)
+          setLastUpdate(new Date())
+          if (refreshOrders) refreshOrders()
+          
+          // Tocar som para novos pedidos
+          if (payload.eventType === 'INSERT' && soundEnabled) {
+            playNotificationSound('normal')
+          }
+        }
+      )
+      .subscribe((status) => {
+        setIsRealtimeConnected(status === 'SUBSCRIBED')
+      })
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [storeId, soundEnabled, refreshOrders])
+
+  // Timer para atualizar tempo decorrido a cada minuto
   useEffect(() => {
     const interval = setInterval(() => {
-      window.location.reload()
-    }, 30000)
+      setLastUpdate(new Date())
+    }, 60000)
     return () => clearInterval(interval)
   }, [])
 
@@ -193,7 +269,7 @@ export default function KitchenPage() {
     }
   }
 
-  const updateStatus = async (id: string, newStatus: string) => {
+  const updateStatus = async (id: string, newStatus: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'out_for_delivery' | 'delivered' | 'cancelled') => {
     setUpdatingOrderId(id)
     try {
       await updateOrderStatus(id, newStatus)
@@ -328,7 +404,22 @@ export default function KitchenPage() {
               </h1>
               <p className="text-slate-500 mt-2 ml-14">Kitchen Display System - Pressione F para fullscreen</p>
             </div>
-            <div className="flex gap-3">
+            <div className="flex gap-3 items-center">
+              {/* Indicador Realtime */}
+              <div className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium ${
+                isRealtimeConnected ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+              }`}>
+                <Zap className={`w-4 h-4 ${isRealtimeConnected ? 'text-emerald-500' : 'text-red-500'}`} />
+                {isRealtimeConnected ? 'Ao vivo' : 'Offline'}
+              </div>
+              
+              <button
+                onClick={() => setShowChefManager(true)}
+                className="p-3 rounded-xl bg-purple-100 text-purple-700 hover:bg-purple-200 transition-all shadow-md shadow-purple-100"
+                title="Gerenciar Cozinheiros"
+              >
+                <Users className="w-5 h-5" />
+              </button>
               <button
                 onClick={() => setSoundEnabled(!soundEnabled)}
                 className={`p-3 rounded-xl transition-all shadow-md ${
@@ -339,8 +430,15 @@ export default function KitchenPage() {
                 <Bell className="w-5 h-5" />
               </button>
               <button
-                onClick={toggleFullscreen}
+                onClick={() => refreshOrders && refreshOrders()}
                 className="p-3 rounded-xl bg-blue-100 text-blue-700 hover:bg-blue-200 transition-all shadow-md shadow-blue-100"
+                title="Atualizar"
+              >
+                <RefreshCw className="w-5 h-5" />
+              </button>
+              <button
+                onClick={toggleFullscreen}
+                className="p-3 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition-all shadow-md shadow-slate-100"
                 title="Modo Fullscreen (F)"
               >
                 {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
@@ -350,8 +448,8 @@ export default function KitchenPage() {
 
           {/* Filtros */}
           <div className="bg-white rounded-2xl p-5 mb-6 shadow-lg shadow-slate-200/50 border border-slate-100">
-            <div className="flex gap-4">
-              <div className="flex-1">
+            <div className="flex gap-4 flex-wrap">
+              <div className="flex-1 min-w-[150px]">
                 <label className="block text-sm font-medium text-slate-600 mb-2">Tipo de Pedido</label>
                 <select
                   value={channelFilter}
@@ -364,7 +462,7 @@ export default function KitchenPage() {
                   <option value="takeout">Retirada</option>
                 </select>
               </div>
-              <div className="flex-1">
+              <div className="flex-1 min-w-[150px]">
                 <label className="block text-sm font-medium text-slate-600 mb-2">Status do Pagamento</label>
                 <select
                   value={paymentStatusFilter}
@@ -375,6 +473,20 @@ export default function KitchenPage() {
                   <option value="pending">Pendente</option>
                   <option value="paid">Pago</option>
                 </select>
+              </div>
+              {/* Filtro Rápido de Atrasados */}
+              <div className="flex items-end">
+                <button
+                  onClick={() => setLateFilter(lateFilter === 'all' ? 'late' : 'all')}
+                  className={`px-4 py-3 rounded-xl font-medium transition-all flex items-center gap-2 ${
+                    lateFilter === 'late' 
+                      ? 'bg-red-600 text-white shadow-lg shadow-red-500/25' 
+                      : 'bg-red-100 text-red-700 hover:bg-red-200'
+                  }`}
+                >
+                  <AlertCircle className="w-5 h-5" />
+                  Atrasados ({lateOrdersCount})
+                </button>
               </div>
             </div>
           </div>
@@ -517,7 +629,7 @@ export default function KitchenPage() {
                     >
                       <option value="">Selecionar cozinheiro...</option>
                       {chefs.map(chef => (
-                        <option key={chef} value={chef}>{chef}</option>
+                        <option key={chef.id} value={chef.name}>{chef.name}</option>
                       ))}
                     </select>
                   </div>
@@ -736,6 +848,78 @@ export default function KitchenPage() {
                 className="flex-1 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-medium transition-colors"
               >
                 Salvar Nota
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Gerenciamento de Cozinheiros */}
+      {showChefManager && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowChefManager(false)}>
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <Users className="w-5 h-5 text-purple-600" />
+              Gerenciar Cozinheiros
+            </h3>
+            
+            {/* Adicionar novo cozinheiro */}
+            <div className="flex gap-2 mb-4">
+              <input
+                type="text"
+                value={newChefName}
+                onChange={(e) => setNewChefName(e.target.value)}
+                placeholder="Nome do cozinheiro"
+                className="flex-1 px-4 py-2 border-2 border-slate-200 rounded-lg focus:border-purple-500 outline-none"
+              />
+              <button
+                onClick={async () => {
+                  if (!newChefName.trim() || !storeId) return
+                  await supabase.from('kitchen_chefs').insert([{ name: newChefName, store_id: storeId }])
+                  const { data } = await supabase.from('kitchen_chefs').select('*').eq('store_id', storeId).eq('is_active', true).order('name')
+                  if (data) setChefs(data)
+                  setNewChefName('')
+                }}
+                disabled={!newChefName.trim()}
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Adicionar
+              </button>
+            </div>
+
+            {/* Lista de cozinheiros */}
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {chefs.length === 0 ? (
+                <p className="text-sm text-gray-500 text-center py-4">
+                  Nenhum cozinheiro cadastrado
+                </p>
+              ) : (
+                chefs.map(chef => (
+                  <div key={chef.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                    <span className="font-medium text-slate-800">{chef.name}</span>
+                    <button
+                      onClick={async () => {
+                        await supabase.from('kitchen_chefs').update({ is_active: false }).eq('id', chef.id)
+                        const { data } = await supabase.from('kitchen_chefs').select('*').eq('store_id', storeId).eq('is_active', true).order('name')
+                        if (data) setChefs(data)
+                      }}
+                      className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Remover"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="mt-4 pt-4 border-t">
+              <button
+                onClick={() => setShowChefManager(false)}
+                className="w-full px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition-colors"
+              >
+                Fechar
               </button>
             </div>
           </div>
