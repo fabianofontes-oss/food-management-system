@@ -471,7 +471,7 @@ export default function POSPage() {
               </p>
             </div>
             <div className="flex gap-3">
-              <Link href={`/${slug}/dashboard/settings/pdv`}>
+              <Link href={`/${slug}/dashboard/pdv-config`}>
                 <button
                   className={`p-3 rounded-xl border shadow-sm hover:shadow-md transition-all ${
                     pdvConfig.theme === 'dark' 
