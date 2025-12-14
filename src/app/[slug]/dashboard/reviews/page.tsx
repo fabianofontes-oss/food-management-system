@@ -6,7 +6,9 @@ import { createClient } from '@/lib/supabase/client'
 import { 
   Star, MessageSquare, ThumbsUp, ThumbsDown, TrendingUp,
   Loader2, AlertCircle, Filter, Search, Calendar,
-  User, Clock, Reply, Flag
+  User, Clock, Reply, Flag, Send, FileText, Eye, EyeOff,
+  Award, Sparkles, Camera, Download, Settings, ChevronDown,
+  BarChart3, Percent
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
@@ -14,12 +16,21 @@ interface Review {
   id: string
   customer_id: string | null
   customer_name: string
+  customer_phone: string | null
   order_id: string | null
   rating: number
   comment: string | null
+  rating_food: number | null
+  rating_delivery: number | null
+  rating_service: number | null
+  nps_score: number | null
+  photos: string[]
   reply: string | null
   replied_at: string | null
   is_featured: boolean
+  is_verified: boolean
+  status: string
+  source: string
   created_at: string
 }
 
@@ -29,9 +40,22 @@ interface ReviewStats {
   distribution: { stars: number; count: number; percentage: number }[]
   responded: number
   pending: number
+  avgFood: number
+  avgDelivery: number
+  avgService: number
+  npsScore: number
+  thisWeek: number
+  thisMonth: number
 }
 
-type FilterType = 'all' | 'pending' | 'responded' | 'featured'
+interface ReviewTemplate {
+  id: string
+  name: string
+  content: string
+  category: string
+}
+
+type FilterType = 'all' | 'pending' | 'responded' | 'featured' | 'low' | 'flagged'
 
 export default function ReviewsPage() {
   const params = useParams()
@@ -48,12 +72,21 @@ export default function ReviewsPage() {
     average: 0,
     distribution: [],
     responded: 0,
-    pending: 0
+    pending: 0,
+    avgFood: 0,
+    avgDelivery: 0,
+    avgService: 0,
+    npsScore: 0,
+    thisWeek: 0,
+    thisMonth: 0
   })
   const [filter, setFilter] = useState<FilterType>('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
   const [replyText, setReplyText] = useState('')
+  const [templates, setTemplates] = useState<ReviewTemplate[]>([])
+  const [showTemplates, setShowTemplates] = useState(false)
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null)
 
   useEffect(() => {
     async function loadStore() {
@@ -87,64 +120,144 @@ export default function ReviewsPage() {
     try {
       setLoading(true)
       
-      // Simular dados de avaliações (tabela reviews não existe no schema atual)
-      // Em produção, criar tabela reviews e buscar dados reais
-      const mockReviews: Review[] = [
-        {
-          id: '1',
-          customer_id: null,
-          customer_name: 'João Silva',
-          order_id: null,
-          rating: 5,
-          comment: 'Excelente açaí! Muito cremoso e bem servido. Entrega rápida.',
-          reply: 'Obrigado João! Ficamos felizes que tenha gostado!',
-          replied_at: new Date().toISOString(),
-          is_featured: true,
-          created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
-        },
-        {
-          id: '2',
-          customer_id: null,
-          customer_name: 'Maria Santos',
-          order_id: null,
-          rating: 4,
-          comment: 'Bom produto, mas a entrega demorou um pouco.',
-          reply: null,
-          replied_at: null,
-          is_featured: false,
-          created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
-        },
-        {
-          id: '3',
-          customer_id: null,
-          customer_name: 'Pedro Oliveira',
-          order_id: null,
-          rating: 5,
-          comment: 'Melhor açaí da região! Sempre peço aqui.',
-          reply: null,
-          replied_at: null,
-          is_featured: false,
-          created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-        }
-      ]
+      // Tentar buscar do banco de dados
+      const { data: dbReviews, error: reviewsError } = await supabase
+        .from('reviews')
+        .select('*')
+        .eq('store_id', storeId)
+        .order('created_at', { ascending: false })
 
-      setReviews(mockReviews)
+      let reviewsData: Review[] = []
+
+      if (reviewsError || !dbReviews || dbReviews.length === 0) {
+        // Usar dados mock se tabela não existir
+        reviewsData = [
+          {
+            id: '1',
+            customer_id: null,
+            customer_name: 'João Silva',
+            customer_phone: '11999887766',
+            order_id: null,
+            rating: 5,
+            comment: 'Excelente açaí! Muito cremoso e bem servido. Entrega rápida.',
+            rating_food: 5,
+            rating_delivery: 5,
+            rating_service: 5,
+            nps_score: 10,
+            photos: [],
+            reply: 'Obrigado João! Ficamos felizes que tenha gostado!',
+            replied_at: new Date().toISOString(),
+            is_featured: true,
+            is_verified: true,
+            status: 'published',
+            source: 'order',
+            created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+          },
+          {
+            id: '2',
+            customer_id: null,
+            customer_name: 'Maria Santos',
+            customer_phone: '11988776655',
+            order_id: null,
+            rating: 4,
+            comment: 'Bom produto, mas a entrega demorou um pouco.',
+            rating_food: 5,
+            rating_delivery: 3,
+            rating_service: 4,
+            nps_score: 7,
+            photos: [],
+            reply: null,
+            replied_at: null,
+            is_featured: false,
+            is_verified: true,
+            status: 'published',
+            source: 'order',
+            created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+          },
+          {
+            id: '3',
+            customer_id: null,
+            customer_name: 'Pedro Oliveira',
+            customer_phone: '11977665544',
+            order_id: null,
+            rating: 5,
+            comment: 'Melhor açaí da região! Sempre peço aqui.',
+            rating_food: 5,
+            rating_delivery: 5,
+            rating_service: 5,
+            nps_score: 10,
+            photos: [],
+            reply: null,
+            replied_at: null,
+            is_featured: false,
+            is_verified: true,
+            status: 'published',
+            source: 'order',
+            created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+          }
+        ]
+      } else {
+        reviewsData = dbReviews.map((r: any) => ({
+          ...r,
+          photos: r.photos || []
+        }))
+      }
+
+      setReviews(reviewsData)
+
+      // Buscar templates
+      const { data: templatesData } = await supabase
+        .from('review_templates')
+        .select('*')
+        .eq('store_id', storeId)
+        .eq('is_active', true)
+
+      if (templatesData) {
+        setTemplates(templatesData)
+      } else {
+        setTemplates([
+          { id: '1', name: 'Agradecimento', content: 'Obrigado pela avaliação! Ficamos felizes com seu feedback.', category: 'positive' },
+          { id: '2', name: 'Pedido de desculpas', content: 'Sentimos muito pela experiência. Gostaríamos de resolver isso.', category: 'negative' }
+        ])
+      }
       
       // Calcular estatísticas
-      const total = mockReviews.length
+      const total = reviewsData.length
       const average = total > 0 
-        ? mockReviews.reduce((sum, r) => sum + r.rating, 0) / total 
+        ? reviewsData.reduce((sum, r) => sum + r.rating, 0) / total 
         : 0
       
       const distribution = [5, 4, 3, 2, 1].map(stars => {
-        const count = mockReviews.filter(r => r.rating === stars).length
+        const count = reviewsData.filter(r => r.rating === stars).length
         return { stars, count, percentage: total > 0 ? (count / total) * 100 : 0 }
       })
       
-      const responded = mockReviews.filter(r => r.reply).length
+      const responded = reviewsData.filter(r => r.reply).length
       const pending = total - responded
 
-      setStats({ total, average, distribution, responded, pending })
+      const avgFood = reviewsData.filter(r => r.rating_food).length > 0
+        ? reviewsData.reduce((sum, r) => sum + (r.rating_food || 0), 0) / reviewsData.filter(r => r.rating_food).length
+        : 0
+      const avgDelivery = reviewsData.filter(r => r.rating_delivery).length > 0
+        ? reviewsData.reduce((sum, r) => sum + (r.rating_delivery || 0), 0) / reviewsData.filter(r => r.rating_delivery).length
+        : 0
+      const avgService = reviewsData.filter(r => r.rating_service).length > 0
+        ? reviewsData.reduce((sum, r) => sum + (r.rating_service || 0), 0) / reviewsData.filter(r => r.rating_service).length
+        : 0
+
+      // Calcular NPS
+      const npsResponses = reviewsData.filter(r => r.nps_score !== null)
+      const promoters = npsResponses.filter(r => (r.nps_score || 0) >= 9).length
+      const detractors = npsResponses.filter(r => (r.nps_score || 0) <= 6).length
+      const npsScore = npsResponses.length > 0 
+        ? Math.round(((promoters - detractors) / npsResponses.length) * 100)
+        : 0
+
+      const now = new Date()
+      const thisWeek = reviewsData.filter(r => new Date(r.created_at) >= new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)).length
+      const thisMonth = reviewsData.filter(r => new Date(r.created_at) >= new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)).length
+
+      setStats({ total, average, distribution, responded, pending, avgFood, avgDelivery, avgService, npsScore, thisWeek, thisMonth })
     } catch (err) {
       console.error('Erro ao carregar avaliações:', err)
     } finally {
@@ -180,9 +293,43 @@ export default function ReviewsPage() {
       filter === 'all' ? true :
       filter === 'pending' ? !review.reply :
       filter === 'responded' ? !!review.reply :
-      filter === 'featured' ? review.is_featured : true
+      filter === 'featured' ? review.is_featured :
+      filter === 'low' ? review.rating <= 3 :
+      filter === 'flagged' ? review.status === 'flagged' : true
     return matchesSearch && matchesFilter
   })
+
+  function applyTemplate(template: ReviewTemplate, customerName: string) {
+    const text = template.content.replace('{nome}', customerName)
+    setReplyText(text)
+    setShowTemplates(false)
+  }
+
+  async function toggleFeatured(reviewId: string) {
+    const review = reviews.find(r => r.id === reviewId)
+    if (!review) return
+
+    // Tentar atualizar no banco
+    await supabase
+      .from('reviews')
+      .update({ is_featured: !review.is_featured })
+      .eq('id', reviewId)
+
+    setReviews(prev => prev.map(r => 
+      r.id === reviewId ? { ...r, is_featured: !r.is_featured } : r
+    ))
+  }
+
+  async function flagReview(reviewId: string, reason: string) {
+    await supabase
+      .from('reviews')
+      .update({ status: 'flagged', flag_reason: reason, flagged_at: new Date().toISOString() })
+      .eq('id', reviewId)
+
+    setReviews(prev => prev.map(r => 
+      r.id === reviewId ? { ...r, status: 'flagged' } : r
+    ))
+  }
 
   const renderStars = (rating: number, size: 'sm' | 'md' | 'lg' = 'md') => {
     const sizeClass = size === 'sm' ? 'w-3 h-3' : size === 'lg' ? 'w-6 h-6' : 'w-4 h-4'
