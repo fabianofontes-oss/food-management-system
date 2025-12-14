@@ -21,7 +21,7 @@ interface CartItem {
 }
 
 export default function POSPage() {
-  const { t, formatCurrency: formatCurrencyI18n } = useLanguage()
+  const { t } = useLanguage()
   const { products, loading } = useProducts()
   const currentStoreId = products[0]?.store_id
   const { settings } = useSettings(currentStoreId)
@@ -251,7 +251,7 @@ export default function POSPage() {
     setCashAmount('')
     setCashReason('')
     setShowCashModal(null)
-    alert(`${type === 'withdrawal' ? 'Sangria' : 'Suprimento'} registrado: ${formatCurrencyI18n(amount)}`)
+    alert(`${type === 'withdrawal' ? 'Sangria' : 'Suprimento'} registrado: ${formatCurrency(amount)}`)
   }
 
   const generateClosingReport = () => {
@@ -319,16 +319,16 @@ export default function POSPage() {
             <h3>ITENS:</h3>
             ${cart.map(item => `
               <p>${item.quantity}x ${item.name}<br>
-              ${formatCurrencyI18n(item.price)} x ${item.quantity} = ${formatCurrencyI18n(item.price * item.quantity)}</p>
+              ${formatCurrency(item.price)} x ${item.quantity} = ${formatCurrency(item.price * item.quantity)}</p>
             `).join('')}
             <div class="line"></div>
-            <p>Subtotal: ${formatCurrencyI18n(subtotal)}</p>
-            ${discountAmount > 0 ? `<p>Desconto: -${formatCurrencyI18n(discountAmount)}</p>` : ''}
-            <p class="total">TOTAL: ${formatCurrencyI18n(total)}</p>
+            <p>Subtotal: ${formatCurrency(subtotal)}</p>
+            ${discountAmount > 0 ? `<p>Desconto: -${formatCurrency(discountAmount)}</p>` : ''}
+            <p class="total">TOTAL: ${formatCurrency(total)}</p>
             <p><strong>Pagamento:</strong> ${selectedPayment === 'cash' ? 'Dinheiro' : selectedPayment === 'card' ? 'Cartão' : 'PIX'}</p>
             ${selectedPayment === 'cash' && cashReceived > 0 ? `
-              <p>Recebido: ${formatCurrencyI18n(cashReceived)}</p>
-              <p>Troco: ${formatCurrencyI18n(change)}</p>
+              <p>Recebido: ${formatCurrency(cashReceived)}</p>
+              <p>Troco: ${formatCurrency(change)}</p>
             ` : ''}
             <div class="line"></div>
             <p style="text-align: center; margin-top: 20px;">Obrigado pela preferência!</p>
@@ -371,7 +371,7 @@ export default function POSPage() {
       const orderNotes = [
         `Pedido via PDV`,
         attendantName ? `Atendente: ${attendantName}` : '',
-        discountAmount > 0 ? `Desconto: ${formatCurrencyI18n(discountAmount)}` : '',
+        discountAmount > 0 ? `Desconto: ${formatCurrency(discountAmount)}` : '',
         tableNumber ? `Mesa: ${tableNumber}` : '',
         commandNumber ? `Comanda: ${commandNumber}` : ''
       ].filter(Boolean).join(' | ')
@@ -412,7 +412,7 @@ export default function POSPage() {
       // Imprimir cupom
       printReceipt(order)
       
-      alert(`✅ Pedido finalizado com sucesso!\nTotal: ${formatCurrencyI18n(total)}\nPagamento: ${selectedPayment === 'cash' ? 'Dinheiro' : selectedPayment === 'card' ? 'Cartão' : 'PIX'}${change > 0 ? `\nTroco: ${formatCurrencyI18n(change)}` : ''}`)
+      alert(`✅ Pedido finalizado com sucesso!\nTotal: ${formatCurrency(total)}\nPagamento: ${selectedPayment === 'cash' ? 'Dinheiro' : selectedPayment === 'card' ? 'Cartão' : 'PIX'}${change > 0 ? `\nTroco: ${formatCurrency(change)}` : ''}`)
       
       // Limpar tudo
       setCart([])
@@ -478,7 +478,7 @@ export default function POSPage() {
                 <TrendingUp className="w-6 h-6" />
                 <span className="text-sm font-medium opacity-90">Vendas Hoje</span>
               </div>
-              <div className="text-3xl font-bold">{formatCurrencyI18n(todaySales)}</div>
+              <div className="text-3xl font-bold">{formatCurrency(todaySales)}</div>
             </div>
             <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-4 text-white shadow-lg">
               <div className="flex items-center gap-3 mb-2">
@@ -492,7 +492,7 @@ export default function POSPage() {
                 <Clock className="w-6 h-6" />
                 <span className="text-sm font-medium opacity-90">Ticket Médio</span>
               </div>
-              <div className="text-3xl font-bold">{todayOrders > 0 ? formatCurrencyI18n(todaySales / todayOrders) : '--'}</div>
+              <div className="text-3xl font-bold">{todayOrders > 0 ? formatCurrency(todaySales / todayOrders) : '--'}</div>
             </div>
           </div>
         </div>
@@ -673,7 +673,7 @@ export default function POSPage() {
                         <div className="text-sm text-gray-600">
                           {item.isByWeight && item.weight ? (
                             <span className="text-green-600 font-medium">
-                              {item.weight}kg × {formatCurrencyI18n(item.price / item.weight)}/kg = {formatCurrencyI18n(item.price)}
+                              {item.weight}kg × {formatCurrency(item.price / item.weight)}/kg = {formatCurrency(item.price)}
                             </span>
                           ) : (
                             formatCurrency(item.price)
@@ -760,7 +760,7 @@ export default function POSPage() {
                   </div>
                   {discountAmount > 0 && (
                     <div className="mt-2 text-sm text-yellow-700">
-                      Desconto: -{formatCurrencyI18n(discountAmount)}
+                      Desconto: -{formatCurrency(discountAmount)}
                     </div>
                   )}
                 </div>
@@ -771,19 +771,19 @@ export default function POSPage() {
                   <div className="space-y-2 mb-3">
                     <div className="flex justify-between text-lg">
                       <span>Subtotal</span>
-                      <span>{formatCurrencyI18n(subtotal)}</span>
+                      <span>{formatCurrency(subtotal)}</span>
                     </div>
                     {discountAmount > 0 && (
                       <div className="flex justify-between text-lg text-yellow-600">
                         <span>Desconto</span>
-                        <span>-{formatCurrencyI18n(discountAmount)}</span>
+                        <span>-{formatCurrency(discountAmount)}</span>
                       </div>
                     )}
                   </div>
                 )}
                 <div className="flex justify-between text-3xl font-bold">
                   <span>Total</span>
-                  <span className="text-blue-600">{formatCurrencyI18n(total)}</span>
+                  <span className="text-blue-600">{formatCurrency(total)}</span>
                 </div>
               </div>
 
@@ -871,15 +871,15 @@ export default function POSPage() {
                     <div className="mt-2 space-y-1">
                       <div className="flex justify-between text-sm">
                         <span>Total:</span>
-                        <span className="font-bold">{formatCurrencyI18n(total)}</span>
+                        <span className="font-bold">{formatCurrency(total)}</span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span>Recebido:</span>
-                        <span className="font-bold">{formatCurrencyI18n(cashReceived)}</span>
+                        <span className="font-bold">{formatCurrency(cashReceived)}</span>
                       </div>
                       <div className="flex justify-between text-lg font-bold text-green-700">
                         <span>Troco:</span>
-                        <span>{formatCurrencyI18n(change)}</span>
+                        <span>{formatCurrency(change)}</span>
                       </div>
                     </div>
                   )}
