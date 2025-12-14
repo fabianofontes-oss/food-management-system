@@ -602,6 +602,9 @@ export default function AddonsPage() {
                       {group.addons?.length || 0} itens • 
                       {group.min_selections > 0 ? ` Mín: ${group.min_selections}` : ''} 
                       {` Máx: ${group.max_selections}`}
+                      {expandedGroup !== group.id && (
+                        <span className="ml-2 text-pink-500 text-xs">👆 Clique para adicionar itens</span>
+                      )}
                     </div>
                   </div>
 
