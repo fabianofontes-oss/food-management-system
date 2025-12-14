@@ -430,40 +430,42 @@ export default function POSPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600 text-lg">Carregando produtos...</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 flex items-center justify-center">
+        <div className="text-center bg-white/80 backdrop-blur-sm p-8 rounded-3xl shadow-xl shadow-slate-200/50">
+          <Loader2 className="w-14 h-14 text-blue-600 animate-spin mx-auto mb-4" />
+          <p className="text-slate-600 text-lg font-medium">Carregando produtos...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white p-4 md:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 p-4 md:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header com Estatísticas e Controles */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 flex items-center gap-3">
-                <ShoppingCart className="w-8 h-8 md:w-10 md:h-10 text-blue-600" />
+              <h1 className="text-2xl md:text-3xl font-bold text-slate-800 flex items-center gap-3">
+                <div className="p-2.5 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg shadow-blue-500/25">
+                  <ShoppingCart className="w-6 h-6 md:w-7 md:h-7 text-white" />
+                </div>
                 PDV - Point of Sale
               </h1>
-              <p className="text-gray-600 mt-1">Atendente: <strong>{attendantName || 'Não identificado'}</strong></p>
+              <p className="text-slate-500 mt-2 ml-14">Atendente: <span className="font-semibold text-slate-700">{attendantName || 'Não identificado'}</span></p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               <button
                 onClick={clearCart}
                 disabled={cart.length === 0}
-                className="p-3 rounded-xl bg-red-100 text-red-700 hover:bg-red-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="p-3 rounded-xl bg-white border border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 shadow-sm hover:shadow-md transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-sm"
                 title="Limpar Carrinho (Esc)"
               >
                 <X className="w-5 h-5" />
               </button>
               <button
                 onClick={toggleFullscreen}
-                className="p-3 rounded-xl bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors"
+                className="p-3 rounded-xl bg-white border border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300 shadow-sm hover:shadow-md transition-all"
                 title="Modo Fullscreen (F)"
               >
                 {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
@@ -473,58 +475,66 @@ export default function POSPage() {
 
           {/* Painel de Estatísticas */}
           <div className="grid grid-cols-3 gap-4 mb-6">
-            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-4 text-white shadow-lg">
-              <div className="flex items-center gap-3 mb-2">
-                <TrendingUp className="w-6 h-6" />
-                <span className="text-sm font-medium opacity-90">Vendas Hoje</span>
+            <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-5 text-white shadow-xl shadow-emerald-500/20 hover:shadow-2xl hover:shadow-emerald-500/30 transition-all duration-300 hover:-translate-y-0.5">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <TrendingUp className="w-5 h-5" />
+                </div>
+                <span className="text-sm font-medium text-white/90">Vendas Hoje</span>
               </div>
-              <div className="text-3xl font-bold">{formatCurrency(todaySales)}</div>
+              <div className="text-3xl font-bold tracking-tight">{formatCurrency(todaySales)}</div>
             </div>
-            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-4 text-white shadow-lg">
-              <div className="flex items-center gap-3 mb-2">
-                <Package className="w-6 h-6" />
-                <span className="text-sm font-medium opacity-90">Pedidos</span>
+            <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-5 text-white shadow-xl shadow-blue-500/20 hover:shadow-2xl hover:shadow-blue-500/30 transition-all duration-300 hover:-translate-y-0.5">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <Package className="w-5 h-5" />
+                </div>
+                <span className="text-sm font-medium text-white/90">Pedidos</span>
               </div>
-              <div className="text-3xl font-bold">{todayOrders}</div>
+              <div className="text-3xl font-bold tracking-tight">{todayOrders}</div>
             </div>
-            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-4 text-white shadow-lg">
-              <div className="flex items-center gap-3 mb-2">
-                <Clock className="w-6 h-6" />
-                <span className="text-sm font-medium opacity-90">Ticket Médio</span>
+            <div className="bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl p-5 text-white shadow-xl shadow-violet-500/20 hover:shadow-2xl hover:shadow-violet-500/30 transition-all duration-300 hover:-translate-y-0.5">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <Clock className="w-5 h-5" />
+                </div>
+                <span className="text-sm font-medium text-white/90">Ticket Médio</span>
               </div>
-              <div className="text-3xl font-bold">{todayOrders > 0 ? formatCurrency(todaySales / todayOrders) : '--'}</div>
+              <div className="text-3xl font-bold tracking-tight">{todayOrders > 0 ? formatCurrency(todaySales / todayOrders) : '--'}</div>
             </div>
           </div>
         </div>
         <div className="grid lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-4">
             {/* Código de Barras */}
-            <div className="bg-white p-4 rounded-xl shadow-md">
-              <div className="flex gap-2">
+            <div className="bg-white p-5 rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100">
+              <div className="flex gap-3">
                 <div className="relative flex-1">
-                  <Barcode className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <Barcode className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
                   <input
                     type="text"
                     placeholder="Código de barras..."
                     value={barcodeInput}
                     onChange={(e) => setBarcodeInput(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && searchByBarcode()}
-                    className="w-full pl-10 pr-4 py-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
+                    className="w-full pl-12 pr-4 py-3 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:outline-none transition-all"
                   />
                 </div>
-                <Button onClick={searchByBarcode} className="bg-blue-600">
+                <Button onClick={searchByBarcode} className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg shadow-blue-500/25 px-6">
                   Buscar
                 </Button>
               </div>
             </div>
 
             {/* Tipo de Pedido e Delivery */}
-            <div className="bg-white p-4 rounded-xl shadow-md">
+            <div className="bg-white p-5 rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100">
               <div className="grid grid-cols-3 gap-2 mb-3">
                 <button
                   onClick={() => { setOrderType('dine_in'); setIsDeliveryOrder(false); }}
-                  className={`p-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
-                    orderType === 'dine_in' && !isDeliveryOrder ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  className={`p-3.5 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${
+                    orderType === 'dine_in' && !isDeliveryOrder 
+                      ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/25' 
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:shadow-md'
                   }`}
                 >
                   <Home className="w-4 h-4" />
@@ -532,8 +542,10 @@ export default function POSPage() {
                 </button>
                 <button
                   onClick={() => { setOrderType('takeout'); setIsDeliveryOrder(false); }}
-                  className={`p-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
-                    orderType === 'takeout' && !isDeliveryOrder ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  className={`p-3.5 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${
+                    orderType === 'takeout' && !isDeliveryOrder 
+                      ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/25' 
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:shadow-md'
                   }`}
                 >
                   <Package className="w-4 h-4" />
@@ -541,8 +553,10 @@ export default function POSPage() {
                 </button>
                 <button
                   onClick={() => { setIsDeliveryOrder(true); setOrderType('delivery'); }}
-                  className={`p-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
-                    isDeliveryOrder ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  className={`p-3.5 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${
+                    isDeliveryOrder 
+                      ? 'bg-gradient-to-r from-violet-600 to-purple-700 text-white shadow-lg shadow-violet-500/25' 
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:shadow-md'
                   }`}
                 >
                   <Truck className="w-4 h-4" />
@@ -595,13 +609,13 @@ export default function POSPage() {
 
             {/* Busca de Produtos */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
               <input
                 type="text"
                 placeholder="Buscar produtos..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none text-lg"
+                className="w-full pl-12 pr-4 py-4 bg-white border-2 border-slate-200 rounded-2xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:outline-none text-lg shadow-lg shadow-slate-200/50 transition-all"
               />
             </div>
 
@@ -610,17 +624,17 @@ export default function POSPage() {
                 const isByWeight = product.name.toLowerCase().includes('kg') || product.description?.toLowerCase().includes('peso')
                 
                 return (
-                  <div key={product.id} className="bg-white p-4 rounded-2xl shadow-md hover:shadow-xl transition-all relative">
+                  <div key={product.id} className="bg-white p-5 rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 hover:shadow-xl hover:border-slate-200 hover:-translate-y-1 transition-all duration-300 relative group">
                     {/* Badge de Balança */}
                     {isByWeight && (
-                      <div className="absolute -top-2 -right-2 bg-green-600 text-white p-2 rounded-full shadow-lg">
+                      <div className="absolute -top-2 -right-2 bg-gradient-to-br from-emerald-500 to-teal-600 text-white p-2 rounded-xl shadow-lg shadow-emerald-500/30">
                         <Scale className="w-4 h-4" />
                       </div>
                     )}
                     
-                    <div className="text-sm text-gray-500 mb-1">{isByWeight ? 'Por Peso (kg)' : 'Produto'}</div>
-                    <div className="font-bold text-lg mb-2">{product.name}</div>
-                    <div className="text-2xl font-bold text-blue-600 mb-3">
+                    <div className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">{isByWeight ? 'Por Peso (kg)' : 'Produto'}</div>
+                    <div className="font-bold text-lg text-slate-800 mb-2 line-clamp-2">{product.name}</div>
+                    <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-4">
                       {formatCurrency(product.base_price)}{isByWeight && '/kg'}
                     </div>
                     
@@ -628,7 +642,7 @@ export default function POSPage() {
                     <div className="flex gap-2">
                       <button
                         onClick={() => addToCart(product)}
-                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                        className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-2.5 px-4 rounded-xl font-medium transition-all shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30 flex items-center justify-center gap-2"
                       >
                         <Plus className="w-4 h-4" />
                         {isByWeight ? 'Pesar' : 'Adicionar'}
@@ -636,7 +650,7 @@ export default function POSPage() {
                       {!isByWeight && (
                         <button
                           onClick={() => setShowWeightModal(product.id)}
-                          className="bg-green-600 hover:bg-green-700 text-white p-2 rounded-lg transition-colors"
+                          className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white p-2.5 rounded-xl transition-all shadow-md shadow-emerald-500/20 hover:shadow-lg"
                           title="Adicionar por peso"
                         >
                           <Scale className="w-5 h-5" />
@@ -650,21 +664,26 @@ export default function POSPage() {
           </div>
 
           <div className="space-y-4">
-            <div className="bg-white rounded-2xl shadow-lg p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <ShoppingCart className="w-6 h-6 text-blue-600" />
-                <h2 className="text-2xl font-bold">Carrinho</h2>
+            <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 p-6">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg shadow-blue-500/25">
+                  <ShoppingCart className="w-5 h-5 text-white" />
+                </div>
+                <h2 className="text-xl font-bold text-slate-800">Carrinho</h2>
               </div>
 
               {cart.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  <ShoppingCart className="w-16 h-16 mx-auto mb-3 text-gray-300" />
-                  <p>Carrinho vazio</p>
+                <div className="text-center py-12 text-slate-400">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-slate-100 rounded-2xl flex items-center justify-center">
+                    <ShoppingCart className="w-10 h-10 text-slate-300" />
+                  </div>
+                  <p className="font-medium">Carrinho vazio</p>
+                  <p className="text-sm mt-1">Adicione produtos para começar</p>
                 </div>
               ) : (
                 <div className="space-y-3 mb-6">
                   {cart.map(item => (
-                    <div key={item.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                    <div key={item.id} className="flex items-center gap-3 p-4 bg-gradient-to-r from-slate-50 to-slate-100/50 rounded-xl border border-slate-200/50">
                       <div className="flex-1">
                         <div className="font-semibold flex items-center gap-2">
                           {item.isByWeight && <Scale className="w-4 h-4 text-green-600" />}
@@ -708,10 +727,12 @@ export default function POSPage() {
 
               {/* Campos de Cliente */}
               {cart.length > 0 && (
-                <div className="mb-4 p-3 bg-gray-50 rounded-xl">
-                  <div className="flex items-center gap-2 mb-2">
-                    <User className="w-4 h-4 text-gray-600" />
-                    <h3 className="font-semibold text-sm">Cliente (Opcional)</h3>
+                <div className="mb-4 p-4 bg-gradient-to-r from-slate-50 to-blue-50/30 rounded-xl border border-slate-200/50">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="p-1.5 bg-blue-100 rounded-lg">
+                      <User className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <h3 className="font-semibold text-sm text-slate-700">Cliente (Opcional)</h3>
                   </div>
                   <div className="space-y-2">
                     <input
@@ -734,10 +755,12 @@ export default function POSPage() {
 
               {/* Campos de Desconto */}
               {cart.length > 0 && (
-                <div className="mb-4 p-3 bg-yellow-50 rounded-xl">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Tag className="w-4 h-4 text-yellow-600" />
-                    <h3 className="font-semibold text-sm">Desconto</h3>
+                <div className="mb-4 p-4 bg-gradient-to-r from-amber-50 to-yellow-50/50 rounded-xl border border-amber-200/50">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="p-1.5 bg-amber-100 rounded-lg">
+                      <Tag className="w-4 h-4 text-amber-600" />
+                    </div>
+                    <h3 className="font-semibold text-sm text-slate-700">Desconto</h3>
                   </div>
                   <div className="flex gap-2">
                     <select
@@ -766,24 +789,24 @@ export default function POSPage() {
                 </div>
               )}
 
-              <div className="border-t-2 pt-4 mb-6">
+              <div className="border-t-2 border-slate-100 pt-5 mb-6">
                 {cart.length > 0 && (
-                  <div className="space-y-2 mb-3">
-                    <div className="flex justify-between text-lg">
+                  <div className="space-y-2 mb-4">
+                    <div className="flex justify-between text-base text-slate-600">
                       <span>Subtotal</span>
-                      <span>{formatCurrency(subtotal)}</span>
+                      <span className="font-medium">{formatCurrency(subtotal)}</span>
                     </div>
                     {discountAmount > 0 && (
-                      <div className="flex justify-between text-lg text-yellow-600">
+                      <div className="flex justify-between text-base text-amber-600">
                         <span>Desconto</span>
-                        <span>-{formatCurrency(discountAmount)}</span>
+                        <span className="font-medium">-{formatCurrency(discountAmount)}</span>
                       </div>
                     )}
                   </div>
                 )}
-                <div className="flex justify-between text-3xl font-bold">
-                  <span>Total</span>
-                  <span className="text-blue-600">{formatCurrency(total)}</span>
+                <div className="flex justify-between items-center">
+                  <span className="text-xl font-bold text-slate-800">Total</span>
+                  <span className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">{formatCurrency(total)}</span>
                 </div>
               </div>
 

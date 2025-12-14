@@ -233,104 +233,130 @@ export default function AnalyticsPage() {
 
   if (loading && !storeId) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50/30 flex items-center justify-center">
+        <div className="text-center bg-white/80 backdrop-blur-sm p-8 rounded-3xl shadow-xl shadow-slate-200/50">
+          <Loader2 className="w-14 h-14 text-indigo-600 animate-spin mx-auto mb-4" />
+          <p className="text-slate-600 text-lg font-medium">Carregando analytics...</p>
+        </div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-        <AlertCircle className="w-12 h-12 text-red-500" />
-        <p className="text-gray-600">{error}</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-red-50/30 flex flex-col items-center justify-center gap-4">
+        <div className="p-4 bg-red-100 rounded-2xl">
+          <AlertCircle className="w-12 h-12 text-red-500" />
+        </div>
+        <p className="text-slate-600 font-medium">{error}</p>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50/30 p-4 md:p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <BarChart3 className="w-7 h-7 text-indigo-600" />
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-800 flex items-center gap-3">
+            <div className="p-2.5 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-xl shadow-lg shadow-indigo-500/25">
+              <BarChart3 className="w-6 h-6 md:w-7 md:h-7 text-white" />
+            </div>
             Analytics
           </h1>
-          <p className="text-gray-500">Métricas e tendências do seu negócio</p>
+          <p className="text-slate-500 mt-2 ml-14">Métricas e tendências do seu negócio</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 bg-white p-1.5 rounded-xl shadow-lg shadow-slate-200/50 border border-slate-100">
           {(['7d', '30d', '90d'] as Period[]).map(p => (
-            <Button
+            <button
               key={p}
-              variant={period === p ? 'default' : 'outline'}
-              size="sm"
               onClick={() => setPeriod(p)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                period === p 
+                  ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-500/25' 
+                  : 'text-slate-600 hover:bg-slate-100'
+              }`}
             >
               {p === '7d' ? '7 dias' : p === '30d' ? '30 dias' : '90 dias'}
-            </Button>
+            </button>
           ))}
         </div>
       </div>
 
       {/* KPIs principais */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl p-6 shadow-sm border">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm text-gray-500">Pedidos</p>
-            <ShoppingBag className="w-5 h-5 text-purple-500" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="bg-white rounded-2xl p-6 shadow-lg shadow-slate-200/50 border border-slate-100 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm font-medium text-slate-500">Pedidos</p>
+            <div className="p-2 bg-violet-100 rounded-xl">
+              <ShoppingBag className="w-5 h-5 text-violet-600" />
+            </div>
           </div>
-          <p className="text-3xl font-bold">{data.totalOrders}</p>
-          <div className={`flex items-center gap-1 mt-2 text-sm ${getChangeColor(data.comparison.orders.change)}`}>
+          <p className="text-3xl font-bold text-slate-800">{data.totalOrders}</p>
+          <div className={`flex items-center gap-1.5 mt-3 text-sm ${getChangeColor(data.comparison.orders.change)}`}>
             {getChangeIcon(data.comparison.orders.change)}
-            <span>{Math.abs(data.comparison.orders.change).toFixed(1)}% vs período anterior</span>
+            <span className="font-medium">{Math.abs(data.comparison.orders.change).toFixed(1)}% vs período anterior</span>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-sm border">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm text-gray-500">Faturamento</p>
-            <DollarSign className="w-5 h-5 text-green-500" />
+        <div className="bg-white rounded-2xl p-6 shadow-lg shadow-slate-200/50 border border-slate-100 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm font-medium text-slate-500">Faturamento</p>
+            <div className="p-2 bg-emerald-100 rounded-xl">
+              <DollarSign className="w-5 h-5 text-emerald-600" />
+            </div>
           </div>
-          <p className="text-3xl font-bold">{formatCurrency(data.totalRevenue)}</p>
-          <div className={`flex items-center gap-1 mt-2 text-sm ${getChangeColor(data.comparison.revenue.change)}`}>
+          <p className="text-3xl font-bold text-slate-800">{formatCurrency(data.totalRevenue)}</p>
+          <div className={`flex items-center gap-1.5 mt-3 text-sm ${getChangeColor(data.comparison.revenue.change)}`}>
             {getChangeIcon(data.comparison.revenue.change)}
-            <span>{Math.abs(data.comparison.revenue.change).toFixed(1)}% vs período anterior</span>
+            <span className="font-medium">{Math.abs(data.comparison.revenue.change).toFixed(1)}% vs período anterior</span>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-sm border">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm text-gray-500">Ticket Médio</p>
-            <Activity className="w-5 h-5 text-blue-500" />
+        <div className="bg-white rounded-2xl p-6 shadow-lg shadow-slate-200/50 border border-slate-100 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm font-medium text-slate-500">Ticket Médio</p>
+            <div className="p-2 bg-blue-100 rounded-xl">
+              <Activity className="w-5 h-5 text-blue-600" />
+            </div>
           </div>
-          <p className="text-3xl font-bold">{formatCurrency(data.averageTicket)}</p>
-          <div className={`flex items-center gap-1 mt-2 text-sm ${getChangeColor(data.comparison.ticket.change)}`}>
+          <p className="text-3xl font-bold text-slate-800">{formatCurrency(data.averageTicket)}</p>
+          <div className={`flex items-center gap-1.5 mt-3 text-sm ${getChangeColor(data.comparison.ticket.change)}`}>
             {getChangeIcon(data.comparison.ticket.change)}
-            <span>{Math.abs(data.comparison.ticket.change).toFixed(1)}% vs período anterior</span>
+            <span className="font-medium">{Math.abs(data.comparison.ticket.change).toFixed(1)}% vs período anterior</span>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-sm border">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm text-gray-500">Clientes</p>
-            <Users className="w-5 h-5 text-orange-500" />
+        <div className="bg-white rounded-2xl p-6 shadow-lg shadow-slate-200/50 border border-slate-100 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm font-medium text-slate-500">Clientes</p>
+            <div className="p-2 bg-amber-100 rounded-xl">
+              <Users className="w-5 h-5 text-amber-600" />
+            </div>
           </div>
-          <p className="text-3xl font-bold">{data.totalCustomers}</p>
-          <p className="text-sm text-gray-500 mt-2">Total cadastrados</p>
+          <p className="text-3xl font-bold text-slate-800">{data.totalCustomers}</p>
+          <p className="text-sm text-slate-400 mt-3 font-medium">Total cadastrados</p>
         </div>
       </div>
 
       {/* Gráficos e Detalhes */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Vendas por dia */}
-        <div className="bg-white rounded-xl shadow-sm border p-6">
-          <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Calendar className="w-5 h-5" />
+        <div className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-6">
+          <h3 className="font-semibold text-slate-800 mb-5 flex items-center gap-3">
+            <div className="p-2 bg-indigo-100 rounded-xl">
+              <Calendar className="w-5 h-5 text-indigo-600" />
+            </div>
             Vendas por Dia
           </h3>
           {data.ordersByDay.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">Sem dados no período</p>
+            <div className="text-center py-12">
+              <div className="w-16 h-16 mx-auto mb-4 bg-slate-100 rounded-2xl flex items-center justify-center">
+                <Calendar className="w-8 h-8 text-slate-300" />
+              </div>
+              <p className="text-slate-400 font-medium">Sem dados no período</p>
+            </div>
           ) : (
             <div className="space-y-2">
               {data.ordersByDay.slice(-7).map(day => (
@@ -358,13 +384,20 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Horários de pico */}
-        <div className="bg-white rounded-xl shadow-sm border p-6">
-          <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Clock className="w-5 h-5" />
+        <div className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-6">
+          <h3 className="font-semibold text-slate-800 mb-5 flex items-center gap-3">
+            <div className="p-2 bg-violet-100 rounded-xl">
+              <Clock className="w-5 h-5 text-violet-600" />
+            </div>
             Horários de Pico
           </h3>
           {data.ordersByHour.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">Sem dados no período</p>
+            <div className="text-center py-12">
+              <div className="w-16 h-16 mx-auto mb-4 bg-slate-100 rounded-2xl flex items-center justify-center">
+                <Clock className="w-8 h-8 text-slate-300" />
+              </div>
+              <p className="text-slate-400 font-medium">Sem dados no período</p>
+            </div>
           ) : (
             <div className="grid grid-cols-6 gap-2">
               {Array.from({ length: 24 }, (_, i) => {
@@ -391,13 +424,20 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Top Produtos */}
-        <div className="bg-white rounded-xl shadow-sm border p-6">
-          <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <TrendingUp className="w-5 h-5" />
+        <div className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-6">
+          <h3 className="font-semibold text-slate-800 mb-5 flex items-center gap-3">
+            <div className="p-2 bg-emerald-100 rounded-xl">
+              <TrendingUp className="w-5 h-5 text-emerald-600" />
+            </div>
             Top Produtos
           </h3>
           {data.topProducts.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">Sem dados no período</p>
+            <div className="text-center py-12">
+              <div className="w-16 h-16 mx-auto mb-4 bg-slate-100 rounded-2xl flex items-center justify-center">
+                <TrendingUp className="w-8 h-8 text-slate-300" />
+              </div>
+              <p className="text-slate-400 font-medium">Sem dados no período</p>
+            </div>
           ) : (
             <div className="space-y-3">
               {data.topProducts.slice(0, 5).map((product, i) => (
@@ -417,13 +457,20 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Formas de Pagamento */}
-        <div className="bg-white rounded-xl shadow-sm border p-6">
-          <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <PieChart className="w-5 h-5" />
+        <div className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-6">
+          <h3 className="font-semibold text-slate-800 mb-5 flex items-center gap-3">
+            <div className="p-2 bg-cyan-100 rounded-xl">
+              <PieChart className="w-5 h-5 text-cyan-600" />
+            </div>
             Formas de Pagamento
           </h3>
           {data.paymentMethods.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">Sem dados no período</p>
+            <div className="text-center py-12">
+              <div className="w-16 h-16 mx-auto mb-4 bg-slate-100 rounded-2xl flex items-center justify-center">
+                <PieChart className="w-8 h-8 text-slate-300" />
+              </div>
+              <p className="text-slate-400 font-medium">Sem dados no período</p>
+            </div>
           ) : (
             <div className="space-y-3">
               {data.paymentMethods.map(payment => {
@@ -453,6 +500,7 @@ export default function AnalyticsPage() {
             </div>
           )}
         </div>
+      </div>
       </div>
     </div>
   )
