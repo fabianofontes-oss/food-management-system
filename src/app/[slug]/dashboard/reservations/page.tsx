@@ -4,33 +4,55 @@ import { useMemo, useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { 
-  CalendarDays, Plus, Users, Clock, Phone,
-  Loader2, AlertCircle, CheckCircle, XCircle,
-  Calendar, User, MessageSquare, Edit, Trash2
+  CalendarDays, Plus, Users, Clock, Phone, MapPin,
+  Loader2, AlertCircle, CheckCircle, XCircle, ChevronLeft, ChevronRight,
+  Calendar, User, MessageSquare, Edit, Trash2, Settings, List, Grid,
+  UserCheck, UserX, Table2, Sofa, ExternalLink, Copy, Send
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+
+interface Table {
+  id: string
+  number: string
+  name: string | null
+  capacity: number
+  area: string
+  is_active: boolean
+}
 
 interface Reservation {
   id: string
   customer_name: string
   customer_phone: string
+  customer_email: string | null
   party_size: number
   date: string
   time: string
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no_show'
+  duration_minutes: number
+  status: 'pending' | 'confirmed' | 'seated' | 'completed' | 'cancelled' | 'no_show'
   notes: string | null
+  internal_notes: string | null
   table_id: string | null
+  table?: Table
+  occasion: string | null
+  source: string
   created_at: string
 }
 
-interface ReservationStats {
-  today: number
-  pending: number
-  confirmed: number
-  totalThisWeek: number
+interface WaitlistEntry {
+  id: string
+  customer_name: string
+  customer_phone: string
+  party_size: number
+  date: string
+  preferred_time: string | null
+  status: string
+  position: number
+  created_at: string
 }
 
-type FilterType = 'all' | 'today' | 'pending' | 'confirmed'
+type ViewMode = 'list' | 'calendar' | 'tables'
+type FilterType = 'all' | 'today' | 'pending' | 'confirmed' | 'seated'
 
 export default function ReservationsPage() {
   const params = useParams()
@@ -42,24 +64,29 @@ export default function ReservationsPage() {
   const [error, setError] = useState('')
   
   const [reservations, setReservations] = useState<Reservation[]>([])
-  const [stats, setStats] = useState<ReservationStats>({
-    today: 0,
-    pending: 0,
-    confirmed: 0,
-    totalThisWeek: 0
-  })
+  const [tables, setTables] = useState<Table[]>([])
+  const [waitlist, setWaitlist] = useState<WaitlistEntry[]>([])
+  const [viewMode, setViewMode] = useState<ViewMode>('list')
   const [filter, setFilter] = useState<FilterType>('all')
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
   const [showForm, setShowForm] = useState(false)
+  const [showWaitlistForm, setShowWaitlistForm] = useState(false)
+  const [showTableManager, setShowTableManager] = useState(false)
   const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null)
+  const [copied, setCopied] = useState(false)
   
   const [formData, setFormData] = useState({
     customer_name: '',
     customer_phone: '',
+    customer_email: '',
     party_size: '2',
     date: new Date().toISOString().split('T')[0],
     time: '19:00',
-    notes: ''
+    duration_minutes: '90',
+    occasion: '',
+    notes: '',
+    internal_notes: '',
+    table_id: ''
   })
 
   useEffect(() => {
@@ -96,55 +123,69 @@ export default function ReservationsPage() {
       
       const today = new Date().toISOString().split('T')[0]
       
-      // Mock data - em produção criar tabela reservations
-      const mockReservations: Reservation[] = [
-        {
-          id: '1',
-          customer_name: 'João Silva',
-          customer_phone: '11999887766',
-          party_size: 4,
-          date: today,
-          time: '19:00',
-          status: 'confirmed',
-          notes: 'Aniversário',
-          table_id: null,
-          created_at: new Date().toISOString()
-        },
-        {
-          id: '2',
-          customer_name: 'Maria Santos',
-          customer_phone: '11988776655',
-          party_size: 2,
-          date: today,
-          time: '20:00',
-          status: 'pending',
-          notes: null,
-          table_id: null,
-          created_at: new Date().toISOString()
-        },
-        {
-          id: '3',
-          customer_name: 'Pedro Oliveira',
-          customer_phone: '11977665544',
-          party_size: 6,
-          date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          time: '19:30',
-          status: 'confirmed',
-          notes: 'Mesa na área externa',
-          table_id: null,
-          created_at: new Date().toISOString()
-        }
-      ]
+      // Tentar carregar do banco de dados
+      const { data: dbReservations, error: dbError } = await supabase
+        .from('reservations')
+        .select('*, table:restaurant_tables(id, number, name, capacity, area)')
+        .eq('store_id', storeId)
+        .order('date', { ascending: true })
+        .order('time', { ascending: true })
 
-      setReservations(mockReservations)
-      
-      const todayReservations = mockReservations.filter(r => r.date === today)
-      setStats({
-        today: todayReservations.length,
-        pending: mockReservations.filter(r => r.status === 'pending').length,
-        confirmed: mockReservations.filter(r => r.status === 'confirmed').length,
-        totalThisWeek: mockReservations.length
-      })
+      if (dbError) {
+        console.log('Tabela reservations não existe, usando dados de exemplo')
+        // Dados de exemplo
+        const mockReservations: Reservation[] = [
+          {
+            id: '1',
+            customer_name: 'João Silva',
+            customer_phone: '11999887766',
+            customer_email: 'joao@email.com',
+            party_size: 4,
+            date: today,
+            time: '19:00',
+            duration_minutes: 90,
+            status: 'confirmed',
+            notes: 'Aniversário',
+            internal_notes: null,
+            table_id: null,
+            occasion: 'aniversario',
+            source: 'dashboard',
+            created_at: new Date().toISOString()
+          },
+          {
+            id: '2',
+            customer_name: 'Maria Santos',
+            customer_phone: '11988776655',
+            customer_email: null,
+            party_size: 2,
+            date: today,
+            time: '20:00',
+            duration_minutes: 90,
+            status: 'pending',
+            notes: null,
+            internal_notes: null,
+            table_id: null,
+            occasion: null,
+            source: 'online',
+            created_at: new Date().toISOString()
+          }
+        ]
+        setReservations(mockReservations)
+      } else {
+        setReservations(dbReservations || [])
+      }
+
+      // Carregar mesas
+      const { data: dbTables } = await supabase
+        .from('restaurant_tables')
+        .select('*')
+        .eq('store_id', storeId)
+        .eq('is_active', true)
+        .order('number')
+
+      if (dbTables) {
+        setTables(dbTables)
+      }
     } catch (err) {
       console.error('Erro ao carregar reservas:', err)
     } finally {
@@ -159,12 +200,17 @@ export default function ReservationsPage() {
       id: Date.now().toString(),
       customer_name: formData.customer_name,
       customer_phone: formData.customer_phone,
+      customer_email: formData.customer_email || null,
       party_size: parseInt(formData.party_size),
       date: formData.date,
       time: formData.time,
+      duration_minutes: parseInt(formData.duration_minutes) || 90,
       status: 'pending',
       notes: formData.notes || null,
-      table_id: null,
+      internal_notes: formData.internal_notes || null,
+      table_id: formData.table_id || null,
+      occasion: formData.occasion || null,
+      source: 'dashboard',
       created_at: new Date().toISOString()
     }
     
@@ -178,7 +224,23 @@ export default function ReservationsPage() {
     
     setShowForm(false)
     setSelectedReservation(null)
-    setFormData({ customer_name: '', customer_phone: '', party_size: '2', date: new Date().toISOString().split('T')[0], time: '19:00', notes: '' })
+    resetForm()
+  }
+
+  function resetForm() {
+    setFormData({ 
+      customer_name: '', 
+      customer_phone: '', 
+      customer_email: '',
+      party_size: '2', 
+      date: new Date().toISOString().split('T')[0], 
+      time: '19:00',
+      duration_minutes: '90',
+      occasion: '',
+      notes: '',
+      internal_notes: '',
+      table_id: ''
+    })
   }
 
   function handleUpdateStatus(reservation: Reservation, newStatus: Reservation['status']) {
@@ -193,32 +255,43 @@ export default function ReservationsPage() {
   }
 
   const getStatusBadge = (status: Reservation['status']) => {
-    const styles: Record<Reservation['status'], string> = {
+    const styles: Record<string, string> = {
       pending: 'bg-yellow-100 text-yellow-700',
       confirmed: 'bg-green-100 text-green-700',
+      seated: 'bg-purple-100 text-purple-700',
       cancelled: 'bg-red-100 text-red-700',
       completed: 'bg-blue-100 text-blue-700',
       no_show: 'bg-gray-100 text-gray-700'
     }
-    const labels: Record<Reservation['status'], string> = {
+    const labels: Record<string, string> = {
       pending: 'Pendente',
       confirmed: 'Confirmada',
+      seated: 'Sentado',
       cancelled: 'Cancelada',
       completed: 'Concluída',
       no_show: 'Não Compareceu'
     }
     return (
-      <span className={`px-2 py-1 text-xs font-medium rounded-full ${styles[status]}`}>
-        {labels[status]}
+      <span className={`px-2 py-1 text-xs font-medium rounded-full ${styles[status] || 'bg-gray-100'}`}>
+        {labels[status] || status}
       </span>
     )
   }
 
+  // Calcular estatísticas
+  const today = new Date().toISOString().split('T')[0]
+  const stats = {
+    today: reservations.filter(r => r.date === today).length,
+    pending: reservations.filter(r => r.status === 'pending').length,
+    confirmed: reservations.filter(r => r.status === 'confirmed').length,
+    seated: reservations.filter(r => r.status === 'seated').length
+  }
+
   const filteredReservations = reservations.filter(r => {
-    const today = new Date().toISOString().split('T')[0]
     if (filter === 'today') return r.date === today
     if (filter === 'pending') return r.status === 'pending'
     if (filter === 'confirmed') return r.status === 'confirmed'
+    if (filter === 'seated') return r.status === 'seated'
     return true
   }).sort((a, b) => {
     if (a.date !== b.date) return a.date.localeCompare(b.date)
@@ -308,7 +381,7 @@ export default function ReservationsPage() {
               <CalendarDays className="w-5 h-5 text-teal-600" />
             </div>
           </div>
-          <p className="text-3xl font-bold text-teal-600">{stats.totalThisWeek}</p>
+          <p className="text-3xl font-bold text-teal-600">{reservations.length}</p>
         </div>
       </div>
 
@@ -417,10 +490,15 @@ export default function ReservationsPage() {
                         setFormData({
                           customer_name: reservation.customer_name,
                           customer_phone: reservation.customer_phone,
+                          customer_email: reservation.customer_email || '',
                           party_size: reservation.party_size.toString(),
                           date: reservation.date,
                           time: reservation.time,
-                          notes: reservation.notes || ''
+                          duration_minutes: reservation.duration_minutes?.toString() || '90',
+                          occasion: reservation.occasion || '',
+                          notes: reservation.notes || '',
+                          internal_notes: reservation.internal_notes || '',
+                          table_id: reservation.table_id || ''
                         })
                         setShowForm(true)
                       }}
