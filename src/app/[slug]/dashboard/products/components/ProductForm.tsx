@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { X, Plus, Trash2, Clock, DollarSign, Package, Image, Upload, Layers, Coffee } from 'lucide-react'
+import { X, Plus, Trash2, Clock, DollarSign, Package, Image, Upload, Layers, Coffee, TrendingUp, Percent, Tag } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Product, ProductFormData, ProductCategory, MeasurementUnit, AddonGroup } from '@/types/products'
 import { createClient } from '@/lib/supabase/client'
@@ -52,6 +52,9 @@ export const ProductForm = ({ product, categories, units, allProducts, addonGrou
   const [submitting, setSubmitting] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [imagePreview, setImagePreview] = useState<string | null>(product?.image_url || null)
+  const [showNewCategoryInput, setShowNewCategoryInput] = useState(false)
+  const [newCategoryName, setNewCategoryName] = useState('')
+  const [creatingCategory, setCreatingCategory] = useState(false)
 
   const addIngredient = () => {
     setFormData(prev => ({
@@ -282,16 +285,77 @@ export const ProductForm = ({ product, categories, units, allProducts, addonGrou
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Categoria</label>
-                <select
-                  value={formData.category_id || ''}
-                  onChange={(e) => setFormData({ ...formData, category_id: e.target.value || null })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">Sem categoria</option>
-                  {categories.map(cat => (
-                    <option key={cat.id} value={cat.id}>{cat.name}</option>
-                  ))}
-                </select>
+                {showNewCategoryInput ? (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={newCategoryName}
+                      onChange={(e) => setNewCategoryName(e.target.value)}
+                      placeholder="Nome da nova categoria"
+                      className="flex-1 px-4 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (!newCategoryName.trim()) return
+                        setCreatingCategory(true)
+                        try {
+                          const { data, error } = await supabase
+                            .from('categories')
+                            .insert([{ name: newCategoryName, store_id: storeId, sort_order: categories.length }])
+                            .select()
+                            .single()
+                          if (!error && data) {
+                            setFormData({ ...formData, category_id: data.id })
+                            setNewCategoryName('')
+                            setShowNewCategoryInput(false)
+                          }
+                        } catch (err) {
+                          console.error('Erro ao criar categoria:', err)
+                        } finally {
+                          setCreatingCategory(false)
+                        }
+                      }}
+                      disabled={!newCategoryName.trim() || creatingCategory}
+                      className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                    >
+                      {creatingCategory ? '...' : '✓'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowNewCategoryInput(false)
+                        setNewCategoryName('')
+                      }}
+                      className="px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <select
+                      value={formData.category_id || ''}
+                      onChange={(e) => setFormData({ ...formData, category_id: e.target.value || null })}
+                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">Sem categoria</option>
+                      {categories.map(cat => (
+                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => setShowNewCategoryInput(true)}
+                      className="px-3 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 flex items-center gap-1"
+                      title="Nova Categoria"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <Tag className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
               </div>
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
@@ -309,16 +373,16 @@ export const ProductForm = ({ product, categories, units, allProducts, addonGrou
           <div className="bg-green-50 rounded-xl p-4">
             <h3 className="font-bold text-green-900 mb-4 flex items-center gap-2">
               <DollarSign className="w-5 h-5" />
-              Preços e Unidade
+              Preços e Margem de Lucro
             </h3>
-            <div className="grid md:grid-cols-3 gap-4">
+            <div className="grid md:grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Preço Venda *</label>
                 <input
                   type="number"
                   step="0.01"
                   value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) })}
+                  onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   required
                 />
@@ -329,9 +393,76 @@ export const ProductForm = ({ product, categories, units, allProducts, addonGrou
                   type="number"
                   step="0.01"
                   value={formData.cost_price}
-                  onChange={(e) => setFormData({ ...formData, cost_price: parseFloat(e.target.value) })}
+                  onChange={(e) => setFormData({ ...formData, cost_price: parseFloat(e.target.value) || 0 })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
+              </div>
+              
+              {/* Cálculo de Margem */}
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Margem de Lucro</label>
+                {(() => {
+                  const lucro = (formData.price || 0) - (formData.cost_price || 0)
+                  const margem = formData.price > 0 ? (lucro / formData.price) * 100 : 0
+                  const isPositive = lucro >= 0
+                  
+                  return (
+                    <div className={`p-3 rounded-lg border-2 ${
+                      formData.cost_price > 0 
+                        ? isPositive 
+                          ? margem >= 30 ? 'bg-emerald-50 border-emerald-200' : margem >= 15 ? 'bg-yellow-50 border-yellow-200' : 'bg-red-50 border-red-200'
+                          : 'bg-red-50 border-red-200'
+                        : 'bg-gray-50 border-gray-200'
+                    }`}>
+                      {formData.cost_price > 0 ? (
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className={`p-1.5 rounded-lg ${
+                              isPositive 
+                                ? margem >= 30 ? 'bg-emerald-100' : margem >= 15 ? 'bg-yellow-100' : 'bg-red-100'
+                                : 'bg-red-100'
+                            }`}>
+                              {isPositive ? (
+                                <TrendingUp className={`w-4 h-4 ${
+                                  margem >= 30 ? 'text-emerald-600' : margem >= 15 ? 'text-yellow-600' : 'text-red-600'
+                                }`} />
+                              ) : (
+                                <TrendingUp className="w-4 h-4 text-red-600 rotate-180" />
+                              )}
+                            </div>
+                            <div>
+                              <div className={`text-lg font-bold ${
+                                isPositive 
+                                  ? margem >= 30 ? 'text-emerald-700' : margem >= 15 ? 'text-yellow-700' : 'text-red-700'
+                                  : 'text-red-700'
+                              }`}>
+                                {isPositive ? '+' : ''}R$ {lucro.toFixed(2)}
+                              </div>
+                              <div className="text-xs text-gray-500">Lucro por unidade</div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className={`text-2xl font-bold flex items-center gap-1 ${
+                              isPositive 
+                                ? margem >= 30 ? 'text-emerald-600' : margem >= 15 ? 'text-yellow-600' : 'text-red-600'
+                                : 'text-red-600'
+                            }`}>
+                              {margem.toFixed(1)}%
+                              <Percent className="w-4 h-4" />
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {margem >= 30 ? '✅ Ótima' : margem >= 15 ? '⚠️ Aceitável' : '❌ Baixa'}
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-sm text-gray-500 text-center py-1">
+                          💡 Informe o custo para ver a margem
+                        </div>
+                      )}
+                    </div>
+                  )
+                })()}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Unidade</label>
