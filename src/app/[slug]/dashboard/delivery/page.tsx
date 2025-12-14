@@ -496,81 +496,103 @@ export default function DeliveryPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600 text-lg">Carregando entregas...</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-cyan-50/30 flex items-center justify-center">
+        <div className="text-center bg-white/80 backdrop-blur-sm p-8 rounded-3xl shadow-xl shadow-slate-200/50">
+          <Loader2 className="w-14 h-14 text-cyan-600 animate-spin mx-auto mb-4" />
+          <p className="text-slate-600 text-lg font-medium">Carregando entregas...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-cyan-50/30 p-4 md:p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto space-y-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3">
-              <Truck className="w-10 h-10 text-blue-600" />
+            <h1 className="text-2xl md:text-3xl font-bold text-slate-800 flex items-center gap-3">
+              <div className="p-2.5 bg-gradient-to-br from-cyan-500 to-teal-600 rounded-xl shadow-lg shadow-cyan-500/25">
+                <Truck className="w-6 h-6 md:w-7 md:h-7 text-white" />
+              </div>
               Delivery
             </h1>
-            <p className="text-gray-600 mt-1">
+            <p className="text-slate-500 mt-2 ml-14">
               {deliveries.length} entrega{deliveries.length !== 1 ? 's' : ''} no total
             </p>
           </div>
           <Button
             onClick={() => setShowDriversManager(true)}
-            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700"
+            className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 shadow-lg shadow-indigo-500/25"
           >
             <Users className="w-5 h-5" />
             Gerenciar Motoristas ({drivers.length})
           </Button>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="text-sm text-gray-600 mb-1">Total de Entregas</div>
-            <div className="text-3xl font-bold text-gray-900">{stats.total}</div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-6 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-sm font-medium text-slate-500">Total de Entregas</div>
+              <div className="p-2 bg-slate-100 rounded-xl">
+                <Truck className="w-5 h-5 text-slate-600" />
+              </div>
+            </div>
+            <div className="text-3xl font-bold text-slate-800">{stats.total}</div>
           </div>
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="text-sm text-gray-600 mb-1">Pendentes</div>
-            <div className="text-3xl font-bold text-yellow-600">{stats.pending}</div>
+          <div className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-6 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-sm font-medium text-slate-500">Pendentes</div>
+              <div className="p-2 bg-amber-100 rounded-xl">
+                <Clock className="w-5 h-5 text-amber-600" />
+              </div>
+            </div>
+            <div className="text-3xl font-bold text-amber-600">{stats.pending}</div>
           </div>
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="text-sm text-gray-600 mb-1">Em Trânsito</div>
+          <div className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-6 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-sm font-medium text-slate-500">Em Trânsito</div>
+              <div className="p-2 bg-orange-100 rounded-xl">
+                <Navigation className="w-5 h-5 text-orange-600" />
+              </div>
+            </div>
             <div className="text-3xl font-bold text-orange-600">{stats.in_transit}</div>
           </div>
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="text-sm text-gray-600 mb-1">Entregues</div>
-            <div className="text-3xl font-bold text-green-600">{stats.delivered}</div>
+          <div className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-6 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-sm font-medium text-slate-500">Entregues</div>
+              <div className="p-2 bg-emerald-100 rounded-xl">
+                <CheckCircle className="w-5 h-5 text-emerald-600" />
+              </div>
+            </div>
+            <div className="text-3xl font-bold text-emerald-600">{stats.delivered}</div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg p-6 space-y-4">
+        <div className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-6 space-y-4">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
               <input
                 type="text"
                 placeholder="Buscar por pedido, cliente ou endereço..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-12 pr-4 py-3.5 border-2 border-slate-200 rounded-xl focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 focus:outline-none transition-all"
               />
             </div>
             <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
               <input
                 type="date"
                 value={dateFilter}
                 onChange={(e) => setDateFilter(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-12 pr-4 py-3.5 border-2 border-slate-200 rounded-xl focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 focus:outline-none transition-all"
               />
             </div>
             <Button
               onClick={() => setShowMetrics(!showMetrics)}
               variant="outline"
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 hover:shadow-md transition-all"
             >
               <BarChart3 className="w-4 h-4" />
               Métricas
@@ -637,12 +659,14 @@ export default function DeliveryPage() {
         )}
 
         {filteredDeliveries.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-lg p-12 text-center">
-            <Truck className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-gray-900 mb-2">
+          <div className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-16 text-center">
+            <div className="w-20 h-20 mx-auto mb-4 bg-slate-100 rounded-2xl flex items-center justify-center">
+              <Truck className="w-10 h-10 text-slate-300" />
+            </div>
+            <h3 className="text-xl font-bold text-slate-800 mb-2">
               Nenhuma entrega encontrada
             </h3>
-            <p className="text-gray-600">
+            <p className="text-slate-500">
               {filter === 'all' 
                 ? 'Ainda não há entregas cadastradas'
                 : `Não há entregas com status "${getStatusLabel(filter)}"`}
@@ -651,7 +675,7 @@ export default function DeliveryPage() {
         ) : (
           <div className="grid gap-4">
             {filteredDeliveries.map(delivery => (
-              <div key={delivery.id} className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+              <div key={delivery.id} className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-6 hover:shadow-xl transition-all">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
