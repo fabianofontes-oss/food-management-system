@@ -378,7 +378,25 @@ export default function CouponsPage() {
                           {coupon.uses_count} / {coupon.max_uses || '∞'}
                         </td>
                         <td className="px-6 py-4">
-                          <div className="flex items-center justify-end gap-2">
+                          <div className="flex items-center justify-end gap-1">
+                            <button
+                              onClick={() => copyCode(coupon.code)}
+                              className={`p-2 rounded-lg transition-colors ${
+                                copiedCode === coupon.code
+                                  ? 'bg-green-100 text-green-600'
+                                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                              }`}
+                              title={copiedCode === coupon.code ? 'Copiado!' : 'Copiar código'}
+                            >
+                              {copiedCode === coupon.code ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                            </button>
+                            <button
+                              onClick={() => duplicateCoupon(coupon)}
+                              className="p-2 bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200 transition-colors"
+                              title="Duplicar"
+                            >
+                              <Plus className="w-4 h-4" />
+                            </button>
                             <button
                               onClick={() => handleToggleStatus(coupon)}
                               className={`p-2 rounded-lg transition-colors ${
@@ -527,17 +545,80 @@ export default function CouponsPage() {
                   />
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    id="is_active"
-                    checked={formData.is_active}
-                    onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                    className="w-5 h-5 text-purple-600"
-                  />
-                  <label htmlFor="is_active" className="text-sm font-medium text-gray-700">
-                    Cupom ativo
+                {/* Tipo de Cupom */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Tipo de Cupom
                   </label>
+                  <select
+                    value={formData.coupon_type}
+                    onChange={(e) => setFormData({ ...formData, coupon_type: e.target.value })}
+                    className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                  >
+                    <option value="standard">🎫 Padrão</option>
+                    <option value="first_purchase">🆕 Primeira Compra</option>
+                    <option value="birthday">🎂 Aniversário</option>
+                    <option value="referral">👥 Indicação</option>
+                  </select>
+                </div>
+
+                {/* Opções Avançadas */}
+                <div className="bg-slate-50 rounded-xl p-4 space-y-3">
+                  <p className="text-sm font-medium text-gray-700 mb-2">Opções Avançadas</p>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-white transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={formData.free_shipping}
+                        onChange={(e) => setFormData({ ...formData, free_shipping: e.target.checked })}
+                        className="w-5 h-5 text-purple-600 rounded"
+                      />
+                      <div>
+                        <span className="text-sm font-medium text-gray-800">🚚 Frete Grátis</span>
+                        <p className="text-xs text-gray-500">Zera o valor do frete</p>
+                      </div>
+                    </label>
+
+                    <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-white transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={formData.one_per_customer}
+                        onChange={(e) => setFormData({ ...formData, one_per_customer: e.target.checked })}
+                        className="w-5 h-5 text-purple-600 rounded"
+                      />
+                      <div>
+                        <span className="text-sm font-medium text-gray-800">👤 1 por Cliente</span>
+                        <p className="text-xs text-gray-500">Limita uso único</p>
+                      </div>
+                    </label>
+
+                    <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-white transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={formData.auto_apply}
+                        onChange={(e) => setFormData({ ...formData, auto_apply: e.target.checked })}
+                        className="w-5 h-5 text-purple-600 rounded"
+                      />
+                      <div>
+                        <span className="text-sm font-medium text-gray-800">⚡ Auto Aplicar</span>
+                        <p className="text-xs text-gray-500">Aplica sem digitar código</p>
+                      </div>
+                    </label>
+
+                    <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-white transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={formData.is_active}
+                        onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
+                        className="w-5 h-5 text-green-600 rounded"
+                      />
+                      <div>
+                        <span className="text-sm font-medium text-gray-800">✅ Ativo</span>
+                        <p className="text-xs text-gray-500">Cupom pode ser usado</p>
+                      </div>
+                    </label>
+                  </div>
                 </div>
 
                 <div className="flex gap-3 pt-4">
