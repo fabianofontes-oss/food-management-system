@@ -4,7 +4,8 @@ import { useMemo, useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { 
   Plus, Coffee, Trash2, Pencil, X, GripVertical, Check,
-  ToggleLeft, ToggleRight, Loader2, Save, ChevronDown, ChevronUp
+  ToggleLeft, ToggleRight, Loader2, Save, ChevronDown, ChevronUp,
+  Copy, Package, BarChart3, AlertTriangle
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/client'
@@ -16,6 +17,8 @@ interface Addon {
   price: number
   sort_order: number
   is_active: boolean
+  stock_quantity?: number
+  min_stock?: number
 }
 
 interface AddonGroup {
@@ -56,7 +59,16 @@ export default function AddonsPage() {
   })
 
   const [showAddonForm, setShowAddonForm] = useState<string | null>(null)
-  const [addonForm, setAddonForm] = useState({ name: '', price: 0 })
+  const [addonForm, setAddonForm] = useState({ name: '', price: 0, stock_quantity: 0, min_stock: 0 })
+  const [editingAddon, setEditingAddon] = useState<Addon | null>(null)
+  const [draggedGroupId, setDraggedGroupId] = useState<string | null>(null)
+  const [draggedAddonId, setDraggedAddonId] = useState<string | null>(null)
+  const [localGroups, setLocalGroups] = useState<AddonGroup[]>([])
+
+  // Sincronizar localGroups com addonGroups
+  useEffect(() => {
+    setLocalGroups(addonGroups)
+  }, [addonGroups])
 
   // Buscar store e tenant
   useEffect(() => {
@@ -196,30 +208,140 @@ export default function AddonsPage() {
     })
   }
 
+  // Duplicar grupo
+  const handleDuplicateGroup = async (group: AddonGroup) => {
+    if (!storeId || !tenantId) return
+    
+    setSaving(true)
+    try {
+      // Criar grupo duplicado
+      const { data: newGroup, error: groupError } = await supabase
+        .from('addon_groups')
+        .insert([{
+          store_id: storeId,
+          tenant_id: tenantId,
+          name: `${group.name} (Cópia)`,
+          description: group.description,
+          min_selections: group.min_selections,
+          max_selections: group.max_selections,
+          is_required: group.is_required,
+          sort_order: addonGroups.length
+        }])
+        .select()
+        .single()
+
+      if (groupError || !newGroup) throw groupError
+
+      // Duplicar adicionais do grupo
+      if (group.addons && group.addons.length > 0) {
+        const addonsData = group.addons.map((addon, index) => ({
+          addon_group_id: newGroup.id,
+          name: addon.name,
+          price: addon.price,
+          sort_order: index,
+          is_active: addon.is_active
+        }))
+
+        await supabase.from('addons').insert(addonsData)
+      }
+
+      await fetchAddonGroups()
+      setExpandedGroup(newGroup.id)
+    } catch (err) {
+      console.error('Erro ao duplicar grupo:', err)
+      alert('Erro ao duplicar grupo')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  // Drag & Drop para grupos
+  const handleGroupDragStart = (e: React.DragEvent, id: string) => {
+    setDraggedGroupId(id)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  const handleGroupDragOver = (e: React.DragEvent, id: string) => {
+    e.preventDefault()
+    if (draggedGroupId && draggedGroupId !== id) {
+      const draggedIndex = localGroups.findIndex(g => g.id === draggedGroupId)
+      const targetIndex = localGroups.findIndex(g => g.id === id)
+      
+      if (draggedIndex !== -1 && targetIndex !== -1) {
+        const newGroups = [...localGroups]
+        const [removed] = newGroups.splice(draggedIndex, 1)
+        newGroups.splice(targetIndex, 0, removed)
+        setLocalGroups(newGroups)
+      }
+    }
+  }
+
+  const handleGroupDragEnd = async () => {
+    if (draggedGroupId) {
+      const updates = localGroups.map((group, index) => 
+        supabase
+          .from('addon_groups')
+          .update({ sort_order: index })
+          .eq('id', group.id)
+      )
+      await Promise.all(updates)
+      await fetchAddonGroups()
+    }
+    setDraggedGroupId(null)
+  }
+
   // CRUD Adicionais
   const handleSaveAddon = async (groupId: string) => {
     if (!addonForm.name.trim()) return
     
     setSaving(true)
     try {
-      const group = addonGroups.find(g => g.id === groupId)
-      await supabase
-        .from('addons')
-        .insert([{
-          addon_group_id: groupId,
-          name: addonForm.name,
-          price: addonForm.price || 0,
-          sort_order: group?.addons?.length || 0
-        }])
+      if (editingAddon) {
+        // Atualizar adicional existente
+        await supabase
+          .from('addons')
+          .update({
+            name: addonForm.name,
+            price: addonForm.price || 0,
+            stock_quantity: addonForm.stock_quantity || null,
+            min_stock: addonForm.min_stock || null
+          })
+          .eq('id', editingAddon.id)
+      } else {
+        // Criar novo adicional
+        const group = addonGroups.find(g => g.id === groupId)
+        await supabase
+          .from('addons')
+          .insert([{
+            addon_group_id: groupId,
+            name: addonForm.name,
+            price: addonForm.price || 0,
+            sort_order: group?.addons?.length || 0,
+            stock_quantity: addonForm.stock_quantity || null,
+            min_stock: addonForm.min_stock || null
+          }])
+      }
       
       setShowAddonForm(null)
-      setAddonForm({ name: '', price: 0 })
+      setAddonForm({ name: '', price: 0, stock_quantity: 0, min_stock: 0 })
+      setEditingAddon(null)
       await fetchAddonGroups()
     } catch (err) {
       console.error('Erro ao salvar adicional:', err)
     } finally {
       setSaving(false)
     }
+  }
+
+  const handleEditAddon = (addon: Addon, groupId: string) => {
+    setEditingAddon(addon)
+    setAddonForm({
+      name: addon.name,
+      price: addon.price,
+      stock_quantity: addon.stock_quantity || 0,
+      min_stock: addon.min_stock || 0
+    })
+    setShowAddonForm(groupId)
   }
 
   const handleDeleteAddon = async (addonId: string) => {
@@ -366,8 +488,64 @@ export default function AddonsPage() {
           </div>
         )}
 
+        {/* Estatísticas Resumidas */}
+        {localGroups.length > 0 && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-white rounded-xl p-4 shadow-md border border-slate-100">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-pink-100 rounded-lg">
+                  <Coffee className="w-5 h-5 text-pink-600" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-slate-800">{localGroups.length}</div>
+                  <div className="text-xs text-slate-500">Grupos</div>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white rounded-xl p-4 shadow-md border border-slate-100">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-emerald-100 rounded-lg">
+                  <Package className="w-5 h-5 text-emerald-600" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-slate-800">
+                    {localGroups.reduce((acc, g) => acc + (g.addons?.length || 0), 0)}
+                  </div>
+                  <div className="text-xs text-slate-500">Itens</div>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white rounded-xl p-4 shadow-md border border-slate-100">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <ToggleRight className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-slate-800">
+                    {localGroups.filter(g => g.is_active).length}
+                  </div>
+                  <div className="text-xs text-slate-500">Ativos</div>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white rounded-xl p-4 shadow-md border border-slate-100">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-amber-100 rounded-lg">
+                  <AlertTriangle className="w-5 h-5 text-amber-600" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-slate-800">
+                    {localGroups.filter(g => g.is_required).length}
+                  </div>
+                  <div className="text-xs text-slate-500">Obrigatórios</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Lista de Grupos */}
-        {addonGroups.length === 0 ? (
+        {localGroups.length === 0 ? (
           <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-16 text-center">
             <div className="w-20 h-20 mx-auto mb-4 bg-pink-100 rounded-2xl flex items-center justify-center">
               <Coffee className="w-10 h-10 text-pink-400" />
@@ -386,19 +564,23 @@ export default function AddonsPage() {
           </div>
         ) : (
           <div className="space-y-4">
-            {addonGroups.map((group) => (
+            {localGroups.map((group) => (
               <div 
-                key={group.id} 
+                key={group.id}
+                draggable
+                onDragStart={(e) => handleGroupDragStart(e, group.id)}
+                onDragOver={(e) => handleGroupDragOver(e, group.id)}
+                onDragEnd={handleGroupDragEnd}
                 className={`bg-white rounded-2xl shadow-lg border transition-all ${
-                  group.is_active ? 'border-slate-100' : 'border-slate-200 opacity-60'
-                }`}
+                  draggedGroupId === group.id ? 'opacity-50 border-pink-400' : ''
+                } ${group.is_active ? 'border-slate-100' : 'border-slate-200 opacity-60'}`}
               >
                 {/* Header do Grupo */}
                 <div 
                   className="p-4 flex items-center gap-4 cursor-pointer hover:bg-slate-50 rounded-t-2xl transition-colors"
                   onClick={() => setExpandedGroup(expandedGroup === group.id ? null : group.id)}
                 >
-                  <div className="text-slate-400">
+                  <div className="text-slate-400 cursor-grab active:cursor-grabbing">
                     <GripVertical className="w-5 h-5" />
                   </div>
                   
@@ -423,7 +605,15 @@ export default function AddonsPage() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      onClick={() => handleDuplicateGroup(group)}
+                      disabled={saving}
+                      className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                      title="Duplicar grupo"
+                    >
+                      <Copy className="w-4 h-4" />
+                    </button>
                     <button
                       onClick={() => handleToggleGroupActive(group)}
                       className={`p-2 rounded-lg transition-colors ${group.is_active ? 'text-emerald-600 hover:bg-emerald-50' : 'text-slate-400 hover:bg-slate-100'}`}
@@ -460,14 +650,30 @@ export default function AddonsPage() {
                             key={addon.id}
                             className={`flex items-center gap-3 p-3 rounded-xl border ${
                               addon.is_active ? 'border-slate-200 bg-slate-50' : 'border-slate-200 bg-slate-100 opacity-60'
-                            }`}
+                            } ${addon.stock_quantity !== undefined && addon.min_stock !== undefined && addon.stock_quantity <= addon.min_stock ? 'border-amber-300 bg-amber-50' : ''}`}
                           >
                             <div className="flex-1">
                               <span className="font-medium text-slate-800">{addon.name}</span>
+                              {addon.stock_quantity !== undefined && addon.stock_quantity > 0 && (
+                                <span className={`ml-2 text-xs px-1.5 py-0.5 rounded ${
+                                  addon.min_stock !== undefined && addon.stock_quantity <= addon.min_stock
+                                    ? 'bg-amber-100 text-amber-700'
+                                    : 'bg-slate-200 text-slate-600'
+                                }`}>
+                                  {addon.stock_quantity <= (addon.min_stock || 0) ? '⚠️' : '📦'} {addon.stock_quantity} un
+                                </span>
+                              )}
                             </div>
                             <span className="font-bold text-emerald-600">
                               {addon.price > 0 ? `+${formatCurrency(addon.price)}` : 'Grátis'}
                             </span>
+                            <button
+                              onClick={() => handleEditAddon(addon, group.id)}
+                              className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              title="Editar"
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </button>
                             <button
                               onClick={() => handleToggleAddonActive(addon)}
                               className={`p-1.5 rounded-lg transition-colors ${addon.is_active ? 'text-emerald-600 hover:bg-emerald-50' : 'text-slate-400 hover:bg-slate-100'}`}
@@ -489,44 +695,78 @@ export default function AddonsPage() {
                       </p>
                     )}
 
-                    {/* Formulário de Novo Adicional */}
+                    {/* Formulário de Novo/Editar Adicional */}
                     {showAddonForm === group.id ? (
-                      <div className="flex gap-2 p-3 bg-pink-50 rounded-xl border border-pink-200">
-                        <input
-                          type="text"
-                          value={addonForm.name}
-                          onChange={(e) => setAddonForm({ ...addonForm, name: e.target.value })}
-                          placeholder="Nome do adicional"
-                          className="flex-1 px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-pink-500 outline-none text-sm"
-                          autoFocus
-                        />
-                        <div className="flex items-center gap-1">
-                          <span className="text-sm text-slate-500">R$</span>
-                          <input
-                            type="number"
-                            step="0.01"
-                            value={addonForm.price}
-                            onChange={(e) => setAddonForm({ ...addonForm, price: parseFloat(e.target.value) || 0 })}
-                            placeholder="0.00"
-                            className="w-20 px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-pink-500 outline-none text-sm"
-                          />
+                      <div className="p-4 bg-pink-50 rounded-xl border border-pink-200 space-y-3">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="font-medium text-pink-800">
+                            {editingAddon ? '✏️ Editar Adicional' : '➕ Novo Adicional'}
+                          </span>
                         </div>
-                        <button
-                          onClick={() => handleSaveAddon(group.id)}
-                          disabled={!addonForm.name.trim() || saving}
-                          className="p-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 disabled:opacity-50"
-                        >
-                          <Check className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => {
-                            setShowAddonForm(null)
-                            setAddonForm({ name: '', price: 0 })
-                          }}
-                          className="p-2 text-slate-600 hover:bg-slate-200 rounded-lg"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
+                        <div className="flex gap-2 flex-wrap">
+                          <input
+                            type="text"
+                            value={addonForm.name}
+                            onChange={(e) => setAddonForm({ ...addonForm, name: e.target.value })}
+                            placeholder="Nome do adicional"
+                            className="flex-1 min-w-[150px] px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-pink-500 outline-none text-sm"
+                            autoFocus
+                          />
+                          <div className="flex items-center gap-1">
+                            <span className="text-sm text-slate-500">R$</span>
+                            <input
+                              type="number"
+                              step="0.01"
+                              value={addonForm.price}
+                              onChange={(e) => setAddonForm({ ...addonForm, price: parseFloat(e.target.value) || 0 })}
+                              placeholder="0.00"
+                              className="w-20 px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-pink-500 outline-none text-sm"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex gap-2 flex-wrap items-center">
+                          <div className="flex items-center gap-1">
+                            <Package className="w-4 h-4 text-slate-400" />
+                            <input
+                              type="number"
+                              value={addonForm.stock_quantity}
+                              onChange={(e) => setAddonForm({ ...addonForm, stock_quantity: parseInt(e.target.value) || 0 })}
+                              placeholder="Estoque"
+                              className="w-20 px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-pink-500 outline-none text-sm"
+                            />
+                            <span className="text-xs text-slate-500">estoque</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <AlertTriangle className="w-4 h-4 text-amber-500" />
+                            <input
+                              type="number"
+                              value={addonForm.min_stock}
+                              onChange={(e) => setAddonForm({ ...addonForm, min_stock: parseInt(e.target.value) || 0 })}
+                              placeholder="Mín"
+                              className="w-16 px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-pink-500 outline-none text-sm"
+                            />
+                            <span className="text-xs text-slate-500">mín</span>
+                          </div>
+                          <div className="flex-1" />
+                          <button
+                            onClick={() => handleSaveAddon(group.id)}
+                            disabled={!addonForm.name.trim() || saving}
+                            className="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 disabled:opacity-50 flex items-center gap-2"
+                          >
+                            <Check className="w-4 h-4" />
+                            {editingAddon ? 'Atualizar' : 'Salvar'}
+                          </button>
+                          <button
+                            onClick={() => {
+                              setShowAddonForm(null)
+                              setAddonForm({ name: '', price: 0, stock_quantity: 0, min_stock: 0 })
+                              setEditingAddon(null)
+                            }}
+                            className="p-2 text-slate-600 hover:bg-slate-200 rounded-lg"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                     ) : (
                       <button
