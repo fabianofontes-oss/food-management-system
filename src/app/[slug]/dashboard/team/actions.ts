@@ -9,8 +9,8 @@ export async function getTeamMembers(storeId: string) {
   try {
     const supabase = await createClient()
     
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
       return { error: 'Não autenticado', data: [], currentUserRole: 'staff' as UserRole }
     }
 
@@ -19,7 +19,7 @@ export async function getTeamMembers(storeId: string) {
       .from('store_users')
       .select('role')
       .eq('store_id', storeId)
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .single()
 
     if (!access) {
@@ -47,7 +47,7 @@ export async function getTeamMembers(storeId: string) {
       
       const membersWithEmail = (membersSimple as any[])?.map((m: any) => ({
         ...m,
-        email: m.user_id === session.user.id ? session.user.email : 'Membro da equipe'
+        email: m.user_id === user.id ? user.email : 'Membro da equipe'
       })) || []
       
       return { data: membersWithEmail, currentUserRole: (access as any).role }
@@ -56,7 +56,7 @@ export async function getTeamMembers(storeId: string) {
     const membersWithEmails = (members as any[])?.map((member: any) => ({
       ...member,
       email: member.profiles?.email || member.profiles?.full_name || 
-             (member.user_id === session.user.id ? session.user.email : 'Membro da equipe')
+             (member.user_id === user.id ? user.email : 'Membro da equipe')
     })) || []
 
     return { data: membersWithEmails, currentUserRole: (access as any).role }
@@ -76,8 +76,8 @@ export async function updateMemberRole(storeId: string, memberId: string, newRol
   try {
     const supabase = await createClient()
     
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
       return { error: 'Não autenticado' }
     }
 
@@ -86,7 +86,7 @@ export async function updateMemberRole(storeId: string, memberId: string, newRol
       .from('store_users')
       .select('role')
       .eq('store_id', storeId)
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .single()
 
     if (!access || (access as any).role !== 'owner') {
@@ -105,7 +105,7 @@ export async function updateMemberRole(storeId: string, memberId: string, newRol
     }
 
     // Prevent changing own role
-    if ((targetMember as any).user_id === session.user.id) {
+    if ((targetMember as any).user_id === user.id) {
       return { error: 'Você não pode alterar seu próprio papel' }
     }
 
@@ -130,8 +130,8 @@ export async function removeMember(storeId: string, memberId: string) {
   try {
     const supabase = await createClient()
     
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
       return { error: 'Não autenticado' }
     }
 
@@ -140,7 +140,7 @@ export async function removeMember(storeId: string, memberId: string) {
       .from('store_users')
       .select('role')
       .eq('store_id', storeId)
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .single()
 
     if (!access || ((access as any).role !== 'owner' && (access as any).role !== 'manager')) {
@@ -159,7 +159,7 @@ export async function removeMember(storeId: string, memberId: string) {
     }
 
     // Prevent removing self
-    if ((targetMember as any).user_id === session.user.id) {
+    if ((targetMember as any).user_id === user.id) {
       return { error: 'Você não pode remover a si mesmo' }
     }
 
