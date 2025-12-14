@@ -167,6 +167,60 @@ export const useProductsComplete = (storeId: string | null) => {
     }
   }
 
+  const updateCategory = async (id: string, data: Partial<ProductCategory>) => {
+    try {
+      const { error } = await supabase
+        .from('categories')
+        .update(data)
+        .eq('id', id)
+
+      if (error) throw error
+      await fetchData()
+    } catch (err: any) {
+      console.error('Erro ao atualizar categoria:', err)
+      throw err
+    }
+  }
+
+  const deleteCategory = async (id: string) => {
+    try {
+      // Primeiro, remove a categoria dos produtos
+      await supabase
+        .from('products')
+        .update({ category_id: null })
+        .eq('category_id', id)
+
+      // Depois, deleta a categoria
+      const { error } = await supabase
+        .from('categories')
+        .delete()
+        .eq('id', id)
+
+      if (error) throw error
+      await fetchData()
+    } catch (err: any) {
+      console.error('Erro ao deletar categoria:', err)
+      throw err
+    }
+  }
+
+  const reorderCategories = async (orderedIds: string[]) => {
+    try {
+      const updates = orderedIds.map((id, index) => 
+        supabase
+          .from('categories')
+          .update({ sort_order: index })
+          .eq('id', id)
+      )
+      
+      await Promise.all(updates)
+      await fetchData()
+    } catch (err: any) {
+      console.error('Erro ao reordenar categorias:', err)
+      throw err
+    }
+  }
+
   return {
     products,
     categories,
@@ -177,6 +231,9 @@ export const useProductsComplete = (storeId: string | null) => {
     updateProduct,
     deleteProduct,
     createCategory,
+    updateCategory,
+    deleteCategory,
+    reorderCategories,
     refreshData: fetchData
   }
 }

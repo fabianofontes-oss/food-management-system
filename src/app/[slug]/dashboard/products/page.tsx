@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { ProductCard } from './components/ProductCard'
 import { ProductForm } from './components/ProductForm'
+import { CategoryManager } from './components/CategoryManager'
 import { useProductsComplete } from '@/hooks/useProductsComplete'
 import { Product, ProductFormData } from '@/types/products'
 import { createClient } from '@/lib/supabase/client'
@@ -18,14 +19,18 @@ export default function ProductsPage() {
   const [loadingStore, setLoadingStore] = useState(true)
   const [storeError, setStoreError] = useState('')
   
-  const { products, categories, units, loading, error, createProduct, updateProduct, deleteProduct, createCategory, refreshData } = useProductsComplete(storeId)
+  const { 
+    products, categories, units, loading, error, 
+    createProduct, updateProduct, deleteProduct, 
+    createCategory, updateCategory, deleteCategory, reorderCategories,
+    refreshData 
+  } = useProductsComplete(storeId)
   
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | undefined>()
-  const [showCategoryForm, setShowCategoryForm] = useState(false)
-  const [newCategoryName, setNewCategoryName] = useState('')
+  const [showCategoryManager, setShowCategoryManager] = useState(false)
 
   useEffect(() => {
     async function fetchStore() {
@@ -85,23 +90,6 @@ export default function ProductsPage() {
     setEditingProduct(undefined)
   }
 
-  const handleCreateCategory = async () => {
-    if (!newCategoryName.trim()) return
-    
-    try {
-      await createCategory({
-        name: newCategoryName,
-        sort_order: categories.length,
-        is_active: true
-      })
-      setNewCategoryName('')
-      setShowCategoryForm(false)
-    } catch (err) {
-      console.error('Erro ao criar categoria:', err)
-      alert('Erro ao criar categoria')
-    }
-  }
-
   if (loadingStore || loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-orange-50/30 flex items-center justify-center">
@@ -145,12 +133,12 @@ export default function ProductsPage() {
           </div>
           <div className="flex gap-3">
             <Button
-              onClick={() => setShowCategoryForm(!showCategoryForm)}
+              onClick={() => setShowCategoryManager(true)}
               variant="outline"
               className="flex items-center gap-2 border-slate-200 hover:bg-slate-100 hover:shadow-md transition-all"
             >
               <Tag className="w-4 h-4" />
-              Nova Categoria
+              Categorias ({categories.length})
             </Button>
             <Button
               onClick={() => {
@@ -164,36 +152,6 @@ export default function ProductsPage() {
             </Button>
           </div>
         </div>
-
-        {showCategoryForm && (
-          <div className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-orange-200 p-6">
-            <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-              <div className="p-1.5 bg-orange-100 rounded-lg">
-                <Tag className="w-4 h-4 text-orange-600" />
-              </div>
-              Nova Categoria
-            </h3>
-            <div className="flex gap-3">
-              <input
-                type="text"
-                value={newCategoryName}
-                onChange={(e) => setNewCategoryName(e.target.value)}
-                placeholder="Nome da categoria"
-                className="flex-1 px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 transition-all"
-                onKeyPress={(e) => e.key === 'Enter' && handleCreateCategory()}
-              />
-              <Button onClick={handleCreateCategory} disabled={!newCategoryName.trim()} className="bg-gradient-to-r from-orange-500 to-amber-600">
-                Criar
-              </Button>
-              <Button variant="outline" onClick={() => {
-                setShowCategoryForm(false)
-                setNewCategoryName('')
-              }}>
-                Cancelar
-              </Button>
-            </div>
-          </div>
-        )}
 
         <div className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-6">
           <div className="grid md:grid-cols-2 gap-4">
@@ -317,6 +275,18 @@ export default function ProductsPage() {
           allProducts={products}
           onSubmit={editingProduct ? handleUpdateProduct : handleCreateProduct}
           onClose={handleCloseForm}
+        />
+      )}
+
+      {showCategoryManager && (
+        <CategoryManager
+          categories={categories}
+          products={products}
+          onCreateCategory={createCategory}
+          onUpdateCategory={updateCategory}
+          onDeleteCategory={deleteCategory}
+          onReorderCategories={reorderCategories}
+          onClose={() => setShowCategoryManager(false)}
         />
       )}
     </div>
