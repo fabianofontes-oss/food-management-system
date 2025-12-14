@@ -2,6 +2,47 @@
 -- Funciona para: Salgados, Doces, Marmitas, Bolos, etc.
 
 -- ============================================
+-- CONFIGURAÇÕES DE AGENDAMENTO DA LOJA
+-- ============================================
+ALTER TABLE stores ADD COLUMN IF NOT EXISTS scheduling_enabled BOOLEAN DEFAULT false;
+ALTER TABLE stores ADD COLUMN IF NOT EXISTS scheduling_min_hours INTEGER DEFAULT 4; -- Antecedência mínima em horas
+ALTER TABLE stores ADD COLUMN IF NOT EXISTS scheduling_max_days INTEGER DEFAULT 7; -- Máximo de dias no futuro
+ALTER TABLE stores ADD COLUMN IF NOT EXISTS scheduling_interval INTEGER DEFAULT 30; -- Intervalo em minutos (15, 30, 60)
+ALTER TABLE stores ADD COLUMN IF NOT EXISTS scheduling_require_payment BOOLEAN DEFAULT false; -- Exigir pagamento antecipado
+ALTER TABLE stores ADD COLUMN IF NOT EXISTS scheduling_max_per_slot INTEGER DEFAULT 0; -- Máx pedidos por horário (0 = ilimitado)
+ALTER TABLE stores ADD COLUMN IF NOT EXISTS scheduling_use_store_hours BOOLEAN DEFAULT true; -- Usar horário da loja ou customizado
+ALTER TABLE stores ADD COLUMN IF NOT EXISTS scheduling_custom_hours JSONB; -- Horários customizados para agendamento
+-- Ex: {"mon": {"start": "08:00", "end": "18:00"}, "sat": {"start": "09:00", "end": "14:00"}, "sun": null}
+
+-- Tabela para slots bloqueados ou com capacidade específica
+CREATE TABLE IF NOT EXISTS scheduling_slots (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+  slot_date DATE NOT NULL,
+  slot_time TIME NOT NULL,
+  max_orders INTEGER DEFAULT 5,
+  current_orders INTEGER DEFAULT 0,
+  is_blocked BOOLEAN DEFAULT false,
+  block_reason VARCHAR(100),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(store_id, slot_date, slot_time)
+);
+
+CREATE INDEX IF NOT EXISTS idx_scheduling_slots_date ON scheduling_slots(store_id, slot_date);
+ALTER TABLE scheduling_slots ENABLE ROW LEVEL SECURITY;
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'scheduling_slots_all') THEN
+    CREATE POLICY "scheduling_slots_all" ON scheduling_slots FOR ALL USING (true);
+  END IF;
+END $$;
+
+-- Adicionar campos de agendamento nos pedidos normais
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS scheduled_date DATE;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS scheduled_time TIME;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS is_scheduled BOOLEAN DEFAULT false;
+
+-- ============================================
 -- CONFIGURAÇÃO DE PRODUTOS PARA ENCOMENDA
 -- ============================================
 
