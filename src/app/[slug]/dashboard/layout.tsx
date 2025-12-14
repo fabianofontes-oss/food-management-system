@@ -1,7 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import { LanguageProviderWrapper } from '@/components/LanguageProviderWrapper'
 import { SupportedLocale, SupportedCountry, isValidLocale, isValidCountry } from '@/lib/i18n'
-import { ThemeProvider } from '@/contexts/ThemeContext'
 import DashboardClient from './DashboardClient'
 
 async function getStoreWithTenant(slug: string) {
@@ -35,17 +34,15 @@ export default async function StoreDashboardLayout({
   const validCountry: SupportedCountry = isValidCountry(country) ? country : 'BR'
 
   return (
-    <ThemeProvider>
-      <LanguageProviderWrapper
-        locale={validLocale}
-        country={validCountry}
-        currency={currency}
-        timezone={timezone}
-      >
-        <DashboardClient slug={params.slug}>
-          {children}
-        </DashboardClient>
-      </LanguageProviderWrapper>
-    </ThemeProvider>
+    <LanguageProviderWrapper
+      locale={validLocale}
+      country={validCountry}
+      currency={currency}
+      timezone={timezone}
+    >
+      <DashboardClient slug={params.slug}>
+        {children}
+      </DashboardClient>
+    </LanguageProviderWrapper>
   )
 }

@@ -9,9 +9,9 @@ import {
 export interface ModuleSetting {
   key: string
   label: string
-  description: string
-  type: 'text' | 'number' | 'select' | 'toggle' | 'currency'
-  icon: React.ReactNode
+  description?: string
+  type: 'text' | 'number' | 'select' | 'toggle' | 'currency' | 'time'
+  icon?: React.ReactNode
   options?: { value: string; label: string }[]
   placeholder?: string
   defaultValue?: any
@@ -30,6 +30,7 @@ export interface Module {
   category: 'store' | 'sales' | 'payments' | 'operations' | 'integrations' | 'marketing' | 'notifications'
   configPage?: string
   isCore?: boolean
+  hasCustomCard?: boolean
   settings: ModuleSetting[]
 }
 
@@ -63,50 +64,66 @@ export const MODULES: Module[] = [
     ]
   },
   {
-    id: 'dashboard_appearance',
-    name: 'Aparência do Painel',
-    description: 'Tema e visual do dashboard',
-    longDescription: 'Personalize a aparência do seu painel de gestão. O tema do cardápio/minisite é configurado em outra seção.',
-    icon: <Palette className="w-6 h-6" />,
-    color: 'text-pink-600',
-    bgColor: 'bg-pink-100',
-    category: 'store',
-    settings: [
-      { key: 'dashboard_theme', label: 'Tema do Painel', description: 'Modo claro, escuro ou automático', type: 'select', icon: <Palette className="w-4 h-4" />, options: [{ value: 'light', label: '☀️ Claro' }, { value: 'dark', label: '🌙 Escuro' }, { value: 'system', label: '💻 Automático (sistema)' }], defaultValue: 'light' },
-      { key: 'dashboard_accent', label: 'Cor de Destaque', description: 'Cor principal dos botões e destaques', type: 'select', icon: <Palette className="w-4 h-4" />, options: [{ value: 'violet', label: '💜 Violeta' }, { value: 'blue', label: '💙 Azul' }, { value: 'green', label: '💚 Verde' }, { value: 'orange', label: '🧡 Laranja' }, { value: 'pink', label: '💗 Rosa' }], defaultValue: 'violet' },
-      { key: 'dashboard_density', label: 'Densidade', description: 'Espaçamento entre elementos', type: 'select', icon: <LayoutGrid className="w-4 h-4" />, options: [{ value: 'compact', label: 'Compacto' }, { value: 'normal', label: 'Normal' }, { value: 'comfortable', label: 'Confortável' }], defaultValue: 'normal' },
-      { key: 'dashboard_sidebar', label: 'Menu Lateral', description: 'Estado inicial do menu', type: 'select', icon: <Layers className="w-4 h-4" />, options: [{ value: 'expanded', label: 'Expandido' }, { value: 'collapsed', label: 'Recolhido' }], defaultValue: 'expanded' }
-    ]
-  },
-  {
     id: 'store_hours',
-    name: 'Horários',
-    description: 'Funcionamento da loja',
-    longDescription: 'Configure os horários de funcionamento da sua loja.',
+    name: 'Horários de Funcionamento',
+    description: 'Dias e horários da loja',
+    longDescription: 'Configure os horários de funcionamento para cada dia da semana.',
     icon: <Clock className="w-6 h-6" />,
     color: 'text-blue-600',
     bgColor: 'bg-blue-100',
     category: 'store',
+    hasCustomCard: true,
     settings: [
-      { key: 'hours_enabled', label: 'Horários Ativados', description: 'Controla abertura automática', type: 'toggle', icon: <Clock className="w-4 h-4" />, defaultValue: true },
-      { key: 'open_time', label: 'Hora de Abertura', description: 'Horário padrão de abertura', type: 'text', icon: <Clock className="w-4 h-4" />, placeholder: '08:00', defaultValue: '08:00' },
-      { key: 'close_time', label: 'Hora de Fechamento', description: 'Horário padrão de fechamento', type: 'text', icon: <Clock className="w-4 h-4" />, placeholder: '22:00', defaultValue: '22:00' }
+      { key: 'hours_enabled', label: 'Controle de Horários', description: 'Fecha automaticamente fora do horário', type: 'toggle', icon: <Clock className="w-4 h-4" />, defaultValue: true },
+      { key: 'hours_monday_open', label: 'Segunda - Abre', type: 'time', defaultValue: '08:00' },
+      { key: 'hours_monday_close', label: 'Segunda - Fecha', type: 'time', defaultValue: '22:00' },
+      { key: 'hours_monday_closed', label: 'Segunda - Fechado', type: 'toggle', defaultValue: false },
+      { key: 'hours_tuesday_open', label: 'Terça - Abre', type: 'time', defaultValue: '08:00' },
+      { key: 'hours_tuesday_close', label: 'Terça - Fecha', type: 'time', defaultValue: '22:00' },
+      { key: 'hours_tuesday_closed', label: 'Terça - Fechado', type: 'toggle', defaultValue: false },
+      { key: 'hours_wednesday_open', label: 'Quarta - Abre', type: 'time', defaultValue: '08:00' },
+      { key: 'hours_wednesday_close', label: 'Quarta - Fecha', type: 'time', defaultValue: '22:00' },
+      { key: 'hours_wednesday_closed', label: 'Quarta - Fechado', type: 'toggle', defaultValue: false },
+      { key: 'hours_thursday_open', label: 'Quinta - Abre', type: 'time', defaultValue: '08:00' },
+      { key: 'hours_thursday_close', label: 'Quinta - Fecha', type: 'time', defaultValue: '22:00' },
+      { key: 'hours_thursday_closed', label: 'Quinta - Fechado', type: 'toggle', defaultValue: false },
+      { key: 'hours_friday_open', label: 'Sexta - Abre', type: 'time', defaultValue: '08:00' },
+      { key: 'hours_friday_close', label: 'Sexta - Fecha', type: 'time', defaultValue: '23:00' },
+      { key: 'hours_friday_closed', label: 'Sexta - Fechado', type: 'toggle', defaultValue: false },
+      { key: 'hours_saturday_open', label: 'Sábado - Abre', type: 'time', defaultValue: '08:00' },
+      { key: 'hours_saturday_close', label: 'Sábado - Fecha', type: 'time', defaultValue: '23:00' },
+      { key: 'hours_saturday_closed', label: 'Sábado - Fechado', type: 'toggle', defaultValue: false },
+      { key: 'hours_sunday_open', label: 'Domingo - Abre', type: 'time', defaultValue: '10:00' },
+      { key: 'hours_sunday_close', label: 'Domingo - Fecha', type: 'time', defaultValue: '20:00' },
+      { key: 'hours_sunday_closed', label: 'Domingo - Fechado', type: 'toggle', defaultValue: false }
     ]
   },
   {
     id: 'social_media',
     name: 'Redes Sociais',
-    description: 'Instagram, Facebook, site',
-    longDescription: 'Conecte suas redes sociais para seus clientes te encontrarem.',
+    description: 'Links e perfis sociais',
+    longDescription: 'Configure todas as redes sociais da sua loja para seus clientes te encontrarem facilmente.',
     icon: <Globe className="w-6 h-6" />,
     color: 'text-cyan-600',
     bgColor: 'bg-cyan-100',
     category: 'store',
+    hasCustomCard: true,
     settings: [
-      { key: 'social_enabled', label: 'Mostrar Redes Sociais', description: 'Exibe links na loja', type: 'toggle', icon: <Globe className="w-4 h-4" />, defaultValue: true },
-      { key: 'instagram', label: 'Instagram', description: 'Seu @ do Instagram', type: 'text', icon: <Instagram className="w-4 h-4" />, placeholder: '@minhaloja', defaultValue: '' },
-      { key: 'facebook', label: 'Facebook', description: 'Link do Facebook', type: 'text', icon: <Facebook className="w-4 h-4" />, placeholder: 'facebook.com/minhaloja', defaultValue: '' },
-      { key: 'website', label: 'Site', description: 'Seu site oficial', type: 'text', icon: <Globe className="w-4 h-4" />, placeholder: 'www.minhaloja.com', defaultValue: '' }
+      { key: 'social_enabled', label: 'Exibir Redes Sociais', description: 'Mostra os links no cardápio/minisite', type: 'toggle', icon: <Globe className="w-4 h-4" />, defaultValue: true },
+      { key: 'social_instagram', label: 'Instagram', description: '@usuario ou link completo', type: 'text', icon: <Instagram className="w-4 h-4" />, placeholder: '@minhaloja', defaultValue: '' },
+      { key: 'social_facebook', label: 'Facebook', description: 'Link da página', type: 'text', icon: <Facebook className="w-4 h-4" />, placeholder: 'facebook.com/minhaloja', defaultValue: '' },
+      { key: 'social_whatsapp', label: 'WhatsApp Business', description: 'Número com DDD', type: 'text', icon: <MessageSquare className="w-4 h-4" />, placeholder: '11999999999', defaultValue: '' },
+      { key: 'social_tiktok', label: 'TikTok', description: '@usuario', type: 'text', icon: <Zap className="w-4 h-4" />, placeholder: '@minhaloja', defaultValue: '' },
+      { key: 'social_youtube', label: 'YouTube', description: 'Link do canal', type: 'text', icon: <Monitor className="w-4 h-4" />, placeholder: 'youtube.com/@minhaloja', defaultValue: '' },
+      { key: 'social_twitter', label: 'X (Twitter)', description: '@usuario', type: 'text', icon: <Send className="w-4 h-4" />, placeholder: '@minhaloja', defaultValue: '' },
+      { key: 'social_linkedin', label: 'LinkedIn', description: 'Link da empresa', type: 'text', icon: <Link2 className="w-4 h-4" />, placeholder: 'linkedin.com/company/minhaloja', defaultValue: '' },
+      { key: 'social_website', label: 'Site Oficial', description: 'URL do site', type: 'text', icon: <Globe className="w-4 h-4" />, placeholder: 'www.minhaloja.com.br', defaultValue: '' },
+      { key: 'social_ifood', label: 'iFood', description: 'Link do restaurante no iFood', type: 'text', icon: <ShoppingBag className="w-4 h-4" />, placeholder: 'ifood.com.br/delivery/...', defaultValue: '' },
+      { key: 'social_rappi', label: 'Rappi', description: 'Link do restaurante no Rappi', type: 'text', icon: <Bike className="w-4 h-4" />, placeholder: 'rappi.com.br/...', defaultValue: '' },
+      { key: 'social_custom1_name', label: 'Rede Personalizada 1 - Nome', description: 'Nome da rede', type: 'text', placeholder: 'Pinterest', defaultValue: '' },
+      { key: 'social_custom1_url', label: 'Rede Personalizada 1 - Link', description: 'URL completa', type: 'text', placeholder: 'https://...', defaultValue: '' },
+      { key: 'social_custom2_name', label: 'Rede Personalizada 2 - Nome', description: 'Nome da rede', type: 'text', placeholder: 'Telegram', defaultValue: '' },
+      { key: 'social_custom2_url', label: 'Rede Personalizada 2 - Link', description: 'URL completa', type: 'text', placeholder: 'https://...', defaultValue: '' }
     ]
   },
 
@@ -114,24 +131,36 @@ export const MODULES: Module[] = [
   {
     id: 'pdv',
     name: 'PDV (Ponto de Venda)',
-    description: 'Sistema de caixa',
-    longDescription: 'Configure o que aparece na tela do PDV. Desative funções que você não usa para simplificar a interface.',
+    description: 'Sistema de caixa completo',
+    longDescription: 'Configure o comportamento do sistema de caixa, impressão, descontos e interface.',
     icon: <Monitor className="w-6 h-6" />,
     color: 'text-blue-600',
     bgColor: 'bg-blue-100',
     category: 'sales',
-    configPage: '/dashboard/pdv',
+    hasCustomCard: true,
     settings: [
-      { key: 'pdv_enabled', label: 'Ativar PDV', description: 'Habilita sistema de caixa', type: 'toggle', icon: <Monitor className="w-4 h-4" />, defaultValue: true },
-      { key: 'pdv_show_scale', label: 'Balança', description: 'Mostrar botão de balança (kg/g)', type: 'toggle', icon: <Scale className="w-4 h-4" />, defaultValue: false },
-      { key: 'pdv_show_barcode', label: 'Leitor de Código', description: 'Mostrar campo de código de barras', type: 'toggle', icon: <ScanBarcode className="w-4 h-4" />, defaultValue: false },
-      { key: 'pdv_show_calculator', label: 'Calculadora', description: 'Mostrar calculadora de troco', type: 'toggle', icon: <Calculator className="w-4 h-4" />, defaultValue: true },
-      { key: 'pdv_show_customer', label: 'Identificar Cliente', description: 'Campo para buscar/cadastrar cliente', type: 'toggle', icon: <Users className="w-4 h-4" />, defaultValue: true },
-      { key: 'pdv_show_discount', label: 'Botão de Desconto', description: 'Permite aplicar desconto manual', type: 'toggle', icon: <Percent className="w-4 h-4" />, defaultValue: true },
-      { key: 'pdv_show_obs', label: 'Observações', description: 'Campo de observações no item', type: 'toggle', icon: <FileText className="w-4 h-4" />, defaultValue: true },
-      { key: 'pdv_show_categories', label: 'Categorias', description: 'Filtro de categorias de produtos', type: 'toggle', icon: <Grid3X3 className="w-4 h-4" />, defaultValue: true },
-      { key: 'pdv_grid_size', label: 'Tamanho dos Produtos', description: 'Como mostrar os produtos', type: 'select', icon: <LayoutGrid className="w-4 h-4" />, options: [{ value: 'small', label: 'Pequeno (mais itens)' }, { value: 'medium', label: 'Médio' }, { value: 'large', label: 'Grande (com foto)' }], defaultValue: 'medium' },
-      { key: 'pdv_auto_print', label: 'Imprimir Automaticamente', description: 'Imprime ao finalizar venda', type: 'toggle', icon: <Printer className="w-4 h-4" />, defaultValue: false }
+      { key: 'pdv_enabled', label: 'Sistema PDV Ativo', description: 'Habilita o módulo de vendas no balcão', type: 'toggle', icon: <Monitor className="w-4 h-4" />, defaultValue: true },
+      { key: 'pdv_layout', label: 'Layout da Tela', description: 'Como organizar produtos e carrinho', type: 'select', icon: <LayoutGrid className="w-4 h-4" />, options: [{ value: 'grid', label: 'Grade de Produtos' }, { value: 'list', label: 'Lista Vertical' }, { value: 'compact', label: 'Compacto (mais itens)' }], defaultValue: 'grid' },
+      { key: 'pdv_product_size', label: 'Tamanho dos Cards', description: 'Tamanho dos produtos na grade', type: 'select', icon: <Grid3X3 className="w-4 h-4" />, options: [{ value: 'small', label: 'Pequeno (80px)' }, { value: 'medium', label: 'Médio (120px)' }, { value: 'large', label: 'Grande (160px)' }], defaultValue: 'medium' },
+      { key: 'pdv_show_images', label: 'Exibir Fotos dos Produtos', description: 'Mostra imagem nos cards', type: 'toggle', icon: <Image className="w-4 h-4" />, defaultValue: true },
+      { key: 'pdv_show_stock', label: 'Exibir Estoque Disponível', description: 'Mostra quantidade em estoque', type: 'toggle', icon: <Package className="w-4 h-4" />, defaultValue: true },
+      { key: 'pdv_low_stock_alert', label: 'Alerta de Estoque Baixo', description: 'Destaca produtos com pouco estoque', type: 'number', icon: <Bell className="w-4 h-4" />, placeholder: '5', defaultValue: 5 },
+      { key: 'pdv_barcode_enabled', label: 'Leitor de Código de Barras', description: 'Busca produto por código', type: 'toggle', icon: <ScanBarcode className="w-4 h-4" />, defaultValue: true },
+      { key: 'pdv_scale_enabled', label: 'Integração com Balança', description: 'Para produtos vendidos por peso', type: 'toggle', icon: <Scale className="w-4 h-4" />, defaultValue: false },
+      { key: 'pdv_discount_enabled', label: 'Permitir Descontos', description: 'Operador pode dar desconto', type: 'toggle', icon: <Percent className="w-4 h-4" />, defaultValue: true },
+      { key: 'pdv_max_discount', label: 'Desconto Máximo (%)', description: 'Limite de desconto sem gerente', type: 'number', icon: <Percent className="w-4 h-4" />, placeholder: '10', defaultValue: 10, suffix: '%' },
+      { key: 'pdv_manager_discount', label: 'Desconto com Senha Gerente (%)', description: 'Desconto máximo com autorização', type: 'number', icon: <Percent className="w-4 h-4" />, placeholder: '30', defaultValue: 30, suffix: '%' },
+      { key: 'pdv_require_customer', label: 'Obrigar Identificação do Cliente', description: 'Não finaliza sem cliente', type: 'toggle', icon: <Users className="w-4 h-4" />, defaultValue: false },
+      { key: 'pdv_allow_obs', label: 'Observações nos Itens', description: 'Permite adicionar notas aos produtos', type: 'toggle', icon: <FileText className="w-4 h-4" />, defaultValue: true },
+      { key: 'pdv_auto_print', label: 'Impressão Automática', description: 'Imprime cupom ao finalizar', type: 'toggle', icon: <Printer className="w-4 h-4" />, defaultValue: true },
+      { key: 'pdv_print_copies', label: 'Cópias do Cupom', description: 'Quantas vias imprimir', type: 'select', icon: <Receipt className="w-4 h-4" />, options: [{ value: '1', label: '1 via' }, { value: '2', label: '2 vias' }, { value: '3', label: '3 vias' }], defaultValue: '1' },
+      { key: 'pdv_open_drawer', label: 'Abrir Gaveta Automaticamente', description: 'Abre ao receber dinheiro', type: 'toggle', icon: <Archive className="w-4 h-4" />, defaultValue: true },
+      { key: 'pdv_sound_enabled', label: 'Sons de Feedback', description: 'Bip ao adicionar item', type: 'toggle', icon: <Volume2 className="w-4 h-4" />, defaultValue: true },
+      { key: 'pdv_quick_sale', label: 'Venda Rápida (F2)', description: 'Atalho para finalizar em dinheiro', type: 'toggle', icon: <Zap className="w-4 h-4" />, defaultValue: true },
+      { key: 'pdv_default_payment', label: 'Forma de Pagamento Padrão', description: 'Seleção inicial ao finalizar', type: 'select', icon: <CreditCard className="w-4 h-4" />, options: [{ value: 'money', label: 'Dinheiro' }, { value: 'debit', label: 'Débito' }, { value: 'credit', label: 'Crédito' }, { value: 'pix', label: 'PIX' }], defaultValue: 'money' },
+      { key: 'pdv_sangria_enabled', label: 'Sangria de Caixa', description: 'Permite retirada de valores', type: 'toggle', icon: <DollarSign className="w-4 h-4" />, defaultValue: true },
+      { key: 'pdv_suprimento_enabled', label: 'Suprimento de Caixa', description: 'Permite entrada de valores', type: 'toggle', icon: <Banknote className="w-4 h-4" />, defaultValue: true },
+      { key: 'pdv_blind_close', label: 'Fechamento Cego', description: 'Operador informa valor sem ver sistema', type: 'toggle', icon: <EyeOff className="w-4 h-4" />, defaultValue: false }
     ]
   },
   {
