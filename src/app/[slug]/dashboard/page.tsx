@@ -102,10 +102,10 @@ export default function AdminPage() {
 
   if (loadingProducts || loadingOrders) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-red-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600 text-lg">Carregando dashboard...</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 flex items-center justify-center">
+        <div className="text-center bg-white/80 backdrop-blur-sm p-8 rounded-3xl shadow-xl shadow-slate-200/50">
+          <Loader2 className="w-14 h-14 text-blue-600 animate-spin mx-auto mb-4" />
+          <p className="text-slate-600 text-lg font-medium">Carregando dashboard...</p>
         </div>
       </div>
     )
@@ -144,106 +144,154 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 p-4 md:p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto space-y-8">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900">Dashboard Admin</h1>
-          <p className="text-gray-600 mt-1">Painel Administrativo</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-800 flex items-center gap-3">
+            <div className="p-2.5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg shadow-blue-500/25">
+              <BarChart3 className="w-6 h-6 md:w-7 md:h-7 text-white" />
+            </div>
+            Dashboard
+          </h1>
+          <p className="text-slate-500 mt-2 ml-14">Visão geral do seu negócio</p>
         </div>
         {/* Stats Cards */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {stats.map((stat, idx) => (
-            <div key={idx} className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+            <div key={idx} className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-6 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
               <div className="flex items-center justify-between mb-4">
-                <div className={`${stat.color} p-3 rounded-xl`}>
+                <div className={`${stat.color} p-3 rounded-xl shadow-lg`}>
                   <stat.icon className="w-6 h-6 text-white" />
                 </div>
-                <TrendingUp className="w-5 h-5 text-green-500" />
+                <div className="flex items-center gap-1 text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">
+                  <TrendingUp className="w-4 h-4" />
+                  <span className="text-xs font-semibold">+0%</span>
+                </div>
               </div>
-              <div className="text-3xl font-bold text-gray-900 mb-1">{stat.value}</div>
-              <div className="text-sm text-gray-600">{stat.label}</div>
+              <div className="text-3xl font-bold text-slate-800 mb-1">{stat.value}</div>
+              <div className="text-sm font-medium text-slate-500">{stat.label}</div>
             </div>
           ))}
         </div>
 
         <div className="grid lg:grid-cols-2 gap-6">
           {/* Recent Orders */}
-          <div className="bg-white rounded-2xl shadow-lg p-6">
-            <div className="flex items-center gap-2 mb-6">
-              <ShoppingBag className="w-6 h-6 text-blue-600" />
-              <h2 className="text-2xl font-bold">Pedidos Recentes</h2>
+          <div className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-blue-100 rounded-xl">
+                <ShoppingBag className="w-5 h-5 text-blue-600" />
+              </div>
+              <h2 className="text-xl font-bold text-slate-800">Pedidos Recentes</h2>
             </div>
-            <div className="space-y-3">
-              {recentOrders.map((order) => (
-                <div key={order.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-1">
-                      <span className="font-bold text-lg">#{order.order_code}</span>
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(order.status)}`}>
-                        {getStatusLabel(order.status)}
-                      </span>
-                    </div>
-                    <div className="text-sm text-gray-600">{order.customer_name}</div>
-                    <div className="text-xs text-gray-500 mt-1">há {getElapsedTime(order.created_at)}</div>
-                  </div>
-                  <div className="text-xl font-bold text-green-600">
-                    {formatCurrency(order.total_amount)}
-                  </div>
+            {recentOrders.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 mx-auto mb-4 bg-slate-100 rounded-2xl flex items-center justify-center">
+                  <ShoppingBag className="w-8 h-8 text-slate-300" />
                 </div>
-              ))}
-            </div>
+                <p className="text-slate-400 font-medium">Nenhum pedido ainda</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {recentOrders.map((order) => (
+                  <div key={order.id} className="flex items-center justify-between p-4 bg-gradient-to-r from-slate-50 to-slate-100/50 rounded-xl border border-slate-200/50 hover:shadow-md transition-all">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-1">
+                        <span className="font-bold text-lg text-slate-800">#{order.order_code}</span>
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(order.status)}`}>
+                          {getStatusLabel(order.status)}
+                        </span>
+                      </div>
+                      <div className="text-sm text-slate-600">{order.customer_name}</div>
+                      <div className="text-xs text-slate-400 mt-1">há {getElapsedTime(order.created_at)}</div>
+                    </div>
+                    <div className="text-xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                      {formatCurrency(order.total_amount)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Top Products */}
-          <div className="bg-white rounded-2xl shadow-lg p-6">
-            <div className="flex items-center gap-2 mb-6">
-              <BarChart3 className="w-6 h-6 text-purple-600" />
-              <h2 className="text-2xl font-bold">Produtos Mais Vendidos</h2>
+          <div className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-violet-100 rounded-xl">
+                <BarChart3 className="w-5 h-5 text-violet-600" />
+              </div>
+              <h2 className="text-xl font-bold text-slate-800">Produtos Mais Vendidos</h2>
             </div>
-            <div className="space-y-4">
-              {topProducts.map((product, idx) => (
-                <div key={idx} className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-semibold text-gray-900">{product.name}</div>
-                      <div className="text-sm text-gray-600">Preço: {product.revenue}</div>
+            {topProducts.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 mx-auto mb-4 bg-slate-100 rounded-2xl flex items-center justify-center">
+                  <Package className="w-8 h-8 text-slate-300" />
+                </div>
+                <p className="text-slate-400 font-medium">Nenhum produto ainda</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {topProducts.map((product, idx) => (
+                  <div key={idx} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center text-sm font-bold shadow-md">
+                          {idx + 1}
+                        </span>
+                        <div>
+                          <div className="font-semibold text-slate-800">{product.name}</div>
+                          <div className="text-sm text-slate-500">Preço: {product.revenue}</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                      <div
+                        className="bg-gradient-to-r from-violet-500 to-purple-600 h-full rounded-full"
+                        style={{ width: `${100 - (idx * 15)}%` }}
+                      />
                     </div>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-gradient-to-r from-purple-500 to-purple-600 h-2 rounded-full"
-                      style={{ width: `${((idx + 1) / topProducts.length) * 100}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
         {/* Quick Actions */}
-        <div className="bg-white rounded-2xl shadow-lg p-6">
-          <h2 className="text-2xl font-bold mb-6">Ações Rápidas</h2>
+        <div className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-amber-100 rounded-xl">
+              <TrendingUp className="w-5 h-5 text-amber-600" />
+            </div>
+            <h2 className="text-xl font-bold text-slate-800">Ações Rápidas</h2>
+          </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <button className="p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl hover:shadow-md transition-all text-left">
-              <Package className="w-8 h-8 text-blue-600 mb-3" />
-              <div className="font-bold text-gray-900">Adicionar Produto</div>
-              <div className="text-sm text-gray-600 mt-1">Cadastrar novo item</div>
+            <button className="group p-6 bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-2xl border border-blue-200/50 hover:shadow-lg hover:shadow-blue-500/10 hover:-translate-y-0.5 transition-all text-left">
+              <div className="p-3 bg-blue-100 rounded-xl w-fit mb-4 group-hover:bg-blue-200 transition-colors">
+                <Package className="w-6 h-6 text-blue-600" />
+              </div>
+              <div className="font-bold text-slate-800">Adicionar Produto</div>
+              <div className="text-sm text-slate-500 mt-1">Cadastrar novo item</div>
             </button>
-            <button className="p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-xl hover:shadow-md transition-all text-left">
-              <Users className="w-8 h-8 text-green-600 mb-3" />
-              <div className="font-bold text-gray-900">Gerenciar Usuários</div>
-              <div className="text-sm text-gray-600 mt-1">Equipe e permissões</div>
+            <button className="group p-6 bg-gradient-to-br from-emerald-50 to-emerald-100/50 rounded-2xl border border-emerald-200/50 hover:shadow-lg hover:shadow-emerald-500/10 hover:-translate-y-0.5 transition-all text-left">
+              <div className="p-3 bg-emerald-100 rounded-xl w-fit mb-4 group-hover:bg-emerald-200 transition-colors">
+                <Users className="w-6 h-6 text-emerald-600" />
+              </div>
+              <div className="font-bold text-slate-800">Gerenciar Usuários</div>
+              <div className="text-sm text-slate-500 mt-1">Equipe e permissões</div>
             </button>
-            <button className="p-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl hover:shadow-md transition-all text-left">
-              <BarChart3 className="w-8 h-8 text-purple-600 mb-3" />
-              <div className="font-bold text-gray-900">Relatórios</div>
-              <div className="text-sm text-gray-600 mt-1">Análises e métricas</div>
+            <button className="group p-6 bg-gradient-to-br from-violet-50 to-violet-100/50 rounded-2xl border border-violet-200/50 hover:shadow-lg hover:shadow-violet-500/10 hover:-translate-y-0.5 transition-all text-left">
+              <div className="p-3 bg-violet-100 rounded-xl w-fit mb-4 group-hover:bg-violet-200 transition-colors">
+                <BarChart3 className="w-6 h-6 text-violet-600" />
+              </div>
+              <div className="font-bold text-slate-800">Relatórios</div>
+              <div className="text-sm text-slate-500 mt-1">Análises e métricas</div>
             </button>
-            <button className="p-6 bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl hover:shadow-md transition-all text-left">
-              <DollarSign className="w-8 h-8 text-orange-600 mb-3" />
-              <div className="font-bold text-gray-900">Financeiro</div>
-              <div className="text-sm text-gray-600 mt-1">Vendas e pagamentos</div>
+            <button className="group p-6 bg-gradient-to-br from-amber-50 to-amber-100/50 rounded-2xl border border-amber-200/50 hover:shadow-lg hover:shadow-amber-500/10 hover:-translate-y-0.5 transition-all text-left">
+              <div className="p-3 bg-amber-100 rounded-xl w-fit mb-4 group-hover:bg-amber-200 transition-colors">
+                <DollarSign className="w-6 h-6 text-amber-600" />
+              </div>
+              <div className="font-bold text-slate-800">Financeiro</div>
+              <div className="text-sm text-slate-500 mt-1">Vendas e pagamentos</div>
             </button>
           </div>
         </div>
