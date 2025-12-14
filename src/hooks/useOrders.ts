@@ -9,8 +9,9 @@ export interface Order {
   customer_phone: string
   customer_email: string
   delivery_address: string | null
-  order_type: 'delivery' | 'pickup' | 'dine_in'
-  payment_method: 'pix' | 'credit_card' | 'debit_card' | 'cash'
+  order_type: 'delivery' | 'pickup' | 'dine_in' | 'takeout'
+  payment_method: 'pix' | 'credit_card' | 'debit_card' | 'cash' | 'card' | 'card_on_delivery' | 'online'
+  payment_status: 'pending' | 'paid' | 'cancelled'
   subtotal: number
   delivery_fee: number
   discount: number

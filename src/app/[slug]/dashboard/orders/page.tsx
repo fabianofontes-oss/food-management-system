@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Search, Filter, Calendar, Package, Eye, Printer, Download, TrendingUp, Clock, DollarSign, ShoppingBag, Loader2, X, ChevronDown } from 'lucide-react'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { Search, Filter, Package, Eye, Printer, Download, TrendingUp, Clock, DollarSign, ShoppingBag, Loader2, X, ChevronDown, MessageCircle, CheckCircle, ChefHat, Truck, AlertTriangle, Volume2, VolumeX, RefreshCw, Phone } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { formatCurrency } from '@/lib/utils'
 import { useOrders } from '@/hooks/useOrders'
@@ -20,7 +20,7 @@ type OrderItem = {
 
 export default function OrdersPage() {
   const { t, formatCurrency: formatCurrencyI18n } = useLanguage()
-  const { orders, loading } = useOrders()
+  const { orders, loading, updateOrderStatus, fetchOrders } = useOrders()
   const [orderItems, setOrderItems] = useState<Record<string, OrderItem[]>>({})
   
   const [searchTerm, setSearchTerm] = useState('')
@@ -36,6 +36,12 @@ export default function OrdersPage() {
   const [totalRevenue, setTotalRevenue] = useState(0)
   const [todayOrders, setTodayOrders] = useState(0)
   const [avgOrderValue, setAvgOrderValue] = useState(0)
+  
+  const [soundEnabled, setSoundEnabled] = useState(true)
+  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null)
+  const previousOrderCount = useRef(orders.length)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const [currentTime, setCurrentTime] = useState(Date.now())
 
   useEffect(() => {
     async function loadOrderItems() {
@@ -68,6 +74,115 @@ export default function OrdersPage() {
     setTodayOrders(todayOrdersList.length)
     setAvgOrderValue(orders.length > 0 ? orders.reduce((sum, o) => sum + o.total_amount, 0) / orders.length : 0)
   }, [orders])
+
+  // Notificação sonora para novos pedidos
+  useEffect(() => {
+    if (orders.length > previousOrderCount.current && soundEnabled && previousOrderCount.current > 0) {
+      playNotificationSound()
+    }
+    previousOrderCount.current = orders.length
+  }, [orders.length, soundEnabled])
+
+  // Atualizar tempo a cada 30 segundos para indicadores de urgência
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(Date.now())
+    }, 30000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const playNotificationSound = () => {
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+      const oscillator = audioContext.createOscillator()
+      const gainNode = audioContext.createGain()
+      
+      oscillator.connect(gainNode)
+      gainNode.connect(audioContext.destination)
+      
+      oscillator.frequency.value = 800
+      oscillator.type = 'sine'
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime)
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5)
+      
+      oscillator.start(audioContext.currentTime)
+      oscillator.stop(audioContext.currentTime + 0.5)
+    } catch (e) {
+      console.log('Audio não suportado')
+    }
+  }
+
+  // Calcular tempo de espera em minutos
+  const getWaitTime = (createdAt: string) => {
+    const minutes = Math.floor((currentTime - new Date(createdAt).getTime()) / 60000)
+    if (minutes < 60) return `${minutes}min`
+    const hours = Math.floor(minutes / 60)
+    const remainingMins = minutes % 60
+    return `${hours}h ${remainingMins}min`
+  }
+
+  // Verificar se pedido é urgente (>15min pendente ou >30min em preparo)
+  const isUrgent = (order: any) => {
+    const minutes = Math.floor((currentTime - new Date(order.created_at).getTime()) / 60000)
+    if (order.status === 'pending' && minutes > 15) return true
+    if (order.status === 'preparing' && minutes > 30) return true
+    if (order.status === 'ready' && minutes > 10) return true
+    return false
+  }
+
+  // Ações rápidas de status
+  const handleQuickAction = async (orderId: string, newStatus: string) => {
+    setUpdatingStatus(orderId)
+    try {
+      await updateOrderStatus(orderId, newStatus as any)
+    } catch (err) {
+      console.error('Erro ao atualizar status:', err)
+      alert('Erro ao atualizar status')
+    } finally {
+      setUpdatingStatus(null)
+    }
+  }
+
+  // Abrir WhatsApp
+  const openWhatsApp = (phone: string, orderCode: string) => {
+    const cleanPhone = phone.replace(/\D/g, '')
+    const message = encodeURIComponent(`Olá! Sobre o pedido #${orderCode}...`)
+    window.open(`https://wa.me/55${cleanPhone}?text=${message}`, '_blank')
+  }
+
+  // Próximo status do fluxo
+  const getNextStatus = (currentStatus: string) => {
+    const flow: Record<string, string> = {
+      'pending': 'confirmed',
+      'confirmed': 'preparing',
+      'preparing': 'ready',
+      'ready': 'out_for_delivery',
+      'out_for_delivery': 'delivered'
+    }
+    return flow[currentStatus]
+  }
+
+  const getNextStatusLabel = (currentStatus: string) => {
+    const labels: Record<string, string> = {
+      'pending': 'Confirmar',
+      'confirmed': 'Preparar',
+      'preparing': 'Pronto',
+      'ready': 'Enviar',
+      'out_for_delivery': 'Entregar'
+    }
+    return labels[currentStatus]
+  }
+
+  const getNextStatusIcon = (currentStatus: string) => {
+    const icons: Record<string, any> = {
+      'pending': CheckCircle,
+      'confirmed': ChefHat,
+      'preparing': Package,
+      'ready': Truck,
+      'out_for_delivery': CheckCircle
+    }
+    return icons[currentStatus] || CheckCircle
+  }
 
   // Calcular pagamentos pendentes (últimas 48h)
   const pendingPaymentsCount = orders.filter(order => {
@@ -314,7 +429,21 @@ export default function OrdersPage() {
               </h1>
               <p className="text-slate-500 mt-2 ml-14">Gestão completa de pedidos</p>
             </div>
-            <div className="flex gap-3">
+            <div className="flex gap-2">
+              <button
+                onClick={() => setSoundEnabled(!soundEnabled)}
+                className={`p-3 rounded-xl transition-all ${soundEnabled ? 'bg-emerald-100 text-emerald-600 hover:bg-emerald-200' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}`}
+                title={soundEnabled ? 'Som ativado' : 'Som desativado'}
+              >
+                {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+              </button>
+              <button
+                onClick={() => fetchOrders()}
+                className="p-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition-all"
+                title="Atualizar pedidos"
+              >
+                <RefreshCw className="w-5 h-5" />
+              </button>
               <Button
                 onClick={exportToCSV}
                 className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-lg shadow-emerald-500/25"
@@ -482,69 +611,132 @@ export default function OrdersPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {filteredOrders.map((order) => (
-                <div
-                  key={order.id}
-                  className="flex items-center justify-between p-5 bg-gradient-to-r from-slate-50 to-slate-100/50 rounded-xl border border-slate-200/50 hover:shadow-md hover:border-slate-200 transition-all"
-                >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className="font-bold text-lg">#{order.order_code}</span>
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(order.status)}`}>
-                        {getStatusLabel(order.status)}
-                      </span>
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getTypeColor(order.order_type)}`}>
-                        {getTypeLabel(order.order_type)}
-                      </span>
-                      <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
-                        {getPaymentMethodLabel(order.payment_method || 'cash')}
-                      </span>
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getPaymentStatusColor(order.payment_status || 'pending')}`}>
-                        {getPaymentStatusLabel(order.payment_status || 'pending')}
-                      </span>
-                    </div>
-                    <div className="text-sm text-gray-600 mb-1">
-                      <strong>{order.customer_name}</strong>
-                      {order.customer_phone && ` • ${order.customer_phone}`}
-                    </div>
-                    <div className="flex items-center gap-4 text-xs text-gray-500">
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        {formatDate(order.created_at)}
-                      </span>
-                      {orderItems[order.id] && (
-                        <span>{orderItems[order.id].length} {orderItems[order.id].length === 1 ? 'item' : 'itens'}</span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-right mr-4">
-                      <div className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
-                        {formatCurrencyI18n(order.total_amount)}
+              {filteredOrders.map((order) => {
+                const urgent = isUrgent(order)
+                const NextIcon = getNextStatusIcon(order.status)
+                const nextStatus = getNextStatus(order.status)
+                
+                return (
+                  <div
+                    key={order.id}
+                    className={`flex flex-col lg:flex-row lg:items-center justify-between p-5 rounded-xl border transition-all ${
+                      urgent 
+                        ? 'bg-gradient-to-r from-red-50 to-orange-50 border-red-200 shadow-lg shadow-red-100/50 animate-pulse-slow' 
+                        : 'bg-gradient-to-r from-slate-50 to-slate-100/50 border-slate-200/50 hover:shadow-md hover:border-slate-200'
+                    }`}
+                  >
+                    <div className="flex-1">
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
+                        <span className="font-bold text-lg">#{order.order_code}</span>
+                        
+                        {/* Indicador de Urgência */}
+                        {urgent && (
+                          <span className="px-2 py-1 rounded-full text-xs font-bold bg-red-500 text-white flex items-center gap-1 animate-pulse">
+                            <AlertTriangle className="w-3 h-3" />
+                            URGENTE
+                          </span>
+                        )}
+                        
+                        {/* Tempo de Espera */}
+                        <span className={`px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1 ${
+                          urgent ? 'bg-red-100 text-red-700' : 'bg-slate-200 text-slate-600'
+                        }`}>
+                          <Clock className="w-3 h-3" />
+                          {getWaitTime(order.created_at)}
+                        </span>
+                        
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(order.status)}`}>
+                          {getStatusLabel(order.status)}
+                        </span>
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getTypeColor(order.order_type)}`}>
+                          {getTypeLabel(order.order_type)}
+                        </span>
+                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                          {getPaymentMethodLabel(order.payment_method || 'cash')}
+                        </span>
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getPaymentStatusColor(order.payment_status || 'pending')}`}>
+                          {getPaymentStatusLabel(order.payment_status || 'pending')}
+                        </span>
+                      </div>
+                      <div className="text-sm text-gray-600 mb-1">
+                        <strong>{order.customer_name}</strong>
+                        {order.customer_phone && ` • ${order.customer_phone}`}
+                      </div>
+                      <div className="flex items-center gap-4 text-xs text-gray-500">
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {formatDate(order.created_at)}
+                        </span>
+                        {orderItems[order.id] && (
+                          <span>{orderItems[order.id].length} {orderItems[order.id].length === 1 ? 'item' : 'itens'}</span>
+                        )}
                       </div>
                     </div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => {
-                          setSelectedOrder(order)
-                          setShowDetailsModal(true)
-                        }}
-                        className="p-2.5 bg-blue-100 hover:bg-blue-200 text-blue-600 rounded-xl transition-all hover:shadow-md"
-                        title="Ver Detalhes"
-                      >
-                        <Eye className="w-5 h-5" />
-                      </button>
-                      <button
-                        onClick={() => printOrder(order)}
-                        className="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition-all hover:shadow-md"
-                        title="Imprimir"
-                      >
-                        <Printer className="w-5 h-5" />
-                      </button>
+                    
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mt-4 lg:mt-0">
+                      {/* Ação Rápida de Status */}
+                      {nextStatus && order.status !== 'delivered' && order.status !== 'cancelled' && (
+                        <button
+                          onClick={() => handleQuickAction(order.id, nextStatus)}
+                          disabled={updatingStatus === order.id}
+                          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all shadow-md ${
+                            order.status === 'pending' 
+                              ? 'bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white shadow-emerald-500/25'
+                              : order.status === 'confirmed'
+                              ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-amber-500/25'
+                              : order.status === 'preparing'
+                              ? 'bg-gradient-to-r from-purple-500 to-violet-600 hover:from-purple-600 hover:to-violet-700 text-white shadow-purple-500/25'
+                              : 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-blue-500/25'
+                          }`}
+                        >
+                          {updatingStatus === order.id ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <NextIcon className="w-4 h-4" />
+                          )}
+                          {getNextStatusLabel(order.status)}
+                        </button>
+                      )}
+                      
+                      <div className="text-right">
+                        <div className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                          {formatCurrencyI18n(order.total_amount)}
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        {/* Botão WhatsApp */}
+                        {order.customer_phone && (
+                          <button
+                            onClick={() => openWhatsApp(order.customer_phone, order.order_code)}
+                            className="p-2.5 bg-green-100 hover:bg-green-200 text-green-600 rounded-xl transition-all hover:shadow-md"
+                            title="Abrir WhatsApp"
+                          >
+                            <MessageCircle className="w-5 h-5" />
+                          </button>
+                        )}
+                        <button
+                          onClick={() => {
+                            setSelectedOrder(order)
+                            setShowDetailsModal(true)
+                          }}
+                          className="p-2.5 bg-blue-100 hover:bg-blue-200 text-blue-600 rounded-xl transition-all hover:shadow-md"
+                          title="Ver Detalhes"
+                        >
+                          <Eye className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => printOrder(order)}
+                          className="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition-all hover:shadow-md"
+                          title="Imprimir"
+                        >
+                          <Printer className="w-5 h-5" />
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>
