@@ -30,6 +30,7 @@ export default function DashboardClient({
       items: [
         { href: base, label: 'Dashboard', icon: LayoutDashboard, gradient: 'from-violet-500 to-purple-600' },
         { href: `${base}/pos`, label: 'PDV', icon: ShoppingCart, gradient: 'from-emerald-500 to-teal-600' },
+        { href: `${base}/pdv-config`, label: 'Config PDV', icon: Settings, gradient: 'from-slate-500 to-slate-600' },
         { href: `${base}/orders`, label: 'Pedidos', icon: ShoppingBag, gradient: 'from-blue-500 to-cyan-600' },
       ]
     },
