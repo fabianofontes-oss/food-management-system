@@ -8,9 +8,10 @@ import {
   Package, Settings, ChevronLeft, ChevronRight, Menu, X,
   Users, ShoppingBag, UserCog, BarChart3, Ticket, Store,
   DollarSign, Warehouse, LayoutGrid, PieChart, Star, Megaphone, CalendarDays, LogOut,
-  Sparkles, TrendingUp, Bell, Search, ExternalLink, Coffee
+  Sparkles, TrendingUp, Bell, Search, ExternalLink, Coffee, Sun, Moon
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useTheme } from '@/contexts/ThemeContext'
 
 export default function DashboardClient({
   children,
@@ -23,6 +24,7 @@ export default function DashboardClient({
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const pathname = usePathname()
   const base = `/${slug}/dashboard`
+  const { resolvedTheme, toggleTheme } = useTheme()
 
   const menuSections = [
     {
@@ -66,7 +68,12 @@ export default function DashboardClient({
   ]
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
+    <div className={cn(
+      "flex min-h-screen transition-colors duration-300",
+      resolvedTheme === 'dark' 
+        ? 'bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950' 
+        : 'bg-gradient-to-br from-slate-50 via-white to-slate-100'
+    )}>
       {/* Mobile Menu Button */}
       <button
         onClick={() => setIsMobileOpen(!isMobileOpen)}
@@ -140,6 +147,13 @@ export default function DashboardClient({
                   <ExternalLink className="w-3.5 h-3.5" />
                   Ver Cardápio
                 </Link>
+                <button 
+                  onClick={toggleTheme}
+                  className="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 text-slate-400 hover:text-white transition-all"
+                  title={resolvedTheme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}
+                >
+                  {resolvedTheme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                </button>
                 <button className="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 text-slate-400 hover:text-white transition-all relative">
                   <Bell className="w-4 h-4" />
                   <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full"></span>
