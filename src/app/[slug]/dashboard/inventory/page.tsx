@@ -6,8 +6,12 @@ import { createClient } from '@/lib/supabase/client'
 import { 
   Package, Plus, Search, AlertTriangle, TrendingDown,
   TrendingUp, Loader2, AlertCircle, Edit, Trash2,
-  ArrowUpCircle, ArrowDownCircle, History, Filter
+  ArrowUpCircle, ArrowDownCircle, History, Filter,
+  Calendar, Truck, ClipboardList, BarChart3, X,
+  Clock, Box, ShoppingCart, FileText, CheckCircle,
+  Zap, RefreshCw
 } from 'lucide-react'
+import { formatCurrency } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 
 interface InventoryItem {
@@ -18,20 +22,47 @@ interface InventoryItem {
   min_quantity: number
   cost_per_unit: number
   supplier: string | null
+  barcode: string | null
+  category: string | null
   is_active: boolean
   created_at: string
 }
 
-interface StockMovement {
+interface Movement {
   id: string
   item_id: string
-  type: 'in' | 'out' | 'adjustment'
+  type: string
   quantity: number
+  previous_quantity: number
+  new_quantity: number
   reason: string | null
+  batch_number: string | null
+  expiry_date: string | null
+  created_at: string
+  item?: { name: string }
+}
+
+interface Batch {
+  id: string
+  item_id: string
+  batch_number: string
+  quantity: number
+  expiry_date: string | null
+  status: string
+}
+
+interface PurchaseOrder {
+  id: string
+  order_number: string
+  supplier: string
+  status: string
+  total_amount: number
+  expected_date: string | null
   created_at: string
 }
 
-type FilterType = 'all' | 'low' | 'out'
+type FilterType = 'all' | 'low' | 'out' | 'expiring'
+type TabType = 'items' | 'movements' | 'batches' | 'orders' | 'count'
 
 export default function InventoryPage() {
   const params = useParams()
@@ -48,6 +79,17 @@ export default function InventoryPage() {
   const [showForm, setShowForm] = useState(false)
   const [showMovement, setShowMovement] = useState(false)
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null)
+  
+  // Premium states
+  const [activeTab, setActiveTab] = useState<TabType>('items')
+  const [movements, setMovements] = useState<Movement[]>([])
+  const [batches, setBatches] = useState<Batch[]>([])
+  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([])
+  const [showHistory, setShowHistory] = useState(false)
+  const [showBatchForm, setShowBatchForm] = useState(false)
+  const [showOrderForm, setShowOrderForm] = useState(false)
+  const [itemMovements, setItemMovements] = useState<Movement[]>([])
+  const [expiringBatches, setExpiringBatches] = useState<Batch[]>([])
   
   const [formData, setFormData] = useState({
     name: '',
@@ -89,8 +131,68 @@ export default function InventoryPage() {
   }, [slug, supabase])
 
   useEffect(() => {
-    if (storeId) loadItems()
+    if (storeId) {
+      loadItems()
+      loadMovements()
+      loadBatches()
+      loadPurchaseOrders()
+      loadExpiringBatches()
+    }
   }, [storeId])
+
+  async function loadMovements() {
+    const { data } = await supabase
+      .from('inventory_movements')
+      .select('*, item:inventory_items(name)')
+      .eq('store_id', storeId)
+      .order('created_at', { ascending: false })
+      .limit(100)
+    setMovements(data || [])
+  }
+
+  async function loadBatches() {
+    const { data } = await supabase
+      .from('inventory_batches')
+      .select('*')
+      .eq('store_id', storeId)
+      .eq('status', 'active')
+      .order('expiry_date')
+    setBatches(data || [])
+  }
+
+  async function loadPurchaseOrders() {
+    const { data } = await supabase
+      .from('purchase_orders')
+      .select('*')
+      .eq('store_id', storeId)
+      .order('created_at', { ascending: false })
+      .limit(50)
+    setPurchaseOrders(data || [])
+  }
+
+  async function loadExpiringBatches() {
+    const nextWeek = new Date()
+    nextWeek.setDate(nextWeek.getDate() + 7)
+    
+    const { data } = await supabase
+      .from('inventory_batches')
+      .select('*')
+      .eq('store_id', storeId)
+      .eq('status', 'active')
+      .lte('expiry_date', nextWeek.toISOString())
+      .order('expiry_date')
+    setExpiringBatches(data || [])
+  }
+
+  async function loadItemMovements(itemId: string) {
+    const { data } = await supabase
+      .from('inventory_movements')
+      .select('*')
+      .eq('item_id', itemId)
+      .order('created_at', { ascending: false })
+      .limit(50)
+    setItemMovements(data || [])
+  }
 
   async function loadItems() {
     try {
@@ -155,7 +257,8 @@ export default function InventoryPage() {
     
     try {
       const qty = parseFloat(movementData.quantity)
-      let newQuantity = selectedItem.current_quantity
+      const previousQty = selectedItem.current_quantity
+      let newQuantity = previousQty
       
       if (movementData.type === 'in') {
         newQuantity += qty
@@ -165,15 +268,34 @@ export default function InventoryPage() {
         newQuantity = qty
       }
 
+      const finalQty = Math.max(0, newQuantity)
+
+      // Atualizar quantidade
       await supabase
         .from('inventory_items')
-        .update({ current_quantity: Math.max(0, newQuantity) })
+        .update({ current_quantity: finalQty })
         .eq('id', selectedItem.id)
+
+      // Registrar movimentação no histórico
+      await supabase
+        .from('inventory_movements')
+        .insert({
+          store_id: storeId,
+          item_id: selectedItem.id,
+          type: movementData.type,
+          quantity: qty,
+          previous_quantity: previousQty,
+          new_quantity: finalQty,
+          reason: movementData.reason || null,
+          unit_cost: selectedItem.cost_per_unit,
+          total_cost: qty * selectedItem.cost_per_unit
+        })
       
       setShowMovement(false)
       setSelectedItem(null)
       setMovementData({ type: 'in', quantity: '', reason: '' })
       loadItems()
+      loadMovements()
     } catch (err) {
       console.error('Erro ao registrar movimentação:', err)
     }
@@ -233,27 +355,59 @@ export default function InventoryPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 p-4 md:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-slate-800 flex items-center gap-3">
             <div className="p-2.5 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl shadow-lg shadow-blue-500/25">
               <Package className="w-6 h-6 md:w-7 md:h-7 text-white" />
             </div>
-            Estoque
+            Estoque Premium
           </h1>
-          <p className="text-slate-500 mt-2 ml-14">Controle de insumos e matéria-prima</p>
+          <p className="text-slate-500 mt-2 ml-14">Controle completo de insumos e matéria-prima</p>
         </div>
-        <Button 
-          onClick={() => { setSelectedItem(null); setShowForm(true); }}
-          className="bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 shadow-lg shadow-blue-500/25"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Novo Item
-        </Button>
+        <div className="flex gap-2 flex-wrap">
+          <Button 
+            variant="outline"
+            onClick={() => { loadItems(); loadMovements(); loadBatches(); }}
+          >
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Atualizar
+          </Button>
+          <Button 
+            onClick={() => { setSelectedItem(null); setShowForm(true); }}
+            className="bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 shadow-lg shadow-blue-500/25"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Item
+          </Button>
+        </div>
+      </div>
+
+      {/* Tabs de navegação */}
+      <div className="bg-white rounded-2xl shadow-sm border p-1 flex gap-1 overflow-x-auto">
+        {[
+          { id: 'items', label: 'Itens', icon: Package },
+          { id: 'movements', label: 'Movimentações', icon: History },
+          { id: 'batches', label: 'Lotes/Validade', icon: Calendar },
+          { id: 'orders', label: 'Pedidos Compra', icon: ShoppingCart },
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as TabType)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm transition-all ${
+              activeTab === tab.id 
+                ? 'bg-blue-500 text-white shadow-lg' 
+                : 'text-slate-600 hover:bg-slate-100'
+            }`}
+          >
+            <tab.icon className="w-4 h-4" />
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       {/* Alertas */}
-      {(lowStockCount > 0 || outOfStockCount > 0) && (
+      {(lowStockCount > 0 || outOfStockCount > 0 || expiringBatches.length > 0) && (
         <div className="flex flex-wrap gap-4">
           {lowStockCount > 0 && (
             <div className="flex items-center gap-3 px-5 py-3 bg-amber-50 border border-amber-200 rounded-xl shadow-sm">
@@ -275,9 +429,22 @@ export default function InventoryPage() {
               </span>
             </div>
           )}
+          {expiringBatches.length > 0 && (
+            <div className="flex items-center gap-3 px-5 py-3 bg-purple-50 border border-purple-200 rounded-xl shadow-sm">
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <Calendar className="w-5 h-5 text-purple-600" />
+              </div>
+              <span className="text-sm font-medium text-purple-800">
+                {expiringBatches.length} lote{expiringBatches.length > 1 ? 's' : ''} vencendo em 7 dias
+              </span>
+            </div>
+          )}
         </div>
       )}
 
+      {/* Tab: Itens */}
+      {activeTab === 'items' && (
+      <>
       {/* Filtros */}
       <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
         <div className="relative flex-1 max-w-md">
@@ -582,6 +749,134 @@ export default function InventoryPage() {
                 Confirmar
               </Button>
             </div>
+          </div>
+        </div>
+      )}
+      </>
+      )}
+
+      {/* Tab: Movimentações */}
+      {activeTab === 'movements' && (
+        <div className="bg-white rounded-2xl shadow-lg border overflow-hidden">
+          <div className="p-4 border-b bg-slate-50">
+            <h3 className="font-bold text-slate-800 flex items-center gap-2">
+              <History className="w-5 h-5 text-blue-600" />
+              Histórico de Movimentações
+            </h3>
+          </div>
+          <div className="divide-y max-h-[600px] overflow-y-auto">
+            {movements.length === 0 ? (
+              <p className="text-center text-slate-400 py-12">Nenhuma movimentação registrada</p>
+            ) : (
+              movements.map(mov => (
+                <div key={mov.id} className="p-4 flex items-center justify-between hover:bg-slate-50">
+                  <div className="flex items-center gap-4">
+                    <div className={`p-2 rounded-xl ${
+                      mov.type === 'in' ? 'bg-green-100' : mov.type === 'out' ? 'bg-red-100' : 'bg-blue-100'
+                    }`}>
+                      {mov.type === 'in' ? <ArrowUpCircle className="w-5 h-5 text-green-600" /> :
+                       mov.type === 'out' ? <ArrowDownCircle className="w-5 h-5 text-red-600" /> :
+                       <History className="w-5 h-5 text-blue-600" />}
+                    </div>
+                    <div>
+                      <p className="font-medium">{mov.item?.name || 'Item'}</p>
+                      <p className="text-sm text-slate-500">
+                        {mov.type === 'in' ? 'Entrada' : mov.type === 'out' ? 'Saída' : 'Ajuste'} • {mov.reason || '-'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className={`font-bold ${mov.type === 'in' ? 'text-green-600' : mov.type === 'out' ? 'text-red-600' : 'text-blue-600'}`}>
+                      {mov.type === 'in' ? '+' : mov.type === 'out' ? '-' : ''}{mov.quantity}
+                    </p>
+                    <p className="text-xs text-slate-400">
+                      {new Date(mov.created_at).toLocaleString('pt-BR')}
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Tab: Lotes/Validade */}
+      {activeTab === 'batches' && (
+        <div className="bg-white rounded-2xl shadow-lg border overflow-hidden">
+          <div className="p-4 border-b bg-slate-50 flex items-center justify-between">
+            <h3 className="font-bold text-slate-800 flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-purple-600" />
+              Controle de Lotes e Validade
+            </h3>
+          </div>
+          <div className="divide-y max-h-[600px] overflow-y-auto">
+            {batches.length === 0 ? (
+              <p className="text-center text-slate-400 py-12">Nenhum lote cadastrado</p>
+            ) : (
+              batches.map(batch => {
+                const item = items.find(i => i.id === batch.item_id)
+                const isExpiring = batch.expiry_date && new Date(batch.expiry_date) <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+                const isExpired = batch.expiry_date && new Date(batch.expiry_date) < new Date()
+                return (
+                  <div key={batch.id} className={`p-4 flex items-center justify-between ${isExpired ? 'bg-red-50' : isExpiring ? 'bg-amber-50' : ''}`}>
+                    <div>
+                      <p className="font-medium">{item?.name || 'Item'}</p>
+                      <p className="text-sm text-slate-500">Lote: {batch.batch_number}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold">{batch.quantity} {item?.unit}</p>
+                      {batch.expiry_date && (
+                        <p className={`text-sm font-medium ${isExpired ? 'text-red-600' : isExpiring ? 'text-amber-600' : 'text-slate-500'}`}>
+                          {isExpired ? '⚠️ VENCIDO' : ''} Vence: {new Date(batch.expiry_date).toLocaleDateString('pt-BR')}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )
+              })
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Tab: Pedidos de Compra */}
+      {activeTab === 'orders' && (
+        <div className="bg-white rounded-2xl shadow-lg border overflow-hidden">
+          <div className="p-4 border-b bg-slate-50 flex items-center justify-between">
+            <h3 className="font-bold text-slate-800 flex items-center gap-2">
+              <ShoppingCart className="w-5 h-5 text-green-600" />
+              Pedidos de Compra
+            </h3>
+            <Button size="sm" onClick={() => setShowOrderForm(true)}>
+              <Plus className="w-4 h-4 mr-1" />
+              Novo Pedido
+            </Button>
+          </div>
+          <div className="divide-y max-h-[600px] overflow-y-auto">
+            {purchaseOrders.length === 0 ? (
+              <p className="text-center text-slate-400 py-12">Nenhum pedido de compra</p>
+            ) : (
+              purchaseOrders.map(order => (
+                <div key={order.id} className="p-4 flex items-center justify-between hover:bg-slate-50">
+                  <div>
+                    <p className="font-medium">#{order.order_number || order.id.slice(0,8)}</p>
+                    <p className="text-sm text-slate-500">{order.supplier}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold text-green-600">{formatCurrency(order.total_amount)}</p>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${
+                      order.status === 'received' ? 'bg-green-100 text-green-700' :
+                      order.status === 'sent' ? 'bg-blue-100 text-blue-700' :
+                      'bg-slate-100 text-slate-700'
+                    }`}>
+                      {order.status === 'draft' ? 'Rascunho' : 
+                       order.status === 'sent' ? 'Enviado' : 
+                       order.status === 'received' ? 'Recebido' : order.status}
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       )}
