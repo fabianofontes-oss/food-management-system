@@ -143,7 +143,8 @@ class SettingsService {
       reservations: { ...DEFAULT_SALES_SETTINGS.reservations, ...sales.reservations },
       inventory: { ...DEFAULT_SALES_SETTINGS.inventory, ...sales.inventory },
       kitchen: { ...DEFAULT_SALES_SETTINGS.kitchen, ...sales.kitchen },
-      printer: { ...DEFAULT_SALES_SETTINGS.printer, ...sales.printer }
+      printer: { ...DEFAULT_SALES_SETTINGS.printer, ...sales.printer },
+      pdv: { ...DEFAULT_SALES_SETTINGS.pdv, ...sales.pdv }
     }
   }
 
