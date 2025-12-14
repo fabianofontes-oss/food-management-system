@@ -28,7 +28,7 @@ export interface Module {
   color: string
   bgColor: string
   category: 'store' | 'sales' | 'payments' | 'operations' | 'integrations' | 'marketing' | 'notifications'
-  subcategory?: 'delivery_platforms' | 'payment_gateways' | 'payment_machines' | 'fiscal' | 'erp' | 'communication' | 'analytics' | 'maps' | 'crm'
+  subcategory?: 'delivery_platforms' | 'social_commerce' | 'payment_gateways' | 'payment_machines' | 'fiscal' | 'erp' | 'communication' | 'analytics' | 'maps' | 'crm'
   configPage?: string
   isCore?: boolean
   hasCustomCard?: boolean
@@ -48,6 +48,7 @@ export const CATEGORIES = [
 
 export const INTEGRATION_SUBCATEGORIES = [
   { id: 'delivery_platforms', name: '🚚 Plataformas de Delivery', description: 'Receba pedidos de marketplaces' },
+  { id: 'social_commerce', name: '🛍️ Canais de Venda', description: 'Venda no WhatsApp, Instagram e Facebook' },
   { id: 'payment_gateways', name: '💳 Gateways de Pagamento', description: 'Pagamentos online (PIX, cartão, boleto)' },
   { id: 'payment_machines', name: '🔌 Maquininhas', description: 'Integração com máquinas de cartão' },
   { id: 'fiscal', name: '📄 Fiscal', description: 'Nota fiscal eletrônica' },
@@ -480,6 +481,101 @@ export const MODULES: Module[] = [
       { key: 'aiqfome_enabled', label: 'Ativar Aiqfome', description: 'Recebe pedidos do Aiqfome', type: 'toggle', icon: <Bike className="w-4 h-4" />, defaultValue: false },
       { key: 'aiqfome_store_id', label: 'ID da Loja', description: 'ID no Aiqfome', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'ID', defaultValue: '' },
       { key: 'aiqfome_token', label: 'Token', description: 'Token de integração', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'Token', defaultValue: '' }
+    ]
+  },
+
+  // === INTEGRAÇÕES - CANAIS DE VENDA (SOCIAL COMMERCE) ===
+  {
+    id: 'meta_commerce',
+    name: 'Meta Commerce',
+    description: 'WhatsApp + Instagram + Facebook',
+    longDescription: 'Sincronize seu cardápio com WhatsApp Business, Instagram Shopping e Facebook Shop. Um catálogo, três plataformas.',
+    icon: <ShoppingBag className="w-6 h-6" />,
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-100',
+    category: 'integrations',
+    subcategory: 'social_commerce',
+    requiresSuperadmin: true,
+    settings: [
+      { key: 'meta_commerce_enabled', label: 'Ativar Meta Commerce', description: 'Sincroniza catálogo com Meta', type: 'toggle', icon: <ShoppingBag className="w-4 h-4" />, defaultValue: false },
+      { key: 'meta_app_id', label: 'App ID', description: 'ID do aplicativo Meta', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: '1234567890', defaultValue: '' },
+      { key: 'meta_app_secret', label: 'App Secret', description: 'Chave secreta do app', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'Secret...', defaultValue: '' },
+      { key: 'meta_access_token', label: 'Access Token', description: 'Token de acesso', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'Token...', defaultValue: '' },
+      { key: 'meta_catalog_id', label: 'Catalog ID', description: 'ID do catálogo no Commerce Manager', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'ID do catálogo', defaultValue: '' },
+      { key: 'meta_business_id', label: 'Business ID', description: 'ID da conta Business', type: 'text', icon: <Building2 className="w-4 h-4" />, placeholder: 'Business ID', defaultValue: '' },
+      { key: 'meta_auto_sync', label: 'Sincronização Automática', description: 'Atualiza catálogo automaticamente', type: 'toggle', icon: <Zap className="w-4 h-4" />, defaultValue: true },
+      { key: 'meta_sync_prices', label: 'Sincronizar Preços', description: 'Mantém preços atualizados', type: 'toggle', icon: <DollarSign className="w-4 h-4" />, defaultValue: true },
+      { key: 'meta_sync_stock', label: 'Sincronizar Disponibilidade', description: 'Oculta produtos sem estoque', type: 'toggle', icon: <Package className="w-4 h-4" />, defaultValue: true }
+    ]
+  },
+  {
+    id: 'whatsapp_catalog',
+    name: 'Catálogo WhatsApp',
+    description: 'Produtos no WhatsApp Business',
+    longDescription: 'Exiba seus produtos diretamente no WhatsApp Business. Clientes veem o catálogo e fazem pedidos.',
+    icon: <MessageSquare className="w-6 h-6" />,
+    color: 'text-green-600',
+    bgColor: 'bg-green-100',
+    category: 'integrations',
+    subcategory: 'social_commerce',
+    settings: [
+      { key: 'wa_catalog_enabled', label: 'Ativar Catálogo WhatsApp', description: 'Sincroniza produtos com WhatsApp', type: 'toggle', icon: <MessageSquare className="w-4 h-4" />, defaultValue: false },
+      { key: 'wa_business_phone', label: 'Número WhatsApp Business', description: 'Número verificado no WhatsApp Business', type: 'text', icon: <Phone className="w-4 h-4" />, placeholder: '+5511999999999', defaultValue: '' },
+      { key: 'wa_catalog_link', label: 'Link do Cardápio', description: 'URL que abre ao clicar no produto', type: 'text', icon: <Link2 className="w-4 h-4" />, placeholder: 'https://seusite.com/cardapio', defaultValue: '' },
+      { key: 'wa_show_prices', label: 'Mostrar Preços', description: 'Exibe preços no catálogo', type: 'toggle', icon: <DollarSign className="w-4 h-4" />, defaultValue: true }
+    ]
+  },
+  {
+    id: 'instagram_shopping',
+    name: 'Instagram Shopping',
+    description: 'Loja no Instagram',
+    longDescription: 'Marque produtos nas fotos e stories. Clientes compram direto do Instagram.',
+    icon: <Instagram className="w-6 h-6" />,
+    color: 'text-pink-600',
+    bgColor: 'bg-pink-100',
+    category: 'integrations',
+    subcategory: 'social_commerce',
+    requiresSuperadmin: true,
+    settings: [
+      { key: 'ig_shopping_enabled', label: 'Ativar Instagram Shopping', description: 'Habilita loja no Instagram', type: 'toggle', icon: <Instagram className="w-4 h-4" />, defaultValue: false },
+      { key: 'ig_business_account', label: 'Conta Business/Creator', description: 'Username da conta', type: 'text', icon: <Instagram className="w-4 h-4" />, placeholder: '@sualoja', defaultValue: '' },
+      { key: 'ig_checkout_url', label: 'URL de Checkout', description: 'Para onde redireciona ao comprar', type: 'text', icon: <Link2 className="w-4 h-4" />, placeholder: 'https://seusite.com/checkout', defaultValue: '' },
+      { key: 'ig_auto_tag', label: 'Sugerir Tags', description: 'Sugere produtos para marcar nas fotos', type: 'toggle', icon: <Tag className="w-4 h-4" />, defaultValue: true }
+    ]
+  },
+  {
+    id: 'facebook_shop',
+    name: 'Facebook Shop',
+    description: 'Loja na página do Facebook',
+    longDescription: 'Crie uma loja completa na sua página do Facebook. Clientes navegam e compram.',
+    icon: <Facebook className="w-6 h-6" />,
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-100',
+    category: 'integrations',
+    subcategory: 'social_commerce',
+    requiresSuperadmin: true,
+    settings: [
+      { key: 'fb_shop_enabled', label: 'Ativar Facebook Shop', description: 'Habilita loja no Facebook', type: 'toggle', icon: <Facebook className="w-4 h-4" />, defaultValue: false },
+      { key: 'fb_page_id', label: 'Page ID', description: 'ID da página do Facebook', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: 'ID da página', defaultValue: '' },
+      { key: 'fb_checkout_url', label: 'URL de Checkout', description: 'Para onde redireciona ao comprar', type: 'text', icon: <Link2 className="w-4 h-4" />, placeholder: 'https://seusite.com/checkout', defaultValue: '' },
+      { key: 'fb_show_reviews', label: 'Mostrar Avaliações', description: 'Exibe avaliações na loja', type: 'toggle', icon: <Star className="w-4 h-4" />, defaultValue: true }
+    ]
+  },
+  {
+    id: 'google_shopping',
+    name: 'Google Shopping',
+    description: 'Produtos na busca do Google',
+    longDescription: 'Seus produtos aparecem nas buscas do Google e no Google Shopping.',
+    icon: <Globe className="w-6 h-6" />,
+    color: 'text-red-600',
+    bgColor: 'bg-red-100',
+    category: 'integrations',
+    subcategory: 'social_commerce',
+    requiresSuperadmin: true,
+    settings: [
+      { key: 'google_shopping_enabled', label: 'Ativar Google Shopping', description: 'Lista produtos no Google', type: 'toggle', icon: <Globe className="w-4 h-4" />, defaultValue: false },
+      { key: 'google_merchant_id', label: 'Merchant Center ID', description: 'ID do Google Merchant Center', type: 'text', icon: <Hash className="w-4 h-4" />, placeholder: '123456789', defaultValue: '' },
+      { key: 'google_feed_url', label: 'URL do Feed', description: 'Feed de produtos (gerado automaticamente)', type: 'text', icon: <Link2 className="w-4 h-4" />, placeholder: 'Gerado automaticamente', defaultValue: '' }
     ]
   },
 
