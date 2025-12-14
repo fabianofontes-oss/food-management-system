@@ -224,40 +224,50 @@ export default function FinancialPage() {
 
   if (loading && !storeId) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 flex items-center justify-center">
+        <div className="text-center bg-white/80 backdrop-blur-sm p-8 rounded-3xl shadow-xl shadow-slate-200/50">
+          <Loader2 className="w-14 h-14 text-emerald-600 animate-spin mx-auto mb-4" />
+          <p className="text-slate-600 text-lg font-medium">Carregando dados financeiros...</p>
+        </div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-        <AlertCircle className="w-12 h-12 text-red-500" />
-        <p className="text-gray-600">{error}</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-red-50/30 flex items-center justify-center">
+        <div className="text-center bg-white/80 backdrop-blur-sm p-8 rounded-3xl shadow-xl shadow-slate-200/50">
+          <div className="p-4 bg-red-100 rounded-2xl w-fit mx-auto mb-4">
+            <AlertCircle className="w-12 h-12 text-red-500" />
+          </div>
+          <p className="text-slate-600">{error}</p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 p-4 md:p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <DollarSign className="w-7 h-7 text-green-600" />
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-800 flex items-center gap-3">
+            <div className="p-2.5 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl shadow-lg shadow-emerald-500/25">
+              <DollarSign className="w-6 h-6 md:w-7 md:h-7 text-white" />
+            </div>
             Financeiro
           </h1>
-          <p className="text-gray-500">Controle de caixa e movimentações</p>
+          <p className="text-slate-500 mt-2 ml-14">Controle de caixa e movimentações</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm">
+        <div className="flex gap-3">
+          <Button variant="outline" size="sm" className="hover:shadow-md transition-all">
             <Download className="w-4 h-4 mr-2" />
             Exportar
           </Button>
           <Button 
             onClick={() => setShowNewMovement(true)}
-            className="bg-green-600 hover:bg-green-700"
+            className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-lg shadow-emerald-500/25"
           >
             <Plus className="w-4 h-4 mr-2" />
             Nova Movimentação
@@ -273,6 +283,7 @@ export default function FinancialPage() {
             variant={dateFilter === filter ? 'default' : 'outline'}
             size="sm"
             onClick={() => setDateFilter(filter)}
+            className={dateFilter === filter ? 'bg-gradient-to-r from-emerald-600 to-teal-600 shadow-lg shadow-emerald-500/25' : 'hover:shadow-md transition-all'}
           >
             {filter === 'today' ? 'Hoje' : filter === 'week' ? 'Semana' : 'Mês'}
           </Button>
@@ -280,51 +291,51 @@ export default function FinancialPage() {
       </div>
 
       {/* Cards de resumo */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl p-6 shadow-sm border">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="bg-white rounded-2xl p-6 shadow-lg shadow-slate-200/50 border border-slate-100 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500">Vendas Hoje</p>
-              <p className="text-2xl font-bold text-gray-900">{formatCurrency(summary.todaySales)}</p>
+              <p className="text-sm font-medium text-slate-500">Vendas Hoje</p>
+              <p className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">{formatCurrency(summary.todaySales)}</p>
             </div>
-            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-              <TrendingUp className="w-6 h-6 text-green-600" />
+            <div className="p-3 bg-emerald-100 rounded-xl">
+              <TrendingUp className="w-6 h-6 text-emerald-600" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-sm border">
+        <div className="bg-white rounded-2xl p-6 shadow-lg shadow-slate-200/50 border border-slate-100 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500">Vendas do Mês</p>
-              <p className="text-2xl font-bold text-gray-900">{formatCurrency(summary.monthSales)}</p>
+              <p className="text-sm font-medium text-slate-500">Vendas do Mês</p>
+              <p className="text-2xl font-bold text-blue-600">{formatCurrency(summary.monthSales)}</p>
             </div>
-            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+            <div className="p-3 bg-blue-100 rounded-xl">
               <BarChart3 className="w-6 h-6 text-blue-600" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-sm border">
+        <div className="bg-white rounded-2xl p-6 shadow-lg shadow-slate-200/50 border border-slate-100 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500">Pagamentos Pendentes</p>
-              <p className="text-2xl font-bold text-orange-600">{formatCurrency(summary.pendingPayments)}</p>
+              <p className="text-sm font-medium text-slate-500">Pagamentos Pendentes</p>
+              <p className="text-2xl font-bold text-amber-600">{formatCurrency(summary.pendingPayments)}</p>
             </div>
-            <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
-              <Clock className="w-6 h-6 text-orange-600" />
+            <div className="p-3 bg-amber-100 rounded-xl">
+              <Clock className="w-6 h-6 text-amber-600" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-sm border">
+        <div className="bg-white rounded-2xl p-6 shadow-lg shadow-slate-200/50 border border-slate-100 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500">Lucro Estimado</p>
-              <p className="text-2xl font-bold text-purple-600">{formatCurrency(summary.netProfit)}</p>
+              <p className="text-sm font-medium text-slate-500">Lucro Estimado</p>
+              <p className="text-2xl font-bold text-violet-600">{formatCurrency(summary.netProfit)}</p>
             </div>
-            <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-              <PiggyBank className="w-6 h-6 text-purple-600" />
+            <div className="p-3 bg-violet-100 rounded-xl">
+              <PiggyBank className="w-6 h-6 text-violet-600" />
             </div>
           </div>
         </div>
@@ -333,19 +344,23 @@ export default function FinancialPage() {
       {/* Caixas e Movimentações */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Status do Caixa */}
-        <div className="bg-white rounded-xl shadow-sm border">
-          <div className="p-4 border-b">
-            <h2 className="font-semibold text-gray-900 flex items-center gap-2">
-              <Wallet className="w-5 h-5" />
+        <div className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100">
+          <div className="p-5 border-b border-slate-100">
+            <h2 className="font-semibold text-slate-800 flex items-center gap-2">
+              <div className="p-2 bg-slate-100 rounded-lg">
+                <Wallet className="w-5 h-5 text-slate-600" />
+              </div>
               Status do Caixa
             </h2>
           </div>
-          <div className="p-4">
+          <div className="p-5">
             {cashRegisters.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <Wallet className="w-12 h-12 mx-auto mb-2 opacity-30" />
-                <p>Nenhum caixa registrado</p>
-                <Button className="mt-4" variant="outline">
+              <div className="text-center py-12">
+                <div className="w-16 h-16 mx-auto mb-4 bg-slate-100 rounded-2xl flex items-center justify-center">
+                  <Wallet className="w-8 h-8 text-slate-300" />
+                </div>
+                <p className="text-slate-400 font-medium">Nenhum caixa registrado</p>
+                <Button className="mt-4 bg-gradient-to-r from-emerald-600 to-teal-600" variant="outline">
                   <Plus className="w-4 h-4 mr-2" />
                   Abrir Caixa
                 </Button>
@@ -355,10 +370,10 @@ export default function FinancialPage() {
                 {cashRegisters.slice(0, 5).map(register => (
                   <div 
                     key={register.id}
-                    className={`p-4 rounded-lg border ${
+                    className={`p-4 rounded-xl border transition-all ${
                       register.status === 'open' 
-                        ? 'bg-green-50 border-green-200' 
-                        : 'bg-gray-50'
+                        ? 'bg-gradient-to-r from-emerald-50 to-teal-50 border-emerald-200' 
+                        : 'bg-slate-50 border-slate-200'
                     }`}
                   >
                     <div className="flex items-center justify-between">
@@ -528,6 +543,7 @@ export default function FinancialPage() {
           </div>
         </div>
       )}
+      </div>
     </div>
   )
 }
