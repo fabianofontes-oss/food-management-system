@@ -63,18 +63,19 @@ export const MODULES: Module[] = [
     ]
   },
   {
-    id: 'store_appearance',
-    name: 'Aparência',
-    description: 'Logo, cores e visual',
-    longDescription: 'Personalize a aparência da sua loja com cores e logo.',
+    id: 'dashboard_appearance',
+    name: 'Aparência do Painel',
+    description: 'Tema e visual do dashboard',
+    longDescription: 'Personalize a aparência do seu painel de gestão. O tema do cardápio/minisite é configurado em outra seção.',
     icon: <Palette className="w-6 h-6" />,
     color: 'text-pink-600',
     bgColor: 'bg-pink-100',
     category: 'store',
     settings: [
-      { key: 'appearance_enabled', label: 'Personalização Ativa', description: 'Usa cores personalizadas', type: 'toggle', icon: <Palette className="w-4 h-4" />, defaultValue: true },
-      { key: 'primary_color', label: 'Cor Principal', description: 'Cor tema da loja', type: 'text', icon: <Palette className="w-4 h-4" />, placeholder: '#8B5CF6', defaultValue: '#8B5CF6' },
-      { key: 'logo_url', label: 'URL do Logo', description: 'Link da imagem do logo', type: 'text', icon: <Image className="w-4 h-4" />, placeholder: 'https://...', defaultValue: '' }
+      { key: 'dashboard_theme', label: 'Tema do Painel', description: 'Modo claro, escuro ou automático', type: 'select', icon: <Palette className="w-4 h-4" />, options: [{ value: 'light', label: '☀️ Claro' }, { value: 'dark', label: '🌙 Escuro' }, { value: 'system', label: '💻 Automático (sistema)' }], defaultValue: 'light' },
+      { key: 'dashboard_accent', label: 'Cor de Destaque', description: 'Cor principal dos botões e destaques', type: 'select', icon: <Palette className="w-4 h-4" />, options: [{ value: 'violet', label: '💜 Violeta' }, { value: 'blue', label: '💙 Azul' }, { value: 'green', label: '💚 Verde' }, { value: 'orange', label: '🧡 Laranja' }, { value: 'pink', label: '💗 Rosa' }], defaultValue: 'violet' },
+      { key: 'dashboard_density', label: 'Densidade', description: 'Espaçamento entre elementos', type: 'select', icon: <LayoutGrid className="w-4 h-4" />, options: [{ value: 'compact', label: 'Compacto' }, { value: 'normal', label: 'Normal' }, { value: 'comfortable', label: 'Confortável' }], defaultValue: 'normal' },
+      { key: 'dashboard_sidebar', label: 'Menu Lateral', description: 'Estado inicial do menu', type: 'select', icon: <Layers className="w-4 h-4" />, options: [{ value: 'expanded', label: 'Expandido' }, { value: 'collapsed', label: 'Recolhido' }], defaultValue: 'expanded' }
     ]
   },
   {
