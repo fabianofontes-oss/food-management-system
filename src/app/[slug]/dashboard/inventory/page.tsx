@@ -207,33 +207,46 @@ export default function InventoryPage() {
 
   if (loading && !storeId) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 flex items-center justify-center">
+        <div className="text-center bg-white/80 backdrop-blur-sm p-8 rounded-3xl shadow-xl shadow-slate-200/50">
+          <Loader2 className="w-14 h-14 text-blue-600 animate-spin mx-auto mb-4" />
+          <p className="text-slate-600 text-lg font-medium">Carregando estoque...</p>
+        </div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-        <AlertCircle className="w-12 h-12 text-red-500" />
-        <p className="text-gray-600">{error}</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-red-50/30 flex items-center justify-center">
+        <div className="text-center bg-white/80 backdrop-blur-sm p-8 rounded-3xl shadow-xl shadow-slate-200/50">
+          <div className="p-4 bg-red-100 rounded-2xl w-fit mx-auto mb-4">
+            <AlertCircle className="w-12 h-12 text-red-500" />
+          </div>
+          <p className="text-slate-600">{error}</p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 p-4 md:p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Package className="w-7 h-7 text-blue-600" />
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-800 flex items-center gap-3">
+            <div className="p-2.5 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl shadow-lg shadow-blue-500/25">
+              <Package className="w-6 h-6 md:w-7 md:h-7 text-white" />
+            </div>
             Estoque
           </h1>
-          <p className="text-gray-500">Controle de insumos e matéria-prima</p>
+          <p className="text-slate-500 mt-2 ml-14">Controle de insumos e matéria-prima</p>
         </div>
-        <Button onClick={() => { setSelectedItem(null); setShowForm(true); }}>
+        <Button 
+          onClick={() => { setSelectedItem(null); setShowForm(true); }}
+          className="bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 shadow-lg shadow-blue-500/25"
+        >
           <Plus className="w-4 h-4 mr-2" />
           Novo Item
         </Button>
@@ -241,19 +254,23 @@ export default function InventoryPage() {
 
       {/* Alertas */}
       {(lowStockCount > 0 || outOfStockCount > 0) && (
-        <div className="flex gap-4">
+        <div className="flex flex-wrap gap-4">
           {lowStockCount > 0 && (
-            <div className="flex items-center gap-2 px-4 py-2 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <AlertTriangle className="w-5 h-5 text-yellow-600" />
-              <span className="text-sm text-yellow-800">
+            <div className="flex items-center gap-3 px-5 py-3 bg-amber-50 border border-amber-200 rounded-xl shadow-sm">
+              <div className="p-2 bg-amber-100 rounded-lg">
+                <AlertTriangle className="w-5 h-5 text-amber-600" />
+              </div>
+              <span className="text-sm font-medium text-amber-800">
                 {lowStockCount} {lowStockCount === 1 ? 'item' : 'itens'} com estoque baixo
               </span>
             </div>
           )}
           {outOfStockCount > 0 && (
-            <div className="flex items-center gap-2 px-4 py-2 bg-red-50 border border-red-200 rounded-lg">
-              <AlertCircle className="w-5 h-5 text-red-600" />
-              <span className="text-sm text-red-800">
+            <div className="flex items-center gap-3 px-5 py-3 bg-red-50 border border-red-200 rounded-xl shadow-sm">
+              <div className="p-2 bg-red-100 rounded-lg">
+                <AlertCircle className="w-5 h-5 text-red-600" />
+              </div>
+              <span className="text-sm font-medium text-red-800">
                 {outOfStockCount} {outOfStockCount === 1 ? 'item' : 'itens'} sem estoque
               </span>
             </div>
@@ -262,24 +279,25 @@ export default function InventoryPage() {
       )}
 
       {/* Filtros */}
-      <div className="flex gap-4 items-center">
+      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
           <input
             type="text"
             placeholder="Buscar item..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border rounded-lg"
+            className="w-full pl-12 pr-4 py-3 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:outline-none transition-all"
           />
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {(['all', 'low', 'out'] as FilterType[]).map(f => (
             <Button
               key={f}
               variant={filter === f ? 'default' : 'outline'}
               size="sm"
               onClick={() => setFilter(f)}
+              className={filter === f ? 'bg-gradient-to-r from-blue-500 to-cyan-600 shadow-lg shadow-blue-500/25' : 'hover:shadow-md transition-all'}
             >
               {f === 'all' ? 'Todos' : f === 'low' ? 'Estoque Baixo' : 'Sem Estoque'}
             </Button>
@@ -288,19 +306,21 @@ export default function InventoryPage() {
       </div>
 
       {/* Lista de itens */}
-      <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 overflow-hidden">
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
           </div>
         ) : filteredItems.length === 0 ? (
-          <div className="text-center py-12">
-            <Package className="w-12 h-12 mx-auto text-gray-300 mb-4" />
-            <p className="text-gray-500">Nenhum item encontrado</p>
+          <div className="text-center py-16">
+            <div className="w-20 h-20 mx-auto mb-4 bg-slate-100 rounded-2xl flex items-center justify-center">
+              <Package className="w-10 h-10 text-slate-300" />
+            </div>
+            <p className="text-slate-400 font-medium">Nenhum item encontrado</p>
           </div>
         ) : (
           <table className="w-full">
-            <thead className="bg-gray-50 border-b">
+            <thead className="bg-gradient-to-r from-slate-50 to-slate-100/50 border-b border-slate-100">
               <tr>
                 <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Item</th>
                 <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Quantidade</th>
@@ -392,8 +412,8 @@ export default function InventoryPage() {
 
       {/* Modal Form */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
             <h3 className="text-lg font-semibold mb-4">
               {selectedItem ? 'Editar Item' : 'Novo Item'}
             </h3>
@@ -486,8 +506,8 @@ export default function InventoryPage() {
 
       {/* Modal Movimentação */}
       {showMovement && selectedItem && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
             <h3 className="text-lg font-semibold mb-4">
               Movimentação: {selectedItem.name}
             </h3>
@@ -565,6 +585,7 @@ export default function InventoryPage() {
           </div>
         </div>
       )}
+      </div>
     </div>
   )
 }
