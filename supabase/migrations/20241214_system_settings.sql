@@ -31,8 +31,33 @@ INSERT INTO system_settings (key, value, value_type, category, description) VALU
   -- Features globais
   ('global_drivers_enabled', 'false', 'boolean', 'feature', 'Habilitar sistema de motoristas globais'),
   ('customer_rewards_enabled', 'true', 'boolean', 'feature', 'Habilitar sistema de recompensas para clientes'),
-  ('multi_store_enabled', 'false', 'boolean', 'feature', 'Habilitar gerenciamento multi-lojas')
+  ('multi_store_enabled', 'false', 'boolean', 'feature', 'Habilitar gerenciamento multi-lojas'),
+  ('driver_accept_reject_enabled', 'false', 'boolean', 'feature', 'Motorista pode aceitar/recusar entregas (OFF = aceita automaticamente)')
 ON CONFLICT (key) DO NOTHING;
+
+-- Tabela de avaliações de motoristas
+CREATE TABLE IF NOT EXISTS driver_ratings (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  driver_id UUID REFERENCES drivers(id),
+  store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+  delivery_id UUID REFERENCES deliveries(id),
+  order_id UUID REFERENCES orders(id),
+  rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+  comment TEXT,
+  rated_by VARCHAR(20) DEFAULT 'customer',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_driver_ratings_driver ON driver_ratings(driver_id);
+CREATE INDEX IF NOT EXISTS idx_driver_ratings_store ON driver_ratings(store_id);
+
+ALTER TABLE driver_ratings ENABLE ROW LEVEL SECURITY;
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'driver_ratings_all') THEN
+    CREATE POLICY "driver_ratings_all" ON driver_ratings FOR ALL USING (true);
+  END IF;
+END $$;
 
 -- Tabela de métricas do sistema (para dashboard de demanda)
 CREATE TABLE IF NOT EXISTS system_metrics (

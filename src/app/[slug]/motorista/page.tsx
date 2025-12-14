@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { useParams } from 'next/navigation'
 import { 
   Truck, MapPin, Clock, Phone, Package, User, Navigation, 
   CheckCircle, XCircle, Loader2, DollarSign, History, 
-  ArrowLeft, Play, CheckCheck, Star, TrendingUp, Calendar
+  ArrowLeft, Play, CheckCheck, Star, TrendingUp, Calendar,
+  Bell, BellOff, Volume2, VolumeX, Zap
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { formatCurrency } from '@/lib/utils'
@@ -54,6 +55,10 @@ export default function MotoristaPage() {
   const [stats, setStats] = useState<DriverStats | null>(null)
   const [activeTab, setActiveTab] = useState<'pending' | 'history' | 'earnings'>('pending')
   const [commissionPercent, setCommissionPercent] = useState(10)
+  const [soundEnabled, setSoundEnabled] = useState(true)
+  const [lastDeliveryCount, setLastDeliveryCount] = useState(0)
+  const [isRealtimeConnected, setIsRealtimeConnected] = useState(false)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
 
   useEffect(() => {
     async function fetchStore() {
@@ -131,9 +136,95 @@ export default function MotoristaPage() {
       .order('created_at', { ascending: false })
 
     if (data) {
+      const pendingDeliveries = data.filter((d: Delivery) => !['delivered', 'cancelled'].includes(d.status))
+      
+      // Verificar se há novas entregas
+      if (pendingDeliveries.length > lastDeliveryCount && lastDeliveryCount > 0) {
+        playNotificationSound()
+      }
+      setLastDeliveryCount(pendingDeliveries.length)
+      
       setAllDeliveries(data)
-      setDeliveries(data.filter((d: Delivery) => !['delivered', 'cancelled'].includes(d.status)))
+      setDeliveries(pendingDeliveries)
       calculateStats(data)
+    }
+  }
+
+  // Realtime subscription para novas entregas
+  useEffect(() => {
+    if (!storeId || !driverName || !isLoggedIn) return
+
+    const channel = supabase
+      .channel('driver-deliveries')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'deliveries',
+          filter: `store_id=eq.${storeId}`
+        },
+        (payload: { eventType: string }) => {
+          console.log('Nova entrega:', payload)
+          fetchDeliveries(driverName)
+          
+          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+            playNotificationSound()
+          }
+        }
+      )
+      .subscribe((status: string) => {
+        setIsRealtimeConnected(status === 'SUBSCRIBED')
+      })
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [storeId, driverName, isLoggedIn])
+
+  const playNotificationSound = () => {
+    if (!soundEnabled) return
+    
+    // Criar som de notificação
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+      const oscillator = audioContext.createOscillator()
+      const gainNode = audioContext.createGain()
+      
+      oscillator.connect(gainNode)
+      gainNode.connect(audioContext.destination)
+      
+      oscillator.frequency.value = 800
+      oscillator.type = 'sine'
+      gainNode.gain.value = 0.3
+      
+      oscillator.start()
+      setTimeout(() => {
+        oscillator.stop()
+        audioContext.close()
+      }, 200)
+      
+      // Segundo beep
+      setTimeout(() => {
+        const audioContext2 = new (window.AudioContext || (window as any).webkitAudioContext)()
+        const oscillator2 = audioContext2.createOscillator()
+        const gainNode2 = audioContext2.createGain()
+        
+        oscillator2.connect(gainNode2)
+        gainNode2.connect(audioContext2.destination)
+        
+        oscillator2.frequency.value = 1000
+        oscillator2.type = 'sine'
+        gainNode2.gain.value = 0.3
+        
+        oscillator2.start()
+        setTimeout(() => {
+          oscillator2.stop()
+          audioContext2.close()
+        }, 200)
+      }, 250)
+    } catch (err) {
+      console.log('Erro ao tocar som:', err)
     }
   }
 
@@ -271,7 +362,24 @@ export default function MotoristaPage() {
             <Link href={`/${slug}`} className="p-2 hover:bg-white/20 rounded-lg transition-colors">
               <ArrowLeft className="w-6 h-6" />
             </Link>
-            <span className="text-sm opacity-90">{storeName}</span>
+            <div className="flex items-center gap-3">
+              {/* Indicador Realtime */}
+              <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs ${
+                isRealtimeConnected ? 'bg-green-500/20 text-green-100' : 'bg-red-500/20 text-red-100'
+              }`}>
+                <Zap className="w-3 h-3" />
+                {isRealtimeConnected ? 'Ao vivo' : 'Offline'}
+              </div>
+              {/* Toggle Som */}
+              <button
+                onClick={() => setSoundEnabled(!soundEnabled)}
+                className={`p-2 rounded-lg transition-colors ${
+                  soundEnabled ? 'bg-white/20 text-white' : 'bg-white/10 text-white/50'
+                }`}
+              >
+                {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+              </button>
+            </div>
           </div>
           
           <div className="flex items-center gap-4">

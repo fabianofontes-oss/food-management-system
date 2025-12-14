@@ -313,14 +313,25 @@ export default function RastreioPage() {
         </div>
 
         {/* Botão de contato */}
-        <a 
-          href={`https://wa.me/55${delivery.driver_phone?.replace(/\D/g, '')}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white text-center font-bold rounded-2xl transition-colors shadow-lg"
-        >
-          💬 Falar com o Entregador
-        </a>
+        {delivery.status !== 'delivered' && delivery.driver_phone && (
+          <a 
+            href={`https://wa.me/55${delivery.driver_phone?.replace(/\D/g, '')}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white text-center font-bold rounded-2xl transition-colors shadow-lg"
+          >
+            💬 Falar com o Entregador
+          </a>
+        )}
+
+        {/* Botão de avaliar (após entrega) */}
+        {delivery.status === 'delivered' && (
+          <Link href={`/${slug}/avaliar/${delivery.id}`}>
+            <button className="block w-full py-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-center font-bold rounded-2xl transition-colors shadow-lg">
+              ⭐ Avaliar Entrega
+            </button>
+          </Link>
+        )}
       </div>
     </div>
   )
