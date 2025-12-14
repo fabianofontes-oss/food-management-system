@@ -221,77 +221,115 @@ export default function MarketingPage() {
 
   if (loading && !storeId) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-pink-50/30 flex items-center justify-center">
+        <div className="text-center bg-white/80 backdrop-blur-sm p-8 rounded-3xl shadow-xl shadow-slate-200/50">
+          <Loader2 className="w-14 h-14 text-pink-600 animate-spin mx-auto mb-4" />
+          <p className="text-slate-600 text-lg font-medium">Carregando campanhas...</p>
+        </div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-        <AlertCircle className="w-12 h-12 text-red-500" />
-        <p className="text-gray-600">{error}</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-red-50/30 flex items-center justify-center">
+        <div className="text-center bg-white/80 backdrop-blur-sm p-8 rounded-3xl shadow-xl shadow-slate-200/50">
+          <div className="p-4 bg-red-100 rounded-2xl w-fit mx-auto mb-4">
+            <AlertCircle className="w-12 h-12 text-red-500" />
+          </div>
+          <p className="text-slate-600">{error}</p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-pink-50/30 p-4 md:p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Megaphone className="w-7 h-7 text-pink-600" />
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-800 flex items-center gap-3">
+            <div className="p-2.5 bg-gradient-to-br from-pink-500 to-rose-600 rounded-xl shadow-lg shadow-pink-500/25">
+              <Megaphone className="w-6 h-6 md:w-7 md:h-7 text-white" />
+            </div>
             Marketing
           </h1>
-          <p className="text-gray-500">Campanhas e comunicação com clientes</p>
+          <p className="text-slate-500 mt-2 ml-14">Campanhas e comunicação com clientes</p>
         </div>
-        <Button onClick={() => { setSelectedCampaign(null); setShowForm(true); }}>
+        <Button 
+          onClick={() => { setSelectedCampaign(null); setShowForm(true); }}
+          className="bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 shadow-lg shadow-pink-500/25"
+        >
           <Plus className="w-4 h-4 mr-2" />
           Nova Campanha
         </Button>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl p-4 shadow-sm border">
-          <p className="text-sm text-gray-500">Total Campanhas</p>
-          <p className="text-2xl font-bold">{stats.total}</p>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+        <div className="bg-white rounded-2xl p-5 shadow-lg shadow-slate-200/50 border border-slate-100 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm font-medium text-slate-500">Total Campanhas</p>
+            <div className="p-2 bg-slate-100 rounded-xl">
+              <Megaphone className="w-5 h-5 text-slate-600" />
+            </div>
+          </div>
+          <p className="text-3xl font-bold text-slate-800">{stats.total}</p>
         </div>
-        <div className="bg-green-50 rounded-xl p-4 shadow-sm border border-green-200">
-          <p className="text-sm text-green-600">Ativas</p>
-          <p className="text-2xl font-bold text-green-700">{stats.active}</p>
+        <div className="bg-white rounded-2xl p-5 shadow-lg shadow-slate-200/50 border border-slate-100 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm font-medium text-slate-500">Ativas</p>
+            <div className="p-2 bg-emerald-100 rounded-xl">
+              <Play className="w-5 h-5 text-emerald-600" />
+            </div>
+          </div>
+          <p className="text-3xl font-bold text-emerald-600">{stats.active}</p>
         </div>
-        <div className="bg-blue-50 rounded-xl p-4 shadow-sm border border-blue-200">
-          <p className="text-sm text-blue-600">Mensagens Enviadas</p>
-          <p className="text-2xl font-bold text-blue-700">{stats.totalSent}</p>
+        <div className="bg-white rounded-2xl p-5 shadow-lg shadow-slate-200/50 border border-slate-100 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm font-medium text-slate-500">Mensagens Enviadas</p>
+            <div className="p-2 bg-blue-100 rounded-xl">
+              <Send className="w-5 h-5 text-blue-600" />
+            </div>
+          </div>
+          <p className="text-3xl font-bold text-blue-600">{stats.totalSent}</p>
         </div>
-        <div className="bg-purple-50 rounded-xl p-4 shadow-sm border border-purple-200">
-          <p className="text-sm text-purple-600">Taxa Abertura Média</p>
-          <p className="text-2xl font-bold text-purple-700">{stats.avgOpenRate.toFixed(0)}%</p>
+        <div className="bg-white rounded-2xl p-5 shadow-lg shadow-slate-200/50 border border-slate-100 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm font-medium text-slate-500">Taxa Abertura Média</p>
+            <div className="p-2 bg-violet-100 rounded-xl">
+              <Target className="w-5 h-5 text-violet-600" />
+            </div>
+          </div>
+          <p className="text-3xl font-bold text-violet-600">{stats.avgOpenRate.toFixed(0)}%</p>
         </div>
       </div>
 
       {/* Lista de Campanhas */}
-      <div className="bg-white rounded-xl shadow-sm border">
+      <div className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100">
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="w-10 h-10 animate-spin text-pink-600" />
           </div>
         ) : campaigns.length === 0 ? (
-          <div className="text-center py-12">
-            <Megaphone className="w-12 h-12 mx-auto text-gray-300 mb-4" />
-            <p className="text-gray-500 mb-4">Nenhuma campanha criada</p>
-            <Button onClick={() => setShowForm(true)}>
+          <div className="text-center py-16">
+            <div className="w-20 h-20 mx-auto mb-4 bg-slate-100 rounded-2xl flex items-center justify-center">
+              <Megaphone className="w-10 h-10 text-slate-300" />
+            </div>
+            <p className="text-slate-400 font-medium mb-4">Nenhuma campanha criada</p>
+            <Button 
+              onClick={() => setShowForm(true)}
+              className="bg-gradient-to-r from-pink-500 to-rose-600 shadow-lg shadow-pink-500/25"
+            >
               <Plus className="w-4 h-4 mr-2" />
               Criar Campanha
             </Button>
           </div>
         ) : (
-          <div className="divide-y">
+          <div className="divide-y divide-slate-100">
             {campaigns.map(campaign => (
-              <div key={campaign.id} className="p-4 hover:bg-gray-50">
+              <div key={campaign.id} className="p-5 hover:bg-slate-50/50 transition-colors">
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-3">
                     <div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center">
@@ -378,8 +416,8 @@ export default function MarketingPage() {
 
       {/* Modal Form */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl">
             <h3 className="text-lg font-semibold mb-4">
               {selectedCampaign ? 'Editar Campanha' : 'Nova Campanha'}
             </h3>
@@ -471,6 +509,7 @@ export default function MarketingPage() {
           </div>
         </div>
       )}
+      </div>
     </div>
   )
 }
