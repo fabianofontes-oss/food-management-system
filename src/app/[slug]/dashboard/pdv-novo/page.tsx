@@ -15,9 +15,9 @@ import { Button } from '@/components/ui/button'
 interface Product {
   id: string
   name: string
-  price: number
+  base_price: number
   image_url?: string
-  category?: string
+  category_id?: string
 }
 
 interface CartItem {
@@ -55,9 +55,9 @@ export default function PDVNovoPage() {
         // Carregar produtos
         const { data: prods } = await supabase
           .from('products')
-          .select('id, name, price, image_url, category')
+          .select('id, name, base_price, image_url, category_id')
           .eq('store_id', store.id)
-          .eq('active', true)
+          .eq('is_active', true)
 
         if (prods) setProducts(prods)
       }
@@ -73,7 +73,7 @@ export default function PDVNovoPage() {
         item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
       ))
     } else {
-      setCart([...cart, { id: product.id, name: product.name, price: product.price, quantity: 1 }])
+      setCart([...cart, { id: product.id, name: product.name, price: product.base_price, quantity: 1 }])
     }
   }
 
@@ -167,7 +167,7 @@ export default function PDVNovoPage() {
                       {product.name}
                     </p>
                     <p className="font-bold" style={{ color: pdvConfig.primaryColor }}>
-                      {formatCurrency(product.price)}
+                      {formatCurrency(product.base_price)}
                     </p>
                   </div>
                 </div>
