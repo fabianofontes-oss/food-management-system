@@ -55,14 +55,31 @@ interface PurchaseOrder {
   id: string
   order_number: string
   supplier: string
+  supplier_id: string | null
   status: string
   total_amount: number
   expected_date: string | null
   created_at: string
 }
 
+interface Supplier {
+  id: string
+  name: string
+  company_name: string | null
+  cnpj: string | null
+  phone: string | null
+  whatsapp: string | null
+  email: string | null
+  address: string | null
+  city: string | null
+  state: string | null
+  contact_person: string | null
+  payment_terms: string | null
+  is_active: boolean
+}
+
 type FilterType = 'all' | 'low' | 'out' | 'expiring'
-type TabType = 'items' | 'movements' | 'batches' | 'orders' | 'count'
+type TabType = 'items' | 'movements' | 'batches' | 'orders' | 'suppliers'
 
 export default function InventoryPage() {
   const params = useParams()
@@ -85,11 +102,28 @@ export default function InventoryPage() {
   const [movements, setMovements] = useState<Movement[]>([])
   const [batches, setBatches] = useState<Batch[]>([])
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([])
+  const [suppliers, setSuppliers] = useState<Supplier[]>([])
   const [showHistory, setShowHistory] = useState(false)
   const [showBatchForm, setShowBatchForm] = useState(false)
   const [showOrderForm, setShowOrderForm] = useState(false)
+  const [showSupplierForm, setShowSupplierForm] = useState(false)
+  const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null)
   const [itemMovements, setItemMovements] = useState<Movement[]>([])
   const [expiringBatches, setExpiringBatches] = useState<Batch[]>([])
+  
+  const [supplierForm, setSupplierForm] = useState({
+    name: '',
+    company_name: '',
+    cnpj: '',
+    phone: '',
+    whatsapp: '',
+    email: '',
+    address: '',
+    city: '',
+    state: '',
+    contact_person: '',
+    payment_terms: ''
+  })
   
   const [formData, setFormData] = useState({
     name: '',
@@ -137,8 +171,54 @@ export default function InventoryPage() {
       loadBatches()
       loadPurchaseOrders()
       loadExpiringBatches()
+      loadSuppliers()
     }
   }, [storeId])
+
+  async function loadSuppliers() {
+    const { data } = await supabase
+      .from('suppliers')
+      .select('*')
+      .eq('store_id', storeId)
+      .eq('is_active', true)
+      .order('name')
+    setSuppliers(data || [])
+  }
+
+  async function handleSaveSupplier() {
+    if (!storeId || !supplierForm.name) return
+    
+    const data = {
+      name: supplierForm.name,
+      company_name: supplierForm.company_name || null,
+      cnpj: supplierForm.cnpj || null,
+      phone: supplierForm.phone || null,
+      whatsapp: supplierForm.whatsapp || null,
+      email: supplierForm.email || null,
+      address: supplierForm.address || null,
+      city: supplierForm.city || null,
+      state: supplierForm.state || null,
+      contact_person: supplierForm.contact_person || null,
+      payment_terms: supplierForm.payment_terms || null
+    }
+    
+    if (selectedSupplier) {
+      await supabase.from('suppliers').update(data).eq('id', selectedSupplier.id)
+    } else {
+      await supabase.from('suppliers').insert({ store_id: storeId, ...data })
+    }
+    
+    setShowSupplierForm(false)
+    setSelectedSupplier(null)
+    setSupplierForm({ name: '', company_name: '', cnpj: '', phone: '', whatsapp: '', email: '', address: '', city: '', state: '', contact_person: '', payment_terms: '' })
+    loadSuppliers()
+  }
+
+  async function handleDeleteSupplier(id: string) {
+    if (!confirm('Deseja desativar este fornecedor?')) return
+    await supabase.from('suppliers').update({ is_active: false }).eq('id', id)
+    loadSuppliers()
+  }
 
   async function loadMovements() {
     const { data } = await supabase
@@ -390,6 +470,7 @@ export default function InventoryPage() {
           { id: 'movements', label: 'Movimentações', icon: History },
           { id: 'batches', label: 'Lotes/Validade', icon: Calendar },
           { id: 'orders', label: 'Pedidos Compra', icon: ShoppingCart },
+          { id: 'suppliers', label: 'Fornecedores', icon: Truck },
         ].map(tab => (
           <button
             key={tab.id}
@@ -877,6 +958,229 @@ export default function InventoryPage() {
                 </div>
               ))
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Tab: Fornecedores */}
+      {activeTab === 'suppliers' && (
+        <div className="bg-white rounded-2xl shadow-lg border overflow-hidden">
+          <div className="p-4 border-b bg-slate-50 flex items-center justify-between">
+            <h3 className="font-bold text-slate-800 flex items-center gap-2">
+              <Truck className="w-5 h-5 text-purple-600" />
+              Fornecedores ({suppliers.length})
+            </h3>
+            <Button size="sm" onClick={() => { setSelectedSupplier(null); setShowSupplierForm(true); }}>
+              <Plus className="w-4 h-4 mr-1" />
+              Novo Fornecedor
+            </Button>
+          </div>
+          <div className="divide-y max-h-[600px] overflow-y-auto">
+            {suppliers.length === 0 ? (
+              <p className="text-center text-slate-400 py-12">Nenhum fornecedor cadastrado</p>
+            ) : (
+              suppliers.map(supplier => (
+                <div key={supplier.id} className="p-4 hover:bg-slate-50">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="font-bold text-slate-800">{supplier.name}</p>
+                        {supplier.payment_terms && (
+                          <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">
+                            {supplier.payment_terms}
+                          </span>
+                        )}
+                      </div>
+                      {supplier.company_name && (
+                        <p className="text-sm text-slate-500">{supplier.company_name}</p>
+                      )}
+                      <div className="flex flex-wrap gap-3 mt-2 text-sm text-slate-500">
+                        {supplier.cnpj && <span>📋 {supplier.cnpj}</span>}
+                        {supplier.phone && <span>📱 {supplier.phone}</span>}
+                        {supplier.email && <span>📧 {supplier.email}</span>}
+                      </div>
+                      {supplier.city && (
+                        <p className="text-sm text-slate-400 mt-1">
+                          📍 {supplier.city}{supplier.state ? ` - ${supplier.state}` : ''}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex gap-1">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setSelectedSupplier(supplier)
+                          setSupplierForm({
+                            name: supplier.name,
+                            company_name: supplier.company_name || '',
+                            cnpj: supplier.cnpj || '',
+                            phone: supplier.phone || '',
+                            whatsapp: supplier.whatsapp || '',
+                            email: supplier.email || '',
+                            address: supplier.address || '',
+                            city: supplier.city || '',
+                            state: supplier.state || '',
+                            contact_person: supplier.contact_person || '',
+                            payment_terms: supplier.payment_terms || ''
+                          })
+                          setShowSupplierForm(true)
+                        }}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-red-600"
+                        onClick={() => handleDeleteSupplier(supplier.id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Modal Fornecedor */}
+      {showSupplierForm && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <Truck className="w-5 h-5 text-purple-600" />
+              {selectedSupplier ? 'Editar Fornecedor' : 'Novo Fornecedor'}
+            </h3>
+            
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Nome Fantasia *</label>
+                  <input
+                    type="text"
+                    value={supplierForm.name}
+                    onChange={e => setSupplierForm(prev => ({ ...prev, name: e.target.value }))}
+                    className="w-full px-3 py-2 border rounded-lg"
+                    placeholder="Nome do fornecedor"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Razão Social</label>
+                  <input
+                    type="text"
+                    value={supplierForm.company_name}
+                    onChange={e => setSupplierForm(prev => ({ ...prev, company_name: e.target.value }))}
+                    className="w-full px-3 py-2 border rounded-lg"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">CNPJ</label>
+                  <input
+                    type="text"
+                    value={supplierForm.cnpj}
+                    onChange={e => setSupplierForm(prev => ({ ...prev, cnpj: e.target.value }))}
+                    className="w-full px-3 py-2 border rounded-lg"
+                    placeholder="00.000.000/0001-00"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Cond. Pagamento</label>
+                  <select
+                    value={supplierForm.payment_terms}
+                    onChange={e => setSupplierForm(prev => ({ ...prev, payment_terms: e.target.value }))}
+                    className="w-full px-3 py-2 border rounded-lg"
+                  >
+                    <option value="">Selecione...</option>
+                    <option value="À vista">À vista</option>
+                    <option value="7 dias">7 dias</option>
+                    <option value="15 dias">15 dias</option>
+                    <option value="30 dias">30 dias</option>
+                    <option value="30/60 dias">30/60 dias</option>
+                    <option value="30/60/90 dias">30/60/90 dias</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
+                  <input
+                    type="tel"
+                    value={supplierForm.phone}
+                    onChange={e => setSupplierForm(prev => ({ ...prev, phone: e.target.value }))}
+                    className="w-full px-3 py-2 border rounded-lg"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">WhatsApp</label>
+                  <input
+                    type="tel"
+                    value={supplierForm.whatsapp}
+                    onChange={e => setSupplierForm(prev => ({ ...prev, whatsapp: e.target.value }))}
+                    className="w-full px-3 py-2 border rounded-lg"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                  <input
+                    type="email"
+                    value={supplierForm.email}
+                    onChange={e => setSupplierForm(prev => ({ ...prev, email: e.target.value }))}
+                    className="w-full px-3 py-2 border rounded-lg"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Pessoa de Contato</label>
+                  <input
+                    type="text"
+                    value={supplierForm.contact_person}
+                    onChange={e => setSupplierForm(prev => ({ ...prev, contact_person: e.target.value }))}
+                    className="w-full px-3 py-2 border rounded-lg"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Cidade</label>
+                  <input
+                    type="text"
+                    value={supplierForm.city}
+                    onChange={e => setSupplierForm(prev => ({ ...prev, city: e.target.value }))}
+                    className="w-full px-3 py-2 border rounded-lg"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                  <select
+                    value={supplierForm.state}
+                    onChange={e => setSupplierForm(prev => ({ ...prev, state: e.target.value }))}
+                    className="w-full px-3 py-2 border rounded-lg"
+                  >
+                    <option value="">UF</option>
+                    {['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'].map(uf => (
+                      <option key={uf} value={uf}>{uf}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Endereço</label>
+                  <input
+                    type="text"
+                    value={supplierForm.address}
+                    onChange={e => setSupplierForm(prev => ({ ...prev, address: e.target.value }))}
+                    className="w-full px-3 py-2 border rounded-lg"
+                    placeholder="Rua, número, bairro..."
+                  />
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex gap-3 mt-6">
+              <Button variant="outline" className="flex-1" onClick={() => { setShowSupplierForm(false); setSelectedSupplier(null); }}>
+                Cancelar
+              </Button>
+              <Button className="flex-1" onClick={handleSaveSupplier}>
+                Salvar
+              </Button>
+            </div>
           </div>
         </div>
       )}

@@ -1,5 +1,64 @@
 -- SISTEMA PREMIUM DE ESTOQUE
--- Histórico, Validade, Lotes, Pedidos de Compra, Inventário
+-- Histórico, Validade, Lotes, Pedidos de Compra, Inventário, Fornecedores, Ficha Técnica
+
+-- ============================================
+-- FORNECEDORES
+-- ============================================
+CREATE TABLE IF NOT EXISTS suppliers (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+  name VARCHAR(100) NOT NULL,
+  company_name VARCHAR(150),
+  cnpj VARCHAR(18),
+  phone VARCHAR(20),
+  whatsapp VARCHAR(20),
+  email VARCHAR(255),
+  address TEXT,
+  city VARCHAR(100),
+  state VARCHAR(2),
+  zip_code VARCHAR(10),
+  contact_person VARCHAR(100),
+  payment_terms VARCHAR(100), -- À vista, 30 dias, etc
+  delivery_days INTEGER DEFAULT 1, -- Prazo de entrega em dias
+  min_order_value DECIMAL(10,2) DEFAULT 0, -- Pedido mínimo
+  notes TEXT,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_suppliers_store ON suppliers(store_id);
+ALTER TABLE suppliers ENABLE ROW LEVEL SECURITY;
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'suppliers_all') THEN
+    CREATE POLICY "suppliers_all" ON suppliers FOR ALL USING (true);
+  END IF;
+END $$;
+
+-- ============================================
+-- FICHA TÉCNICA (ingredientes do produto)
+-- ============================================
+CREATE TABLE IF NOT EXISTS product_ingredients (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+  product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+  inventory_item_id UUID NOT NULL REFERENCES inventory_items(id) ON DELETE CASCADE,
+  quantity DECIMAL(10,3) NOT NULL, -- quantidade usada
+  unit VARCHAR(20), -- unidade (kg, g, ml, un)
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_product_ingredients_product ON product_ingredients(product_id);
+CREATE INDEX IF NOT EXISTS idx_product_ingredients_item ON product_ingredients(inventory_item_id);
+ALTER TABLE product_ingredients ENABLE ROW LEVEL SECURITY;
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'product_ingredients_all') THEN
+    CREATE POLICY "product_ingredients_all" ON product_ingredients FOR ALL USING (true);
+  END IF;
+END $$;
 
 -- Adicionar campos na tabela inventory_items
 ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS barcode VARCHAR(50);
@@ -8,6 +67,11 @@ ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS location VARCHAR(100);
 ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS last_purchase_date DATE;
 ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS last_purchase_price DECIMAL(10,2);
 ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS average_consumption DECIMAL(10,2) DEFAULT 0;
+ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS supplier_id UUID REFERENCES suppliers(id);
+
+-- Adicionar campo de custo na tabela products (CMV)
+ALTER TABLE products ADD COLUMN IF NOT EXISTS cost_price DECIMAL(10,2) DEFAULT 0;
+ALTER TABLE products ADD COLUMN IF NOT EXISTS profit_margin DECIMAL(5,2) DEFAULT 0;
 
 -- Tabela de movimentações de estoque (histórico completo)
 CREATE TABLE IF NOT EXISTS inventory_movements (
