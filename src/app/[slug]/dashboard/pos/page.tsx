@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Search, ShoppingCart, Plus, Minus, Trash2, CreditCard, DollarSign, Smartphone, Loader2, AlertCircle, Maximize, Minimize, Printer, User, Tag, TrendingUp, Clock, Package, X, Scale, Truck, Home, Barcode, Users, ArrowDownCircle, ArrowUpCircle, FileText, Lock } from 'lucide-react'
+import { Search, ShoppingCart, Plus, Minus, Trash2, CreditCard, DollarSign, Smartphone, Loader2, AlertCircle, Maximize, Minimize, Printer, User, Tag, TrendingUp, Clock, Package, X, Scale, Truck, Home, Barcode, Users, ArrowDownCircle, ArrowUpCircle, FileText, Lock, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { formatCurrency } from '@/lib/utils'
 import { useProducts } from '@/hooks/useProducts'
@@ -10,6 +10,9 @@ import { useSettings } from '@/hooks/useSettings'
 import { useSettingsHelper } from '@/lib/settingsHelper'
 import { useLanguage } from '@/lib/LanguageContext'
 import { useEffect } from 'react'
+import { DEFAULT_PDV_SETTINGS, PDVSettings } from '@/types/settings'
+import Link from 'next/link'
+import { useParams } from 'next/navigation'
 
 interface CartItem {
   id: string
@@ -21,11 +24,16 @@ interface CartItem {
 }
 
 export default function POSPage() {
+  const params = useParams()
+  const slug = params.slug as string
   const { t } = useLanguage()
   const { products, loading } = useProducts()
   const currentStoreId = products[0]?.store_id
   const { settings } = useSettings(currentStoreId)
   const helper = useSettingsHelper(settings)
+  
+  // Configurações do PDV
+  const pdvConfig: PDVSettings = settings?.sales?.pdv || DEFAULT_PDV_SETTINGS
   
   const [cart, setCart] = useState<CartItem[]>([])
   const [search, setSearch] = useState('')
@@ -440,32 +448,60 @@ export default function POSPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 p-4 md:p-6 lg:p-8">
+    <div className={`min-h-screen p-4 md:p-6 lg:p-8 ${
+      pdvConfig.theme === 'dark' 
+        ? 'bg-slate-900' 
+        : 'bg-gradient-to-br from-slate-50 via-white to-blue-50/30'
+    }`}>
       <div className="max-w-7xl mx-auto">
         {/* Header com Estatísticas e Controles */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-slate-800 flex items-center gap-3">
-                <div className="p-2.5 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg shadow-blue-500/25">
+              <h1 className={`text-2xl md:text-3xl font-bold flex items-center gap-3 ${
+                pdvConfig.theme === 'dark' ? 'text-white' : 'text-slate-800'
+              }`}>
+                <div className="p-2.5 rounded-xl shadow-lg" style={{ backgroundColor: pdvConfig.primaryColor }}>
                   <ShoppingCart className="w-6 h-6 md:w-7 md:h-7 text-white" />
                 </div>
                 PDV - Point of Sale
               </h1>
-              <p className="text-slate-500 mt-2 ml-14">Atendente: <span className="font-semibold text-slate-700">{attendantName || 'Não identificado'}</span></p>
+              <p className={`mt-2 ml-14 ${pdvConfig.theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
+                Atendente: <span className={`font-semibold ${pdvConfig.theme === 'dark' ? 'text-slate-200' : 'text-slate-700'}`}>{attendantName || 'Não identificado'}</span>
+              </p>
             </div>
             <div className="flex gap-3">
+              <Link href={`/${slug}/dashboard/settings/pdv`}>
+                <button
+                  className={`p-3 rounded-xl border shadow-sm hover:shadow-md transition-all ${
+                    pdvConfig.theme === 'dark' 
+                      ? 'bg-slate-800 border-slate-600 text-slate-300 hover:bg-slate-700' 
+                      : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                  }`}
+                  title="Configurações do PDV"
+                >
+                  <Settings className="w-5 h-5" />
+                </button>
+              </Link>
               <button
                 onClick={clearCart}
                 disabled={cart.length === 0}
-                className="p-3 rounded-xl bg-white border border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 shadow-sm hover:shadow-md transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-sm"
+                className={`p-3 rounded-xl border shadow-sm hover:shadow-md transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
+                  pdvConfig.theme === 'dark'
+                    ? 'bg-slate-800 border-red-900 text-red-400 hover:bg-red-900/30'
+                    : 'bg-white border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300'
+                }`}
                 title="Limpar Carrinho (Esc)"
               >
                 <X className="w-5 h-5" />
               </button>
               <button
                 onClick={toggleFullscreen}
-                className="p-3 rounded-xl bg-white border border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300 shadow-sm hover:shadow-md transition-all"
+                className={`p-3 rounded-xl border shadow-sm hover:shadow-md transition-all ${
+                  pdvConfig.theme === 'dark'
+                    ? 'bg-slate-800 border-slate-600 text-blue-400 hover:bg-slate-700'
+                    : 'bg-white border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300'
+                }`}
                 title="Modo Fullscreen (F)"
               >
                 {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
