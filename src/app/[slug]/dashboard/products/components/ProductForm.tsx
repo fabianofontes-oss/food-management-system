@@ -1,22 +1,27 @@
-import { useState, useEffect } from 'react'
-import { X, Plus, Trash2, Clock, DollarSign, Package } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { X, Plus, Trash2, Clock, DollarSign, Package, Image, Upload, Layers, Coffee } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Product, ProductFormData, ProductCategory, MeasurementUnit } from '@/types/products'
+import { Product, ProductFormData, ProductCategory, MeasurementUnit, AddonGroup } from '@/types/products'
+import { createClient } from '@/lib/supabase/client'
 
 interface ProductFormProps {
   product?: Product
   categories: ProductCategory[]
   units: MeasurementUnit[]
   allProducts: Product[]
+  addonGroups: AddonGroup[]
+  storeId: string
   onSubmit: (data: ProductFormData) => Promise<void>
   onClose: () => void
 }
 
-export const ProductForm = ({ product, categories, units, allProducts, onSubmit, onClose }: ProductFormProps) => {
+export const ProductForm = ({ product, categories, units, allProducts, addonGroups, storeId, onSubmit, onClose }: ProductFormProps) => {
+  const supabase = createClient()
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [formData, setFormData] = useState<ProductFormData>({
     name: product?.name || '',
     description: product?.description || '',
-    price: product?.price || 0,
+    price: (product as any)?.price || (product as any)?.base_price || 0,
     category_id: product?.category_id || null,
     unit_id: product?.unit_id || null,
     prep_time: product?.prep_time || 0,
@@ -29,14 +34,24 @@ export const ProductForm = ({ product, categories, units, allProducts, onSubmit,
     image_url: product?.image_url || '',
     requires_kitchen: product?.requires_kitchen || false,
     is_active: product?.is_active ?? true,
+    has_variations: product?.has_variations || false,
     ingredients: product?.ingredients?.map(ing => ({
       ingredient_id: ing.ingredient_id,
       quantity: ing.quantity,
       unit_id: ing.unit_id,
       is_optional: ing.is_optional
-    })) || []
+    })) || [],
+    variations: product?.variations?.map(v => ({
+      id: v.id,
+      name: v.name,
+      price: v.price,
+      is_default: v.is_default
+    })) || [],
+    addon_group_ids: product?.addon_groups?.map(ag => ag.addon_group_id) || []
   })
   const [submitting, setSubmitting] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [imagePreview, setImagePreview] = useState<string | null>(product?.image_url || null)
 
   const addIngredient = () => {
     setFormData(prev => ({
@@ -77,6 +92,94 @@ export const ProductForm = ({ product, categories, units, allProducts, onSubmit,
 
   const availableIngredients = allProducts.filter(p => p.id !== product?.id && !p.is_composed)
 
+  // Upload de imagem
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      alert('Por favor, selecione uma imagem válida')
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('A imagem deve ter no máximo 5MB')
+      return
+    }
+
+    setUploading(true)
+    try {
+      const fileExt = file.name.split('.').pop()
+      const fileName = `${storeId}/${Date.now()}.${fileExt}`
+      
+      const { error: uploadError } = await supabase.storage
+        .from('product-images')
+        .upload(fileName, file)
+
+      if (uploadError) throw uploadError
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('product-images')
+        .getPublicUrl(fileName)
+
+      setFormData({ ...formData, image_url: publicUrl })
+      setImagePreview(publicUrl)
+    } catch (error) {
+      console.error('Erro ao fazer upload:', error)
+      alert('Erro ao fazer upload da imagem')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const removeImage = () => {
+    setFormData({ ...formData, image_url: '' })
+    setImagePreview(null)
+  }
+
+  // Variações
+  const addVariation = () => {
+    setFormData(prev => ({
+      ...prev,
+      variations: [...prev.variations, { name: '', price: 0, is_default: prev.variations.length === 0 }]
+    }))
+  }
+
+  const removeVariation = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      variations: prev.variations.filter((_, i) => i !== index)
+    }))
+  }
+
+  const updateVariation = (index: number, field: string, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      variations: prev.variations.map((v, i) => {
+        if (i === index) {
+          if (field === 'is_default' && value === true) {
+            return { ...v, [field]: value }
+          }
+          return { ...v, [field]: value }
+        }
+        if (field === 'is_default' && value === true) {
+          return { ...v, is_default: false }
+        }
+        return v
+      })
+    }))
+  }
+
+  // Grupos de adicionais
+  const toggleAddonGroup = (groupId: string) => {
+    setFormData(prev => ({
+      ...prev,
+      addon_group_ids: prev.addon_group_ids.includes(groupId)
+        ? prev.addon_group_ids.filter(id => id !== groupId)
+        : [...prev.addon_group_ids, groupId]
+    }))
+  }
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
       <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
@@ -90,6 +193,76 @@ export const ProductForm = ({ product, categories, units, allProducts, onSubmit,
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {/* Imagem do Produto */}
+          <div className="bg-indigo-50 rounded-xl p-4">
+            <h3 className="font-bold text-indigo-900 mb-4 flex items-center gap-2">
+              <Image className="w-5 h-5" />
+              Imagem do Produto
+            </h3>
+            <div className="flex items-start gap-4">
+              <div className="relative">
+                {imagePreview ? (
+                  <div className="relative">
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="w-32 h-32 object-cover rounded-xl border-2 border-indigo-200"
+                    />
+                    <button
+                      type="button"
+                      onClick={removeImage}
+                      className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-32 h-32 border-2 border-dashed border-indigo-300 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-indigo-500 hover:bg-indigo-100/50 transition-all"
+                  >
+                    {uploading ? (
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600" />
+                    ) : (
+                      <>
+                        <Upload className="w-8 h-8 text-indigo-400 mb-2" />
+                        <span className="text-xs text-indigo-500 text-center">Clique para<br />adicionar</span>
+                      </>
+                    )}
+                  </div>
+                )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm text-gray-600 mb-2">
+                  📷 Adicione uma foto atraente do seu produto
+                </p>
+                <p className="text-xs text-gray-500">
+                  Formatos: JPG, PNG, WebP • Máx: 5MB
+                </p>
+                {!imagePreview && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                    className="mt-3"
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    {uploading ? 'Enviando...' : 'Escolher Imagem'}
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+
           {/* Informações Básicas */}
           <div className="bg-blue-50 rounded-xl p-4">
             <h3 className="font-bold text-blue-900 mb-4 flex items-center gap-2">
@@ -225,6 +398,129 @@ export const ProductForm = ({ product, categories, units, allProducts, onSubmit,
               </div>
             </div>
           </div>
+
+          {/* Variações / Tamanhos */}
+          <div className="bg-cyan-50 rounded-xl p-4">
+            <div className="flex items-center justify-between mb-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.has_variations}
+                  onChange={(e) => {
+                    setFormData({ ...formData, has_variations: e.target.checked })
+                    if (e.target.checked && formData.variations.length === 0) {
+                      addVariation()
+                    }
+                  }}
+                  className="w-4 h-4 text-cyan-600 rounded focus:ring-cyan-500"
+                />
+                <span className="font-bold text-cyan-900">
+                  <Layers className="w-4 h-4 inline mr-1" />
+                  Produto com Variações (Tamanhos)
+                </span>
+              </label>
+              {formData.has_variations && (
+                <Button type="button" onClick={addVariation} size="sm" className="bg-cyan-600 hover:bg-cyan-700">
+                  <Plus className="w-4 h-4 mr-1" />
+                  Adicionar Tamanho
+                </Button>
+              )}
+            </div>
+
+            {formData.has_variations && (
+              <div className="space-y-2">
+                <p className="text-sm text-cyan-700 mb-3">
+                  Ex: 300ml - R$ 15,00 | 500ml - R$ 18,00 | 1L - R$ 28,00
+                </p>
+                {formData.variations.map((variation, index) => (
+                  <div key={index} className="flex gap-2 items-center bg-white p-3 rounded-lg">
+                    <input
+                      type="text"
+                      value={variation.name}
+                      onChange={(e) => updateVariation(index, 'name', e.target.value)}
+                      placeholder="Ex: 300ml, 500ml, 1L, Pequeno, Médio..."
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                      required
+                    />
+                    <div className="flex items-center gap-1">
+                      <span className="text-sm text-gray-500">R$</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={variation.price}
+                        onChange={(e) => updateVariation(index, 'price', parseFloat(e.target.value) || 0)}
+                        className="w-24 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                        placeholder="Preço"
+                        required
+                      />
+                    </div>
+                    <label className="flex items-center gap-1 text-sm whitespace-nowrap">
+                      <input
+                        type="radio"
+                        name="default_variation"
+                        checked={variation.is_default}
+                        onChange={() => updateVariation(index, 'is_default', true)}
+                        className="w-4 h-4 text-cyan-600"
+                      />
+                      Padrão
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => removeVariation(index)}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                      disabled={formData.variations.length === 1}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Grupos de Adicionais */}
+          {addonGroups.length > 0 && (
+            <div className="bg-pink-50 rounded-xl p-4">
+              <h3 className="font-bold text-pink-900 mb-4 flex items-center gap-2">
+                <Coffee className="w-5 h-5" />
+                Grupos de Adicionais
+              </h3>
+              <p className="text-sm text-pink-700 mb-3">
+                Selecione os grupos de adicionais disponíveis para este produto (ex: Frutas, Caldas, Extras)
+              </p>
+              <div className="grid md:grid-cols-2 gap-2">
+                {addonGroups.map(group => (
+                  <label
+                    key={group.id}
+                    className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                      formData.addon_group_ids.includes(group.id)
+                        ? 'border-pink-500 bg-pink-100'
+                        : 'border-gray-200 bg-white hover:border-pink-300'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={formData.addon_group_ids.includes(group.id)}
+                      onChange={() => toggleAddonGroup(group.id)}
+                      className="w-4 h-4 text-pink-600 rounded focus:ring-pink-500"
+                    />
+                    <div>
+                      <div className="font-medium text-gray-800">{group.name}</div>
+                      {group.description && (
+                        <div className="text-xs text-gray-500">{group.description}</div>
+                      )}
+                      <div className="text-xs text-pink-600 mt-1">
+                        {group.is_required ? 'Obrigatório' : 'Opcional'} • 
+                        {group.min_selections > 0 ? ` Mín: ${group.min_selections}` : ''} 
+                        {group.max_selections > 0 ? ` Máx: ${group.max_selections}` : ''}
+                        {group.addons?.length ? ` • ${group.addons.length} itens` : ''}
+                      </div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Produto Composto */}
           <div className="bg-orange-50 rounded-xl p-4">

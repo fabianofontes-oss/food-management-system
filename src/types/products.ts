@@ -35,6 +35,53 @@ export interface ProductIngredient {
   unit?: MeasurementUnit
 }
 
+// Variações do produto (tamanhos: 300ml, 500ml, 1L, etc)
+export interface ProductVariation {
+  id: string
+  product_id: string
+  name: string
+  price: number
+  sort_order: number
+  is_default: boolean
+  is_active: boolean
+  created_at: string
+}
+
+// Grupos de adicionais (ex: "Frutas", "Caldas", "Extras")
+export interface AddonGroup {
+  id: string
+  store_id: string
+  name: string
+  description: string | null
+  min_selections: number
+  max_selections: number
+  is_required: boolean
+  sort_order: number
+  is_active: boolean
+  created_at: string
+  addons?: Addon[]
+}
+
+// Itens adicionais (ex: "Granola +R$2", "Leite Condensado +R$3")
+export interface Addon {
+  id: string
+  addon_group_id: string
+  name: string
+  price: number
+  sort_order: number
+  is_active: boolean
+  created_at: string
+}
+
+// Relação produto <-> grupo de adicionais
+export interface ProductAddonGroup {
+  id: string
+  product_id: string
+  addon_group_id: string
+  sort_order: number
+  addon_group?: AddonGroup
+}
+
 export interface Product {
   id: string
   tenant_id: string
@@ -54,11 +101,14 @@ export interface Product {
   image_url: string | null
   requires_kitchen: boolean
   is_active: boolean
+  has_variations: boolean
   created_at: string
   updated_at: string
   category?: ProductCategory
   unit?: MeasurementUnit
   ingredients?: ProductIngredient[]
+  variations?: ProductVariation[]
+  addon_groups?: ProductAddonGroup[]
 }
 
 export interface ProductFormData {
@@ -77,10 +127,32 @@ export interface ProductFormData {
   image_url: string
   requires_kitchen: boolean
   is_active: boolean
+  has_variations: boolean
   ingredients: {
     ingredient_id: string
     quantity: number
     unit_id: string | null
     is_optional: boolean
+  }[]
+  variations: {
+    id?: string
+    name: string
+    price: number
+    is_default: boolean
+  }[]
+  addon_group_ids: string[]
+}
+
+// Dados para criação de grupo de adicionais
+export interface AddonGroupFormData {
+  name: string
+  description: string
+  min_selections: number
+  max_selections: number
+  is_required: boolean
+  addons: {
+    id?: string
+    name: string
+    price: number
   }[]
 }

@@ -1,12 +1,13 @@
 import { useMemo, useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Product, ProductFormData, ProductCategory, MeasurementUnit } from '@/types/products'
+import { Product, ProductFormData, ProductCategory, MeasurementUnit, AddonGroup } from '@/types/products'
 
 export const useProductsComplete = (storeId: string | null) => {
   const supabase = useMemo(() => createClient(), [])
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<ProductCategory[]>([])
   const [units, setUnits] = useState<MeasurementUnit[]>([])
+  const [addonGroups, setAddonGroups] = useState<AddonGroup[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -23,12 +24,20 @@ export const useProductsComplete = (storeId: string | null) => {
 
       console.log('[useProductsComplete] Iniciando fetchData com storeId:', storeId)
 
-      const [productsRes, categoriesRes, unitsRes] = await Promise.all([
+      const [productsRes, categoriesRes, unitsRes, addonGroupsRes] = await Promise.all([
         supabase
           .from('products')
           .select(`
             *,
-            category:categories(*)
+            category:categories(*),
+            variations:product_variations(*),
+            addon_groups:product_addon_groups(
+              *,
+              addon_group:addon_groups(
+                *,
+                addons(*)
+              )
+            )
           `)
           .eq('store_id', storeId)
           .order('name'),
@@ -40,7 +49,16 @@ export const useProductsComplete = (storeId: string | null) => {
         supabase
           .from('measurement_units')
           .select('*')
-          .order('name')
+          .order('name'),
+        supabase
+          .from('addon_groups')
+          .select(`
+            *,
+            addons(*)
+          `)
+          .eq('store_id', storeId)
+          .eq('is_active', true)
+          .order('sort_order')
       ])
 
       console.log('[useProductsComplete] Respostas recebidas:', {
@@ -49,7 +67,9 @@ export const useProductsComplete = (storeId: string | null) => {
         categories: categoriesRes.data?.length || 0,
         categoriesError: categoriesRes.error,
         units: unitsRes.data?.length || 0,
-        unitsError: unitsRes.error
+        unitsError: unitsRes.error,
+        addonGroups: addonGroupsRes.data?.length || 0,
+        addonGroupsError: addonGroupsRes.error
       })
 
       if (productsRes.error) throw productsRes.error
@@ -59,6 +79,7 @@ export const useProductsComplete = (storeId: string | null) => {
       setProducts(productsRes.data || [])
       setCategories(categoriesRes.data || [])
       setUnits(unitsRes.data || [])
+      setAddonGroups(addonGroupsRes.data || [])
     } catch (err: any) {
       console.error('[useProductsComplete] Erro ao carregar dados:', err)
       setError(err.message)
@@ -69,16 +90,25 @@ export const useProductsComplete = (storeId: string | null) => {
 
   const createProduct = async (data: ProductFormData) => {
     try {
-      const { ingredients, ...productData } = data
+      const { ingredients, variations, addon_group_ids, ...productData } = data
+      
+      // Mapear price para base_price
+      const insertData = {
+        ...productData,
+        base_price: productData.price,
+        store_id: storeId
+      }
+      delete (insertData as any).price
       
       const { data: product, error: productError } = await supabase
         .from('products')
-        .insert([{ ...productData, store_id: storeId }])
+        .insert([insertData])
         .select()
         .single()
 
       if (productError) throw productError
 
+      // Salvar ingredientes
       if (data.is_composed && ingredients.length > 0) {
         const ingredientsData = ingredients.map(ing => ({
           product_id: product.id,
@@ -92,6 +122,38 @@ export const useProductsComplete = (storeId: string | null) => {
         if (ingredientsError) throw ingredientsError
       }
 
+      // Salvar variações
+      if (data.has_variations && variations.length > 0) {
+        const variationsData = variations.map((v, index) => ({
+          product_id: product.id,
+          name: v.name,
+          price: v.price,
+          is_default: v.is_default,
+          sort_order: index
+        }))
+
+        const { error: variationsError } = await supabase
+          .from('product_variations')
+          .insert(variationsData)
+
+        if (variationsError) console.warn('Erro ao salvar variações:', variationsError)
+      }
+
+      // Salvar grupos de adicionais
+      if (addon_group_ids.length > 0) {
+        const addonGroupsData = addon_group_ids.map((groupId, index) => ({
+          product_id: product.id,
+          addon_group_id: groupId,
+          sort_order: index
+        }))
+
+        const { error: addonGroupsError } = await supabase
+          .from('product_addon_groups')
+          .insert(addonGroupsData)
+
+        if (addonGroupsError) console.warn('Erro ao salvar grupos de adicionais:', addonGroupsError)
+      }
+
       await fetchData()
       return product
     } catch (err: any) {
@@ -102,15 +164,23 @@ export const useProductsComplete = (storeId: string | null) => {
 
   const updateProduct = async (id: string, data: Partial<ProductFormData>) => {
     try {
-      const { ingredients, ...productData } = data
+      const { ingredients, variations, addon_group_ids, ...productData } = data
+      
+      // Mapear price para base_price
+      const updateData: any = { ...productData }
+      if (updateData.price !== undefined) {
+        updateData.base_price = updateData.price
+        delete updateData.price
+      }
       
       const { error: productError } = await supabase
         .from('products')
-        .update(productData)
+        .update(updateData)
         .eq('id', id)
 
       if (productError) throw productError
 
+      // Atualizar ingredientes
       if (data.is_composed !== undefined && ingredients) {
         await supabase
           .from('product_ingredients')
@@ -128,6 +198,52 @@ export const useProductsComplete = (storeId: string | null) => {
             .insert(ingredientsData)
 
           if (ingredientsError) throw ingredientsError
+        }
+      }
+
+      // Atualizar variações
+      if (data.has_variations !== undefined && variations) {
+        await supabase
+          .from('product_variations')
+          .delete()
+          .eq('product_id', id)
+
+        if (variations.length > 0) {
+          const variationsData = variations.map((v, index) => ({
+            product_id: id,
+            name: v.name,
+            price: v.price,
+            is_default: v.is_default,
+            sort_order: index
+          }))
+
+          const { error: variationsError } = await supabase
+            .from('product_variations')
+            .insert(variationsData)
+
+          if (variationsError) console.warn('Erro ao salvar variações:', variationsError)
+        }
+      }
+
+      // Atualizar grupos de adicionais
+      if (addon_group_ids !== undefined) {
+        await supabase
+          .from('product_addon_groups')
+          .delete()
+          .eq('product_id', id)
+
+        if (addon_group_ids.length > 0) {
+          const addonGroupsData = addon_group_ids.map((groupId, index) => ({
+            product_id: id,
+            addon_group_id: groupId,
+            sort_order: index
+          }))
+
+          const { error: addonGroupsError } = await supabase
+            .from('product_addon_groups')
+            .insert(addonGroupsData)
+
+          if (addonGroupsError) console.warn('Erro ao salvar grupos de adicionais:', addonGroupsError)
         }
       }
 
@@ -225,6 +341,7 @@ export const useProductsComplete = (storeId: string | null) => {
     products,
     categories,
     units,
+    addonGroups,
     loading,
     error,
     createProduct,

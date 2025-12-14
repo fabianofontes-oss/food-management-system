@@ -20,7 +20,7 @@ export default function ProductsPage() {
   const [storeError, setStoreError] = useState('')
   
   const { 
-    products, categories, units, loading, error, 
+    products, categories, units, addonGroups, loading, error, 
     createProduct, updateProduct, deleteProduct, 
     createCategory, updateCategory, deleteCategory, reorderCategories,
     refreshData 
@@ -267,12 +267,14 @@ export default function ProductsPage() {
         )}
       </div>
 
-      {showForm && (
+      {showForm && storeId && (
         <ProductForm
           product={editingProduct}
           categories={categories}
           units={units}
           allProducts={products}
+          addonGroups={addonGroups}
+          storeId={storeId}
           onSubmit={editingProduct ? handleUpdateProduct : handleCreateProduct}
           onClose={handleCloseForm}
         />
