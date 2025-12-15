@@ -1,5 +1,6 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { isSuperAdmin } from '../auth/super-admin'
 
 type CookieToSet = { name: string; value: string; options: CookieOptions }
 
@@ -42,13 +43,35 @@ export async function updateSession(request: NextRequest) {
 
   // 3. Definição das Rotas
   const path = request.nextUrl.pathname
-  const isDashboard = path.startsWith('/dashboard') || path.includes('/admin')
+  const isAdminRoute = path.startsWith('/admin')
+  const isDashboard = path.startsWith('/dashboard') || path.includes('/dashboard')
   const isAuthPage = path.startsWith('/auth') || path === '/login' || path === '/register'
   
+  // REGRA 0 (CRÍTICA): PROTEÇÃO DO SUPER ADMIN
+  // Se tentar acessar /admin sem ser Super Admin -> Bloqueado
+  if (isAdminRoute) {
+    // Precisa estar logado
+    if (!user) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/login'
+      url.searchParams.set('error', 'unauthorized')
+      return NextResponse.redirect(url)
+    }
+
+    // Precisa ser Super Admin
+    if (!isSuperAdmin(user.email)) {
+      console.warn(`[SECURITY] Tentativa de acesso ao /admin bloqueada: ${user.email}`)
+      // Retorna 404 para não revelar que a rota existe
+      const url = request.nextUrl.clone()
+      url.pathname = '/404'
+      return NextResponse.rewrite(url)
+    }
+  }
+
   // REGRA 1: Se tentar acessar Dashboard sem estar logado -> Manda pro Login
   if (isDashboard && !user) {
     const url = request.nextUrl.clone()
-    url.pathname = '/auth/login'
+    url.pathname = '/login'
     url.searchParams.set('next', path) // Para voltar depois de logar
     return NextResponse.redirect(url)
   }
