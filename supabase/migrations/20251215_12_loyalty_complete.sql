@@ -453,39 +453,44 @@ ALTER TABLE public.retention_messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.retention_contact_log ENABLE ROW LEVEL SECURITY;
 
 -- Políticas para retention_messages
+ DROP POLICY IF EXISTS "retention_messages_select" ON public.retention_messages;
 CREATE POLICY "retention_messages_select" ON public.retention_messages
   FOR SELECT USING (
     store_id IN (
-      SELECT store_id FROM store_members WHERE user_id = auth.uid()
+      SELECT store_id FROM public.store_users WHERE user_id = auth.uid()
     )
   );
 
+ DROP POLICY IF EXISTS "retention_messages_insert" ON public.retention_messages;
 CREATE POLICY "retention_messages_insert" ON public.retention_messages
   FOR INSERT WITH CHECK (
     store_id IN (
-      SELECT store_id FROM store_members WHERE user_id = auth.uid() AND role IN ('owner', 'manager')
+      SELECT store_id FROM public.store_users WHERE user_id = auth.uid() AND role::text IN ('owner', 'manager')
     )
   );
 
+ DROP POLICY IF EXISTS "retention_messages_update" ON public.retention_messages;
 CREATE POLICY "retention_messages_update" ON public.retention_messages
   FOR UPDATE USING (
     store_id IN (
-      SELECT store_id FROM store_members WHERE user_id = auth.uid() AND role IN ('owner', 'manager')
+      SELECT store_id FROM public.store_users WHERE user_id = auth.uid() AND role::text IN ('owner', 'manager')
     )
   );
 
 -- Políticas para retention_contact_log
+ DROP POLICY IF EXISTS "retention_log_select" ON public.retention_contact_log;
 CREATE POLICY "retention_log_select" ON public.retention_contact_log
   FOR SELECT USING (
     store_id IN (
-      SELECT store_id FROM store_members WHERE user_id = auth.uid()
+      SELECT store_id FROM public.store_users WHERE user_id = auth.uid()
     )
   );
 
+ DROP POLICY IF EXISTS "retention_log_insert" ON public.retention_contact_log;
 CREATE POLICY "retention_log_insert" ON public.retention_contact_log
   FOR INSERT WITH CHECK (
     store_id IN (
-      SELECT store_id FROM store_members WHERE user_id = auth.uid()
+      SELECT store_id FROM public.store_users WHERE user_id = auth.uid()
     )
   );
 

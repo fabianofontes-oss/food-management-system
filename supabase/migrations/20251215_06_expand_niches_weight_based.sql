@@ -201,6 +201,7 @@ CREATE INDEX IF NOT EXISTS idx_products_sell_by_weight ON public.products(sell_b
 -- Meat Cuts
 ALTER TABLE public.meat_cuts ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS meat_cuts_store_access ON public.meat_cuts;
 CREATE POLICY meat_cuts_store_access ON public.meat_cuts
 FOR ALL USING (
   auth.role() = 'authenticated'
@@ -210,6 +211,7 @@ FOR ALL USING (
 -- Meat Seasonings
 ALTER TABLE public.meat_seasonings ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS meat_seasonings_store_access ON public.meat_seasonings;
 CREATE POLICY meat_seasonings_store_access ON public.meat_seasonings
 FOR ALL USING (
   auth.role() = 'authenticated'
@@ -219,6 +221,7 @@ FOR ALL USING (
 -- Fish Preparations
 ALTER TABLE public.fish_preparations ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS fish_preparations_store_access ON public.fish_preparations;
 CREATE POLICY fish_preparations_store_access ON public.fish_preparations
 FOR ALL USING (
   auth.role() = 'authenticated'
@@ -228,6 +231,7 @@ FOR ALL USING (
 -- Produce Promotions
 ALTER TABLE public.produce_promotions ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS produce_promotions_store_access ON public.produce_promotions;
 CREATE POLICY produce_promotions_store_access ON public.produce_promotions
 FOR ALL USING (
   auth.role() = 'authenticated'
@@ -237,6 +241,7 @@ FOR ALL USING (
 -- Product Meat Cuts (via product)
 ALTER TABLE public.product_meat_cuts ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS product_meat_cuts_access ON public.product_meat_cuts;
 CREATE POLICY product_meat_cuts_access ON public.product_meat_cuts
 FOR ALL USING (
   auth.role() = 'authenticated'
@@ -250,6 +255,7 @@ FOR ALL USING (
 -- Product Seasonings (via product)
 ALTER TABLE public.product_seasonings ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS product_seasonings_access ON public.product_seasonings;
 CREATE POLICY product_seasonings_access ON public.product_seasonings
 FOR ALL USING (
   auth.role() = 'authenticated'
@@ -263,6 +269,7 @@ FOR ALL USING (
 -- Product Fish Preparations (via product)
 ALTER TABLE public.product_fish_preparations ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS product_fish_preparations_access ON public.product_fish_preparations;
 CREATE POLICY product_fish_preparations_access ON public.product_fish_preparations
 FOR ALL USING (
   auth.role() = 'authenticated'

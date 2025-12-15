@@ -359,6 +359,7 @@ CREATE INDEX IF NOT EXISTS idx_products_dietary ON public.products(is_vegan, is_
 -- Custom Orders
 ALTER TABLE public.custom_orders ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS custom_orders_store_access ON public.custom_orders;
 CREATE POLICY custom_orders_store_access ON public.custom_orders
 FOR ALL USING (
   auth.role() = 'authenticated'
@@ -368,6 +369,7 @@ FOR ALL USING (
 -- Rodizio Configs
 ALTER TABLE public.rodizio_configs ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS rodizio_configs_store_access ON public.rodizio_configs;
 CREATE POLICY rodizio_configs_store_access ON public.rodizio_configs
 FOR ALL USING (
   auth.role() = 'authenticated'
@@ -377,6 +379,7 @@ FOR ALL USING (
 -- Rodizio Sessions
 ALTER TABLE public.rodizio_sessions ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS rodizio_sessions_store_access ON public.rodizio_sessions;
 CREATE POLICY rodizio_sessions_store_access ON public.rodizio_sessions
 FOR ALL USING (
   auth.role() = 'authenticated'
@@ -386,6 +389,7 @@ FOR ALL USING (
 -- Rodizio Items
 ALTER TABLE public.rodizio_items ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS rodizio_items_session_access ON public.rodizio_items;
 CREATE POLICY rodizio_items_session_access ON public.rodizio_items
 FOR ALL USING (
   auth.role() = 'authenticated'
@@ -399,6 +403,7 @@ FOR ALL USING (
 -- Tabs
 ALTER TABLE public.tabs ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS tabs_store_access ON public.tabs;
 CREATE POLICY tabs_store_access ON public.tabs
 FOR ALL USING (
   auth.role() = 'authenticated'
@@ -408,6 +413,7 @@ FOR ALL USING (
 -- Tab Items
 ALTER TABLE public.tab_items ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS tab_items_tab_access ON public.tab_items;
 CREATE POLICY tab_items_tab_access ON public.tab_items
 FOR ALL USING (
   auth.role() = 'authenticated'
@@ -421,6 +427,7 @@ FOR ALL USING (
 -- Tab Splits
 ALTER TABLE public.tab_splits ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS tab_splits_tab_access ON public.tab_splits;
 CREATE POLICY tab_splits_tab_access ON public.tab_splits
 FOR ALL USING (
   auth.role() = 'authenticated'
@@ -434,6 +441,7 @@ FOR ALL USING (
 -- Happy Hours
 ALTER TABLE public.happy_hours ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS happy_hours_store_access ON public.happy_hours;
 CREATE POLICY happy_hours_store_access ON public.happy_hours
 FOR ALL USING (
   auth.role() = 'authenticated'
@@ -443,6 +451,7 @@ FOR ALL USING (
 -- Virtual Brands
 ALTER TABLE public.virtual_brands ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS virtual_brands_store_access ON public.virtual_brands;
 CREATE POLICY virtual_brands_store_access ON public.virtual_brands
 FOR ALL USING (
   auth.role() = 'authenticated'

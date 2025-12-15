@@ -442,66 +442,81 @@ CREATE INDEX IF NOT EXISTS idx_marketing_templates_store ON public.marketing_tem
 -- ============================================
 
 ALTER TABLE public.loyalty_programs ENABLE ROW LEVEL SECURITY;
+ DROP POLICY IF EXISTS loyalty_programs_store_access ON public.loyalty_programs;
 CREATE POLICY loyalty_programs_store_access ON public.loyalty_programs
 FOR ALL USING (public.user_has_store_access(store_id));
 
 ALTER TABLE public.loyalty_tiers ENABLE ROW LEVEL SECURITY;
+ DROP POLICY IF EXISTS loyalty_tiers_access ON public.loyalty_tiers;
 CREATE POLICY loyalty_tiers_access ON public.loyalty_tiers
 FOR ALL USING (
   EXISTS (SELECT 1 FROM public.loyalty_programs lp WHERE lp.id = program_id AND public.user_has_store_access(lp.store_id))
 );
 
 ALTER TABLE public.customer_loyalty ENABLE ROW LEVEL SECURITY;
+ DROP POLICY IF EXISTS customer_loyalty_store_access ON public.customer_loyalty;
 CREATE POLICY customer_loyalty_store_access ON public.customer_loyalty
 FOR ALL USING (public.user_has_store_access(store_id));
 
 ALTER TABLE public.loyalty_transactions ENABLE ROW LEVEL SECURITY;
+ DROP POLICY IF EXISTS loyalty_transactions_store_access ON public.loyalty_transactions;
 CREATE POLICY loyalty_transactions_store_access ON public.loyalty_transactions
 FOR ALL USING (public.user_has_store_access(store_id));
 
 ALTER TABLE public.customer_engagement_rules ENABLE ROW LEVEL SECURITY;
+ DROP POLICY IF EXISTS engagement_rules_store_access ON public.customer_engagement_rules;
 CREATE POLICY engagement_rules_store_access ON public.customer_engagement_rules
 FOR ALL USING (public.user_has_store_access(store_id));
 
 ALTER TABLE public.customer_engagement_log ENABLE ROW LEVEL SECURITY;
+ DROP POLICY IF EXISTS engagement_log_access ON public.customer_engagement_log;
 CREATE POLICY engagement_log_access ON public.customer_engagement_log
 FOR ALL USING (
   EXISTS (SELECT 1 FROM public.customer_engagement_rules r WHERE r.id = rule_id AND public.user_has_store_access(r.store_id))
 );
 
 ALTER TABLE public.kds_config ENABLE ROW LEVEL SECURITY;
+ DROP POLICY IF EXISTS kds_config_store_access ON public.kds_config;
 CREATE POLICY kds_config_store_access ON public.kds_config
 FOR ALL USING (public.user_has_store_access(store_id));
 
 ALTER TABLE public.kds_stations ENABLE ROW LEVEL SECURITY;
+ DROP POLICY IF EXISTS kds_stations_store_access ON public.kds_stations;
 CREATE POLICY kds_stations_store_access ON public.kds_stations
 FOR ALL USING (public.user_has_store_access(store_id));
 
 ALTER TABLE public.kds_order_log ENABLE ROW LEVEL SECURITY;
+ DROP POLICY IF EXISTS kds_order_log_store_access ON public.kds_order_log;
 CREATE POLICY kds_order_log_store_access ON public.kds_order_log
 FOR ALL USING (public.user_has_store_access(store_id));
 
 ALTER TABLE public.tv_displays ENABLE ROW LEVEL SECURITY;
+ DROP POLICY IF EXISTS tv_displays_store_access ON public.tv_displays;
 CREATE POLICY tv_displays_store_access ON public.tv_displays
 FOR ALL USING (public.user_has_store_access(store_id));
 
 ALTER TABLE public.tv_promotions ENABLE ROW LEVEL SECURITY;
+ DROP POLICY IF EXISTS tv_promotions_store_access ON public.tv_promotions;
 CREATE POLICY tv_promotions_store_access ON public.tv_promotions
 FOR ALL USING (public.user_has_store_access(store_id));
 
 ALTER TABLE public.marketing_templates ENABLE ROW LEVEL SECURITY;
+ DROP POLICY IF EXISTS marketing_templates_access ON public.marketing_templates;
 CREATE POLICY marketing_templates_access ON public.marketing_templates
 FOR ALL USING (store_id IS NULL OR public.user_has_store_access(store_id));
 
 ALTER TABLE public.marketing_posts ENABLE ROW LEVEL SECURITY;
+ DROP POLICY IF EXISTS marketing_posts_store_access ON public.marketing_posts;
 CREATE POLICY marketing_posts_store_access ON public.marketing_posts
 FOR ALL USING (public.user_has_store_access(store_id));
 
 ALTER TABLE public.social_frames ENABLE ROW LEVEL SECURITY;
+ DROP POLICY IF EXISTS social_frames_access ON public.social_frames;
 CREATE POLICY social_frames_access ON public.social_frames
 FOR ALL USING (store_id IS NULL OR public.user_has_store_access(store_id));
 
 ALTER TABLE public.hardware_devices ENABLE ROW LEVEL SECURITY;
+ DROP POLICY IF EXISTS hardware_devices_store_access ON public.hardware_devices;
 CREATE POLICY hardware_devices_store_access ON public.hardware_devices
 FOR ALL USING (public.user_has_store_access(store_id));
 

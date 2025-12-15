@@ -135,33 +135,43 @@ ALTER TABLE niche_products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE niche_suggested_kits ENABLE ROW LEVEL SECURITY;
 
 -- Políticas de leitura pública (para onboarding)
+DROP POLICY IF EXISTS "niche_templates_read_all" ON niche_templates;
 CREATE POLICY "niche_templates_read_all" ON niche_templates FOR SELECT USING (true);
+DROP POLICY IF EXISTS "niche_modules_read_all" ON niche_modules;
 CREATE POLICY "niche_modules_read_all" ON niche_modules FOR SELECT USING (true);
+DROP POLICY IF EXISTS "niche_categories_read_all" ON niche_categories;
 CREATE POLICY "niche_categories_read_all" ON niche_categories FOR SELECT USING (true);
+DROP POLICY IF EXISTS "niche_products_read_all" ON niche_products;
 CREATE POLICY "niche_products_read_all" ON niche_products FOR SELECT USING (true);
+DROP POLICY IF EXISTS "niche_suggested_kits_read_all" ON niche_suggested_kits;
 CREATE POLICY "niche_suggested_kits_read_all" ON niche_suggested_kits FOR SELECT USING (true);
 
 -- Políticas de escrita apenas para superadmin
+DROP POLICY IF EXISTS "niche_templates_write_superadmin" ON niche_templates;
 CREATE POLICY "niche_templates_write_superadmin" ON niche_templates 
   FOR ALL USING (
     EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'superadmin')
   );
 
+DROP POLICY IF EXISTS "niche_modules_write_superadmin" ON niche_modules;
 CREATE POLICY "niche_modules_write_superadmin" ON niche_modules 
   FOR ALL USING (
     EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'superadmin')
   );
 
+DROP POLICY IF EXISTS "niche_categories_write_superadmin" ON niche_categories;
 CREATE POLICY "niche_categories_write_superadmin" ON niche_categories 
   FOR ALL USING (
     EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'superadmin')
   );
 
+DROP POLICY IF EXISTS "niche_products_write_superadmin" ON niche_products;
 CREATE POLICY "niche_products_write_superadmin" ON niche_products 
   FOR ALL USING (
     EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'superadmin')
   );
 
+DROP POLICY IF EXISTS "niche_suggested_kits_write_superadmin" ON niche_suggested_kits;
 CREATE POLICY "niche_suggested_kits_write_superadmin" ON niche_suggested_kits 
   FOR ALL USING (
     EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'superadmin')
