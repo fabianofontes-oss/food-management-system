@@ -45,7 +45,6 @@ export async function validateAndSubmitOrder(
       payment_method: formData.paymentMethod,
       notes: formData.notes || undefined,
       coupon_code: couponData?.code,
-      discount_amount: couponData?.discount,
     }
 
     if (formData.channel === 'DELIVERY') {

@@ -4,12 +4,14 @@ import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import type { CartItem, OrderData } from '@/types/menu'
 
-const CreateOrderSchema = z.object({
+const CreateOrderSchema = z
+  .object({
   store_id: z.string().uuid(),
   idempotency_key: z.string().uuid(),
   channel: z.enum(['COUNTER', 'DELIVERY', 'TAKEAWAY']),
   payment_method: z.enum(['PIX', 'CASH', 'CARD', 'ONLINE']),
   notes: z.string().optional(),
+  coupon_code: z.string().min(1).optional(),
   customer: z.object({
     name: z.string().optional(),
     phone: z.string().min(1),
@@ -31,28 +33,51 @@ const CreateOrderSchema = z.object({
     .array(
       z.object({
         product_id: z.string().uuid(),
-        title_snapshot: z.string().min(1),
-        unit_price: z.number().nonnegative(),
-        quantity: z.number().int().positive(),
         unit_type: z.enum(['unit', 'weight']),
+        quantity: z.number().int().positive().optional(),
         weight: z.number().positive().optional(),
         modifiers: z
           .array(
             z.object({
               modifier_option_id: z.string().uuid(),
-              name_snapshot: z.string().min(1),
-              extra_price: z.number().nonnegative(),
             })
           )
           .default([]),
       })
     )
     .min(1),
-  subtotal_amount: z.number().nonnegative(),
-  discount_amount: z.number().nonnegative(),
-  delivery_fee: z.number().nonnegative(),
-  total_amount: z.number().nonnegative(),
 })
+  .superRefine((data, ctx) => {
+    if (data.channel === 'DELIVERY' && !data.delivery_address) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'delivery_address é obrigatório quando channel=DELIVERY',
+        path: ['delivery_address'],
+      })
+    }
+
+    for (const [idx, item] of data.items.entries()) {
+      if (item.unit_type === 'unit') {
+        if (!item.quantity || item.quantity <= 0) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'quantity é obrigatório quando unit_type=unit',
+            path: ['items', idx, 'quantity'],
+          })
+        }
+      }
+
+      if (item.unit_type === 'weight') {
+        if (!item.weight || item.weight <= 0) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'weight é obrigatório quando unit_type=weight',
+            path: ['items', idx, 'weight'],
+          })
+        }
+      }
+    }
+  })
 
 export async function createOrder(
   storeId: string,
@@ -60,43 +85,16 @@ export async function createOrder(
   orderData: OrderData,
   idempotencyKey: string
 ) {
-  const supabase = await createClient()
+  const supabase = (await createClient()) as any
 
   try {
-    const deliveryFee = orderData.channel === 'DELIVERY' ? 5.0 : 0
-    const discountAmount = Math.max(0, orderData.discount_amount ?? 0)
-
-    const payloadItems = items.map((item) => {
-      const modifiersTotal = item.modifiers.reduce((sum, m) => sum + m.extra_price, 0)
-      const unitTotal = item.unit_price + modifiersTotal
-      const computedSubtotal = unitTotal * item.quantity
-
-      return {
-        product_id: item.product_id,
-        title_snapshot: item.product_name,
-        unit_price: item.unit_price,
-        quantity: item.quantity,
-        unit_type: 'unit' as const,
-        weight: undefined,
-        subtotal: computedSubtotal,
-        modifiers: item.modifiers.map((m) => ({
-          modifier_option_id: m.option_id,
-          name_snapshot: m.name,
-          extra_price: m.extra_price,
-        })),
-      }
-    })
-
-    const subtotalAmount = payloadItems.reduce((sum, i) => sum + i.subtotal, 0)
-    const boundedDiscount = Math.min(discountAmount, subtotalAmount)
-    const totalAmount = Math.max(0, subtotalAmount + deliveryFee - boundedDiscount)
-
     const payload = CreateOrderSchema.parse({
       store_id: storeId,
       idempotency_key: idempotencyKey,
       channel: orderData.channel,
       payment_method: orderData.payment_method,
       notes: orderData.notes,
+      coupon_code: orderData.coupon_code,
       customer: {
         name: orderData.customer.name,
         phone: orderData.customer.phone || '',
@@ -104,19 +102,15 @@ export async function createOrder(
       },
       delivery_address:
         orderData.channel === 'DELIVERY' ? orderData.delivery_address : undefined,
-      items: payloadItems.map((i) => ({
-        product_id: i.product_id,
-        title_snapshot: i.title_snapshot,
-        unit_price: i.unit_price,
-        quantity: i.quantity,
-        unit_type: i.unit_type,
-        weight: i.weight,
-        modifiers: i.modifiers,
+      items: items.map((item) => ({
+        product_id: item.product_id,
+        unit_type: 'unit' as const,
+        quantity: item.quantity,
+        modifiers: item.modifiers.map((m) => ({
+          modifier_option_id: m.option_id,
+        })),
       })),
-      subtotal_amount: subtotalAmount,
-      discount_amount: boundedDiscount,
-      delivery_fee: deliveryFee,
-      total_amount: totalAmount,
+      discount_amount: orderData.discount_amount,
     })
 
     const { data, error } = await supabase.rpc('create_order_atomic', {
@@ -128,24 +122,16 @@ export async function createOrder(
         notes: payload.notes ?? null,
         customer: payload.customer,
         delivery_address: payload.delivery_address ?? null,
-        items: payload.items.map((i, idx) => ({
+        items: payload.items.map((i) => ({
           product_id: i.product_id,
-          title_snapshot: i.title_snapshot,
-          unit_price: i.unit_price,
-          quantity: i.quantity,
           unit_type: i.unit_type,
+          quantity: i.quantity ?? null,
           weight: i.weight ?? null,
-          subtotal: payloadItems[idx]?.subtotal ?? 0,
           modifiers: i.modifiers.map((m) => ({
             modifier_option_id: m.modifier_option_id,
-            name_snapshot: m.name_snapshot,
-            extra_price: m.extra_price,
           })),
         })),
-        subtotal_amount: payload.subtotal_amount,
-        discount_amount: payload.discount_amount,
-        delivery_fee: payload.delivery_fee,
-        total_amount: payload.total_amount,
+        coupon_code: payload.coupon_code ?? null,
       },
     })
 

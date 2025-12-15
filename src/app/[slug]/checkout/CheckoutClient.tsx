@@ -170,12 +170,6 @@ export function CheckoutClient({ slug }: CheckoutClientProps) {
       )
 
       if (result.success && result.orderId) {
-        // Increment coupon usage if coupon was applied
-        if (appliedCoupon && storeId) {
-          const { incrementCouponUsage } = await import('@/lib/coupons/actions')
-          await incrementCouponUsage(storeId, appliedCoupon.code)
-        }
-        
         clearCart()
         try {
           sessionStorage.removeItem(storageKey)
