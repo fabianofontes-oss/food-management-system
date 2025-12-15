@@ -130,4 +130,6 @@ export interface OrderData {
   delivery_address?: DeliveryAddress
   table_number?: string
   notes?: string
+  coupon_code?: string
+  discount_amount?: number
 }

@@ -27,12 +27,14 @@ export function CheckoutClient({ slug }: CheckoutClientProps) {
   const router = useRouter()
   const { items, getSubtotal, clearCart } = useCartStore()
   const [loading, setLoading] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [loadingCEP, setLoadingCEP] = useState(false)
   const [checkoutMode, setCheckoutMode] = useState<CheckoutMode>('phone_required')
   const [availablePaymentMethods, setAvailablePaymentMethods] = useState<PaymentMethod[]>(['CASH'])
   const [storeId, setStoreId] = useState<string | null>(null)
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null)
+  const [idempotencyKey, setIdempotencyKey] = useState<string | null>(null)
 
   const [formData, setFormData] = useState<CheckoutFormData>({
     name: '',
@@ -81,6 +83,20 @@ export function CheckoutClient({ slug }: CheckoutClientProps) {
     loadSettings()
   }, [slug])
 
+  useEffect(() => {
+    const storageKey = `checkout:idempotency:${slug}`
+    try {
+      const raw = sessionStorage.getItem(storageKey)
+      if (!raw) return
+      const parsed = JSON.parse(raw) as { key?: string; createdAt?: number }
+      if (parsed?.key) {
+        setIdempotencyKey(parsed.key)
+      }
+    } catch {
+      // ignore
+    }
+  }, [slug])
+
   async function handleApplyCoupon(code: string) {
     if (!storeId) {
       return { valid: false, reason: 'Loja não encontrada' }
@@ -126,31 +142,57 @@ export function CheckoutClient({ slug }: CheckoutClientProps) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (isSubmitting) return
+    setIsSubmitting(true)
     setLoading(true)
     setError('')
 
-    const result = await validateAndSubmitOrder(
-      slug, 
-      formData, 
-      checkoutMode, 
-      items,
-      appliedCoupon || undefined
-    )
+    const storageKey = `checkout:idempotency:${slug}`
 
-    if (result.success && result.orderId) {
-      // Increment coupon usage if coupon was applied
-      if (appliedCoupon && storeId) {
-        const { incrementCouponUsage } = await import('@/lib/coupons/actions')
-        await incrementCouponUsage(storeId, appliedCoupon.code)
+    try {
+      const key = idempotencyKey || crypto.randomUUID()
+      if (!idempotencyKey) {
+        setIdempotencyKey(key)
+        try {
+          sessionStorage.setItem(storageKey, JSON.stringify({ key, createdAt: Date.now() }))
+        } catch {
+          // ignore
+        }
       }
-      
-      clearCart()
-      router.push(`/${slug}/order/${result.orderId}`)
-    } else {
-      setError(result.error || 'Erro ao criar pedido')
-    }
 
-    setLoading(false)
+      const result = await validateAndSubmitOrder(
+        slug, 
+        formData, 
+        checkoutMode, 
+        items,
+        appliedCoupon || undefined,
+        key
+      )
+
+      if (result.success && result.orderId) {
+        // Increment coupon usage if coupon was applied
+        if (appliedCoupon && storeId) {
+          const { incrementCouponUsage } = await import('@/lib/coupons/actions')
+          await incrementCouponUsage(storeId, appliedCoupon.code)
+        }
+        
+        clearCart()
+        try {
+          sessionStorage.removeItem(storageKey)
+        } catch {
+          // ignore
+        }
+        setIdempotencyKey(null)
+        router.push(`/${slug}/order/${result.orderId}`)
+      } else {
+        setError(result.error || 'Erro ao criar pedido')
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro inesperado ao criar pedido')
+    } finally {
+      setLoading(false)
+      setIsSubmitting(false)
+    }
   }
 
   if (items.length === 0) {
@@ -228,10 +270,10 @@ export function CheckoutClient({ slug }: CheckoutClientProps) {
 
           <Button
             type="submit"
-            disabled={loading}
+            disabled={loading || isSubmitting}
             className="w-full h-12 text-lg"
           >
-            {loading ? (
+            {loading || isSubmitting ? (
               <>
                 <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                 Processando...

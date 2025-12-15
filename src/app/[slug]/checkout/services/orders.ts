@@ -15,7 +15,8 @@ export async function validateAndSubmitOrder(
   formData: CheckoutFormData,
   checkoutMode: CheckoutMode,
   items: CartItem[],
-  couponData?: { code: string; discount: number }
+  couponData: { code: string; discount: number } | undefined,
+  idempotencyKey: string
 ): Promise<OrderSubmitResult> {
   try {
     // Validar telefone baseado no modo de checkout
@@ -60,7 +61,7 @@ export async function validateAndSubmitOrder(
       }
     }
 
-    const result = await createOrder(store.id, items, orderData)
+    const result = await createOrder(store.id, items, orderData, idempotencyKey)
 
     if (result.success && result.orderId) {
       return {

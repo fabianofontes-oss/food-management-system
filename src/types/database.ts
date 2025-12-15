@@ -686,7 +686,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_order_atomic: {
+        Args: {
+          p_payload: Json
+        }
+        Returns: Json
+      }
+      generate_order_code: {
+        Args: {
+          p_prefix?: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       store_niche_enum: 'acai' | 'burger' | 'hotdog' | 'marmita' | 'butcher' | 'ice_cream' | 'other'
