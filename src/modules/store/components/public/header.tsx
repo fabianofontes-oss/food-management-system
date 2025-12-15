@@ -3,13 +3,15 @@
 import { MapPin, Phone, Clock, Instagram, Facebook, MessageCircle, Star } from 'lucide-react'
 import type { MenuTheme, StoreWithSettings } from '../../types'
 import { isLightColor } from '../../utils'
+import { CartButton } from '@/modules/cart'
 
 interface StoreHeaderProps {
   store: StoreWithSettings
   theme: MenuTheme
+  showCart?: boolean
 }
 
-export function StoreHeader({ store, theme }: StoreHeaderProps) {
+export function StoreHeader({ store, theme, showCart = true }: StoreHeaderProps) {
   const headerTextColor = isLightColor(theme.colors.header) ? '#1f2937' : '#ffffff'
   const headerMutedColor = isLightColor(theme.colors.header) ? '#64748b' : 'rgba(255,255,255,0.7)'
 
@@ -82,12 +84,18 @@ export function StoreHeader({ store, theme }: StoreHeaderProps) {
 
             {/* Store Info */}
             <div className="flex-1 min-w-0 pt-1">
-              <h1 
-                className="font-bold text-xl sm:text-2xl truncate"
-                style={{ color: headerTextColor }}
-              >
-                {store.name}
-              </h1>
+              <div className="flex items-start justify-between gap-2">
+                <h1 
+                  className="font-bold text-xl sm:text-2xl truncate"
+                  style={{ color: headerTextColor }}
+                >
+                  {store.name}
+                </h1>
+                {/* Cart Button */}
+                {showCart && (
+                  <CartButton primaryColor={theme.colors.primary} />
+                )}
+              </div>
 
               {/* Rating placeholder */}
               <div className="flex items-center gap-2 mt-1">

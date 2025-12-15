@@ -1,6 +1,6 @@
 'use client'
 
-import { Component, ReactNode } from 'react'
+import { Component, ReactNode, useEffect } from 'react'
 import type { MenuTheme, StoreWithSettings } from '../../types'
 import { safeParseTheme, getThemeCSSVariables } from '../../utils'
 import { StoreHeader } from './header'
@@ -8,6 +8,7 @@ import { ClassicLayout } from './layouts/classic-layout'
 import { ModernLayout } from './layouts/modern-layout'
 import { GridLayout } from './layouts/grid-layout'
 import { MinimalLayout } from './layouts/minimal-layout'
+import { CartDrawer, useCartStore } from '@/modules/cart'
 
 interface Product {
   id: string
@@ -78,6 +79,14 @@ export function StoreFront({ store, categories = [], onAddToCart }: StoreFrontPr
   // Variáveis CSS para uso global
   const cssVars = getThemeCSSVariables(theme)
 
+  // Setar a loja no carrinho (para evitar mistura de lojas)
+  const { setStore } = useCartStore()
+  useEffect(() => {
+    if (store.id && store.slug) {
+      setStore(store.id, store.slug, store.name || 'Loja')
+    }
+  }, [store.id, store.slug, store.name, setStore])
+
   // Props comuns para todos os layouts
   const layoutProps = {
     theme,
@@ -124,6 +133,9 @@ export function StoreFront({ store, categories = [], onAddToCart }: StoreFrontPr
       <LayoutErrorBoundary fallback={fallbackLayout}>
         {renderLayout()}
       </LayoutErrorBoundary>
+      
+      {/* Cart Drawer - sempre presente */}
+      <CartDrawer primaryColor={theme.colors.primary} />
     </div>
   )
 }
