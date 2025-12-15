@@ -243,20 +243,19 @@ export default function SuperAdminDashboard() {
                         <td className="py-3 px-4">
                           <div className="flex gap-2">
                             <Link
+                              href={`/${store.slug}/dashboard`}
+                              className="flex items-center gap-1 px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all shadow-sm"
+                            >
+                              <ArrowRight className="w-4 h-4" />
+                              ENTRAR
+                            </Link>
+                            <Link
                               href={`/${store.slug}`}
                               target="_blank"
                               className="flex items-center gap-1 px-3 py-1 text-xs font-medium text-blue-600 border border-blue-300 rounded-lg hover:bg-blue-50 transition-colors"
                             >
                               <ExternalLink className="w-3 h-3" />
                               Cardápio
-                            </Link>
-                            <Link
-                              href={`/${store.slug}/dashboard`}
-                              target="_blank"
-                              className="flex items-center gap-1 px-3 py-1 text-xs font-medium text-emerald-600 border border-emerald-300 rounded-lg hover:bg-emerald-50 transition-colors"
-                            >
-                              <LayoutDashboard className="w-3 h-3" />
-                              Dashboard
                             </Link>
                           </div>
                         </td>
