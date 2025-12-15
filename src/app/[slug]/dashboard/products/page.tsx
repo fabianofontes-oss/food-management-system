@@ -1,6 +1,6 @@
 'use client'
 
-import { useStoreId } from '@/hooks/useStore'
+import { useStoreId } from '@/modules/store'
 import { MenuManager } from '@/modules/menu/components/menu-manager'
 import { Loader2, Package } from 'lucide-react'
 

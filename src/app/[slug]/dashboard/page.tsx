@@ -4,7 +4,7 @@ import { BarChart3, TrendingUp, ShoppingBag, Users, DollarSign, Package, Loader2
 import { formatCurrency } from '@/lib/utils'
 import { useProducts } from '@/hooks/useProducts'
 import { useOrders } from '@/hooks/useOrders'
-import { useStoreId } from '@/hooks/useStore'
+import { useStoreId } from '@/modules/store'
 import { supabase } from '@/lib/supabase'
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
