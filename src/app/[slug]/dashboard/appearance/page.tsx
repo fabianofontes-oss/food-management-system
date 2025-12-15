@@ -55,12 +55,14 @@ export default function AppearancePage() {
 
         if (data) {
           setStore(data as StoreWithSettings)
-          if (data.theme) {
+          // CORRIGIDO: Ler de menu_theme (não theme)
+          const savedTheme = (data as any).menu_theme
+          if (savedTheme) {
             setInitialTheme({
               ...DEFAULT_THEME,
-              ...data.theme,
-              colors: { ...DEFAULT_THEME.colors, ...(data.theme?.colors || {}) },
-              display: { ...DEFAULT_THEME.display, ...(data.theme?.display || {}) }
+              ...savedTheme,
+              colors: { ...DEFAULT_THEME.colors, ...(savedTheme?.colors || {}) },
+              display: { ...DEFAULT_THEME.display, ...(savedTheme?.display || {}) }
             })
           }
         }
