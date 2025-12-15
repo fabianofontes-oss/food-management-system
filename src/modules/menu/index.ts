@@ -20,3 +20,8 @@ export {
 
 // Hooks
 export { useMenu } from './hooks/use-menu'
+
+// Components
+export { ProductCard } from './components/product-card'
+export { CategoryList } from './components/category-list'
+export { MenuManager } from './components/menu-manager'
