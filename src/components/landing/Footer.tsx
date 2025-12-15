@@ -41,7 +41,7 @@ export function Footer({ company, links, social }: FooterProps) {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
           <div className="col-span-2 md:col-span-1">
-            <div className="font-bold text-xl text-emerald-400 mb-3">{company.name}</div>
+            <div className="font-bold text-xl text-violet-400 mb-3">{company.name}</div>
             <p className="text-sm text-gray-400 mb-4 leading-relaxed">
               {company.description}
             </p>
@@ -54,7 +54,7 @@ export function Footer({ company, links, social }: FooterProps) {
                     href={item.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-9 h-9 rounded-lg bg-gray-800 hover:bg-emerald-600 text-gray-400 hover:text-white transition-all duration-200 flex items-center justify-center"
+                    className="w-9 h-9 rounded-lg bg-gray-800 hover:bg-violet-600 text-gray-400 hover:text-white transition-all duration-200 flex items-center justify-center"
                     aria-label={item.platform}
                   >
                     <Icon className="w-4 h-4" />
@@ -71,7 +71,7 @@ export function Footer({ company, links, social }: FooterProps) {
                 <li key={link.label}>
                   <Link 
                     href={link.href}
-                    className="text-sm text-gray-400 hover:text-emerald-400 transition-colors"
+                    className="text-sm text-gray-400 hover:text-violet-400 transition-colors"
                   >
                     {link.label}
                   </Link>
@@ -87,7 +87,7 @@ export function Footer({ company, links, social }: FooterProps) {
                 <li key={link.label}>
                   <Link 
                     href={link.href}
-                    className="text-sm text-gray-400 hover:text-emerald-400 transition-colors"
+                    className="text-sm text-gray-400 hover:text-violet-400 transition-colors"
                   >
                     {link.label}
                   </Link>
@@ -103,7 +103,7 @@ export function Footer({ company, links, social }: FooterProps) {
                 <li key={link.label}>
                   <Link 
                     href={link.href}
-                    className="text-sm text-gray-400 hover:text-emerald-400 transition-colors"
+                    className="text-sm text-gray-400 hover:text-violet-400 transition-colors"
                   >
                     {link.label}
                   </Link>
@@ -119,7 +119,7 @@ export function Footer({ company, links, social }: FooterProps) {
                 <li key={link.label}>
                   <Link 
                     href={link.href}
-                    className="text-sm text-gray-400 hover:text-emerald-400 transition-colors"
+                    className="text-sm text-gray-400 hover:text-violet-400 transition-colors"
                   >
                     {link.label}
                   </Link>

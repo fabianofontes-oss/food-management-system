@@ -17,14 +17,14 @@ const iconMap: Record<string, LucideIcon> = {
 }
 
 const gradients = [
-  'from-emerald-500 to-teal-500',
-  'from-teal-500 to-cyan-500',
-  'from-cyan-500 to-blue-500',
-  'from-blue-500 to-indigo-500',
+  'from-violet-500 to-indigo-500',
   'from-indigo-500 to-purple-500',
   'from-purple-500 to-pink-500',
   'from-pink-500 to-rose-500',
   'from-rose-500 to-orange-500',
+  'from-orange-500 to-amber-500',
+  'from-amber-500 to-yellow-500',
+  'from-teal-500 to-cyan-500',
 ]
 
 interface Module {
@@ -43,7 +43,7 @@ export function Modules({ title, subtitle, items }: ModulesProps) {
   return (
     <section id="modulos" className="relative py-24 sm:py-32 overflow-hidden">
       {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-b from-white via-emerald-50/30 to-white dark:from-gray-900 dark:via-emerald-950/20 dark:to-gray-900" />
+      <div className="absolute inset-0 bg-gradient-to-b from-white via-violet-50/30 to-white dark:from-gray-900 dark:via-violet-950/20 dark:to-gray-900" />
       
       <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
         <AnimatedSection className="text-center max-w-3xl mx-auto mb-16">
@@ -83,7 +83,7 @@ export function Modules({ title, subtitle, items }: ModulesProps) {
                     </div>
                     
                     {/* Title */}
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-emerald-500 group-hover:to-teal-500 transition-all duration-300">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-violet-600 group-hover:to-indigo-600 transition-all duration-300">
                       {module.title}
                     </h3>
                     

@@ -10,9 +10,9 @@ const iconMap: Record<string, LucideIcon> = {
 }
 
 const stepGradients = [
-  'from-emerald-500 to-teal-500',
-  'from-teal-500 to-cyan-500',
-  'from-cyan-500 to-blue-500',
+  'from-violet-500 to-indigo-500',
+  'from-indigo-500 to-purple-500',
+  'from-purple-500 to-pink-500',
 ]
 
 interface Step {
@@ -32,7 +32,7 @@ export function HowItWorks({ title, subtitle, steps }: HowItWorksProps) {
   return (
     <section id="como-funciona" className="relative py-24 sm:py-32 overflow-hidden">
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-emerald-50/50 via-white to-white dark:from-emerald-950/30 dark:via-gray-900 dark:to-gray-900" />
+      <div className="absolute inset-0 bg-gradient-to-b from-violet-50/50 via-white to-white dark:from-violet-950/30 dark:via-gray-900 dark:to-gray-900" />
       
       <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
         <AnimatedSection className="text-center max-w-3xl mx-auto mb-20">
