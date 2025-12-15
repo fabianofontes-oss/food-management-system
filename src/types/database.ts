@@ -623,6 +623,35 @@ export type Database = {
           updated_at?: string
         }
       }
+      order_item_flavors: {
+        Row: {
+          id: string
+          order_item_id: string
+          product_id: string
+          fraction: number
+          name_snapshot: string | null
+          price_snapshot: number | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          order_item_id: string
+          product_id: string
+          fraction: number
+          name_snapshot?: string | null
+          price_snapshot?: number | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          order_item_id?: string
+          product_id?: string
+          fraction?: number
+          name_snapshot?: string | null
+          price_snapshot?: number | null
+          created_at?: string
+        }
+      }
       order_events: {
         Row: {
           id: string
