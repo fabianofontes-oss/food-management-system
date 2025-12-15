@@ -10,4 +10,4 @@ export {
 } from './store'
 
 // Components
-export { CartDrawer, CartItemRow, CartProvider, CartButton } from './components'
+export { CartDrawer, CartItemRow, CartProvider, CartButton, CartStickyFooter } from './components'
