@@ -1,6 +1,6 @@
 'use client'
 
-import { Search, Plus, Minus } from 'lucide-react'
+import { Search, Plus, MapPin, Phone, Instagram, Facebook, Clock } from 'lucide-react'
 import { useState } from 'react'
 import type { MenuTheme } from '../../../types'
 import { isLightColor } from '../../../utils'
@@ -24,7 +24,10 @@ interface ClassicLayoutProps {
   theme: MenuTheme
   storeName: string
   storeAddress?: string
+  storePhone?: string
+  storeWhatsapp?: string
   logoUrl?: string | null
+  bannerUrl?: string | null
   categories: Category[]
   onAddToCart?: (product: Product) => void
 }
@@ -33,7 +36,10 @@ export function ClassicLayout({
   theme,
   storeName,
   storeAddress,
+  storePhone,
+  storeWhatsapp,
   logoUrl,
+  bannerUrl,
   categories,
   onAddToCart
 }: ClassicLayoutProps) {
@@ -61,6 +67,14 @@ export function ClassicLayout({
       className="min-h-screen"
       style={{ backgroundColor: theme.colors.background }}
     >
+      {/* Banner */}
+      {theme.display.showBanner && bannerUrl && (
+        <div 
+          className="h-40 sm:h-52 bg-cover bg-center"
+          style={{ backgroundImage: `url(${bannerUrl})` }}
+        />
+      )}
+
       {/* Header */}
       <header 
         className="sticky top-0 z-10 shadow-sm"

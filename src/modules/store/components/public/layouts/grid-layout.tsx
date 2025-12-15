@@ -24,7 +24,10 @@ interface GridLayoutProps {
   theme: MenuTheme
   storeName: string
   storeAddress?: string
+  storePhone?: string
+  storeWhatsapp?: string
   logoUrl?: string | null
+  bannerUrl?: string | null
   categories: Category[]
   onAddToCart?: (product: Product) => void
 }
@@ -33,7 +36,10 @@ export function GridLayout({
   theme,
   storeName,
   storeAddress,
+  storePhone,
+  storeWhatsapp,
   logoUrl,
+  bannerUrl,
   categories,
   onAddToCart
 }: GridLayoutProps) {

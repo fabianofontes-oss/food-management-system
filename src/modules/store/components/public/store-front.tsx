@@ -82,6 +82,8 @@ export function StoreFront({ store, categories = [], onAddToCart }: StoreFrontPr
     theme,
     storeName: store.name || 'Loja',
     storeAddress: store.address || undefined,
+    storePhone: store.phone || undefined,
+    storeWhatsapp: store.whatsapp || undefined,
     logoUrl: store.logo_url || undefined,
     bannerUrl: theme.bannerUrl || store.banner_url || undefined,
     categories,

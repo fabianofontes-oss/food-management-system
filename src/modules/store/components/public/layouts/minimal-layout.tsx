@@ -24,7 +24,10 @@ interface MinimalLayoutProps {
   theme: MenuTheme
   storeName: string
   storeAddress?: string
+  storePhone?: string
+  storeWhatsapp?: string
   logoUrl?: string | null
+  bannerUrl?: string | null
   categories: Category[]
   onAddToCart?: (product: Product) => void
 }
@@ -33,7 +36,10 @@ export function MinimalLayout({
   theme,
   storeName,
   storeAddress,
+  storePhone,
+  storeWhatsapp,
   logoUrl,
+  bannerUrl,
   categories,
   onAddToCart
 }: MinimalLayoutProps) {
