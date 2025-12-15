@@ -15,7 +15,7 @@
 const HARDCODED_SUPER_ADMINS = [
   'admin@sistema.com',
   'fabiano@exemplo.com',
-  // Adicione mais emails conforme necessário
+  'fabianobraga@me.com',
 ]
 
 /**
