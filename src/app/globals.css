@@ -72,3 +72,99 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* ========================================
+   OTIMIZAÇÃO MOBILE - Celulares Baratos
+   ======================================== */
+
+@layer components {
+  /* Botões de Ação Fixos no Mobile */
+  .mobile-action-button {
+    @apply sticky bottom-0 left-0 right-0 w-full h-14 text-lg font-bold z-40;
+    @apply bg-gradient-to-r from-green-600 to-green-700;
+    @apply shadow-lg shadow-green-500/25;
+  }
+
+  /* Container para botão fixo no mobile */
+  .mobile-sticky-footer {
+    @apply sticky bottom-0 bg-white border-t p-4 shadow-lg z-40;
+  }
+
+  /* Área de clique mínima 48px (acessibilidade) */
+  .touch-target {
+    @apply min-w-[48px] min-h-[48px] flex items-center justify-center;
+  }
+
+  /* Menu hambúrguer com área de clique generosa */
+  .menu-hamburger {
+    @apply min-w-[48px] min-h-[48px] p-3 rounded-xl;
+    @apply flex items-center justify-center;
+    @apply hover:bg-slate-100 active:bg-slate-200 transition-colors;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Esconder colunas em mobile */
+  .hide-on-mobile {
+    @apply hidden sm:table-cell;
+  }
+
+  /* Mostrar apenas em mobile */
+  .show-on-mobile {
+    @apply table-cell sm:hidden;
+  }
+
+  /* Tabela responsiva */
+  .table-responsive {
+    @apply w-full overflow-x-auto;
+  }
+
+  .table-responsive table {
+    @apply min-w-full;
+  }
+
+  /* Inputs maiores para toque */
+  .input-touch {
+    @apply h-12 text-base px-4;
+  }
+
+  /* Botões maiores para toque */
+  .btn-touch {
+    @apply h-12 min-h-[48px] px-6 text-base;
+  }
+
+  /* Cards com padding maior em mobile */
+  .card-mobile {
+    @apply p-4 sm:p-6;
+  }
+
+  /* Espaçamento seguro para iPhones */
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 16px);
+  }
+
+  /* Prevenir zoom em inputs no iOS */
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="number"],
+  input[type="password"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  /* Scroll suave */
+  .scroll-smooth {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  /* Esconder scrollbar mas manter funcionalidade */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}

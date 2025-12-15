@@ -26,14 +26,14 @@ export function Topbar({ slug, onMenuClick, breadcrumb, className }: TopbarProps
         {/* Mobile Menu + Breadcrumb */}
         <div className="flex items-center gap-3">
           {onMenuClick && (
-            <Button
-              variant="ghost"
-              size="icon"
+            <button
               onClick={onMenuClick}
-              className="lg:hidden"
+              className="lg:hidden min-w-[48px] min-h-[48px] p-3 rounded-xl flex items-center justify-center hover:bg-slate-100 active:bg-slate-200 transition-colors"
+              style={{ WebkitTapHighlightColor: 'transparent' }}
+              aria-label="Abrir menu"
             >
-              <Menu className="w-5 h-5" />
-            </Button>
+              <Menu className="w-6 h-6 text-slate-700" />
+            </button>
           )}
           {breadcrumb && (
             <div className="hidden sm:block">
