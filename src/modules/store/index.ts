@@ -6,6 +6,13 @@ export * from './types'
 // Repository
 export { StoreRepository } from './repository'
 
+// Server Actions
+export {
+  getStoreAction,
+  updateStoreAction,
+  updateStoreSettingsAction
+} from './actions'
+
 // Hooks
 export { 
   useStore, 
