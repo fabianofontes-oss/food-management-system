@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ArrowRight, Play, Sparkles, Zap } from 'lucide-react'
+import { ArrowRight, Play, Check } from 'lucide-react'
+import { AnimatedSection } from './AnimatedSection'
 
 interface HeroProps {
   headline: string
@@ -13,122 +13,101 @@ interface HeroProps {
 }
 
 export function Hero({ headline, subheadline, primaryCTA, secondaryCTA, stats }: HeroProps) {
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY })
-    }
-    window.addEventListener('mousemove', handleMouseMove)
-    return () => window.removeEventListener('mousemove', handleMouseMove)
-  }, [])
-
   return (
-    <section className="relative overflow-hidden min-h-screen flex items-center">
-      {/* Animated gradient background with parallax */}
-      <div 
-        className="absolute inset-0 bg-gradient-to-br from-primary/10 via-purple-500/5 to-background -z-10 transition-transform duration-1000"
-        style={{ transform: `translate(${mousePosition.x * 0.01}px, ${mousePosition.y * 0.01}px)` }}
-      />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/20 via-transparent to-transparent -z-10" />
+    <section className="relative overflow-hidden bg-gradient-to-b from-emerald-50/50 via-white to-white dark:from-emerald-950/20 dark:via-background dark:to-background">
+      {/* Subtle grid */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#10b98108_1px,transparent_1px),linear-gradient(to_bottom,#10b98108_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,black_40%,transparent_100%)]" />
       
-      {/* Animated grid pattern */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_at_center,black_20%,transparent_80%)] -z-10 animate-pulse" />
-      
-      {/* Floating orbs with different animations */}
-      <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-primary/20 to-purple-500/20 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-l from-purple-500/20 to-pink-500/20 rounded-full blur-3xl animate-pulse delay-1000" />
-      <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-gradient-to-tr from-blue-500/10 to-cyan-500/10 rounded-full blur-3xl animate-pulse delay-2000" />
-      
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="flex flex-col items-center text-center py-20 gap-12 animate-in">
-          {/* Animated badge */}
-          <div className="group inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-primary/10 to-purple-500/10 border border-primary/20 backdrop-blur-md hover:border-primary/40 transition-all hover:scale-105 cursor-default shadow-lg shadow-primary/5">
-            <Zap className="w-4 h-4 text-primary animate-pulse" />
-            <span className="text-sm font-semibold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600">
-              Sistema completo para food service
-            </span>
-            <Sparkles className="w-4 h-4 text-purple-500 animate-pulse delay-1000" />
-          </div>
+      {/* Gradient orbs - subtle */}
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-400/20 rounded-full blur-3xl" />
+      <div className="absolute top-20 right-1/4 w-80 h-80 bg-teal-400/15 rounded-full blur-3xl" />
 
-          {/* Headline with gradient animation */}
-          <div className="max-w-6xl space-y-8">
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-black tracking-tight">
-              <span className="inline-block bg-clip-text text-transparent bg-gradient-to-r from-foreground via-primary to-purple-600 animate-gradient">
-                {headline}
+      <div className="relative container mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-24 sm:pt-28 sm:pb-32 lg:pt-36 lg:pb-40">
+        <div className="max-w-4xl mx-auto text-center">
+          {/* Badge */}
+          <AnimatedSection delay={0}>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-sm font-medium mb-8">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600" />
               </span>
+              +500 estabelecimentos ativos
+            </div>
+          </AnimatedSection>
+
+          {/* Headline */}
+          <AnimatedSection delay={100}>
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight text-gray-900 dark:text-white mb-6 leading-[1.1]">
+              {headline.split(',')[0]},
+              <span className="text-emerald-600 dark:text-emerald-400"> completo e digital</span>
             </h1>
-            <p className="text-xl sm:text-2xl lg:text-3xl text-muted-foreground max-w-3xl mx-auto font-light leading-relaxed">
+          </AnimatedSection>
+
+          {/* Subheadline */}
+          <AnimatedSection delay={200}>
+            <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto mb-10 leading-relaxed">
               {subheadline}
             </p>
-          </div>
+          </AnimatedSection>
 
-          {/* Premium CTAs with 3D effect */}
-          <div className="flex flex-col sm:flex-row gap-6 w-full sm:w-auto mt-6">
-            <Link 
-              href={primaryCTA.href}
-              className="group relative inline-flex items-center justify-center gap-3 px-12 py-5 text-lg font-bold text-white overflow-hidden rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95"
-            >
-              {/* 3D button layers */}
-              <div className="absolute inset-0 bg-gradient-to-r from-primary to-purple-600 transition-transform group-hover:scale-105" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-r from-primary/80 to-purple-600/80 blur-xl" />
-              
-              {/* Button content */}
-              <span className="relative z-10">{primaryCTA.text}</span>
-              <ArrowRight className="relative z-10 w-5 h-5 transition-transform group-hover:translate-x-1" />
-              
-              {/* Shine effect */}
-              <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12" />
-            </Link>
+          {/* CTAs */}
+          <AnimatedSection delay={300}>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+              <Link 
+                href={primaryCTA.href}
+                className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-emerald-500/25 hover:-translate-y-0.5 active:translate-y-0 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+              >
+                {primaryCTA.text}
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              </Link>
 
-            <Link 
-              href={secondaryCTA.href}
-              className="group relative inline-flex items-center justify-center gap-3 px-12 py-5 text-lg font-bold overflow-hidden rounded-2xl border-2 border-primary/30 bg-background/50 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:border-primary/60 hover:bg-primary/5 active:scale-95"
-            >
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-r from-primary/10 to-purple-500/10" />
-              <Play className="relative z-10 w-5 h-5 fill-current transition-transform group-hover:scale-110" />
-              <span className="relative z-10">{secondaryCTA.text}</span>
-            </Link>
-          </div>
+              <Link 
+                href={secondaryCTA.href}
+                className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-900 dark:text-white font-semibold rounded-xl border border-gray-200 dark:border-gray-700 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+              >
+                <Play className="w-4 h-4 fill-current" />
+                {secondaryCTA.text}
+              </Link>
+            </div>
+          </AnimatedSection>
 
-          {/* Animated stats with stagger */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-12 mt-20 w-full max-w-5xl">
+          {/* Trust signals */}
+          <AnimatedSection delay={400}>
+            <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-gray-500 dark:text-gray-400">
+              <span className="inline-flex items-center gap-1.5">
+                <Check className="w-4 h-4 text-emerald-500" />
+                Setup em 5 minutos
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <Check className="w-4 h-4 text-emerald-500" />
+                Sem taxa de adesão
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <Check className="w-4 h-4 text-emerald-500" />
+                Suporte em português
+              </span>
+            </div>
+          </AnimatedSection>
+        </div>
+
+        {/* Stats */}
+        <AnimatedSection delay={500} className="mt-20">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-3xl mx-auto">
             {stats.map((stat, index) => (
               <div 
                 key={index} 
-                className="relative group cursor-default"
-                style={{ animationDelay: `${index * 100}ms` }}
+                className="text-center p-6 rounded-2xl bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-gray-100 dark:border-gray-700/50 hover:border-emerald-200 dark:hover:border-emerald-800 transition-colors"
               >
-                {/* Glow effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/30 to-purple-500/30 rounded-3xl blur-2xl opacity-0 group-hover:opacity-100 transition-all duration-500 scale-95 group-hover:scale-100" />
-                
-                {/* Card */}
-                <div className="relative p-8 rounded-3xl bg-gradient-to-br from-background/80 to-background/40 backdrop-blur-xl border border-primary/10 group-hover:border-primary/30 transition-all duration-500 group-hover:translate-y-[-4px]">
-                  {/* Stat value with gradient */}
-                  <div className="text-5xl sm:text-6xl lg:text-7xl font-black mb-3 bg-clip-text text-transparent bg-gradient-to-br from-primary via-purple-600 to-pink-600 group-hover:scale-110 transition-transform duration-500">
-                    {stat.value}
-                  </div>
-                  
-                  {/* Stat label */}
-                  <div className="text-sm sm:text-base text-muted-foreground font-semibold tracking-wide">
-                    {stat.label}
-                  </div>
-                  
-                  {/* Decorative element */}
-                  <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-gradient-to-r from-primary to-purple-600 opacity-50 group-hover:opacity-100 group-hover:scale-150 transition-all duration-500" />
+                <div className="text-3xl sm:text-4xl font-bold text-emerald-600 dark:text-emerald-400 mb-1">
+                  {stat.value}
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                  {stat.label}
                 </div>
               </div>
             ))}
           </div>
-        </div>
-      </div>
-
-      {/* Scroll indicator */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-        <div className="w-6 h-10 rounded-full border-2 border-primary/30 flex items-start justify-center p-2">
-          <div className="w-1.5 h-3 rounded-full bg-primary/50 animate-pulse" />
-        </div>
+        </AnimatedSection>
       </div>
     </section>
   )

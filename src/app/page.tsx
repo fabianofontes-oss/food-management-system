@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { landingContent } from '@/content/landing'
 import { Hero } from '@/components/landing/Hero'
 import { HowItWorks } from '@/components/landing/HowItWorks'
+import { Demo } from '@/components/landing/Demo'
 import { Modules } from '@/components/landing/Modules'
 import { TargetAudience } from '@/components/landing/TargetAudience'
 import { Themes } from '@/components/landing/Themes'
@@ -132,6 +133,7 @@ export default function HomePage() {
       <main className="min-h-screen">
         <Hero {...landingContent.hero} />
         <HowItWorks {...landingContent.howItWorks} />
+        <Demo />
         <Modules {...landingContent.modules} />
         <TargetAudience {...landingContent.targetAudience} />
         <Themes {...landingContent.themes} />
