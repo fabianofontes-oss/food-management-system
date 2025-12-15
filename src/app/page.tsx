@@ -5,6 +5,7 @@ import { Hero } from '@/components/landing/Hero'
 import { HowItWorks } from '@/components/landing/HowItWorks'
 import { Demo } from '@/components/landing/Demo'
 import { Modules } from '@/components/landing/Modules'
+import { Features } from '@/components/landing/Features'
 import { Integrations } from '@/components/landing/Integrations'
 import { TargetAudience } from '@/components/landing/TargetAudience'
 import { Themes } from '@/components/landing/Themes'
@@ -138,6 +139,7 @@ export default function HomePage() {
         <HowItWorks {...landingContent.howItWorks} />
         <Demo />
         <Modules {...landingContent.modules} />
+        <Features />
         <Integrations />
         <TargetAudience {...landingContent.targetAudience} />
         <Themes {...landingContent.themes} />
