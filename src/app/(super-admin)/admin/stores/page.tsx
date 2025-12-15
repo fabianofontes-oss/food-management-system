@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Store, MapPin, Phone, ExternalLink, LayoutDashboard, Loader2, KeyRound } from 'lucide-react'
 import { getStores, type StoreWithTenant } from '@/lib/superadmin/queries'
-import { assignStoreOwnerAction } from '@/lib/superadmin/actions'
 import { toast } from 'sonner'
 
 const nicheLabels: Record<string, string> = {
@@ -26,15 +25,11 @@ const modeLabels: Record<string, string> = {
   home: 'Home-based'
 }
 
-// Email do Super Admin (pode ser pego da sessão no futuro)
-const SUPER_ADMIN_EMAIL = 'fabianobraga@me.com'
-
 export default function StoresPage() {
   const router = useRouter()
   const [stores, setStores] = useState<StoreWithTenant[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [assumingStoreId, setAssumingStoreId] = useState<string | null>(null)
 
   useEffect(() => {
     loadStores()
@@ -53,27 +48,9 @@ export default function StoresPage() {
     }
   }
 
-  async function handleAssumeStore(storeId: string, storeName: string) {
-    if (!confirm(`Deseja assumir a loja "${storeName}" como proprietário?`)) {
-      return
-    }
-
-    setAssumingStoreId(storeId)
-    try {
-      const result = await assignStoreOwnerAction(storeId, SUPER_ADMIN_EMAIL)
-      
-      if (result.success && result.storeSlug) {
-        toast.success('Agora você é dono desta loja!')
-        router.push(`/${result.storeSlug}/dashboard`)
-      } else {
-        toast.error(result.error || 'Erro ao assumir loja')
-      }
-    } catch (err) {
-      console.error('Erro ao assumir loja:', err)
-      toast.error('Erro ao assumir loja')
-    } finally {
-      setAssumingStoreId(null)
-    }
+  function handleAssumeStore(storeSlug: string, storeName: string) {
+    toast.success(`Entrando em ${storeName}...`)
+    router.push(`/${storeSlug}/dashboard`)
   }
 
   if (loading) {
@@ -230,17 +207,12 @@ export default function StoresPage() {
                         Dashboard
                       </Link>
                       <button
-                        onClick={() => handleAssumeStore(store.id, store.name)}
-                        disabled={assumingStoreId === store.id}
-                        className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-amber-600 border border-amber-300 rounded-lg hover:bg-amber-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        title="Assumir como proprietário para dar suporte"
+                        onClick={() => handleAssumeStore(store.slug, store.name)}
+                        className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-amber-600 border border-amber-300 rounded-lg hover:bg-amber-50 transition-colors"
+                        title="Entrar no dashboard desta loja"
                       >
-                        {assumingStoreId === store.id ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <KeyRound className="w-4 h-4" />
-                        )}
-                        Assumir Loja
+                        <KeyRound className="w-4 h-4" />
+                        Entrar na Loja
                       </button>
                     </div>
                   </div>
