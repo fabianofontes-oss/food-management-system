@@ -16,56 +16,36 @@ export async function assignStoreOwnerAction(
 
   // Verificar se o usuário atual é Super Admin
   const { data: { user: currentUser } } = await supabase.auth.getUser()
-  if (!currentUser || !isSuperAdmin(currentUser.email)) {
-    return { success: false, error: 'Acesso não autorizado' }
+  
+  if (!currentUser) {
+    return { success: false, error: 'Usuário não autenticado' }
+  }
+  
+  if (!isSuperAdmin(currentUser.email)) {
+    return { success: false, error: 'Acesso não autorizado - apenas Super Admins' }
   }
 
   try {
-    // 1. Buscar o user_id pelo email na tabela public.users
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('id, email')
-      .eq('email', userEmail)
-      .single()
+    // Usar o ID do usuário atual (Super Admin logado)
+    const userId = currentUser.id
 
-    if (userError || !userData) {
-      // Tentar criar o usuário se não existir
-      // Isso é útil se o Super Admin ainda não tem registro em public.users
-      const { data: authUser } = await supabase.auth.admin.getUserByEmail(userEmail)
-      
-      if (!authUser?.user) {
-        return { success: false, error: `Usuário não encontrado: ${userEmail}` }
-      }
-
-      // Inserir na tabela users
-      const { data: newUser, error: insertUserError } = await supabase
-        .from('users')
-        .insert({
-          id: authUser.user.id,
-          email: userEmail,
-          name: authUser.user.user_metadata?.name || userEmail.split('@')[0]
-        })
-        .select()
-        .single()
-
-      if (insertUserError) {
-        console.error('Erro ao criar usuário:', insertUserError)
-        // Continuar mesmo com erro - pode ser que o usuário já exista
-      }
-    }
-
-    // Buscar novamente o usuário (agora deve existir)
-    const { data: finalUser, error: finalUserError } = await supabase
+    // Verificar se existe na tabela public.users, se não, criar
+    const { data: existingUser } = await supabase
       .from('users')
       .select('id')
-      .eq('email', userEmail)
+      .eq('id', userId)
       .single()
 
-    if (finalUserError || !finalUser) {
-      return { success: false, error: 'Não foi possível localizar/criar o usuário' }
+    if (!existingUser) {
+      // Criar registro em public.users
+      await supabase
+        .from('users')
+        .insert({
+          id: userId,
+          email: currentUser.email,
+          name: currentUser.user_metadata?.name || currentUser.email?.split('@')[0] || 'Super Admin'
+        })
     }
-
-    const userId = finalUser.id
 
     // 2. Buscar dados da loja para retornar o slug
     const { data: storeData, error: storeError } = await supabase
