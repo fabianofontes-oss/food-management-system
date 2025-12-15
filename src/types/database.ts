@@ -140,6 +140,8 @@ export type Database = {
           latitude: number | null
           longitude: number | null
           settings: Json | null
+          public_profile: Json | null
+          menu_theme: Json | null
           created_at: string
           updated_at: string
         }
@@ -159,6 +161,8 @@ export type Database = {
           latitude?: number | null
           longitude?: number | null
           settings?: Json | null
+          public_profile?: Json | null
+          menu_theme?: Json | null
           created_at?: string
           updated_at?: string
         }
@@ -178,6 +182,8 @@ export type Database = {
           latitude?: number | null
           longitude?: number | null
           settings?: Json | null
+          public_profile?: Json | null
+          menu_theme?: Json | null
           created_at?: string
           updated_at?: string
         }

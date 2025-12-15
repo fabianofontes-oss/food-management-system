@@ -70,7 +70,10 @@ export async function updateStoreAppearance(data: z.infer<typeof UpdateAppearanc
       return { success: false, error: 'Sem permissão para editar esta loja' }
     }
 
-    const updateData: Record<string, any> = {}
+    const updateData: {
+      public_profile?: typeof validated.publicProfile
+      menu_theme?: typeof validated.menuTheme
+    } = {}
     
     if (validated.publicProfile !== undefined) {
       updateData.public_profile = validated.publicProfile
@@ -80,10 +83,9 @@ export async function updateStoreAppearance(data: z.infer<typeof UpdateAppearanc
       updateData.menu_theme = validated.menuTheme
     }
 
-    // @ts-ignore - public_profile and menu_theme not in generated types yet
     const { error } = await supabase
       .from('stores')
-      .update(updateData)
+      .update(updateData as never)
       .eq('id', validated.storeId)
 
     if (error) {
@@ -91,16 +93,16 @@ export async function updateStoreAppearance(data: z.infer<typeof UpdateAppearanc
       return { success: false, error: 'Erro ao atualizar aparência da loja' }
     }
 
-    // @ts-ignore - slug exists in stores table
     const { data: store } = await supabase
       .from('stores')
       .select('slug')
       .eq('id', validated.storeId)
       .single()
 
-    if (store?.slug) {
-      revalidatePath(`/${store.slug}`)
-      revalidatePath(`/${store.slug}/dashboard/appearance`)
+    const storeData = store as { slug: string } | null
+    if (storeData?.slug) {
+      revalidatePath(`/${storeData.slug}`)
+      revalidatePath(`/${storeData.slug}/dashboard/appearance`)
     }
 
     return { success: true }
@@ -117,7 +119,6 @@ export async function getStoreAppearance(storeId: string) {
   try {
     const supabase = await createClient()
 
-    // @ts-ignore - public_profile and menu_theme not in generated types yet
     const { data: store, error } = await supabase
       .from('stores')
       .select('public_profile, menu_theme, slug')
@@ -132,9 +133,9 @@ export async function getStoreAppearance(storeId: string) {
     return {
       success: true,
       data: {
-        publicProfile: store.public_profile || {},
-        menuTheme: store.menu_theme || {},
-        slug: store.slug,
+        publicProfile: (store as any).public_profile || {},
+        menuTheme: (store as any).menu_theme || {},
+        slug: (store as any).slug,
       },
     }
   } catch (error) {

@@ -16,15 +16,14 @@ export default async function MenuPage({ params }: { params: { slug: string } })
   ])
 
   const supabase = await createClient()
-  // @ts-ignore - public_profile and menu_theme not in generated types yet
   const { data: storeTheme } = await supabase
     .from('stores')
     .select('public_profile, menu_theme')
     .eq('id', store.id)
     .single()
 
-  const publicProfile = storeTheme?.public_profile || null
-  const menuTheme = storeTheme?.menu_theme || null
+  const publicProfile = (storeTheme?.public_profile as any) || null
+  const menuTheme = (storeTheme?.menu_theme as any) || null
 
   return (
     <MenuClient 
