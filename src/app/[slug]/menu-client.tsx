@@ -6,7 +6,7 @@ import { ProductModal } from '@/components/menu/ProductModal'
 import { CartButton } from '@/components/menu/CartButton'
 import { useCartStore } from '@/stores/cart-store'
 import { Search, Grid3x3, List, Image as ImageIcon } from 'lucide-react'
-import type { Store, Category, Product } from '@/types/menu'
+import type { Store, Category, Product, PublicProfile, MenuTheme } from '@/types/menu'
 
 type ViewMode = 'grid' | 'list' | 'visual'
 
@@ -14,9 +14,11 @@ interface MenuClientProps {
   store: Store
   categories: Category[]
   products: Product[]
+  publicProfile?: PublicProfile | null
+  menuTheme?: MenuTheme | null
 }
 
-export function MenuClient({ store, categories, products }: MenuClientProps) {
+export function MenuClient({ store, categories, products, publicProfile, menuTheme }: MenuClientProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -53,8 +55,21 @@ export function MenuClient({ store, categories, products }: MenuClientProps) {
     setSelectedProductId(null)
   }
 
+  const primaryColor = menuTheme?.colors?.primary || '#10B981'
+  const accentColor = menuTheme?.colors?.accent || '#F59E0B'
+  const bgColor = menuTheme?.colors?.bg || '#F9FAFB'
+  const textColor = menuTheme?.colors?.text || '#111827'
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div 
+      className="min-h-screen bg-gradient-to-b from-gray-50 to-white"
+      style={{
+        '--theme-primary': primaryColor,
+        '--theme-accent': accentColor,
+        '--theme-bg': bgColor,
+        '--theme-text': textColor,
+      } as React.CSSProperties}
+    >
       <header className="bg-gradient-to-r from-green-600 to-green-700 text-white sticky top-0 z-30 shadow-lg">
         <div className="container mx-auto px-4 py-6">
           <h1 className="text-3xl font-bold drop-shadow-md">{store.name}</h1>

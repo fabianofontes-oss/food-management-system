@@ -12,6 +12,8 @@ export interface Store {
   whatsapp: string | null
   address: string | null
   settings: StoreSettings | null
+  public_profile?: PublicProfile | null
+  menu_theme?: MenuTheme | null
 }
 
 export interface StoreSettings {
@@ -132,4 +134,43 @@ export interface OrderData {
   notes?: string
   coupon_code?: string
   discount_amount?: number
+}
+
+export interface BusinessHours {
+  monday?: string
+  tuesday?: string
+  wednesday?: string
+  thursday?: string
+  friday?: string
+  saturday?: string
+  sunday?: string
+}
+
+export interface PublicProfile {
+  displayName?: string
+  slogan?: string
+  fullAddress?: string
+  googleMapsUrl?: string
+  phone?: string
+  whatsapp?: string
+  instagram?: string
+  facebook?: string
+  tiktok?: string
+  businessHours?: BusinessHours
+  notes?: string
+}
+
+export interface MenuTheme {
+  preset?: 'menuA' | 'menuB' | 'menuC'
+  cardVariant?: 'cardA' | 'cardB' | 'cardC'
+  colors?: {
+    primary?: string
+    accent?: string
+    bg?: string
+    text?: string
+  }
+  layout?: {
+    showSearch?: boolean
+    showCategories?: boolean
+  }
 }

@@ -5,7 +5,7 @@ import {
   LayoutDashboard, ShoppingCart, ChefHat, Truck, 
   Package, Settings, Users, ShoppingBag, UserCog, BarChart3, 
   Ticket, DollarSign, Warehouse, LayoutGrid, PieChart, Star, 
-  Megaphone, CalendarDays, LogOut, Coffee
+  Megaphone, CalendarDays, LogOut, Coffee, Palette
 } from 'lucide-react'
 import { AppShell } from '@/components/layout/AppShell'
 import { SidebarSection } from '@/components/layout/Sidebar'
@@ -69,6 +69,7 @@ export default function DashboardClient({
     {
       title: 'Sistema',
       items: [
+        { href: `${base}/appearance`, label: 'Aparência', icon: Palette, gradient: 'from-purple-500 to-fuchsia-600' },
         { href: `${base}/settings`, label: 'Configurações', icon: Settings, gradient: 'from-slate-500 to-slate-600' },
         { href: '/logout', label: 'Sair', icon: LogOut, gradient: 'from-rose-500 to-red-600' },
       ]
