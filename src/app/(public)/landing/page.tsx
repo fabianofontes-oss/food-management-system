@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   publisher: 'Pediu',
   metadataBase: new URL(baseUrl),
   alternates: {
-    canonical: '/landing',
+    canonical: '/',
   },
   openGraph: {
     type: 'website',
