@@ -110,7 +110,6 @@ export async function createOrder(
           modifier_option_id: m.option_id,
         })),
       })),
-      discount_amount: orderData.discount_amount,
     })
 
     const { data, error } = await supabase.rpc('create_order_atomic', {
@@ -137,7 +136,7 @@ export async function createOrder(
 
     if (error) {
       console.error('create_order_atomic error:', error)
-      return { success: false, error: 'Falha ao criar pedido (atomic)' }
+      return { success: false, error: error.message || 'Falha ao criar pedido' }
     }
 
     const parsed = z
@@ -148,7 +147,12 @@ export async function createOrder(
       })
       .parse(data)
 
-    return { success: true, orderId: parsed.order_id, orderCode: parsed.code, idempotent: parsed.idempotent }
+    return {
+      success: true,
+      orderId: parsed.order_id,
+      code: parsed.code,
+      idempotent: parsed.idempotent,
+    }
   } catch (error) {
     console.error('Error creating order:', error)
     const message = error instanceof Error ? error.message : 'Erro desconhecido'

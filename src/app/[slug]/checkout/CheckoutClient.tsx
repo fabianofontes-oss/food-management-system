@@ -18,6 +18,7 @@ import { validateAndSubmitOrder } from './services/orders'
 import { validateCoupon } from '@/lib/coupons/actions'
 import { supabase } from '@/lib/supabase'
 import type { CheckoutFormData, CheckoutMode, PaymentMethod } from './types'
+import { mapOrderError } from './errors'
 
 interface CheckoutClientProps {
   slug: string
@@ -169,7 +170,7 @@ export function CheckoutClient({ slug }: CheckoutClientProps) {
         key
       )
 
-      if (result.success && result.orderId) {
+      if (result.success && result.code) {
         clearCart()
         try {
           sessionStorage.removeItem(storageKey)
@@ -177,12 +178,12 @@ export function CheckoutClient({ slug }: CheckoutClientProps) {
           // ignore
         }
         setIdempotencyKey(null)
-        router.push(`/${slug}/order/${result.orderId}`)
+        router.push(`/${slug}/pedido/${result.code}`)
       } else {
-        setError(result.error || 'Erro ao criar pedido')
+        setError(mapOrderError(result.error))
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro inesperado ao criar pedido')
+      setError(mapOrderError(err))
     } finally {
       setLoading(false)
       setIsSubmitting(false)

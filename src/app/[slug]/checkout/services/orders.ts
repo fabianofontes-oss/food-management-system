@@ -7,6 +7,7 @@ import type { CartItem } from '@/types/menu'
 export interface OrderSubmitResult {
   success: boolean
   orderId?: string
+  code?: string
   error?: string
 }
 
@@ -62,10 +63,11 @@ export async function validateAndSubmitOrder(
 
     const result = await createOrder(store.id, items, orderData, idempotencyKey)
 
-    if (result.success && result.orderId) {
+    if (result.success && result.orderId && result.code) {
       return {
         success: true,
-        orderId: result.orderId
+        orderId: result.orderId,
+        code: result.code
       }
     } else {
       return {
