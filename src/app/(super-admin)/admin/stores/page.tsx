@@ -2,8 +2,11 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Store, MapPin, Phone, ExternalLink, LayoutDashboard, Loader2 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Store, MapPin, Phone, ExternalLink, LayoutDashboard, Loader2, KeyRound } from 'lucide-react'
 import { getStores, type StoreWithTenant } from '@/lib/superadmin/queries'
+import { assignStoreOwnerAction } from '@/lib/superadmin/actions'
+import { toast } from 'sonner'
 
 const nicheLabels: Record<string, string> = {
   acai: 'Açaíteria',
@@ -23,10 +26,15 @@ const modeLabels: Record<string, string> = {
   home: 'Home-based'
 }
 
+// Email do Super Admin (pode ser pego da sessão no futuro)
+const SUPER_ADMIN_EMAIL = 'fabianobraga@me.com'
+
 export default function StoresPage() {
+  const router = useRouter()
   const [stores, setStores] = useState<StoreWithTenant[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [assumingStoreId, setAssumingStoreId] = useState<string | null>(null)
 
   useEffect(() => {
     loadStores()
@@ -42,6 +50,29 @@ export default function StoresPage() {
       setError('Erro ao carregar lojas')
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function handleAssumeStore(storeId: string, storeName: string) {
+    if (!confirm(`Deseja assumir a loja "${storeName}" como proprietário?`)) {
+      return
+    }
+
+    setAssumingStoreId(storeId)
+    try {
+      const result = await assignStoreOwnerAction(storeId, SUPER_ADMIN_EMAIL)
+      
+      if (result.success && result.storeSlug) {
+        toast.success('Agora você é dono desta loja!')
+        router.push(`/${result.storeSlug}/dashboard`)
+      } else {
+        toast.error(result.error || 'Erro ao assumir loja')
+      }
+    } catch (err) {
+      console.error('Erro ao assumir loja:', err)
+      toast.error('Erro ao assumir loja')
+    } finally {
+      setAssumingStoreId(null)
     }
   }
 
@@ -181,7 +212,7 @@ export default function StoresPage() {
                     </div>
                     
                     {/* Links de Acesso Rápido */}
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-wrap">
                       <Link
                         href={`/${store.slug}`}
                         target="_blank"
@@ -198,6 +229,19 @@ export default function StoresPage() {
                         <LayoutDashboard className="w-4 h-4" />
                         Dashboard
                       </Link>
+                      <button
+                        onClick={() => handleAssumeStore(store.id, store.name)}
+                        disabled={assumingStoreId === store.id}
+                        className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-amber-600 border border-amber-300 rounded-lg hover:bg-amber-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Assumir como proprietário para dar suporte"
+                      >
+                        {assumingStoreId === store.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <KeyRound className="w-4 h-4" />
+                        )}
+                        Assumir Loja
+                      </button>
                     </div>
                   </div>
                 </div>
