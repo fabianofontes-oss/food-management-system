@@ -1,57 +1,84 @@
 import { notFound } from 'next/navigation'
-import { getStoreBySlug, getStoreCategories, getStoreProducts } from '@/lib/actions/menu'
-import { MenuClient } from './menu-client'
 import { createClient } from '@/lib/supabase/server'
 import { StoreFront } from '@/modules/store/components/public'
-import { safeParseTheme, DEFAULT_THEME } from '@/modules/store/utils'
+import { safeParseTheme } from '@/modules/store/utils'
 import { mergeWithDefaults } from '@/modules/store/types'
-import type { MenuTheme, PublicProfile } from '@/types/menu'
 import type { StoreWithSettings } from '@/modules/store'
 
-// Desabilitar cache estático para sempre buscar dados frescos
+// CRÍTICO: Desabilitar cache para sempre buscar dados frescos
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
+/**
+ * PÁGINA PÚBLICA DO CARDÁPIO
+ * 
+ * Fluxo: 
+ * 1. Busca loja pelo slug
+ * 2. Busca categorias e produtos
+ * 3. Lê menu_theme do banco (salvo pela página de Aparência)
+ * 4. Renderiza StoreFront com o layout correto
+ */
 export default async function MenuPage({ params }: { params: { slug: string } }) {
-  const store = await getStoreBySlug(params.slug)
+  const supabase = await createClient()
   
-  if (!store) {
+  // 1. Buscar loja pelo slug
+  const { data: storeData, error: storeError } = await supabase
+    .from('stores')
+    .select('*')
+    .eq('slug', params.slug)
+    .single()
+
+  if (storeError || !storeData) {
     notFound()
   }
 
-  const [categories, products] = await Promise.all([
-    getStoreCategories(store.id),
-    getStoreProducts(store.id),
+  // 2. Buscar categorias e produtos
+  const [categoriesResult, productsResult] = await Promise.all([
+    supabase
+      .from('categories')
+      .select('*')
+      .eq('store_id', storeData.id)
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true }),
+    supabase
+      .from('products')
+      .select('*')
+      .eq('store_id', storeData.id)
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true })
   ])
 
-  const supabase = await createClient()
-  const { data: storeData } = await supabase
-    .from('stores')
-    .select('*')
-    .eq('id', store.id)
-    .single()
+  const categories = categoriesResult.data || []
+  const products = productsResult.data || []
 
-  // BLINDAGEM: Parse seguro do tema
-  const rawTheme = (storeData as any)?.menu_theme
+  // 3. Parse do tema (CRÍTICO: ler de menu_theme)
+  const rawTheme = (storeData as any).menu_theme
   const parsedTheme = safeParseTheme(rawTheme)
   
-  // Parse seguro dos settings
-  const parsedSettings = mergeWithDefaults((storeData as any)?.settings || null)
+  // DEBUG: Log para verificar o tema
+  console.log('=== TEMA DO CARDÁPIO ===')
+  console.log('Slug:', params.slug)
+  console.log('Raw theme:', JSON.stringify(rawTheme))
+  console.log('Parsed layout:', parsedTheme.layout)
+  console.log('========================')
 
-  // Monta o StoreWithSettings completo
+  // 4. Montar StoreWithSettings
+  const parsedSettings = mergeWithDefaults((storeData as any)?.settings || null)
+  
   const storeWithSettings: StoreWithSettings = {
     ...storeData,
     parsedSettings,
     parsedTheme
   } as StoreWithSettings
 
-  // Formata categorias com produtos para o StoreFront
-  const formattedCategories = categories.map(cat => ({
+  // 5. Formatar categorias com produtos
+  const formattedCategories = categories.map((cat: any) => ({
     id: cat.id,
     name: cat.name,
+    color: cat.color || null,
     products: products
-      .filter(p => p.category_id === cat.id)
-      .map(p => ({
+      .filter((p: any) => p.category_id === cat.id)
+      .map((p: any) => ({
         id: p.id,
         name: p.name,
         description: p.description,
@@ -59,24 +86,28 @@ export default async function MenuPage({ params }: { params: { slug: string } })
         image_url: p.image_url,
         is_available: p.is_active
       }))
-  })).filter(cat => cat.products.length > 0)
+  })).filter((cat: any) => cat.products.length > 0)
 
-  // Fallback: Se não tiver categorias, agrupa todos produtos em "Cardápio"
+  // Fallback se não tiver categorias
   const displayCategories = formattedCategories.length > 0 
     ? formattedCategories 
-    : [{
-        id: 'all',
-        name: 'Cardápio',
-        products: products.map(p => ({
-          id: p.id,
-          name: p.name,
-          description: p.description,
-          price: p.base_price,
-          image_url: p.image_url,
-          is_available: p.is_active
-        }))
-      }]
+    : products.length > 0
+      ? [{
+          id: 'all',
+          name: 'Cardápio',
+          color: null,
+          products: products.map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            description: p.description,
+            price: p.base_price,
+            image_url: p.image_url,
+            is_available: p.is_active
+          }))
+        }]
+      : []
 
+  // 6. Renderizar StoreFront
   return (
     <StoreFront 
       store={storeWithSettings}
