@@ -20,21 +20,30 @@ export function useProducts(storeId?: string) {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    if (!storeId) {
+      setProducts([])
+      setLoading(false)
+      setError(null)
+      return
+    }
+
     fetchProducts()
   }, [storeId])
 
   async function fetchProducts() {
     try {
+      if (!storeId) {
+        setProducts([])
+        return
+      }
+
       setLoading(true)
       let query = supabase
         .from('products')
         .select('*')
+        .eq('store_id', storeId)
         .eq('is_active', true)
         .order('name')
-
-      if (storeId) {
-        query = query.eq('store_id', storeId)
-      }
 
       const { data, error } = await query
 

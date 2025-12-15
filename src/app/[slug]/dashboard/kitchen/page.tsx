@@ -29,7 +29,6 @@ export default function KitchenPage() {
   const params = useParams()
   const slug = params.slug as string
   const { t, formatCurrency: formatCurrencyI18n } = useLanguage()
-  const { orders, loading, updateOrderStatus, refreshOrders } = useOrders()
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null)
   const [orderItems, setOrderItems] = useState<Record<string, OrderItem[]>>({})
   const [lastOrderCount, setLastOrderCount] = useState(0)
@@ -51,6 +50,8 @@ export default function KitchenPage() {
   const [storeId, setStoreId] = useState<string | null>(null)
   const [isRealtimeConnected, setIsRealtimeConnected] = useState(false)
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
+
+  const { orders, loading, updateOrderStatus, refreshOrders } = useOrders(storeId ?? undefined)
 
   // Constante para pedidos atrasados
   const LATE_MINUTES = 30

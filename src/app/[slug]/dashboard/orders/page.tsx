@@ -7,6 +7,7 @@ import { formatCurrency } from '@/lib/utils'
 import { useOrders } from '@/hooks/useOrders'
 import { useLanguage } from '@/lib/LanguageContext'
 import { supabase } from '@/lib/supabase'
+import { useStoreId } from '@/hooks/useStore'
 
 type OrderItem = {
   id: string
@@ -20,7 +21,8 @@ type OrderItem = {
 
 export default function OrdersPage() {
   const { t, formatCurrency: formatCurrencyI18n } = useLanguage()
-  const { orders, loading, updateOrderStatus, fetchOrders } = useOrders()
+  const storeId = useStoreId()
+  const { orders, loading, updateOrderStatus, fetchOrders } = useOrders(storeId ?? undefined)
   const [orderItems, setOrderItems] = useState<Record<string, OrderItem[]>>({})
   
   const [searchTerm, setSearchTerm] = useState('')
@@ -45,13 +47,19 @@ export default function OrdersPage() {
 
   useEffect(() => {
     async function loadOrderItems() {
+      if (!storeId) {
+        setOrderItems({})
+        return
+      }
+
       const orderIds = orders.map(o => o.id)
       if (orderIds.length === 0) return
 
       const { data } = await supabase
         .from('order_items')
-        .select('id, order_id, product_id, quantity, unit_price, products(name)')
+        .select('id, order_id, product_id, quantity, unit_price, products(name), orders!inner(store_id)')
         .in('order_id', orderIds)
+        .eq('orders.store_id', storeId)
 
       if (data) {
         const itemsByOrder: Record<string, OrderItem[]> = {}
@@ -64,7 +72,7 @@ export default function OrdersPage() {
       }
     }
     loadOrderItems()
-  }, [orders])
+  }, [orders, storeId])
 
   useEffect(() => {
     const today = new Date().toDateString()

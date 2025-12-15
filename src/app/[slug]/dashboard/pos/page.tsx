@@ -27,9 +27,9 @@ export default function POSPage() {
   const params = useParams()
   const slug = params.slug as string
   const { t } = useLanguage()
-  const { products, loading } = useProducts()
-  const currentStoreId = products[0]?.store_id
-  const { settings } = useSettings(currentStoreId)
+  const [storeId, setStoreId] = useState<string | null>(null)
+  const { products, loading } = useProducts(storeId ?? undefined)
+  const { settings } = useSettings(storeId ?? undefined)
   const helper = useSettingsHelper(settings)
   
   // Configurações do PDV
@@ -97,16 +97,30 @@ export default function POSPage() {
   const [cancelPassword, setCancelPassword] = useState('')
   const [itemToCancel, setItemToCancel] = useState<string | null>(null)
 
+  // Carregar store_id pelo slug (evita inferência por products[0])
+  useEffect(() => {
+    async function loadStoreId() {
+      if (!slug) return
+      const { data } = await supabase
+        .from('stores')
+        .select('id')
+        .eq('slug', slug)
+        .single()
+      setStoreId(data?.id ?? null)
+    }
+    loadStoreId()
+  }, [slug])
+
   // Carregar estatísticas do dia
   useEffect(() => {
     async function loadStats() {
-      if (!currentStoreId) return
+      if (!storeId) return
       const today = new Date().toDateString()
       
       const { data } = await supabase
         .from('orders')
         .select('total_amount, created_at')
-        .eq('store_id', currentStoreId)
+        .eq('store_id', storeId)
         .gte('created_at', new Date(today).toISOString())
         .order('created_at', { ascending: false })
         .limit(10)
@@ -118,7 +132,7 @@ export default function POSPage() {
       }
     }
     loadStats()
-  }, [currentStoreId, processingOrder])
+  }, [storeId, processingOrder])
 
   // Atalhos de teclado
   useEffect(() => {

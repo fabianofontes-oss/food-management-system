@@ -4,6 +4,7 @@ import { BarChart3, TrendingUp, ShoppingBag, Users, DollarSign, Package, Loader2
 import { formatCurrency } from '@/lib/utils'
 import { useProducts } from '@/hooks/useProducts'
 import { useOrders } from '@/hooks/useOrders'
+import { useStoreId } from '@/hooks/useStore'
 import { supabase } from '@/lib/supabase'
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
@@ -13,9 +14,11 @@ export default function AdminPage() {
   const params = useParams()
   const router = useRouter()
   const slug = params.slug as string
+
+  const storeId = useStoreId()
   
-  const { products, loading: loadingProducts } = useProducts()
-  const { orders, loading: loadingOrders } = useOrders()
+  const { products, loading: loadingProducts } = useProducts(storeId ?? undefined)
+  const { orders, loading: loadingOrders } = useOrders(storeId ?? undefined)
   const [customersCount, setCustomersCount] = useState(0)
   const [checkingOnboarding, setCheckingOnboarding] = useState(true)
   
@@ -74,11 +77,19 @@ export default function AdminPage() {
   
   useEffect(() => {
     async function fetchCustomers() {
-      const { count } = await supabase.from('customers').select('*', { count: 'exact', head: true })
+      if (!storeId) {
+        setCustomersCount(0)
+        return
+      }
+
+      const { count } = await supabase
+        .from('customers')
+        .select('*', { count: 'exact', head: true })
+        .eq('store_id', storeId)
       setCustomersCount(count || 0)
     }
     fetchCustomers()
-  }, [])
+  }, [storeId])
 
   const today = new Date().toISOString().split('T')[0]
   const ordersToday = orders.filter(o => o.created_at.startsWith(today))

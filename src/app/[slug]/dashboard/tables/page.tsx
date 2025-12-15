@@ -503,10 +503,16 @@ export default function TablesPage() {
     setShowDetails(true)
     
     if (table.current_order_id) {
+      if (!storeId) {
+        setTableOrder(null)
+        return
+      }
+
       const { data } = await supabase
         .from('orders')
         .select('*')
         .eq('id', table.current_order_id)
+        .eq('store_id', storeId)
         .single()
       
       if (data) setTableOrder(data)

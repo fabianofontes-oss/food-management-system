@@ -25,8 +25,8 @@ export default function PDVNovoPage() {
   const slug = params.slug as string
   const supabase = useMemo(() => createClient(), [])
 
-  const { products, loading: productsLoading } = useProducts()
   const [storeId, setStoreId] = useState<string | null>(null)
+  const { products, loading: productsLoading } = useProducts(storeId ?? undefined)
   const [cart, setCart] = useState<CartItem[]>([])
   const [search, setSearch] = useState('')
   const [selectedPayment, setSelectedPayment] = useState<'money' | 'debit' | 'credit' | 'pix'>('money')
@@ -51,7 +51,7 @@ export default function PDVNovoPage() {
     loadConfig()
   }, [slug, supabase])
 
-  const storeProducts = storeId ? products.filter(p => p.store_id === storeId) : []
+  const storeProducts = products
 
   // Debug logs
   useEffect(() => {

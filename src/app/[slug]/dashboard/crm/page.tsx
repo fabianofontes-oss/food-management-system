@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Search, Users, TrendingUp, DollarSign, MessageCircle, Loader2 } from 'lucide-react'
 import { formatCurrency, formatPhone } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
+import { useParams } from 'next/navigation'
 
 interface Customer {
   id: string
@@ -17,23 +18,47 @@ interface Customer {
 }
 
 export default function CRMPage() {
+  const params = useParams()
+  const slug = params.slug as string
+  const [storeId, setStoreId] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedSegment, setSelectedSegment] = useState<string | null>(null)
   const [customers, setCustomers] = useState<Customer[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    async function loadStoreId() {
+      if (!slug) return
+      const { data } = await supabase
+        .from('stores')
+        .select('id')
+        .eq('slug', slug)
+        .single()
+      setStoreId(data?.id ?? null)
+    }
+    loadStoreId()
+  }, [slug])
+
+  useEffect(() => {
     async function fetchCustomers() {
+      if (!storeId) {
+        setCustomers([])
+        setLoading(false)
+        return
+      }
+
       setLoading(true)
       try {
         const { data: customersData } = await supabase
           .from('customers')
           .select('*')
+          .eq('store_id', storeId)
           .order('created_at', { ascending: false })
 
         const { data: ordersData } = await supabase
           .from('orders')
           .select('customer_id, total_amount, created_at')
+          .eq('store_id', storeId)
 
         const customersWithStats = (customersData || []).map((customer: any) => {
           const customerOrders = (ordersData || []).filter((o: any) => o.customer_id === customer.id)
@@ -66,7 +91,7 @@ export default function CRMPage() {
       }
     }
     fetchCustomers()
-  }, [])
+  }, [storeId])
 
   const filteredCustomers = customers.filter((c) => {
     const matchesSearch = c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||

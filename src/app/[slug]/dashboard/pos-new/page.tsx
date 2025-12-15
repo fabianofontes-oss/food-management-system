@@ -28,8 +28,8 @@ export default function POSNewPage() {
   const supabase = useMemo(() => createClient(), [])
 
   // Estados principais
-  const { products, loading: productsLoading } = useProducts()
   const [storeId, setStoreId] = useState<string | null>(null)
+  const { products, loading: productsLoading } = useProducts(storeId ?? undefined)
   const [pdvConfig, setPdvConfig] = useState<PDVSettings>(DEFAULT_PDV_SETTINGS)
   const [configLoading, setConfigLoading] = useState(true)
 

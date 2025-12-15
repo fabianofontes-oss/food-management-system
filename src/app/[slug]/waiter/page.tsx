@@ -120,9 +120,11 @@ export default function WaiterAppPage() {
   }
 
   async function loadTableOrders(tableId: string) {
+    if (!storeId) return
     const { data } = await supabase
       .from('orders')
       .select('*, items:order_items(*)')
+      .eq('store_id', storeId)
       .eq('table_id', tableId)
       .in('status', ['pending', 'preparing', 'ready'])
       .order('created_at', { ascending: false })

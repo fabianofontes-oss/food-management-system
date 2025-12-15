@@ -29,13 +29,24 @@ export function useOrders(storeId?: string) {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    if (!storeId) {
+      setOrders([])
+      setLoading(false)
+      setError(null)
+      return
+    }
+
     fetchOrders()
-    
+
     const channel = supabase
-      .channel('orders-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
-        fetchOrders()
-      })
+      .channel(`orders:${storeId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'orders', filter: `store_id=eq.${storeId}` },
+        () => {
+          fetchOrders()
+        }
+      )
       .subscribe()
 
     return () => {
@@ -45,17 +56,19 @@ export function useOrders(storeId?: string) {
 
   async function fetchOrders() {
     try {
+      if (!storeId) {
+        setOrders([])
+        return
+      }
+
       setLoading(true)
       setError(null)
       
       let query = supabase
         .from('orders')
         .select('*')
+        .eq('store_id', storeId)
         .order('created_at', { ascending: false })
-
-      if (storeId) {
-        query = query.eq('store_id', storeId)
-      }
 
       const { data, error } = await query
 
@@ -76,11 +89,13 @@ export function useOrders(storeId?: string) {
 
   async function createOrder(order: Omit<Order, 'id' | 'created_at' | 'order_code'>) {
     try {
+      if (!storeId) throw new Error('storeId é obrigatório para criar pedido')
+
       const orderCode = `A${String(Math.floor(Math.random() * 9999) + 1).padStart(4, '0')}`
       
       const { data, error } = await supabase
         .from('orders')
-        .insert([{ ...order, order_code: orderCode }])
+        .insert([{ ...order, store_id: storeId, order_code: orderCode }])
         .select()
         .single()
 
@@ -93,10 +108,13 @@ export function useOrders(storeId?: string) {
 
   async function updateOrderStatus(id: string, status: Order['status']) {
     try {
+      if (!storeId) throw new Error('storeId é obrigatório para atualizar pedido')
+
       const { error } = await supabase
         .from('orders')
         .update({ status })
         .eq('id', id)
+        .eq('store_id', storeId)
 
       if (error) throw error
       await fetchOrders()
