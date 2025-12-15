@@ -27,15 +27,15 @@ export default function DashboardClient({
 }) {
   const base = `/${slug}/dashboard`
 
-  // SIDEBAR REORGANIZADO - Padrão Tech Lead
+  // SIDEBAR REORGANIZADO - Com grupos Collapsible
   const menuSections: SidebarSection[] = [
     {
       title: 'Principal',
       items: [
         { href: base, label: 'Dashboard', icon: LayoutDashboard, gradient: 'from-violet-500 to-purple-600' },
         { href: `${base}/orders`, label: 'Pedidos', icon: ShoppingBag, gradient: 'from-blue-500 to-cyan-600' },
+        { href: `${base}/kitchen`, label: 'Cozinha (KDS)', icon: ChefHat, gradient: 'from-red-500 to-rose-600' },
         { href: `${base}/pos`, label: 'PDV', icon: ShoppingCart, gradient: 'from-emerald-500 to-teal-600' },
-        { href: `${base}/kitchen`, label: 'Cozinha', icon: ChefHat, gradient: 'from-red-500 to-rose-600' },
       ]
     },
     {
@@ -47,29 +47,27 @@ export default function DashboardClient({
       ]
     },
     {
-      title: 'Vendas',
-      items: [
-        { href: `${base}/tables`, label: 'Mesas', icon: LayoutGrid, gradient: 'from-fuchsia-500 to-pink-600' },
-        { href: `${base}/delivery`, label: 'Delivery', icon: Truck, gradient: 'from-indigo-500 to-blue-600' },
-        { href: `${base}/reservations`, label: 'Reservas', icon: CalendarDays, gradient: 'from-teal-500 to-cyan-600' },
-        { href: `${base}/coupons`, label: 'Cupons', icon: Ticket, gradient: 'from-fuchsia-500 to-pink-600' },
-      ]
-    },
-    {
       title: 'Gestão',
+      collapsible: true,
+      defaultOpen: false,
       items: [
         { href: `${base}/financial`, label: 'Financeiro', icon: DollarSign, gradient: 'from-green-500 to-emerald-600' },
         { href: `${base}/crm`, label: 'Clientes', icon: Users, gradient: 'from-purple-500 to-violet-600' },
-        { href: `${base}/team`, label: 'Equipe', icon: UserCog, gradient: 'from-cyan-500 to-blue-600' },
+        { href: `${base}/delivery`, label: 'Entregadores', icon: Truck, gradient: 'from-indigo-500 to-blue-600' },
+        { href: `${base}/tables`, label: 'Mesas', icon: LayoutGrid, gradient: 'from-fuchsia-500 to-pink-600' },
+        { href: `${base}/reservations`, label: 'Reservas', icon: CalendarDays, gradient: 'from-teal-500 to-cyan-600' },
+        { href: `${base}/coupons`, label: 'Cupons', icon: Ticket, gradient: 'from-fuchsia-500 to-pink-600' },
         { href: `${base}/analytics`, label: 'Relatórios', icon: BarChart3, gradient: 'from-sky-500 to-blue-600' },
       ]
     },
     {
       title: 'Configurações',
+      collapsible: true,
+      defaultOpen: false,
       items: [
-        { href: `${base}/settings/niche`, label: 'Kit Inicial', icon: Sparkles, gradient: 'from-violet-500 to-purple-600' },
-        { href: `${base}/appearance`, label: 'Aparência', icon: Palette, gradient: 'from-purple-500 to-fuchsia-600' },
         { href: `${base}/settings/store`, label: 'Dados da Loja', icon: Store, gradient: 'from-emerald-500 to-green-600' },
+        { href: `${base}/appearance`, label: 'Aparência', icon: Palette, gradient: 'from-purple-500 to-fuchsia-600' },
+        { href: `${base}/settings/niche`, label: 'Kit Inicial', icon: Sparkles, gradient: 'from-violet-500 to-purple-600' },
         { href: `${base}/settings`, label: 'Avançado', icon: Settings, gradient: 'from-slate-500 to-slate-600' },
       ]
     },
