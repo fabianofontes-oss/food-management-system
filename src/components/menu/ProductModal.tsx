@@ -2,27 +2,46 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
-import { X, Plus, Minus } from 'lucide-react'
+import { X, Plus, Minus, Pizza, Check } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 import { getProductWithModifiers } from '@/lib/actions/menu'
 import { useCartStore } from '@/stores/cart-store'
 import { Button } from '@/components/ui/button'
-import type { ProductWithModifiers, ModifierGroup, SelectedModifier } from '@/types/menu'
+import type { ProductWithModifiers, ModifierGroup, SelectedModifier, CartItemFlavor } from '@/types/menu'
+
+// Produto simples para seleção de 2º sabor
+interface SimpleProduct {
+  id: string
+  name: string
+  base_price: number
+  image_url?: string | null
+}
 
 interface ProductModalProps {
   productId: string
   isOpen: boolean
   onClose: () => void
+  categoryName?: string // Nome da categoria para verificar se é pizza
+  categoryProducts?: SimpleProduct[] // Produtos da mesma categoria para meio-a-meio
 }
 
-export function ProductModal({ productId, isOpen, onClose }: ProductModalProps) {
+export function ProductModal({ productId, isOpen, onClose, categoryName, categoryProducts }: ProductModalProps) {
   const [product, setProduct] = useState<ProductWithModifiers | null>(null)
   const [selectedModifiers, setSelectedModifiers] = useState<SelectedModifier[]>([])
   const [quantity, setQuantity] = useState(1)
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(true)
   
+  // Estado para Meio a Meio (Pizza)
+  const [isHalfHalf, setIsHalfHalf] = useState(false)
+  const [secondFlavor, setSecondFlavor] = useState<SimpleProduct | null>(null)
+  const [showFlavorPicker, setShowFlavorPicker] = useState(false)
+  
   const addItem = useCartStore((state) => state.addItem)
+  
+  // Verifica se a categoria permite frações (Pizza)
+  const allowsFractions = categoryName?.toLowerCase().includes('pizza') || 
+                          categoryName?.toLowerCase().includes('pizzas')
 
   useEffect(() => {
     if (isOpen && productId) {
@@ -63,27 +82,69 @@ export function ProductModal({ productId, isOpen, onClose }: ProductModalProps) 
   function handleAddToCart() {
     if (!product) return
 
+    // Calcular preço (média se for meio a meio)
+    let finalPrice = product.base_price
+    let productName = product.name
+    let flavors: CartItemFlavor[] | undefined = undefined
+    
+    if (isHalfHalf && secondFlavor) {
+      // Preço = média dos dois sabores
+      finalPrice = (product.base_price + secondFlavor.base_price) / 2
+      productName = `${product.name} + ${secondFlavor.name}`
+      flavors = [
+        { product_id: product.id, product_name: product.name, fraction: 0.5, price: product.base_price },
+        { product_id: secondFlavor.id, product_name: secondFlavor.name, fraction: 0.5, price: secondFlavor.base_price }
+      ]
+    }
+
     for (let i = 0; i < quantity; i++) {
       addItem(
         product.id,
-        product.name,
+        productName,
         product.image_url,
-        product.base_price,
+        finalPrice,
         selectedModifiers,
-        notes || undefined
+        notes || undefined,
+        flavors,
+        isHalfHalf
       )
     }
 
     onClose()
+    resetState()
+  }
+  
+  function resetState() {
     setQuantity(1)
     setSelectedModifiers([])
     setNotes('')
+    setIsHalfHalf(false)
+    setSecondFlavor(null)
+    setShowFlavorPicker(false)
   }
 
   function calculateTotal() {
     if (!product) return 0
     const modifiersTotal = selectedModifiers.reduce((sum, mod) => sum + mod.extra_price, 0)
-    return (product.base_price + modifiersTotal) * quantity
+    
+    // Se for meio a meio, usa a média dos preços
+    let basePrice = product.base_price
+    if (isHalfHalf && secondFlavor) {
+      basePrice = (product.base_price + secondFlavor.base_price) / 2
+    }
+    
+    return (basePrice + modifiersTotal) * quantity
+  }
+  
+  function handleSelectSecondFlavor(flavor: SimpleProduct) {
+    setSecondFlavor(flavor)
+    setIsHalfHalf(true)
+    setShowFlavorPicker(false)
+  }
+  
+  function handleRemoveSecondFlavor() {
+    setSecondFlavor(null)
+    setIsHalfHalf(false)
   }
 
   function canAddToCart() {
@@ -142,6 +203,83 @@ export function ProductModal({ productId, isOpen, onClose }: ProductModalProps) 
                 </span>
                 <span className="text-sm text-gray-500">preço base</span>
               </div>
+
+              {/* 🍕 PIZZA BUILDER - Meio a Meio */}
+              {allowsFractions && categoryProducts && categoryProducts.length > 1 && (
+                <div className="space-y-3 p-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl border-2 border-orange-200">
+                  <div className="flex items-center gap-2">
+                    <Pizza className="w-5 h-5 text-orange-600" />
+                    <h3 className="font-bold text-lg text-gray-900">Meio a Meio</h3>
+                  </div>
+                  
+                  {!isHalfHalf ? (
+                    <button
+                      onClick={() => setShowFlavorPicker(true)}
+                      className="w-full p-4 rounded-xl border-2 border-dashed border-orange-300 bg-white hover:bg-orange-50 hover:border-orange-400 transition-all text-left"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
+                          <Plus className="w-5 h-5 text-orange-600" />
+                        </div>
+                        <div>
+                          <span className="font-semibold text-gray-900">Adicionar 2º Sabor</span>
+                          <p className="text-sm text-gray-500">Preço será a média dos dois sabores</p>
+                        </div>
+                      </div>
+                    </button>
+                  ) : secondFlavor && (
+                    <div className="p-4 rounded-xl border-2 border-orange-400 bg-white">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center">
+                            <Check className="w-5 h-5 text-white" />
+                          </div>
+                          <div>
+                            <span className="font-semibold text-gray-900">½ {product.name}</span>
+                            <span className="mx-2 text-orange-500">+</span>
+                            <span className="font-semibold text-gray-900">½ {secondFlavor.name}</span>
+                          </div>
+                        </div>
+                        <button 
+                          onClick={handleRemoveSecondFlavor}
+                          className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                        >
+                          <X className="w-5 h-5" />
+                        </button>
+                      </div>
+                      <div className="mt-2 text-sm text-gray-500">
+                        Preço: ({formatCurrency(product.base_price)} + {formatCurrency(secondFlavor.base_price)}) ÷ 2 = <strong className="text-orange-600">{formatCurrency((product.base_price + secondFlavor.base_price) / 2)}</strong>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Modal de seleção do segundo sabor */}
+                  {showFlavorPicker && (
+                    <div className="mt-4 p-4 bg-white rounded-xl border border-orange-200 space-y-2">
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="font-semibold text-gray-900">Escolha o 2º sabor:</h4>
+                        <button onClick={() => setShowFlavorPicker(false)} className="p-1 hover:bg-gray-100 rounded">
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <div className="max-h-48 overflow-y-auto space-y-2">
+                        {categoryProducts
+                          .filter(p => p.id !== product.id)
+                          .map(flavor => (
+                            <button
+                              key={flavor.id}
+                              onClick={() => handleSelectSecondFlavor(flavor)}
+                              className="w-full p-3 rounded-lg border border-gray-200 hover:border-orange-400 hover:bg-orange-50 transition-all text-left flex items-center justify-between"
+                            >
+                              <span className="font-medium text-gray-900">{flavor.name}</span>
+                              <span className="text-sm text-gray-500">{formatCurrency(flavor.base_price)}</span>
+                            </button>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {product.modifier_groups.map(group => (
                 <div key={group.id} className="space-y-3 p-4 bg-gray-50 rounded-xl">

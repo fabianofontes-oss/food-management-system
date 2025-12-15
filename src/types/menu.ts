@@ -96,6 +96,14 @@ export interface SelectedModifier {
   extra_price: number
 }
 
+// Sabor fracionado para pizza meio-a-meio
+export interface CartItemFlavor {
+  product_id: string
+  product_name: string
+  fraction: number // 0.5 = metade, 0.33 = terço
+  price: number
+}
+
 export interface CartItem {
   id: string
   product_id: string
@@ -106,6 +114,9 @@ export interface CartItem {
   modifiers: SelectedModifier[]
   notes?: string
   subtotal: number
+  // Pizza meio-a-meio
+  flavors?: CartItemFlavor[]
+  is_half_half?: boolean
 }
 
 export interface CustomerData {

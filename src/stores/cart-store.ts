@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { CartItem, SelectedModifier } from '@/types/menu'
+import type { CartItem, SelectedModifier, CartItemFlavor } from '@/types/menu'
 
 interface CartStore {
   storeSlug: string | null
@@ -14,7 +14,9 @@ interface CartStore {
     productImage: string | null,
     unitPrice: number,
     modifiers: SelectedModifier[],
-    notes?: string
+    notes?: string,
+    flavors?: CartItemFlavor[],
+    isHalfHalf?: boolean
   ) => void
   removeItem: (itemId: string) => void
   updateQuantity: (itemId: string, quantity: number) => void
@@ -37,7 +39,7 @@ export const useCartStore = create<CartStore>()(
 
       setStoreSlug: (slug) => set({ storeSlug: slug }),
 
-      addItem: (productId, productName, productImage, unitPrice, modifiers, notes) => {
+      addItem: (productId, productName, productImage, unitPrice, modifiers, notes, flavors, isHalfHalf) => {
         const modifiersTotal = modifiers.reduce((sum, mod) => sum + mod.extra_price, 0)
         const itemPrice = unitPrice + modifiersTotal
         
@@ -51,6 +53,8 @@ export const useCartStore = create<CartStore>()(
           modifiers,
           notes,
           subtotal: itemPrice,
+          flavors,
+          is_half_half: isHalfHalf,
         }
 
         set((state) => ({
