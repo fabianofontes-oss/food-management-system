@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Plus, Package, Search, Filter } from 'lucide-react'
+import { useParams } from 'next/navigation'
+import { Package, Search, Filter } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -9,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { useMenu } from '../hooks/use-menu'
 import { CategoryList } from './category-list'
 import { ProductCard } from './product-card'
+import { ProductDialog, EditProductButton } from './product-dialog'
 import type { ProductWithDetails } from '../types'
 
 interface MenuManagerProps {
@@ -16,13 +18,17 @@ interface MenuManagerProps {
 }
 
 export function MenuManager({ storeId }: MenuManagerProps) {
+  const params = useParams()
+  const storeSlug = params.slug as string
+
   const { 
     catalog, 
     loading, 
     toggleProduct, 
     deleteProduct,
     activeProducts,
-    inactiveProducts
+    inactiveProducts,
+    refreshCatalog
   } = useMenu(storeId)
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
@@ -49,11 +55,6 @@ export function MenuManager({ storeId }: MenuManagerProps) {
 
     return products
   }, [catalog.products, activeProducts, selectedCategory, searchTerm, showInactive])
-
-  const handleEdit = (product: ProductWithDetails) => {
-    // TODO: Abrir modal de edição
-    console.log('Editar:', product.id)
-  }
 
   const handleDelete = async (productId: string) => {
     if (!confirm('Tem certeza que deseja remover este produto?')) return
@@ -82,10 +83,12 @@ export function MenuManager({ storeId }: MenuManagerProps) {
           </div>
         </div>
 
-        <Button className="bg-gradient-to-r from-orange-500 to-pink-600 hover:from-orange-600 hover:to-pink-700 shadow-lg shadow-orange-500/25">
-          <Plus className="w-4 h-4 mr-2" />
-          Novo Produto
-        </Button>
+        <ProductDialog
+          storeId={storeId}
+          storeSlug={storeSlug}
+          categories={catalog.categories}
+          onSuccess={refreshCatalog}
+        />
       </div>
 
       {/* Filtros */}
@@ -138,8 +141,11 @@ export function MenuManager({ storeId }: MenuManagerProps) {
               key={product.id}
               product={product}
               onToggle={toggleProduct}
-              onEdit={handleEdit}
               onDelete={handleDelete}
+              storeId={storeId}
+              storeSlug={storeSlug}
+              categories={catalog.categories}
+              onEditSuccess={refreshCatalog}
             />
           ))}
         </div>

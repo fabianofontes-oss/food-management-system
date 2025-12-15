@@ -2,22 +2,34 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import { Pencil, Trash2, Package, ImageOff } from 'lucide-react'
+import { Trash2, Package, ImageOff } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
 import { formatCurrency } from '@/lib/utils'
-import type { ProductWithDetails } from '../types'
+import { EditProductButton } from './product-dialog'
+import type { ProductWithDetails, CategoryRow } from '../types'
 
 interface ProductCardProps {
   product: ProductWithDetails
   onToggle: (productId: string, currentStatus: boolean) => void
-  onEdit?: (product: ProductWithDetails) => void
   onDelete?: (productId: string) => void
+  storeId: string
+  storeSlug: string
+  categories: CategoryRow[]
+  onEditSuccess: () => void
 }
 
-export function ProductCard({ product, onToggle, onEdit, onDelete }: ProductCardProps) {
+export function ProductCard({ 
+  product, 
+  onToggle, 
+  onDelete,
+  storeId,
+  storeSlug,
+  categories,
+  onEditSuccess
+}: ProductCardProps) {
   const [isToggling, setIsToggling] = useState(false)
 
   const handleToggle = async () => {
@@ -95,14 +107,13 @@ export function ProductCard({ product, onToggle, onEdit, onDelete }: ProductCard
 
               {/* Ações */}
               <div className="flex gap-1">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => onEdit?.(product)}
-                >
-                  <Pencil className="w-4 h-4" />
-                </Button>
+                <EditProductButton
+                  product={product}
+                  storeId={storeId}
+                  storeSlug={storeSlug}
+                  categories={categories}
+                  onSuccess={onEditSuccess}
+                />
                 <Button
                   variant="ghost"
                   size="icon"
