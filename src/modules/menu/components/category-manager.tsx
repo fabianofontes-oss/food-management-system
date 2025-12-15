@@ -140,7 +140,10 @@ export function CategoryManager({
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleEditCategory(category)}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleEditCategory(category)
+                        }}
                         className="h-8 w-8 p-0"
                       >
                         <Pencil className="w-4 h-4" />
@@ -148,7 +151,10 @@ export function CategoryManager({
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleDeleteCategory(category)}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleDeleteCategory(category)
+                        }}
                         disabled={deletingId === category.id}
                         className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
                       >

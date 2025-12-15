@@ -37,26 +37,63 @@ export function MenuManager({ storeId }: MenuManagerProps) {
   const [showInactive, setShowInactive] = useState(false)
   const [categoryManagerOpen, setCategoryManagerOpen] = useState(false)
 
-  // Filtrar produtos
+  // BLINDAGEM: Garante arrays válidos
+  const safeProducts = catalog?.products ?? []
+  const safeCategories = catalog?.categories ?? []
+  const safeActiveProducts = activeProducts ?? []
+
+  // Filtrar produtos com try/catch para segurança
   const filteredProducts = useMemo(() => {
-    let products = showInactive ? catalog.products : activeProducts
+    try {
+      let products = showInactive ? safeProducts : safeActiveProducts
 
-    // Filtro por categoria
-    if (selectedCategory) {
-      products = products.filter(p => p.category_id === selectedCategory)
+      // Filtro por categoria (verifica se categoria ainda existe)
+      if (selectedCategory) {
+        const categoryExists = safeCategories.some(c => c.id === selectedCategory)
+        if (categoryExists) {
+          products = products.filter(p => p.category_id === selectedCategory)
+        } else {
+          // Categoria não existe mais, limpa seleção
+          setSelectedCategory(null)
+        }
+      }
+
+      // Filtro por busca
+      if (searchTerm.trim()) {
+        const term = searchTerm.toLowerCase()
+        products = products.filter(p => 
+          p.name?.toLowerCase().includes(term) ||
+          p.description?.toLowerCase().includes(term)
+        )
+      }
+
+      return products
+    } catch (error) {
+      console.error('Erro ao filtrar produtos:', error)
+      return []
     }
+  }, [safeProducts, safeActiveProducts, safeCategories, selectedCategory, searchTerm, showInactive])
 
-    // Filtro por busca
-    if (searchTerm.trim()) {
-      const term = searchTerm.toLowerCase()
-      products = products.filter(p => 
-        p.name.toLowerCase().includes(term) ||
-        p.description?.toLowerCase().includes(term)
-      )
+  // Handler seguro para seleção de categoria
+  const handleCategorySelect = (categoryId: string | null) => {
+    try {
+      if (categoryId === null) {
+        setSelectedCategory(null)
+        return
+      }
+      // Verifica se a categoria existe antes de selecionar
+      const categoryExists = safeCategories.some(c => c.id === categoryId)
+      if (categoryExists) {
+        setSelectedCategory(categoryId)
+      } else {
+        console.warn('Categoria não encontrada:', categoryId)
+        setSelectedCategory(null)
+      }
+    } catch (error) {
+      console.error('Erro ao selecionar categoria:', error)
+      setSelectedCategory(null)
     }
-
-    return products
-  }, [catalog.products, activeProducts, selectedCategory, searchTerm, showInactive])
+  }
 
   const handleDelete = async (productId: string) => {
     if (!confirm('Tem certeza que deseja remover este produto?')) return
@@ -79,9 +116,9 @@ export function MenuManager({ storeId }: MenuManagerProps) {
             Cardápio
           </h1>
           <div className="flex items-center gap-3 mt-2 ml-14">
-            <Badge variant="secondary">{activeProducts.length} ativos</Badge>
-            <Badge variant="outline">{inactiveProducts.length} inativos</Badge>
-            <Badge variant="outline">{catalog.categories.length} categorias</Badge>
+            <Badge variant="secondary">{safeActiveProducts.length} ativos</Badge>
+            <Badge variant="outline">{(inactiveProducts ?? []).length} inativos</Badge>
+            <Badge variant="outline">{safeCategories.length} categorias</Badge>
           </div>
         </div>
 
@@ -96,7 +133,7 @@ export function MenuManager({ storeId }: MenuManagerProps) {
           <ProductDialog
             storeId={storeId}
             storeSlug={storeSlug}
-            categories={catalog.categories}
+            categories={safeCategories}
             onSuccess={refreshCatalog}
           />
         </div>
@@ -128,9 +165,9 @@ export function MenuManager({ storeId }: MenuManagerProps) {
 
         {/* Categorias */}
         <CategoryList
-          categories={catalog.categories}
+          categories={safeCategories}
           selectedId={selectedCategory}
-          onSelect={setSelectedCategory}
+          onSelect={handleCategorySelect}
         />
       </div>
 
@@ -155,7 +192,7 @@ export function MenuManager({ storeId }: MenuManagerProps) {
               onDelete={handleDelete}
               storeId={storeId}
               storeSlug={storeSlug}
-              categories={catalog.categories}
+              categories={safeCategories}
               onEditSuccess={refreshCatalog}
             />
           ))}
@@ -168,7 +205,7 @@ export function MenuManager({ storeId }: MenuManagerProps) {
         onOpenChange={setCategoryManagerOpen}
         storeId={storeId}
         storeSlug={storeSlug}
-        categories={catalog.categories}
+        categories={safeCategories}
         onRefresh={refreshCatalog}
       />
     </div>
