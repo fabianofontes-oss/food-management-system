@@ -30,6 +30,9 @@ DROP POLICY IF EXISTS "Authenticated users can manage their stores" ON public.st
 DROP POLICY IF EXISTS "Super admin can view all stores" ON public.stores;
 
 -- 3) STORES: Criar 2 policies novas (público + membro)
+DROP POLICY IF EXISTS stores_public_select_active ON public.stores;
+DROP POLICY IF EXISTS stores_member_select ON public.stores;
+
 -- Policy 1: Anônimos e autenticados podem ver stores ATIVAS (para cardápio público)
 CREATE POLICY stores_public_select_active
 ON public.stores
@@ -69,6 +72,7 @@ WITH CHECK (false);
 -- 6) CATEGORIES: Garantir SELECT público para categorias ativas de lojas ativas
 DROP POLICY IF EXISTS categories_public_select ON public.categories;
 DROP POLICY IF EXISTS categories_select ON public.categories;
+DROP POLICY IF EXISTS categories_member_select ON public.categories;
 
 CREATE POLICY categories_public_select
 ON public.categories
@@ -93,6 +97,7 @@ USING (
 -- 7) PRODUCTS: Garantir SELECT público para produtos ativos de lojas ativas
 DROP POLICY IF EXISTS products_public_select ON public.products;
 DROP POLICY IF EXISTS products_select ON public.products;
+DROP POLICY IF EXISTS products_member_select ON public.products;
 
 CREATE POLICY products_public_select
 ON public.products
@@ -117,6 +122,7 @@ USING (
 -- 8) MODIFIER_GROUPS: SELECT público + membro
 DROP POLICY IF EXISTS modifier_groups_public_select ON public.modifier_groups;
 DROP POLICY IF EXISTS modifier_groups_select ON public.modifier_groups;
+DROP POLICY IF EXISTS modifier_groups_member_select ON public.modifier_groups;
 
 CREATE POLICY modifier_groups_public_select
 ON public.modifier_groups
@@ -140,6 +146,7 @@ USING (
 -- 9) MODIFIER_OPTIONS: SELECT público + membro
 DROP POLICY IF EXISTS modifier_options_public_select ON public.modifier_options;
 DROP POLICY IF EXISTS modifier_options_select ON public.modifier_options;
+DROP POLICY IF EXISTS modifier_options_member_select ON public.modifier_options;
 
 CREATE POLICY modifier_options_public_select
 ON public.modifier_options
@@ -170,6 +177,7 @@ USING (
 -- 10) PRODUCT_MODIFIER_GROUPS: SELECT público + membro
 DROP POLICY IF EXISTS product_modifier_groups_public_select ON public.product_modifier_groups;
 DROP POLICY IF EXISTS product_modifier_groups_select ON public.product_modifier_groups;
+DROP POLICY IF EXISTS product_modifier_groups_member_select ON public.product_modifier_groups;
 
 CREATE POLICY product_modifier_groups_public_select
 ON public.product_modifier_groups
