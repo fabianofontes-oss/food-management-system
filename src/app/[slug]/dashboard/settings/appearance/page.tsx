@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { Loader2, Palette } from 'lucide-react'
 import { useDashboardStoreId } from '../../DashboardClient'
-import { ThemeEditor } from '@/modules/store/components/theme-editor'
-import { StorePreview } from '@/modules/store/components/store-preview'
-import { StoreRepository, DEFAULT_MENU_THEME } from '@/modules/store'
+import { SiteBuilder } from '@/modules/store/components/site-builder'
+import { StoreRepository } from '@/modules/store'
+import { safeParseTheme } from '@/modules/store/utils'
 import type { MenuTheme, StoreWithSettings } from '@/modules/store'
 
 export default function AppearanceSettingsPage() {
@@ -15,7 +15,6 @@ export default function AppearanceSettingsPage() {
   const storeId = useDashboardStoreId()
 
   const [store, setStore] = useState<StoreWithSettings | null>(null)
-  const [theme, setTheme] = useState<MenuTheme>(DEFAULT_MENU_THEME)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
@@ -27,7 +26,6 @@ export default function AppearanceSettingsPage() {
         const storeData = await StoreRepository.getById(storeId)
         if (storeData) {
           setStore(storeData)
-          setTheme(storeData.parsedTheme || DEFAULT_MENU_THEME)
         }
       } catch (error) {
         console.error('Erro ao carregar loja:', error)
@@ -61,36 +59,34 @@ export default function AppearanceSettingsPage() {
     )
   }
 
+  if (!store) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-lg font-semibold text-slate-800">Loja não encontrada</div>
+          <div className="text-sm text-slate-500">Não foi possível carregar as configurações.</div>
+        </div>
+      </div>
+    )
+  }
+
+  // BLINDAGEM: Garante que o editor sempre receba um objeto válido
+  const safeTheme = safeParseTheme(store.parsedTheme)
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center">
-          <Palette className="w-6 h-6 text-white" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800">Aparência do Cardápio</h1>
-          <p className="text-sm text-slate-500">Personalize cores, layout e elementos visíveis</p>
-        </div>
+      <div>
+        <h3 className="text-lg font-medium text-slate-800">Aparência da Loja</h3>
+        <p className="text-sm text-muted-foreground">Personalize o visual do seu cardápio público.</p>
       </div>
 
-      {/* Main Content */}
-      <div className="grid lg:grid-cols-[400px_1fr] gap-6 min-h-[700px]">
-        {/* Editor Panel */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 overflow-y-auto max-h-[800px]">
-          <ThemeEditor
-            storeId={storeId}
-            slug={slug}
-            initialTheme={theme}
-            onThemeChange={setTheme}
-          />
-        </div>
-
-        {/* Preview Panel */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <StorePreview theme={theme} store={store} />
-        </div>
-      </div>
+      {/* Site Builder */}
+      <SiteBuilder 
+        storeId={store.id} 
+        store={store} 
+        initialTheme={safeTheme} 
+      />
     </div>
   )
 }

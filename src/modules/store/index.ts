@@ -36,3 +36,9 @@ export {
 // Components - Theme Editor
 export { ThemeEditor } from './components/theme-editor'
 export { StorePreview } from './components/store-preview'
+
+// Components - Public Store Front
+export { StoreFront, ClassicLayout, ModernLayout, GridLayout, MinimalLayout } from './components/public'
+
+// Utils
+export { safeParseTheme, DEFAULT_THEME, getThemeCSSVariables, isLightColor } from './utils'
