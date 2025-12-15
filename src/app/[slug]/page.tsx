@@ -32,21 +32,26 @@ export default async function MenuPage({ params }: { params: { slug: string } })
     notFound()
   }
 
-  // 2. Buscar categorias e produtos
+  // 2. Buscar categorias e produtos (SEM filtro is_active para garantir que apareçam)
   const [categoriesResult, productsResult] = await Promise.all([
     supabase
       .from('categories')
       .select('*')
       .eq('store_id', storeData.id)
-      .eq('is_active', true)
       .order('sort_order', { ascending: true }),
     supabase
       .from('products')
       .select('*')
       .eq('store_id', storeData.id)
-      .eq('is_active', true)
       .order('sort_order', { ascending: true })
   ])
+  
+  // DEBUG: Log para verificar produtos
+  console.log('=== PRODUTOS DEBUG ===')
+  console.log('Total categorias:', categoriesResult.data?.length || 0)
+  console.log('Total produtos:', productsResult.data?.length || 0)
+  console.log('Produtos:', productsResult.data?.map((p: any) => ({ name: p.name, is_active: p.is_active })))
+  console.log('======================')
 
   const categories = categoriesResult.data || []
   const products = productsResult.data || []
