@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 import { 
   IceCream, Beef, Pizza, Beer, Fish, Cake, Leaf, Coffee,
   UtensilsCrossed, Croissant, Apple, ChefHat, Check, AlertTriangle,
@@ -30,14 +31,50 @@ export default function NicheSettingsPage() {
   const params = useParams()
   const router = useRouter()
   const slug = params.slug as string
+  const supabase = useMemo(() => createClient(), [])
   
+  const [storeId, setStoreId] = useState<string | null>(null)
+  const [currentNiche, setCurrentNiche] = useState<string | null>(null)
   const [selectedNiche, setSelectedNiche] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [hasProducts, setHasProducts] = useState(false) // TODO: verificar se loja já tem produtos
+  const [isLoadingStore, setIsLoadingStore] = useState(true)
+  const [hasProducts, setHasProducts] = useState(false)
+  const [productsCount, setProductsCount] = useState(0)
   const [showConfirmReset, setShowConfirmReset] = useState(false)
 
+  // Carregar dados da loja
+  useEffect(() => {
+    async function loadStore() {
+      // Buscar loja pelo slug
+      const { data: store } = await supabase
+        .from('stores')
+        .select('id, niche')
+        .eq('slug', slug)
+        .single()
+
+      if (store) {
+        setStoreId(store.id)
+        setCurrentNiche(store.niche)
+        setSelectedNiche(store.niche)
+
+        // Verificar se já tem produtos
+        const { count } = await supabase
+          .from('products')
+          .select('id', { count: 'exact', head: true })
+          .eq('store_id', store.id)
+
+        setProductsCount(count || 0)
+        setHasProducts((count || 0) > 0)
+      }
+
+      setIsLoadingStore(false)
+    }
+
+    loadStore()
+  }, [slug, supabase])
+
   const handleSelectNiche = async () => {
-    if (!selectedNiche) {
+    if (!selectedNiche || !storeId) {
       toast.error('Selecione um nicho')
       return
     }
@@ -45,9 +82,6 @@ export default function NicheSettingsPage() {
     setIsLoading(true)
     
     try {
-      // TODO: pegar storeId real do contexto
-      const storeId = 'temp-store-id' // Placeholder - precisa integrar com contexto da loja
-      
       const result = hasProducts 
         ? await reseedStoreAction(storeId, selectedNiche)
         : await seedStoreAction(storeId, selectedNiche)
@@ -69,6 +103,18 @@ export default function NicheSettingsPage() {
     }
   }
 
+  // Loading state
+  if (isLoadingStore) {
+    return (
+      <div className="p-6 max-w-6xl mx-auto flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-violet-600 mx-auto mb-4" />
+          <p className="text-gray-500">Carregando...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="p-6 max-w-6xl mx-auto">
       {/* Header */}
@@ -83,6 +129,12 @@ export default function NicheSettingsPage() {
           Escolha o tipo do seu negócio e sua loja será configurada automaticamente com produtos, 
           categorias e configurações específicas.
         </p>
+        {currentNiche && (
+          <p className="text-sm text-violet-600 mt-2">
+            Nicho atual: <strong>{NICHE_OPTIONS.find(n => n.id === currentNiche)?.name || currentNiche}</strong>
+            {productsCount > 0 && ` • ${productsCount} produtos cadastrados`}
+          </p>
+        )}
       </div>
 
       {/* Grid de Nichos */}
