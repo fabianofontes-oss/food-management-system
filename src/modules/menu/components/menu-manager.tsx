@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { useParams } from 'next/navigation'
-import { Package, Search, Filter } from 'lucide-react'
+import { Package, Search, Filter, FolderOpen } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -11,6 +11,7 @@ import { useMenu } from '../hooks/use-menu'
 import { CategoryList } from './category-list'
 import { ProductCard } from './product-card'
 import { ProductDialog, EditProductButton } from './product-dialog'
+import { CategoryManager } from './category-manager'
 import type { ProductWithDetails } from '../types'
 
 interface MenuManagerProps {
@@ -34,6 +35,7 @@ export function MenuManager({ storeId }: MenuManagerProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [showInactive, setShowInactive] = useState(false)
+  const [categoryManagerOpen, setCategoryManagerOpen] = useState(false)
 
   // Filtrar produtos
   const filteredProducts = useMemo(() => {
@@ -83,12 +85,21 @@ export function MenuManager({ storeId }: MenuManagerProps) {
           </div>
         </div>
 
-        <ProductDialog
-          storeId={storeId}
-          storeSlug={storeSlug}
-          categories={catalog.categories}
-          onSuccess={refreshCatalog}
-        />
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setCategoryManagerOpen(true)}
+          >
+            <FolderOpen className="w-4 h-4 mr-2" />
+            Categorias
+          </Button>
+          <ProductDialog
+            storeId={storeId}
+            storeSlug={storeSlug}
+            categories={catalog.categories}
+            onSuccess={refreshCatalog}
+          />
+        </div>
       </div>
 
       {/* Filtros */}
@@ -150,6 +161,16 @@ export function MenuManager({ storeId }: MenuManagerProps) {
           ))}
         </div>
       )}
+
+      {/* Category Manager Sheet */}
+      <CategoryManager
+        open={categoryManagerOpen}
+        onOpenChange={setCategoryManagerOpen}
+        storeId={storeId}
+        storeSlug={storeSlug}
+        categories={catalog.categories}
+        onRefresh={refreshCatalog}
+      />
     </div>
   )
 }
