@@ -39,13 +39,13 @@ export function Pricing({ title, subtitle, plans }: PricingProps) {
             <Card 
               key={index} 
               className={cn(
-                "relative border-2",
-                plan.highlighted && "border-primary shadow-lg scale-105"
+                "relative border-2 transition-all hover:-translate-y-2 hover:shadow-2xl",
+                plan.highlighted && "border-primary shadow-xl shadow-primary/20 scale-105 bg-gradient-to-br from-primary/5 to-purple-500/5"
               )}
             >
               {plan.highlighted && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-4 py-1 rounded-full text-sm font-semibold">
-                  Mais Popular
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary to-purple-600 text-primary-foreground px-6 py-1.5 rounded-full text-sm font-bold shadow-lg">
+                  ⭐ Mais Popular
                 </div>
               )}
               <CardHeader className="text-center pb-8">

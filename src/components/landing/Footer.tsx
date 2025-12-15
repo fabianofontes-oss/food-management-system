@@ -37,7 +37,7 @@ export function Footer({ company, links, social }: FooterProps) {
   const currentYear = new Date().getFullYear()
 
   return (
-    <footer className="bg-muted/30 border-t">
+    <footer className="bg-gradient-to-b from-muted/30 to-muted/50 border-t">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
           <div className="col-span-2 md:col-span-1">
@@ -57,7 +57,7 @@ export function Footer({ company, links, social }: FooterProps) {
                     className="w-9 h-9 rounded-lg bg-muted hover:bg-primary hover:text-primary-foreground transition-colors flex items-center justify-center"
                     aria-label={item.platform}
                   >
-                    <Icon className="w-4 h-4" />
+                    <Icon className="w-4 h-4 transition-transform hover:scale-125" />
                   </a>
                 )
               })}

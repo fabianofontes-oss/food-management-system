@@ -43,15 +43,16 @@ export function Modules({ title, subtitle, items }: ModulesProps) {
           {items.map((module, index) => {
             const Icon = iconMap[module.icon]
             return (
-              <Card key={index} className="border-2 hover:border-primary/50 transition-colors">
-                <CardContent className="p-6 space-y-4">
-                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Icon className="w-6 h-6 text-primary" />
+              <Card key={index} className="group relative border-2 hover:border-primary/50 transition-all hover:shadow-xl hover:shadow-primary/10 hover:-translate-y-1">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg" />
+                <CardContent className="relative p-6 space-y-4">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Icon className="w-7 h-7 text-primary" />
                   </div>
-                  <h3 className="text-lg font-semibold">
+                  <h3 className="text-lg font-bold">
                     {module.title}
                   </h3>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
                     {module.description}
                   </p>
                 </CardContent>
