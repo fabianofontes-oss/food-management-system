@@ -8,6 +8,10 @@ import { mergeWithDefaults } from '@/modules/store/types'
 import type { MenuTheme, PublicProfile } from '@/types/menu'
 import type { StoreWithSettings } from '@/modules/store'
 
+// Desabilitar cache estático para sempre buscar dados frescos
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default async function MenuPage({ params }: { params: { slug: string } }) {
   const store = await getStoreBySlug(params.slug)
   
