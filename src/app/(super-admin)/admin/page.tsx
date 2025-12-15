@@ -145,24 +145,36 @@ export default function SuperAdminDashboard() {
                   <p className="text-amber-700">Cria/reseta uma loja com categorias e produtos de exemplo</p>
                 </div>
               </div>
-              <Button
-                onClick={handleResetDemo}
-                disabled={resettingDemo}
-                size="lg"
-                className="bg-amber-500 hover:bg-amber-600 text-white font-bold px-8"
-              >
-                {resettingDemo ? (
-                  <>
-                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                    Criando...
-                  </>
-                ) : (
-                  <>
-                    <RefreshCw className="w-5 h-5 mr-2" />
-                    RESETAR LOJA DEMO
-                  </>
-                )}
-              </Button>
+              <div className="flex gap-3">
+                <Link href="/loja-demo/dashboard">
+                  <Button
+                    size="lg"
+                    className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold px-8"
+                  >
+                    <ArrowRight className="w-5 h-5 mr-2" />
+                    ENTRAR NA LOJA
+                  </Button>
+                </Link>
+                <Button
+                  onClick={handleResetDemo}
+                  disabled={resettingDemo}
+                  size="lg"
+                  variant="outline"
+                  className="border-amber-500 text-amber-700 hover:bg-amber-100 font-bold px-6"
+                >
+                  {resettingDemo ? (
+                    <>
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                      Criando...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="w-5 h-5 mr-2" />
+                      RESETAR
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
