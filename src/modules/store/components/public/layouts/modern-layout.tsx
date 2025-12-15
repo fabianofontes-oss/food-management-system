@@ -1,20 +1,21 @@
 'use client'
 
-import { Search, Plus, MapPin, Clock } from 'lucide-react'
-import { useState } from 'react'
+import { Search, Plus, MapPin, Clock, ShoppingBag, ChevronRight } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import Image from 'next/image'
 import type { MenuTheme } from '../../../types'
-import { isLightColor } from '../../../utils'
+import { useCartStore } from '@/modules/cart'
 
 // Mapeamento de cores de categoria para Tailwind
-const CATEGORY_COLOR_MAP: Record<string, { bg: string; bgLight: string; text: string; border: string }> = {
-  red: { bg: 'bg-red-500', bgLight: 'bg-red-50', text: 'text-red-600', border: 'border-red-500' },
-  orange: { bg: 'bg-orange-500', bgLight: 'bg-orange-50', text: 'text-orange-600', border: 'border-orange-500' },
-  amber: { bg: 'bg-amber-400', bgLight: 'bg-amber-50', text: 'text-amber-600', border: 'border-amber-400' },
-  green: { bg: 'bg-green-500', bgLight: 'bg-green-50', text: 'text-green-600', border: 'border-green-500' },
-  blue: { bg: 'bg-blue-500', bgLight: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-500' },
-  purple: { bg: 'bg-purple-500', bgLight: 'bg-purple-50', text: 'text-purple-600', border: 'border-purple-500' },
-  stone: { bg: 'bg-stone-600', bgLight: 'bg-stone-100', text: 'text-stone-700', border: 'border-stone-600' },
-  slate: { bg: 'bg-slate-900', bgLight: 'bg-slate-100', text: 'text-slate-900', border: 'border-slate-900' },
+const CATEGORY_COLOR_MAP: Record<string, { bg: string; bgActive: string; text: string }> = {
+  red: { bg: 'bg-red-500', bgActive: 'bg-red-600', text: 'text-white' },
+  orange: { bg: 'bg-orange-500', bgActive: 'bg-orange-600', text: 'text-white' },
+  amber: { bg: 'bg-amber-500', bgActive: 'bg-amber-600', text: 'text-white' },
+  green: { bg: 'bg-green-500', bgActive: 'bg-green-600', text: 'text-white' },
+  blue: { bg: 'bg-blue-500', bgActive: 'bg-blue-600', text: 'text-white' },
+  purple: { bg: 'bg-purple-500', bgActive: 'bg-purple-600', text: 'text-white' },
+  stone: { bg: 'bg-stone-600', bgActive: 'bg-stone-700', text: 'text-white' },
+  slate: { bg: 'bg-slate-800', bgActive: 'bg-slate-900', text: 'text-white' },
 }
 
 interface Product {
@@ -57,9 +58,26 @@ export function ModernLayout({
   onAddToCart
 }: ModernLayoutProps) {
   const [searchQuery, setSearchQuery] = useState('')
-  const [activeCategory, setActiveCategory] = useState<string | null>(
-    categories[0]?.id || null
-  )
+  const [activeCategory, setActiveCategory] = useState<string | null>(null)
+  const [isNavSticky, setIsNavSticky] = useState(false)
+  const navRef = useRef<HTMLDivElement>(null)
+  
+  // Carrinho
+  const { getTotalItems, getSubtotal, toggleCart } = useCartStore()
+  const totalItems = getTotalItems()
+  const subtotal = getSubtotal()
+
+  // Detectar scroll para sticky nav
+  useEffect(() => {
+    const handleScroll = () => {
+      if (navRef.current) {
+        const navTop = navRef.current.getBoundingClientRect().top
+        setIsNavSticky(navTop <= 0)
+      }
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   // Filtrar produtos pela busca
   const filteredCategories = categories.map(cat => ({
@@ -70,138 +88,198 @@ export function ModernLayout({
     )
   })).filter(cat => cat.products.length > 0)
 
-  const displayCategories = searchQuery ? filteredCategories : categories
+  const displayCategories = searchQuery 
+    ? filteredCategories 
+    : activeCategory 
+      ? categories.filter(c => c.id === activeCategory)
+      : categories
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
+  }
+
+  // Total de produtos
+  const totalProducts = categories.reduce((sum, cat) => sum + cat.products.length, 0)
 
   return (
-    <div 
-      className="min-h-screen"
-      style={{ backgroundColor: theme.colors.background }}
-    >
-      {/* Hero Banner */}
-      {theme.display.showBanner && (
+    <div className="min-h-screen bg-slate-50 pb-24">
+      {/* ========== HERO BANNER (estilo iFood) ========== */}
+      <div className="relative">
+        {/* Banner de Capa */}
         <div 
-          className="h-48 sm:h-64 bg-gradient-to-r from-slate-800 to-slate-700 relative"
+          className="h-40 sm:h-52 md:h-64"
           style={{
-            backgroundImage: bannerUrl ? `url(${bannerUrl})` : undefined,
+            backgroundColor: theme.colors.primary,
+            backgroundImage: bannerUrl 
+              ? `linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.4)), url(${bannerUrl})` 
+              : `linear-gradient(135deg, ${theme.colors.primary} 0%, ${theme.colors.header || theme.colors.primary} 100%)`,
             backgroundSize: 'cover',
             backgroundPosition: 'center'
           }}
-        >
-          <div className="absolute inset-0 bg-black/30" />
-        </div>
-      )}
+        />
 
-      {/* Store Info Card */}
-      <div className="max-w-4xl mx-auto px-4">
-        <div 
-          className={`bg-white rounded-2xl shadow-lg p-6 ${theme.display.showBanner ? '-mt-16 relative z-10' : 'mt-6'}`}
-        >
-          <div className="flex items-start gap-4">
-            {theme.display.showLogo && (
-              <div 
-                className="w-20 h-20 rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-md flex-shrink-0"
-                style={{ 
-                  backgroundColor: theme.colors.primary,
-                  backgroundImage: logoUrl ? `url(${logoUrl})` : undefined,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center'
-                }}
-              >
-                {!logoUrl && storeName.charAt(0).toUpperCase()}
+        {/* Card da Loja (sobreposto ao banner) */}
+        <div className="max-w-4xl mx-auto px-3 sm:px-4">
+          <div className="bg-white rounded-2xl shadow-xl -mt-20 sm:-mt-24 relative z-10 overflow-hidden">
+            <div className="p-4 sm:p-6">
+              <div className="flex items-start gap-4">
+                {/* Logo Avatar */}
+                <div className="relative -mt-12 sm:-mt-16 flex-shrink-0">
+                  <div 
+                    className="w-20 h-20 sm:w-28 sm:h-28 rounded-2xl border-4 border-white shadow-lg flex items-center justify-center text-white font-bold text-3xl overflow-hidden"
+                    style={{ backgroundColor: theme.colors.primary }}
+                  >
+                    {logoUrl ? (
+                      <Image src={logoUrl} alt={storeName} fill className="object-cover" />
+                    ) : (
+                      storeName.charAt(0).toUpperCase()
+                    )}
+                  </div>
+                </div>
+
+                {/* Info */}
+                <div className="flex-1 min-w-0 pt-1">
+                  <h1 className="font-bold text-xl sm:text-2xl text-slate-800 truncate">{storeName}</h1>
+                  {storeAddress && (
+                    <p className="text-sm text-slate-500 flex items-center gap-1 mt-1 truncate">
+                      <MapPin className="w-4 h-4 flex-shrink-0" />
+                      <span className="truncate">{storeAddress}</span>
+                    </p>
+                  )}
+                  <div className="flex flex-wrap items-center gap-2 mt-3">
+                    <span 
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold text-white"
+                      style={{ backgroundColor: '#22C55E' }}
+                    >
+                      <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                      Aberto
+                    </span>
+                    <span className="text-xs text-slate-400">
+                      {totalProducts} produtos
+                    </span>
+                  </div>
+                </div>
               </div>
-            )}
-            <div className="flex-1">
-              <h1 className="font-bold text-xl text-slate-800">{storeName}</h1>
-              {theme.display.showAddress && storeAddress && (
-                <p className="text-sm text-slate-500 flex items-center gap-1 mt-1">
-                  <MapPin className="w-3.5 h-3.5" />
-                  {storeAddress}
-                </p>
+
+              {/* Search */}
+              {theme.display.showSearch && (
+                <div className="mt-4 relative">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="Buscar no cardápio..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-12 pr-4 py-3.5 rounded-xl text-base outline-none bg-slate-100 focus:bg-white focus:ring-2 transition-all border-2 border-transparent focus:border-emerald-500"
+                  />
+                </div>
               )}
-              <div className="flex items-center gap-2 mt-2">
-                <span 
-                  className="px-2 py-1 rounded-full text-xs font-medium text-white"
-                  style={{ backgroundColor: theme.colors.primary }}
-                >
-                  Aberto agora
-                </span>
-              </div>
             </div>
           </div>
-
-          {/* Search */}
-          {theme.display.showSearch && (
-            <div className="mt-4 relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-              <input
-                type="text"
-                placeholder="O que você procura?"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 rounded-xl text-sm outline-none bg-slate-100 focus:bg-slate-50 focus:ring-2 transition-all"
-                style={{ '--tw-ring-color': theme.colors.primary } as React.CSSProperties}
-              />
-            </div>
-          )}
         </div>
       </div>
 
-      {/* Category Pills */}
-      {!searchQuery && categories.length > 0 && (
-        <div className="max-w-4xl mx-auto px-4 mt-6">
-          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+      {/* ========== NAVEGAÇÃO DE CATEGORIAS (Sticky) ========== */}
+      <div 
+        ref={navRef}
+        className={`sticky top-0 z-40 transition-all duration-300 ${
+          isNavSticky ? 'bg-white shadow-md' : 'bg-transparent'
+        }`}
+      >
+        <div className="max-w-4xl mx-auto px-3 sm:px-4 py-3">
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+            {/* Botão "Todos" */}
+            <button
+              onClick={() => setActiveCategory(null)}
+              className={`
+                flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-full font-semibold text-sm whitespace-nowrap
+                transition-all min-h-[44px] shadow-sm
+                ${!activeCategory 
+                  ? 'bg-slate-800 text-white shadow-lg' 
+                  : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                }
+              `}
+            >
+              Todos
+            </button>
+
+            {/* Categorias com cores */}
             {categories.map((cat) => {
               const isActive = activeCategory === cat.id
-              const colorClasses = cat.color ? CATEGORY_COLOR_MAP[cat.color] : null
+              const colorConfig = cat.color ? CATEGORY_COLOR_MAP[cat.color] : null
               
               return (
                 <button
                   key={cat.id}
-                  onClick={() => setActiveCategory(cat.id)}
+                  onClick={() => setActiveCategory(isActive ? null : cat.id)}
                   className={`
-                    px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-all shadow-sm
-                    border-b-4 border-transparent
-                    ${isActive && colorClasses 
-                      ? `${colorClasses.bgLight} ${colorClasses.text} ${colorClasses.border}` 
+                    flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-full font-semibold text-sm whitespace-nowrap
+                    transition-all min-h-[44px] shadow-sm
+                    ${isActive && colorConfig 
+                      ? `${colorConfig.bg} ${colorConfig.text} shadow-lg` 
                       : isActive 
-                        ? '' 
-                        : 'bg-white text-slate-500 hover:bg-slate-50'
+                        ? 'text-white shadow-lg'
+                        : colorConfig
+                          ? `bg-white border-2 hover:opacity-90`
+                          : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
                     }
                   `}
-                  style={isActive && !colorClasses ? {
-                    backgroundColor: theme.colors.primary,
-                    color: '#ffffff',
-                    borderColor: theme.colors.primary
-                  } : undefined}
+                  style={
+                    isActive && !colorConfig 
+                      ? { backgroundColor: theme.colors.primary } 
+                      : !isActive && colorConfig
+                        ? { borderColor: colorConfig.bg.replace('bg-', '').replace('-500', ''), color: colorConfig.bg.includes('slate') ? '#1e293b' : undefined }
+                        : undefined
+                  }
                 >
-                  {/* Bolinha de cor ao lado do nome */}
-                  {colorClasses && (
-                    <span className={`inline-block w-2.5 h-2.5 rounded-full mr-2 ${colorClasses.bg}`} />
+                  {/* Bolinha de cor */}
+                  {colorConfig && !isActive && (
+                    <span className={`w-3 h-3 rounded-full ${colorConfig.bg}`} />
                   )}
                   {cat.name}
+                  <span className="text-xs opacity-70">({cat.products.length})</span>
                 </button>
               )
             })}
           </div>
         </div>
-      )}
+      </div>
 
-      {/* Products */}
-      <main className="max-w-4xl mx-auto px-4 py-6">
-        {displayCategories.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-slate-500">Nenhum produto encontrado</p>
+      {/* ========== GRID DE PRODUTOS ========== */}
+      <main className="max-w-4xl mx-auto px-3 sm:px-4 py-4">
+        {displayCategories.length === 0 || totalProducts === 0 ? (
+          <div className="text-center py-16">
+            <div className="w-24 h-24 mx-auto mb-6 bg-slate-100 rounded-full flex items-center justify-center">
+              <ShoppingBag className="w-12 h-12 text-slate-300" />
+            </div>
+            <h3 className="text-xl font-bold text-slate-700 mb-2">
+              {searchQuery ? 'Nenhum produto encontrado' : 'Cardápio vazio'}
+            </h3>
+            <p className="text-slate-500">
+              {searchQuery ? 'Tente buscar por outro termo' : 'Em breve novos produtos!'}
+            </p>
           </div>
         ) : (
           <div className="space-y-8">
             {displayCategories.map((category) => (
               <section key={category.id}>
-                <h2 className="text-lg font-bold text-slate-800 mb-4">
-                  {category.name}
-                </h2>
-                <div className="grid gap-4 sm:grid-cols-2">
+                {/* Título da categoria */}
+                <div className="flex items-center gap-3 mb-4">
+                  {category.color && CATEGORY_COLOR_MAP[category.color] && (
+                    <span className={`w-4 h-4 rounded-full ${CATEGORY_COLOR_MAP[category.color].bg}`} />
+                  )}
+                  <h2 className="text-lg sm:text-xl font-bold text-slate-800">
+                    {category.name}
+                  </h2>
+                  <span className="text-sm text-slate-400">
+                    {category.products.length} {category.products.length === 1 ? 'item' : 'itens'}
+                  </span>
+                </div>
+
+                {/* Grid responsivo: 1 col mobile, 2 tablet, 3 desktop */}
+                <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                   {category.products.map((product) => (
-                    <ProductModernCard
+                    <ProductCard
                       key={product.id}
                       product={product}
                       primaryColor={theme.colors.primary}
@@ -214,11 +292,42 @@ export function ModernLayout({
           </div>
         )}
       </main>
+
+      {/* ========== CARRINHO FLUTUANTE (Mobile) ========== */}
+      {totalItems > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 p-3 sm:p-4 bg-gradient-to-t from-white via-white to-transparent">
+          <button
+            onClick={toggleCart}
+            className="w-full flex items-center justify-between gap-4 px-5 py-4 rounded-2xl text-white font-bold shadow-2xl transition-transform active:scale-[0.98]"
+            style={{ 
+              backgroundColor: theme.colors.primary,
+              boxShadow: `0 10px 40px -10px ${theme.colors.primary}80`
+            }}
+          >
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <ShoppingBag className="w-6 h-6" />
+                <span className="absolute -top-2 -right-2 w-5 h-5 bg-white rounded-full text-xs font-bold flex items-center justify-center"
+                  style={{ color: theme.colors.primary }}
+                >
+                  {totalItems}
+                </span>
+              </div>
+              <span>Ver Carrinho</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-lg">{formatCurrency(subtotal)}</span>
+              <ChevronRight className="w-5 h-5" />
+            </div>
+          </button>
+        </div>
+      )}
     </div>
   )
 }
 
-function ProductModernCard({ 
+// ========== PRODUCT CARD (Estilo iFood) ==========
+function ProductCard({ 
   product, 
   primaryColor,
   onAdd 
@@ -227,39 +336,59 @@ function ProductModernCard({
   primaryColor: string
   onAdd?: () => void 
 }) {
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
+  }
+
   return (
-    <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow">
-      <div className="flex">
-        <div className="flex-1 p-4">
-          <h3 className="font-semibold text-slate-800">{product.name}</h3>
+    <button
+      onClick={onAdd}
+      disabled={!product.is_available}
+      className={`
+        w-full bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl 
+        transition-all text-left group border border-slate-100
+        ${!product.is_available ? 'opacity-60 cursor-not-allowed' : 'active:scale-[0.98]'}
+      `}
+    >
+      <div className="flex h-full">
+        {/* Conteúdo */}
+        <div className="flex-1 p-4 flex flex-col">
+          <h3 className="font-bold text-base text-slate-800 line-clamp-1 group-hover:text-emerald-600 transition-colors">
+            {product.name}
+          </h3>
           {product.description && (
-            <p className="text-sm text-slate-500 mt-1 line-clamp-2">{product.description}</p>
+            <p className="text-sm text-slate-500 mt-1 line-clamp-2 flex-1">
+              {product.description}
+            </p>
           )}
-          <div className="flex items-center justify-between mt-3">
-            <span 
-              className="font-bold text-lg"
-              style={{ color: primaryColor }}
-            >
-              R$ {product.price.toFixed(2).replace('.', ',')}
+          <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-100">
+            <span className="font-extrabold text-lg text-emerald-600">
+              {formatCurrency(product.price)}
             </span>
-            {product.is_available && onAdd && (
-              <button
-                onClick={onAdd}
-                className="w-10 h-10 rounded-xl flex items-center justify-center text-white transition-transform hover:scale-105 shadow-md"
+            {product.is_available && (
+              <div 
+                className="w-9 h-9 rounded-full flex items-center justify-center text-white shadow-md group-hover:scale-110 transition-transform"
                 style={{ backgroundColor: primaryColor }}
               >
                 <Plus className="w-5 h-5" />
-              </button>
+              </div>
+            )}
+            {!product.is_available && (
+              <span className="text-xs text-red-500 font-medium">Esgotado</span>
             )}
           </div>
         </div>
+
+        {/* Imagem */}
         {product.image_url && (
-          <div 
-            className="w-32 h-32 bg-slate-100 bg-cover bg-center flex-shrink-0"
-            style={{ backgroundImage: `url(${product.image_url})` }}
-          />
+          <div className="relative w-28 sm:w-32 flex-shrink-0">
+            <div 
+              className="absolute inset-0 bg-slate-100 bg-cover bg-center group-hover:scale-105 transition-transform duration-300"
+              style={{ backgroundImage: `url(${product.image_url})` }}
+            />
+          </div>
         )}
       </div>
-    </div>
+    </button>
   )
 }
