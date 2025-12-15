@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
-import { X, Plus, Minus, Pizza, Check } from 'lucide-react'
+import { X, Plus, Minus, Pizza, Check, ChevronLeft, ChevronRight } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 import { getProductWithModifiers } from '@/lib/actions/menu'
 import { useCartStore } from '@/stores/cart-store'
@@ -37,11 +37,26 @@ export function ProductModal({ productId, isOpen, onClose, categoryName, categor
   const [secondFlavor, setSecondFlavor] = useState<SimpleProduct | null>(null)
   const [showFlavorPicker, setShowFlavorPicker] = useState(false)
   
+  // Estado para Wizard de Montagem (Açaí)
+  const [wizardStep, setWizardStep] = useState(0)
+  
   const addItem = useCartStore((state) => state.addItem)
   
   // Verifica se a categoria permite frações (Pizza)
   const allowsFractions = categoryName?.toLowerCase().includes('pizza') || 
                           categoryName?.toLowerCase().includes('pizzas')
+  
+  // Detecta se deve usar modo Wizard (tem grupos obrigatórios)
+  const requiredGroups = product?.modifier_groups.filter(g => g.required) || []
+  const optionalGroups = product?.modifier_groups.filter(g => !g.required) || []
+  const useWizardMode = requiredGroups.length >= 2 // Ativa wizard se tiver 2+ grupos obrigatórios
+  const totalWizardSteps = requiredGroups.length + (optionalGroups.length > 0 ? 1 : 0) // +1 para opcionais
+  
+  // Grupo atual no wizard
+  const currentWizardGroup = useWizardMode 
+    ? (wizardStep < requiredGroups.length ? requiredGroups[wizardStep] : null)
+    : null
+  const isOnOptionalStep = useWizardMode && wizardStep >= requiredGroups.length
 
   useEffect(() => {
     if (isOpen && productId) {
@@ -121,6 +136,28 @@ export function ProductModal({ productId, isOpen, onClose, categoryName, categor
     setIsHalfHalf(false)
     setSecondFlavor(null)
     setShowFlavorPicker(false)
+    setWizardStep(0)
+  }
+  
+  // Navegação do Wizard
+  function canGoNextStep() {
+    if (!currentWizardGroup) return true
+    const selectedInGroup = selectedModifiers.filter(m => 
+      currentWizardGroup.options.some(o => o.id === m.option_id)
+    )
+    return selectedInGroup.length >= currentWizardGroup.min_quantity
+  }
+  
+  function handleNextStep() {
+    if (wizardStep < totalWizardSteps - 1) {
+      setWizardStep(prev => prev + 1)
+    }
+  }
+  
+  function handlePrevStep() {
+    if (wizardStep > 0) {
+      setWizardStep(prev => prev - 1)
+    }
   }
 
   function calculateTotal() {
@@ -281,106 +318,282 @@ export function ProductModal({ productId, isOpen, onClose, categoryName, categor
                 </div>
               )}
 
-              {product.modifier_groups.map(group => (
-                <div key={group.id} className="space-y-3 p-4 bg-gray-50 rounded-xl">
-                  <div>
-                    <h3 className="font-bold text-lg text-gray-900">{group.name}</h3>
-                    <div className="flex items-center gap-2 mt-1">
-                      {group.required && (
-                        <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-semibold rounded-full">Obrigatório</span>
-                      )}
-                      <span className="text-sm text-gray-600">
-                        {group.max_quantity === 1 ? 'Escolha 1' : `Escolha até ${group.max_quantity}`}
+              {/* ========== MODO WIZARD (Açaí) ========== */}
+              {useWizardMode ? (
+                <>
+                  {/* Barra de Progresso */}
+                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-xl border border-purple-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-purple-700">
+                        Etapa {wizardStep + 1} de {totalWizardSteps}
                       </span>
+                      <span className="text-sm text-purple-600">
+                        {currentWizardGroup?.name || 'Opcionais'}
+                      </span>
+                    </div>
+                    <div className="flex gap-1">
+                      {Array.from({ length: totalWizardSteps }).map((_, i) => (
+                        <div 
+                          key={i}
+                          className={`h-2 flex-1 rounded-full transition-all ${
+                            i < wizardStep ? 'bg-purple-500' :
+                            i === wizardStep ? 'bg-purple-400 animate-pulse' :
+                            'bg-purple-200'
+                          }`}
+                        />
+                      ))}
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    {group.options.map(option => {
-                      const isSelected = selectedModifiers.some(m => m.option_id === option.id)
-                      
-                      return (
-                        <button
-                          key={option.id}
-                          onClick={() => toggleModifier(group.id, option.id, option.name, option.extra_price, group)}
-                          className={`w-full p-4 rounded-xl border-2 transition-all transform hover:scale-[1.02] text-left ${
-                            isSelected
-                              ? 'border-green-500 bg-gradient-to-r from-green-50 to-green-100 shadow-md'
-                              : 'border-gray-200 bg-white hover:border-green-300 hover:shadow-sm'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                                isSelected ? 'border-green-600 bg-green-600' : 'border-gray-300'
-                              }`}>
-                                {isSelected && (
-                                  <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                                  </svg>
+                  {/* Grupo Atual do Wizard */}
+                  {currentWizardGroup && (
+                    <div className="space-y-3 p-4 bg-gray-50 rounded-xl">
+                      <div>
+                        <h3 className="font-bold text-lg text-gray-900">{currentWizardGroup.name}</h3>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-semibold rounded-full">
+                            Obrigatório
+                          </span>
+                          <span className="text-sm text-gray-600">
+                            {currentWizardGroup.max_quantity === 1 
+                              ? 'Escolha 1' 
+                              : `Escolha ${currentWizardGroup.min_quantity} a ${currentWizardGroup.max_quantity}`}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        {currentWizardGroup.options.map(option => {
+                          const isSelected = selectedModifiers.some(m => m.option_id === option.id)
+                          return (
+                            <button
+                              key={option.id}
+                              onClick={() => toggleModifier(currentWizardGroup.id, option.id, option.name, option.extra_price, currentWizardGroup)}
+                              className={`w-full p-4 rounded-xl border-2 transition-all transform hover:scale-[1.02] text-left ${
+                                isSelected
+                                  ? 'border-purple-500 bg-gradient-to-r from-purple-50 to-pink-50 shadow-md'
+                                  : 'border-gray-200 bg-white hover:border-purple-300 hover:shadow-sm'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                                    isSelected ? 'border-purple-600 bg-purple-600' : 'border-gray-300'
+                                  }`}>
+                                    {isSelected && <Check className="w-3 h-3 text-white" />}
+                                  </div>
+                                  <span className="font-semibold text-gray-900">{option.name}</span>
+                                </div>
+                                {option.extra_price > 0 && (
+                                  <span className="text-purple-600 font-bold">
+                                    + {formatCurrency(option.extra_price)}
+                                  </span>
                                 )}
                               </div>
-                              <span className="font-semibold text-gray-900">{option.name}</span>
-                            </div>
-                            {option.extra_price > 0 && (
-                              <span className="text-green-600 font-bold">
-                                + {formatCurrency(option.extra_price)}
-                              </span>
-                            )}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Opcionais (última etapa do wizard) */}
+                  {isOnOptionalStep && optionalGroups.length > 0 && (
+                    <>
+                      {optionalGroups.map(group => (
+                        <div key={group.id} className="space-y-3 p-4 bg-gray-50 rounded-xl">
+                          <div>
+                            <h3 className="font-bold text-lg text-gray-900">{group.name}</h3>
+                            <span className="text-sm text-gray-600">
+                              Escolha até {group.max_quantity} (opcional)
+                            </span>
                           </div>
-                        </button>
-                      )
-                    })}
+                          <div className="space-y-2">
+                            {group.options.map(option => {
+                              const isSelected = selectedModifiers.some(m => m.option_id === option.id)
+                              return (
+                                <button
+                                  key={option.id}
+                                  onClick={() => toggleModifier(group.id, option.id, option.name, option.extra_price, group)}
+                                  className={`w-full p-4 rounded-xl border-2 transition-all text-left ${
+                                    isSelected
+                                      ? 'border-green-500 bg-green-50'
+                                      : 'border-gray-200 bg-white hover:border-green-300'
+                                  }`}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                                        isSelected ? 'border-green-600 bg-green-600' : 'border-gray-300'
+                                      }`}>
+                                        {isSelected && <Check className="w-3 h-3 text-white" />}
+                                      </div>
+                                      <span className="font-semibold text-gray-900">{option.name}</span>
+                                    </div>
+                                    {option.extra_price > 0 && (
+                                      <span className="text-green-600 font-bold">+ {formatCurrency(option.extra_price)}</span>
+                                    )}
+                                  </div>
+                                </button>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                      
+                      {/* Observações só aparecem na última etapa */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Observações (opcional)</label>
+                        <textarea
+                          value={notes}
+                          onChange={(e) => setNotes(e.target.value)}
+                          placeholder="Ex: Sem granola, mais leite condensado..."
+                          className="w-full p-3 border border-gray-300 rounded-lg resize-none"
+                          rows={2}
+                        />
+                      </div>
+                      
+                      {/* Quantidade */}
+                      <div className="flex items-center justify-between bg-gray-50 p-4 rounded-xl">
+                        <span className="font-bold text-gray-900">Quantidade</span>
+                        <div className="flex items-center gap-4">
+                          <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="p-2 rounded-full bg-white border-2 border-gray-300 hover:border-purple-500">
+                            <Minus className="w-5 h-5" />
+                          </button>
+                          <span className="w-10 text-center font-bold text-xl text-purple-600">{quantity}</span>
+                          <button onClick={() => setQuantity(quantity + 1)} className="p-2 rounded-full bg-white border-2 border-gray-300 hover:border-purple-500">
+                            <Plus className="w-5 h-5" />
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </>
+              ) : (
+                /* ========== MODO NORMAL ========== */
+                <>
+                  {product.modifier_groups.map(group => (
+                    <div key={group.id} className="space-y-3 p-4 bg-gray-50 rounded-xl">
+                      <div>
+                        <h3 className="font-bold text-lg text-gray-900">{group.name}</h3>
+                        <div className="flex items-center gap-2 mt-1">
+                          {group.required && (
+                            <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-semibold rounded-full">Obrigatório</span>
+                          )}
+                          <span className="text-sm text-gray-600">
+                            {group.max_quantity === 1 ? 'Escolha 1' : `Escolha até ${group.max_quantity}`}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        {group.options.map(option => {
+                          const isSelected = selectedModifiers.some(m => m.option_id === option.id)
+                          return (
+                            <button
+                              key={option.id}
+                              onClick={() => toggleModifier(group.id, option.id, option.name, option.extra_price, group)}
+                              className={`w-full p-4 rounded-xl border-2 transition-all transform hover:scale-[1.02] text-left ${
+                                isSelected
+                                  ? 'border-green-500 bg-gradient-to-r from-green-50 to-green-100 shadow-md'
+                                  : 'border-gray-200 bg-white hover:border-green-300 hover:shadow-sm'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                                    isSelected ? 'border-green-600 bg-green-600' : 'border-gray-300'
+                                  }`}>
+                                    {isSelected && <Check className="w-3 h-3 text-white" />}
+                                  </div>
+                                  <span className="font-semibold text-gray-900">{option.name}</span>
+                                </div>
+                                {option.extra_price > 0 && (
+                                  <span className="text-green-600 font-bold">+ {formatCurrency(option.extra_price)}</span>
+                                )}
+                              </div>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  ))}
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Observações (opcional)</label>
+                    <textarea
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      placeholder="Ex: Sem cebola, bem passado..."
+                      className="w-full p-3 border border-gray-300 rounded-lg resize-none"
+                      rows={3}
+                    />
                   </div>
-                </div>
-              ))}
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Observações (opcional)
-                </label>
-                <textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Ex: Sem cebola, bem passado..."
-                  className="w-full p-3 border border-gray-300 rounded-lg resize-none"
-                  rows={3}
-                />
-              </div>
-
-              <div className="flex items-center justify-between bg-gradient-to-r from-gray-50 to-gray-100 p-5 rounded-xl">
-                <span className="font-bold text-gray-900">Quantidade</span>
-                <div className="flex items-center gap-4">
-                  <button
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="p-2 rounded-full bg-white border-2 border-gray-300 hover:border-green-500 hover:bg-green-50 transition-all"
-                  >
-                    <Minus className="w-5 h-5" />
-                  </button>
-                  <span className="w-10 text-center font-bold text-xl text-green-600">{quantity}</span>
-                  <button
-                    onClick={() => setQuantity(quantity + 1)}
-                    className="p-2 rounded-full bg-white border-2 border-gray-300 hover:border-green-500 hover:bg-green-50 transition-all"
-                  >
-                    <Plus className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
+                  <div className="flex items-center justify-between bg-gradient-to-r from-gray-50 to-gray-100 p-5 rounded-xl">
+                    <span className="font-bold text-gray-900">Quantidade</span>
+                    <div className="flex items-center gap-4">
+                      <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="p-2 rounded-full bg-white border-2 border-gray-300 hover:border-green-500 hover:bg-green-50 transition-all">
+                        <Minus className="w-5 h-5" />
+                      </button>
+                      <span className="w-10 text-center font-bold text-xl text-green-600">{quantity}</span>
+                      <button onClick={() => setQuantity(quantity + 1)} className="p-2 rounded-full bg-white border-2 border-gray-300 hover:border-green-500 hover:bg-green-50 transition-all">
+                        <Plus className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
 
+            {/* ========== FOOTER COM BOTÕES ========== */}
             <div className="sticky bottom-0 bg-white border-t p-4 shadow-lg">
-              <Button
-                onClick={handleAddToCart}
-                disabled={!canAddToCart()}
-                className="w-full h-14 text-lg font-bold bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 shadow-lg"
-              >
-                <span className="flex items-center justify-center gap-2">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                  Adicionar • {formatCurrency(calculateTotal())}
-                </span>
-              </Button>
+              {useWizardMode ? (
+                <div className="flex gap-3">
+                  {wizardStep > 0 && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handlePrevStep}
+                      className="h-14 px-6"
+                    >
+                      <ChevronLeft className="w-5 h-5 mr-1" />
+                      Voltar
+                    </Button>
+                  )}
+                  
+                  {wizardStep < totalWizardSteps - 1 ? (
+                    <Button
+                      onClick={handleNextStep}
+                      disabled={!canGoNextStep()}
+                      className="flex-1 h-14 text-lg font-bold bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                    >
+                      Próximo
+                      <ChevronRight className="w-5 h-5 ml-1" />
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={handleAddToCart}
+                      disabled={!canAddToCart()}
+                      className="flex-1 h-14 text-lg font-bold bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 shadow-lg"
+                    >
+                      Adicionar • {formatCurrency(calculateTotal())}
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <Button
+                  onClick={handleAddToCart}
+                  disabled={!canAddToCart()}
+                  className="w-full h-14 text-lg font-bold bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 shadow-lg"
+                >
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    Adicionar • {formatCurrency(calculateTotal())}
+                  </span>
+                </Button>
+              )}
             </div>
           </>
         ) : (
