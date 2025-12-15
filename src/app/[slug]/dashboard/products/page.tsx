@@ -49,8 +49,14 @@ export default function ProductsPage() {
           return
         }
         setStoreId(data.id)
-      } catch (err) {
-        console.error('Erro ao buscar loja:', err)
+      } catch (err: any) {
+        console.error('Erro ao buscar loja (products):', {
+          message: err?.message,
+          code: err?.code,
+          details: err?.details,
+          hint: err?.hint,
+          slug
+        })
         setStoreError('Erro ao carregar loja')
       } finally {
         setLoadingStore(false)

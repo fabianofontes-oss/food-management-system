@@ -100,8 +100,14 @@ export default function DeliveryPage() {
           return
         }
         setStoreId(data.id)
-      } catch (err) {
-        console.error('Erro ao buscar loja:', err)
+      } catch (err: any) {
+        console.error('Erro ao buscar loja (delivery):', {
+          message: err?.message,
+          code: err?.code,
+          details: err?.details,
+          hint: err?.hint,
+          slug
+        })
         setStoreError('Erro ao carregar loja')
         setLoading(false)
       }

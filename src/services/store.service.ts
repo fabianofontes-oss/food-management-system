@@ -37,7 +37,13 @@ class StoreService {
       .single()
 
     if (error) {
-      console.error('Erro ao buscar loja:', error)
+      console.error('Erro ao buscar loja por slug:', {
+        message: error?.message,
+        code: error?.code,
+        details: error?.details,
+        hint: error?.hint,
+        slug
+      })
       return null
     }
 
@@ -52,7 +58,13 @@ class StoreService {
       .single()
 
     if (error) {
-      console.error('Erro ao buscar loja:', error)
+      console.error('Erro ao buscar loja por ID:', {
+        message: error?.message,
+        code: error?.code,
+        details: error?.details,
+        hint: error?.hint,
+        id
+      })
       return null
     }
 
@@ -66,7 +78,13 @@ class StoreService {
       .eq('id', id)
 
     if (error) {
-      console.error('Erro ao atualizar loja:', error)
+      console.error('Erro ao atualizar loja:', {
+        message: error?.message,
+        code: error?.code,
+        details: error?.details,
+        hint: error?.hint,
+        id
+      })
       return false
     }
 

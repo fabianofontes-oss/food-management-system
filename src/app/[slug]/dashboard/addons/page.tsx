@@ -86,8 +86,14 @@ export default function AddonsPage() {
         if (error || !data) return
         setStoreId(data.id)
         setTenantId(data.tenant_id)
-      } catch (err) {
-        console.error('Erro ao buscar loja:', err)
+      } catch (err: any) {
+        console.error('Erro ao buscar loja (addons):', {
+          message: err?.message,
+          code: err?.code,
+          details: err?.details,
+          hint: err?.hint,
+          slug
+        })
       }
     }
     if (slug) fetchStore()

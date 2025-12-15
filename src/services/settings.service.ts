@@ -29,7 +29,13 @@ class SettingsService {
       .single()
 
     if (error || !data) {
-      console.error('Erro ao carregar configurações:', error)
+      console.error('Erro ao carregar configurações:', {
+        message: error?.message,
+        code: error?.code,
+        details: error?.details,
+        hint: error?.hint,
+        storeId
+      })
       return DEFAULT_STORE_SETTINGS
     }
 
@@ -89,7 +95,13 @@ class SettingsService {
       .eq('id', storeId)
 
     if (error) {
-      console.error('Erro ao salvar configurações:', error)
+      console.error('Erro ao salvar configurações:', {
+        message: error?.message,
+        code: error?.code,
+        details: error?.details,
+        hint: error?.hint,
+        storeId
+      })
       return false
     }
 
