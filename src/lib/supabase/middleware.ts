@@ -70,10 +70,12 @@ export async function updateSession(request: NextRequest) {
   }
 
   // REGRA 1: Se tentar acessar Dashboard sem estar logado -> Manda pro Login
-  if (isDashboard && !user) {
+  // EXCEÇÃO: loja-demo é pública para demonstração
+  const isLojaDemo = path.startsWith('/loja-demo')
+  if (isDashboard && !user && !isLojaDemo) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
-    url.searchParams.set('next', path) // Para voltar depois de logar
+    url.searchParams.set('next', path)
     return NextResponse.redirect(url)
   }
 

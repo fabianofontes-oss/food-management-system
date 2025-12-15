@@ -21,7 +21,9 @@ export default async function StoreDashboardLayout({
   const { data: { user } } = await supabase.auth.getUser()
 
   // Se não estiver logado, redireciona para login
-  if (!user) {
+  // EXCEÇÃO: loja-demo é pública para demonstração
+  const isLojaDemo = params.slug === 'loja-demo'
+  if (!user && !isLojaDemo) {
     redirect(`/login?next=/${params.slug}/dashboard`)
   }
 
@@ -38,11 +40,16 @@ export default async function StoreDashboardLayout({
     redirect('/404')
   }
 
-  // SUPER ADMIN: Acesso total a qualquer loja
-  if (isSuperAdmin(user.email)) {
+  // LOJA DEMO: Acesso público para demonstração
+  if (isLojaDemo) {
     storeId = store.id
-  } else {
-    // Usuário normal: verificar se tem acesso via store_users
+  }
+  // SUPER ADMIN: Acesso total a qualquer loja
+  else if (user && isSuperAdmin(user.email)) {
+    storeId = store.id
+  } 
+  // Usuário logado: verificar se tem acesso via store_users
+  else if (user) {
     const { data: userStore } = await supabase
       .from('store_users')
       .select('store_id')
