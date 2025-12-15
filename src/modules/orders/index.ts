@@ -11,3 +11,7 @@ export { createOrderAction } from './actions'
 
 // Hooks
 export { useOrders } from './hooks/use-orders'
+
+// Components
+export { OrderCard } from './components/order-card'
+export { OrderKanban } from './components/order-kanban'
