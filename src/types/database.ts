@@ -142,6 +142,11 @@ export type Database = {
           settings: Json | null
           public_profile: Json | null
           menu_theme: Json | null
+          loyalty_active: boolean | null
+          loyalty_calculation_type: string | null
+          loyalty_order_value_per_stamp: number | null
+          loyalty_stamps_to_reward: number | null
+          loyalty_reward_value: number | null
           created_at: string
           updated_at: string
         }
@@ -163,6 +168,11 @@ export type Database = {
           settings?: Json | null
           public_profile?: Json | null
           menu_theme?: Json | null
+          loyalty_active?: boolean | null
+          loyalty_calculation_type?: string | null
+          loyalty_order_value_per_stamp?: number | null
+          loyalty_stamps_to_reward?: number | null
+          loyalty_reward_value?: number | null
           created_at?: string
           updated_at?: string
         }
@@ -184,6 +194,11 @@ export type Database = {
           settings?: Json | null
           public_profile?: Json | null
           menu_theme?: Json | null
+          loyalty_active?: boolean | null
+          loyalty_calculation_type?: string | null
+          loyalty_order_value_per_stamp?: number | null
+          loyalty_stamps_to_reward?: number | null
+          loyalty_reward_value?: number | null
           created_at?: string
           updated_at?: string
         }
@@ -243,6 +258,7 @@ export type Database = {
           store_id: string
           name: string
           description: string | null
+          color: string | null
           sort_order: number
           is_active: boolean
           created_at: string
@@ -253,6 +269,7 @@ export type Database = {
           store_id: string
           name: string
           description?: string | null
+          color?: string | null
           sort_order?: number
           is_active?: boolean
           created_at?: string
@@ -263,6 +280,7 @@ export type Database = {
           store_id?: string
           name?: string
           description?: string | null
+          color?: string | null
           sort_order?: number
           is_active?: boolean
           created_at?: string
