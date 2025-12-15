@@ -13,7 +13,12 @@ export async function getStoreBySlug(slug: string): Promise<Store | null> {
     .eq('is_active', true)
     .single()
 
-  if (error || !data) return null
+  if (error || !data) {
+    if (error) {
+      console.error('getStoreBySlug error', { slug, error })
+    }
+    return null
+  }
   return data as Store
 }
 
@@ -63,7 +68,7 @@ export async function getProductWithModifiers(productId: string): Promise<Produc
     .select('group_id')
     .eq('product_id', productId)
 
-  const groupIds = productModifierGroups?.map(pmg => pmg.group_id) || []
+  const groupIds = productModifierGroups?.map((pmg: any) => pmg.group_id) || []
 
   if (groupIds.length === 0) {
     return { ...product, modifier_groups: [] } as ProductWithModifiers
@@ -78,7 +83,7 @@ export async function getProductWithModifiers(productId: string): Promise<Produc
     .in('id', groupIds)
     .order('sort_order', { ascending: true })
 
-  const groups = (modifierGroups || []).map(group => ({
+  const groups = (modifierGroups || []).map((group: any) => ({
     ...group,
     options: (group.options || [])
       .filter((opt: any) => opt.is_active)

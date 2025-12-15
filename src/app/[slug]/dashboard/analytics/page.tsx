@@ -125,16 +125,16 @@ export default function AnalyticsPage() {
       const { data: orderItems } = await supabase
         .from('order_items')
         .select('product_name, quantity, unit_price')
-        .in('order_id', (currentOrders || []).map(o => o.id))
+        .in('order_id', (currentOrders || []).map((o: any) => o.id))
 
       if (currentOrders) {
         const totalOrders = currentOrders.length
-        const totalRevenue = currentOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0)
+        const totalRevenue = currentOrders.reduce((sum: number, o: any) => sum + (o.total_amount || 0), 0)
         const averageTicket = totalOrders > 0 ? totalRevenue / totalOrders : 0
 
         // Pedidos por dia
         const ordersByDayMap = new Map<string, { count: number; revenue: number }>()
-        currentOrders.forEach(order => {
+        currentOrders.forEach((order: any) => {
           const date = new Date(order.created_at).toISOString().split('T')[0]
           const existing = ordersByDayMap.get(date) || { count: 0, revenue: 0 }
           ordersByDayMap.set(date, {
@@ -148,7 +148,7 @@ export default function AnalyticsPage() {
 
         // Pedidos por hora
         const ordersByHourMap = new Map<number, number>()
-        currentOrders.forEach(order => {
+        currentOrders.forEach((order: any) => {
           const hour = new Date(order.created_at).getHours()
           ordersByHourMap.set(hour, (ordersByHourMap.get(hour) || 0) + 1)
         })
@@ -158,7 +158,7 @@ export default function AnalyticsPage() {
 
         // Métodos de pagamento
         const paymentMap = new Map<string, { count: number; total: number }>()
-        currentOrders.forEach(order => {
+        currentOrders.forEach((order: any) => {
           const method = order.payment_method || 'Não informado'
           const existing = paymentMap.get(method) || { count: 0, total: 0 }
           paymentMap.set(method, {
@@ -171,7 +171,7 @@ export default function AnalyticsPage() {
 
         // Canais de venda
         const channelMap = new Map<string, number>()
-        currentOrders.forEach(order => {
+        currentOrders.forEach((order: any) => {
           const channel = order.channel || 'Não informado'
           channelMap.set(channel, (channelMap.get(channel) || 0) + 1)
         })
@@ -180,7 +180,7 @@ export default function AnalyticsPage() {
 
         // Top produtos
         const productMap = new Map<string, { quantity: number; revenue: number }>()
-        orderItems?.forEach(item => {
+        orderItems?.forEach((item: any) => {
           const name = item.product_name
           const existing = productMap.get(name) || { quantity: 0, revenue: 0 }
           productMap.set(name, {
@@ -195,7 +195,10 @@ export default function AnalyticsPage() {
 
         // Comparação com período anterior
         const prevTotal = previousOrders?.length || 0
-        const prevRevenue = previousOrders?.reduce((sum, o) => sum + (o.total_amount || 0), 0) || 0
+        const prevRevenue = previousOrders?.reduce(
+          (sum: number, o: any) => sum + (o.total_amount || 0),
+          0
+        ) || 0
         const prevTicket = prevTotal > 0 ? prevRevenue / prevTotal : 0
 
         const calcChange = (current: number, previous: number) => 
@@ -584,7 +587,11 @@ export default function AnalyticsPage() {
                     cx="50%"
                     cy="50%"
                     outerRadius={80}
-                    label={({ channel, percent }) => `${channel}: ${(percent * 100).toFixed(0)}%`}
+                    label={(props: any) => {
+                      const name = props?.payload?.channel ?? props?.name ?? 'N/A'
+                      const pct = typeof props?.percent === 'number' ? props.percent : 0
+                      return `${name}: ${(pct * 100).toFixed(0)}%`
+                    }}
                   >
                     {data.ordersByChannel.map((_, index) => (
                       <Cell key={`cell-${index}`} fill={['#8B5CF6', '#06B6D4', '#10B981', '#F59E0B', '#EF4444'][index % 5]} />

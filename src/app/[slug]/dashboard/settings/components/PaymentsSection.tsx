@@ -17,6 +17,8 @@ interface PaymentsSectionProps {
 }
 
 export function PaymentsSection({ paymentsData, errors, setValue }: PaymentsSectionProps) {
+  const paymentsErrors = (errors as any)?.payments
+
   return (
     <section className="bg-white rounded-2xl p-6 shadow-sm">
       <div className="flex items-center gap-2 mb-6">
@@ -91,8 +93,8 @@ export function PaymentsSection({ paymentsData, errors, setValue }: PaymentsSect
                   className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-teal-500 focus:outline-none"
                 />
               </div>
-              {errors.payments?.pix && (
-                <p className="text-red-600 text-sm">{(errors.payments.pix as any).message}</p>
+              {paymentsErrors?.pix && (
+                <p className="text-red-600 text-sm">{paymentsErrors.pix?.message}</p>
               )}
             </div>
           )}

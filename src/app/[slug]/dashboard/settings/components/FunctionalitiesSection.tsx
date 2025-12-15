@@ -42,6 +42,9 @@ export function FunctionalitiesSection({ watchedValues, register, setValue, erro
           onToggle={(val) => setValue('delivery.enabled', val)}
           showAccordion={true}
         >
+          {(() => {
+            const deliveryErrors = (errors as any)?.delivery
+            return (
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -54,8 +57,8 @@ export function FunctionalitiesSection({ watchedValues, register, setValue, erro
                 className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
                 placeholder="5.00"
               />
-              {errors.delivery?.fee && (
-                <p className="text-red-600 text-sm mt-1">{(errors.delivery.fee as any).message}</p>
+              {deliveryErrors?.fee && (
+                <p className="text-red-600 text-sm mt-1">{deliveryErrors.fee?.message}</p>
               )}
             </div>
             <div>
@@ -68,8 +71,8 @@ export function FunctionalitiesSection({ watchedValues, register, setValue, erro
                 className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
                 placeholder="5"
               />
-              {errors.delivery?.minRadius && (
-                <p className="text-red-600 text-sm mt-1">{(errors.delivery.minRadius as any).message}</p>
+              {deliveryErrors?.minRadius && (
+                <p className="text-red-600 text-sm mt-1">{deliveryErrors.minRadius?.message}</p>
               )}
             </div>
             <div>
@@ -82,11 +85,13 @@ export function FunctionalitiesSection({ watchedValues, register, setValue, erro
                 className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
                 placeholder="30"
               />
-              {errors.delivery?.avgTime && (
-                <p className="text-red-600 text-sm mt-1">{(errors.delivery.avgTime as any).message}</p>
+              {deliveryErrors?.avgTime && (
+                <p className="text-red-600 text-sm mt-1">{deliveryErrors.avgTime?.message}</p>
               )}
             </div>
           </div>
+            )
+          })()}
         </ToggleCard>
         <ToggleCard
           icon={Store}

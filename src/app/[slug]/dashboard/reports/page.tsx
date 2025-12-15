@@ -228,11 +228,11 @@ export default function ReportsPage() {
 
         // Calcular métricas
         const totalOrders = orders.length
-        const totalRevenue = orders.reduce((sum, order) => sum + (order.total_amount || 0), 0)
+        const totalRevenue = orders.reduce((sum: number, order: any) => sum + (order.total_amount || 0), 0)
         const averageTicket = totalOrders > 0 ? totalRevenue / totalOrders : 0
         
-        const paidCount = orders.filter(o => o.payment_status === 'paid').length
-        const pendingCount = orders.filter(o => o.payment_status === 'pending' || !o.payment_status).length
+        const paidCount = orders.filter((o: any) => o.payment_status === 'paid').length
+        const pendingCount = orders.filter((o: any) => o.payment_status === 'pending' || !o.payment_status).length
 
         setMetrics({
           total_orders: totalOrders,
@@ -245,7 +245,7 @@ export default function ReportsPage() {
         // Calcular breakdown por método de pagamento
         const breakdown: Record<string, { count: number; total: number }> = {}
         
-        orders.forEach(order => {
+        orders.forEach((order: any) => {
           const method = order.payment_method || 'cash'
           if (!breakdown[method]) {
             breakdown[method] = { count: 0, total: 0 }
@@ -263,7 +263,7 @@ export default function ReportsPage() {
         setPaymentBreakdown(breakdownArray)
 
         // Buscar order_items para análise de produtos e horários
-        const orderIds = orders.map(o => o.id)
+        const orderIds = orders.map((o: any) => o.id)
         
         const { data: orderItems, error: itemsError } = await supabase
           .from('order_items')
@@ -276,7 +276,7 @@ export default function ReportsPage() {
         if (orderItems && orderItems.length > 0) {
           const productStats: Record<string, { quantity: number; revenue: number; orders: Set<string> }> = {}
           
-          orderItems.forEach(item => {
+          orderItems.forEach((item: any) => {
             const productName = (item.products as any)?.name || 'Produto Desconhecido'
             if (!productStats[productName]) {
               productStats[productName] = { quantity: 0, revenue: 0, orders: new Set() }
@@ -304,7 +304,7 @@ export default function ReportsPage() {
         // Calcular Peak Hours
         const hourStats: Record<number, { orders: number; revenue: number }> = {}
         
-        orders.forEach(order => {
+        orders.forEach((order: any) => {
           const hour = new Date(order.created_at).getHours()
           if (!hourStats[hour]) {
             hourStats[hour] = { orders: 0, revenue: 0 }
@@ -942,7 +942,11 @@ export default function ReportsPage() {
                         cx="50%"
                         cy="50%"
                         outerRadius={100}
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        label={(props: any) => {
+                          const name = props?.name ?? props?.payload?.name ?? 'N/A'
+                          const pct = typeof props?.percent === 'number' ? props.percent : 0
+                          return `${name}: ${(pct * 100).toFixed(0)}%`
+                        }}
                       >
                         {paymentBreakdown.map((_, index) => (
                           <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />

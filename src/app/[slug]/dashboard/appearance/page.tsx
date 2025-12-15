@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Loader2, Palette, Save, Eye } from 'lucide-react'
+import { Loader2, Palette, Save, Eye, Copy } from 'lucide-react'
 import { useDashboardStoreId } from '../DashboardClient'
 import { updateStoreAppearance, getStoreAppearance } from '@/lib/actions/appearance'
 import { toast } from 'sonner'
@@ -46,6 +46,11 @@ export default function AppearancePage() {
   const params = useParams()
   const slug = params.slug as string
   const storeId = useDashboardStoreId()
+
+  const baseUrl = process.env.NEXT_PUBLIC_PUBLIC_APP_URL
+  const origin = typeof window !== 'undefined' ? window.location.origin : ''
+  const normalizedBase = (baseUrl || origin).replace(/\/$/, '')
+  const publicMenuUrl = normalizedBase ? `${normalizedBase}/${slug}` : `/${slug}`
 
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -168,10 +173,25 @@ export default function AppearancePage() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" asChild>
-            <a href={`/${slug}`} target="_blank" rel="noopener noreferrer">
+            <a href={publicMenuUrl} target="_blank" rel="noopener noreferrer">
               <Eye className="w-4 h-4 mr-2" />
               Visualizar
             </a>
+          </Button>
+          <Button
+            variant="outline"
+            onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(publicMenuUrl)
+                toast.success('URL do cardápio copiada!')
+              } catch (error) {
+                console.error('Error copying public menu URL:', error)
+                toast.error('Não foi possível copiar a URL')
+              }
+            }}
+          >
+            <Copy className="w-4 h-4 mr-2" />
+            Copiar URL
           </Button>
           <Button onClick={handleSave} disabled={saving}>
             {saving ? (

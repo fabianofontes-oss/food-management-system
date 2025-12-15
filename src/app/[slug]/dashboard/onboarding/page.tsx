@@ -311,6 +311,7 @@ export default function OnboardingPage() {
   async function completeOnboarding() {
     const finalState = {
       completed: true,
+      ready_check: true,
       steps: {
         store_info: true,
         payments: true,
@@ -408,7 +409,7 @@ export default function OnboardingPage() {
           <div className="flex items-center justify-between">
             {steps.map((step, index) => {
               const Icon = step.icon
-              const isCompleted = onboardingState.steps[step.id as OnboardingStep]
+              const isCompleted = onboardingState.steps[step.id as keyof typeof onboardingState.steps]
               const isCurrent = step.id === currentStep
               const isAccessible = index <= currentStepIndex
 
@@ -436,7 +437,7 @@ export default function OnboardingPage() {
                   </button>
                   {index < steps.length - 1 && (
                     <div className={`flex-1 h-1 mx-2 ${
-                      onboardingState.steps[steps[index + 1].id as OnboardingStep] ? 'bg-green-600' : 'bg-gray-200'
+                      onboardingState.steps[steps[index + 1].id as keyof typeof onboardingState.steps] ? 'bg-green-600' : 'bg-gray-200'
                     }`} />
                   )}
                 </div>

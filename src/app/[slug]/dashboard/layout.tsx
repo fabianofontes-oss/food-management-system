@@ -1,17 +1,7 @@
-import { supabase } from '@/lib/supabase'
 import { LanguageProviderWrapper } from '@/components/LanguageProviderWrapper'
 import { SupportedLocale, SupportedCountry, isValidLocale, isValidCountry } from '@/lib/i18n'
 import DashboardClient from './DashboardClient'
-
-async function getStoreWithTenant(slug: string) {
-  const { data: store } = await supabase
-    .from('stores')
-    .select('id, tenant_id, tenants(country, language, currency, timezone)')
-    .eq('slug', slug)
-    .single()
-
-  return store
-}
+import { createClient } from '@/lib/supabase/server'
 
 export default async function StoreDashboardLayout({
   children,
@@ -20,14 +10,23 @@ export default async function StoreDashboardLayout({
   children: React.ReactNode
   params: { slug: string }
 }) {
-  const store = await getStoreWithTenant(params.slug)
-  
-  // Extract tenant localization data with fallbacks
-  const tenant = store?.tenants as any
-  const country = tenant?.country || 'BR'
-  const language = tenant?.language || 'pt-BR'
-  const currency = tenant?.currency || 'BRL'
-  const timezone = tenant?.timezone || 'America/Sao_Paulo'
+  const country = 'BR'
+  const language = 'pt-BR'
+  const currency = 'BRL'
+  const timezone = 'America/Sao_Paulo'
+
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const storeId = user
+    ? (
+        await supabase
+          .from('stores')
+          .select('id')
+          .eq('slug', params.slug)
+          .single()
+      ).data?.id ?? null
+    : null
 
   // Validate and ensure type safety
   const validLocale: SupportedLocale = isValidLocale(language) ? language : 'pt-BR'
@@ -40,7 +39,7 @@ export default async function StoreDashboardLayout({
       currency={currency}
       timezone={timezone}
     >
-      <DashboardClient slug={params.slug} storeId={store?.id}>
+      <DashboardClient slug={params.slug} storeId={storeId}>
         {children}
       </DashboardClient>
     </LanguageProviderWrapper>

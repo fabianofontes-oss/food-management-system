@@ -47,11 +47,11 @@ export async function getAnalyticsMetrics(days: DateRange = 7): Promise<Analytic
     .gte('created_at', today.toISOString())
 
   // Calculate active stores (stores with at least 1 order in range)
-  const activeStoreIds = new Set(ordersInRange?.map(o => o.store_id) || [])
+  const activeStoreIds = new Set(ordersInRange?.map((o: any) => o.store_id) || [])
 
   // Calculate GMV
-  const gmvInRange = ordersInRange?.reduce((sum, o) => sum + (o.total_amount || 0), 0) || 0
-  const gmvToday = ordersToday?.reduce((sum, o) => sum + (o.total_amount || 0), 0) || 0
+  const gmvInRange = ordersInRange?.reduce((sum: number, o: any) => sum + (o.total_amount || 0), 0) || 0
+  const gmvToday = ordersToday?.reduce((sum: number, o: any) => sum + (o.total_amount || 0), 0) || 0
 
   return {
     activeStores: activeStoreIds.size,
@@ -135,7 +135,7 @@ export async function getDailyTrend(days: DateRange = 14): Promise<DailyTrend[]>
   // Aggregate by day
   const dayMap = new Map<string, DailyTrend>()
 
-  orders.forEach((order) => {
+  orders.forEach((order: any) => {
     const date = new Date(order.created_at)
     const dateKey = date.toISOString().split('T')[0] // YYYY-MM-DD
 
@@ -202,7 +202,7 @@ export async function getAnalyticsByTenant(tenantId: string, days: DateRange = 7
     }
   }
 
-  const storeIds = stores.map(s => s.id)
+  const storeIds = stores.map((s: any) => s.id)
 
   // Get orders for these stores
   const { data: ordersInRange } = await supabase
@@ -220,9 +220,9 @@ export async function getAnalyticsByTenant(tenantId: string, days: DateRange = 7
     .in('store_id', storeIds)
     .gte('created_at', today.toISOString())
 
-  const activeStoreIds = new Set(ordersInRange?.map(o => o.store_id) || [])
-  const gmvInRange = ordersInRange?.reduce((sum, o) => sum + (o.total_amount || 0), 0) || 0
-  const gmvToday = ordersToday?.reduce((sum, o) => sum + (o.total_amount || 0), 0) || 0
+  const activeStoreIds = new Set(ordersInRange?.map((o: any) => o.store_id) || [])
+  const gmvInRange = ordersInRange?.reduce((sum: number, o: any) => sum + (o.total_amount || 0), 0) || 0
+  const gmvToday = ordersToday?.reduce((sum: number, o: any) => sum + (o.total_amount || 0), 0) || 0
 
   return {
     activeStores: activeStoreIds.size,

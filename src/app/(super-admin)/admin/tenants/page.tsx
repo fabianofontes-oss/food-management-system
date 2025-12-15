@@ -45,12 +45,12 @@ export default function TenantsPage() {
       setPlans(plansData.filter(p => p.is_active))
       
       const plansMap = new Map(
-        tenantsWithPlansData.map(t => [t.tenant_id, { plan_name: t.plan_name, plan_slug: t.plan_slug }])
+        tenantsWithPlansData.map((t: any) => [t.tenant_id, { plan_name: t.plan_name, plan_slug: t.plan_slug }])
       )
       
       const supabase = createClient()
       const tenantsWithCount = await Promise.all(
-        data.map(async (tenant) => {
+        data.map(async (tenant: any) => {
           const { count } = await supabase
             .from('stores')
             .select('*', { count: 'exact', head: true })

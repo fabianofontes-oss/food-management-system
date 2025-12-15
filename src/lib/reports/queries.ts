@@ -102,20 +102,20 @@ export async function getSalesKPIs(
   }
 
   // Calculate KPIs
-  const totalRevenue = orders.reduce((sum, o) => sum + (o.total_amount || 0), 0)
+  const totalRevenue = orders.reduce((sum: number, o: any) => sum + (o.total_amount || 0), 0)
   const totalOrders = orders.length
   const averageTicket = totalOrders > 0 ? totalRevenue / totalOrders : 0
 
   // Group by status
   const ordersByStatus: Record<string, number> = {}
-  orders.forEach(o => {
+  orders.forEach((o: any) => {
     const status = o.status || 'unknown'
     ordersByStatus[status] = (ordersByStatus[status] || 0) + 1
   })
 
   // Group by type
   const ordersByType: Record<string, number> = {}
-  orders.forEach(o => {
+  orders.forEach((o: any) => {
     const type = o.order_type || 'unknown'
     ordersByType[type] = (ordersByType[type] || 0) + 1
   })
@@ -287,7 +287,7 @@ export async function getDeliveryMetrics(
     })
 
   const avgDeliveryTime = deliveryTimes.length > 0
-    ? deliveryTimes.reduce((sum, t) => sum + t, 0) / deliveryTimes.length
+    ? deliveryTimes.reduce((sum: number, t: number) => sum + t, 0) / deliveryTimes.length
     : 0
 
   return {

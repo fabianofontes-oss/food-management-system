@@ -64,7 +64,7 @@ export async function getModifierGroups(storeId: string): Promise<ModifierGroupW
 
   // Fetch options for each group
   const groupsWithOptions = await Promise.all(
-    (groups || []).map(async (group) => {
+    (groups || []).map(async (group: any) => {
       const { data: options } = await supabase
         .from('modifier_options')
         .select('*')

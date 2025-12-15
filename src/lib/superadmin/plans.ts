@@ -5,7 +5,7 @@ export function createClient() {
   return createBrowserClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+  ) as any
 }
 
 export type Plan = Database['public']['Tables']['plans']['Row']
@@ -170,22 +170,25 @@ export async function getAllTenantsWithPlans(): Promise<TenantWithPlan[]> {
 
     if (subsError) throw subsError
 
-    const subscriptionsMap = new Map(
-      (subscriptions || []).map(sub => {
+    const subscriptionsMap = new Map<
+      string,
+      { plan_id: string | null; plan_name: string | null; plan_slug: string | null; status: string | null }
+    >(
+      (subscriptions || []).map((sub: any) => {
         const plan = sub.plan as any
         return [
-          sub.tenant_id,
+          sub.tenant_id as string,
           {
             plan_id: plan?.id || null,
             plan_name: plan?.name || null,
             plan_slug: plan?.slug || null,
-            status: sub.status
+            status: sub.status || null
           }
         ]
       })
     )
 
-    return (tenants || []).map(tenant => {
+    return (tenants || []).map((tenant: any) => {
       const subscription = subscriptionsMap.get(tenant.id)
       return {
         tenant_id: tenant.id,
@@ -253,7 +256,7 @@ export async function getTenantsByPlan(planId: string): Promise<Array<{id: strin
 
     if (error) throw error
 
-    return (data || []).map(item => {
+    return (data || []).map((item: any) => {
       const tenant = item.tenant as any
       return {
         id: tenant.id,
