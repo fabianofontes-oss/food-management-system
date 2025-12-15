@@ -3,6 +3,7 @@
 import { Component, ReactNode } from 'react'
 import type { MenuTheme, StoreWithSettings } from '../../types'
 import { safeParseTheme, getThemeCSSVariables } from '../../utils'
+import { StoreHeader } from './header'
 import { ClassicLayout } from './layouts/classic-layout'
 import { ModernLayout } from './layouts/modern-layout'
 import { GridLayout } from './layouts/grid-layout'
@@ -112,8 +113,13 @@ export function StoreFront({ store, categories = [], onAddToCart }: StoreFrontPr
 
   return (
     <div 
-      style={cssVars as React.CSSProperties}
-      className="store-front"
+      style={{
+        '--primary': theme.colors.primary,
+        '--background': theme.colors.background,
+        '--header': theme.colors.header,
+        ...cssVars
+      } as React.CSSProperties}
+      className="store-front min-h-screen"
     >
       <LayoutErrorBoundary fallback={fallbackLayout}>
         {renderLayout()}
