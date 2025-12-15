@@ -60,7 +60,7 @@ export async function updateStoreAppearance(data: z.infer<typeof UpdateAppearanc
     }
 
     const { data: userStore } = await supabase
-      .from('user_stores')
+      .from('store_users')
       .select('store_id')
       .eq('user_id', user.id)
       .eq('store_id', validated.storeId)
@@ -136,6 +136,7 @@ export async function getStoreAppearance(storeId: string) {
         publicProfile: (store as any).public_profile || {},
         menuTheme: (store as any).menu_theme || {},
         slug: (store as any).slug,
+        logoUrl: (store as any).logo_url || '',
       },
     }
   } catch (error) {

@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Loader2, Palette, Save, Eye, Copy } from 'lucide-react'
+import { Loader2, Palette, Save, Eye, Copy, Upload, Image as ImageIcon } from 'lucide-react'
 import { useDashboardStoreId } from '../DashboardClient'
 import { updateStoreAppearance, getStoreAppearance } from '@/lib/actions/appearance'
 import { toast } from 'sonner'
@@ -54,6 +54,9 @@ export default function AppearancePage() {
 
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [uploadingLogo, setUploadingLogo] = useState(false)
+  const [logoUrl, setLogoUrl] = useState<string>('')
+  const [showPreview, setShowPreview] = useState(false)
 
   const [menuTheme, setMenuTheme] = useState<MenuTheme>({
     preset: 'menuA',
@@ -86,6 +89,9 @@ export default function AppearancePage() {
       setLoading(true)
       const result = await getStoreAppearance(storeId)
       if (result.success && result.data) {
+        if (result.data.logoUrl) {
+          setLogoUrl(result.data.logoUrl)
+        }
         if (result.data.menuTheme && Object.keys(result.data.menuTheme).length > 0) {
           setMenuTheme({
             preset: result.data.menuTheme.preset || 'menuA',
@@ -115,6 +121,36 @@ export default function AppearancePage() {
 
     loadAppearance()
   }, [storeId])
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !storeId) return
+
+    setUploadingLogo(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('storeId', storeId)
+
+      const response = await fetch('/api/upload/logo', {
+        method: 'POST',
+        body: formData,
+      })
+
+      const data = await response.json()
+      if (data.success && data.url) {
+        setLogoUrl(data.url)
+        toast.success('Logo enviada com sucesso!')
+      } else {
+        toast.error(data.error || 'Erro ao enviar logo')
+      }
+    } catch (error) {
+      console.error('Error uploading logo:', error)
+      toast.error('Erro ao enviar logo')
+    } finally {
+      setUploadingLogo(false)
+    }
+  }
 
   const handleSave = async () => {
     if (!storeId) return
@@ -172,10 +208,17 @@ export default function AppearancePage() {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setShowPreview(!showPreview)}
+          >
+            <Eye className="w-4 h-4 mr-2" />
+            {showPreview ? 'Ocultar Preview' : 'Ver Preview'}
+          </Button>
           <Button variant="outline" asChild>
             <a href={publicMenuUrl} target="_blank" rel="noopener noreferrer">
               <Eye className="w-4 h-4 mr-2" />
-              Visualizar
+              Abrir em Nova Aba
             </a>
           </Button>
           <Button
@@ -208,6 +251,26 @@ export default function AppearancePage() {
           </Button>
         </div>
       </div>
+
+      {/* Preview do Cardápio */}
+      {showPreview && (
+        <Card className="overflow-hidden">
+          <CardHeader>
+            <CardTitle>Preview do Cardápio</CardTitle>
+            <CardDescription>Visualização em tempo real do seu cardápio público</CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="w-full h-[600px] border-t">
+              <iframe
+                src={publicMenuUrl}
+                className="w-full h-full"
+                title="Preview do Cardápio"
+                sandbox="allow-scripts allow-same-origin"
+              />
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid md:grid-cols-2 gap-6">
         {/* Layout do Menu */}
@@ -415,6 +478,55 @@ export default function AppearancePage() {
           <CardDescription>Informações exibidas no cardápio público</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Upload de Logo */}
+          <div className="space-y-2">
+            <Label>Logo da Loja</Label>
+            <div className="flex items-center gap-4">
+              {logoUrl ? (
+                <div className="relative w-24 h-24 rounded-lg border-2 border-border overflow-hidden bg-muted">
+                  <img src={logoUrl} alt="Logo" className="w-full h-full object-cover" />
+                </div>
+              ) : (
+                <div className="w-24 h-24 rounded-lg border-2 border-dashed border-border flex items-center justify-center bg-muted">
+                  <ImageIcon className="w-8 h-8 text-muted-foreground" />
+                </div>
+              )}
+              <div className="flex-1">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoUpload}
+                  disabled={uploadingLogo}
+                  className="hidden"
+                  id="logo-upload"
+                />
+                <Label htmlFor="logo-upload" className="cursor-pointer">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={uploadingLogo}
+                    onClick={() => document.getElementById('logo-upload')?.click()}
+                  >
+                    {uploadingLogo ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Enviando...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-4 h-4 mr-2" />
+                        {logoUrl ? 'Alterar Logo' : 'Enviar Logo'}
+                      </>
+                    )}
+                  </Button>
+                </Label>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Recomendado: 200x200px, PNG ou JPG
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div className="grid md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="displayName">Nome de Exibição</Label>
