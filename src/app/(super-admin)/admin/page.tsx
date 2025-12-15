@@ -2,16 +2,42 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Store, Building2, MapPin, ArrowRight, ExternalLink, LayoutDashboard, Loader2 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Store, Building2, MapPin, ArrowRight, ExternalLink, LayoutDashboard, Loader2, RefreshCw, Rocket } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { getTenantsCount, getStoresCount, getRecentStores, type StoreWithTenant } from '@/lib/superadmin/queries'
+import { resetDemoStoreAction } from '@/lib/demo/actions'
+import { toast } from 'sonner'
 
 export default function SuperAdminDashboard() {
+  const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [tenantsCount, setTenantsCount] = useState(0)
   const [storesCount, setStoresCount] = useState(0)
   const [recentStores, setRecentStores] = useState<StoreWithTenant[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [resettingDemo, setResettingDemo] = useState(false)
+
+  const handleResetDemo = async () => {
+    if (!confirm('Isso vai criar/resetar a loja-demo com dados de exemplo. Continuar?')) return
+    
+    setResettingDemo(true)
+    try {
+      const result = await resetDemoStoreAction()
+      if (result.success && result.slug) {
+        toast.success('Loja demo criada com sucesso!')
+        router.push(`/${result.slug}/dashboard`)
+      } else {
+        toast.error(result.error || 'Erro ao criar loja demo')
+      }
+    } catch (err) {
+      console.error('Erro:', err)
+      toast.error('Erro ao criar loja demo')
+    } finally {
+      setResettingDemo(false)
+    }
+  }
 
   useEffect(() => {
     async function loadData() {
@@ -105,6 +131,41 @@ export default function SuperAdminDashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* BOTÃO DE EMERGÊNCIA - LOJA DEMO */}
+        <Card className="border-2 border-dashed border-amber-300 bg-amber-50">
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-amber-100 rounded-xl">
+                  <Rocket className="w-8 h-8 text-amber-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-amber-900">Loja Demo para Testes</h3>
+                  <p className="text-amber-700">Cria/reseta uma loja com categorias e produtos de exemplo</p>
+                </div>
+              </div>
+              <Button
+                onClick={handleResetDemo}
+                disabled={resettingDemo}
+                size="lg"
+                className="bg-amber-500 hover:bg-amber-600 text-white font-bold px-8"
+              >
+                {resettingDemo ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Criando...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="w-5 h-5 mr-2" />
+                    RESETAR LOJA DEMO
+                  </>
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Link href="/admin/tenants">
