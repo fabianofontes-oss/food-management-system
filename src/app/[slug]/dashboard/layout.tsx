@@ -40,7 +40,7 @@ export default async function StoreDashboardLayout({
       currency={currency}
       timezone={timezone}
     >
-      <DashboardClient slug={params.slug}>
+      <DashboardClient slug={params.slug} storeId={store?.id}>
         {children}
       </DashboardClient>
     </LanguageProviderWrapper>

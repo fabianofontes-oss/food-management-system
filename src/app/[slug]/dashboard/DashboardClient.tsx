@@ -1,6 +1,7 @@
 'use client'
 
-import { 
+import { createContext, useContext } from 'react'
+import {
   LayoutDashboard, ShoppingCart, ChefHat, Truck, 
   Package, Settings, Users, ShoppingBag, UserCog, BarChart3, 
   Ticket, DollarSign, Warehouse, LayoutGrid, PieChart, Star, 
@@ -9,12 +10,20 @@ import {
 import { AppShell } from '@/components/layout/AppShell'
 import { SidebarSection } from '@/components/layout/Sidebar'
 
+const DashboardStoreIdContext = createContext<string | null>(null)
+
+export function useDashboardStoreId() {
+  return useContext(DashboardStoreIdContext)
+}
+
 export default function DashboardClient({
   children,
   slug,
+  storeId,
 }: {
   children: React.ReactNode
   slug: string
+  storeId?: string | null
 }) {
   const base = `/${slug}/dashboard`
 
@@ -67,12 +76,10 @@ export default function DashboardClient({
   ]
 
   return (
-    <AppShell
-      slug={slug}
-      sections={menuSections}
-      basePath={base}
-    >
-      {children}
-    </AppShell>
+    <DashboardStoreIdContext.Provider value={storeId ?? null}>
+      <AppShell slug={slug} sections={menuSections} basePath={base}>
+        {children}
+      </AppShell>
+    </DashboardStoreIdContext.Provider>
   )
 }
