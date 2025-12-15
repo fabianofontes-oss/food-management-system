@@ -98,44 +98,80 @@ export const landingContent = {
   },
 
   targetAudience: {
-    title: 'Perfeito para o seu negócio',
-    subtitle: 'Solução adaptável para diferentes tipos de estabelecimentos',
+    title: 'Perfeito para qualquer negócio de alimentação',
+    subtitle: 'Solução completa e adaptável para mais de 15 tipos de estabelecimentos',
     segments: [
       {
         icon: 'IceCream',
         title: 'Açaí e Sorvetes',
-        description: 'Gestão de complementos, tamanhos e montagem personalizada.',
-        image: '/landing/acai.jpg', // TODO: Adicionar imagem
+        description: 'Complementos, tamanhos e montagem personalizada.',
+        image: '/landing/acai.jpg',
       },
       {
         icon: 'Beef',
         title: 'Hamburgueria',
-        description: 'Cardápio com adicionais, pontos da carne e combos.',
-        image: '/landing/burger.jpg', // TODO: Adicionar imagem
-      },
-      {
-        icon: 'UtensilsCrossed',
-        title: 'Marmitaria',
-        description: 'Gestão de pratos do dia, tamanhos e entregas programadas.',
-        image: '/landing/marmita.jpg', // TODO: Adicionar imagem
+        description: 'Adicionais, pontos da carne e combos.',
+        image: '/landing/burger.jpg',
       },
       {
         icon: 'Pizza',
         title: 'Pizzaria',
         description: 'Sabores, bordas, tamanhos e meio a meio.',
-        image: '/landing/pizza.jpg', // TODO: Adicionar imagem
+        image: '/landing/pizza.jpg',
+      },
+      {
+        icon: 'Fish',
+        title: 'Sushi e Japonês',
+        description: 'Rodízio por tempo, combos e controle de peças.',
+        image: '/landing/sushi.jpg',
+      },
+      {
+        icon: 'Cake',
+        title: 'Confeitaria',
+        description: 'Encomendas com data, personalização e sinal.',
+        image: '/landing/confeitaria.jpg',
+      },
+      {
+        icon: 'Beer',
+        title: 'Bar e Pub',
+        description: 'Comanda aberta, split de conta e happy hour.',
+        image: '/landing/bar.jpg',
+      },
+      {
+        icon: 'Leaf',
+        title: 'Fit e Healthy',
+        description: 'Calorias, macros e filtros dietéticos.',
+        image: '/landing/fit.jpg',
+      },
+      {
+        icon: 'Building2',
+        title: 'Dark Kitchen',
+        description: 'Multi-marca e várias lojas virtuais.',
+        image: '/landing/darkkitchen.jpg',
       },
       {
         icon: 'Coffee',
         title: 'Cafeteria',
-        description: 'Bebidas quentes e frias, tamanhos e personalizações.',
-        image: '/landing/cafe.jpg', // TODO: Adicionar imagem
+        description: 'Bebidas quentes e frias, tamanhos variados.',
+        image: '/landing/cafe.jpg',
+      },
+      {
+        icon: 'UtensilsCrossed',
+        title: 'Marmitaria',
+        description: 'Pratos do dia, tamanhos e entregas.',
+        image: '/landing/marmita.jpg',
+      },
+      {
+        icon: 'Croissant',
+        title: 'Padaria',
+        description: 'Peso variável, produtos por kg e pré-encomenda.',
+        image: '/landing/padaria.jpg',
       },
       {
         icon: 'Salad',
         title: 'Restaurante',
-        description: 'Cardápio completo, reservas de mesas e comandas.',
-        image: '/landing/restaurante.jpg', // TODO: Adicionar imagem
+        description: 'Cardápio completo, mesas e comandas.',
+        image: '/landing/restaurante.jpg',
       },
     ],
   },
