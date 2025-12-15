@@ -4,27 +4,18 @@ import { useState, useEffect, useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { 
-  IceCream, Beef, Pizza, Beer, Fish, Cake, Leaf, Coffee,
-  UtensilsCrossed, Croissant, Apple, ChefHat, Check, AlertTriangle,
-  Loader2, Sparkles
+  IceCream, Beef, Pizza, UtensilsCrossed, Loader2, Sparkles, 
+  Check, ArrowRight, Package, Settings, AlertTriangle
 } from 'lucide-react'
-import { NICHE_OPTIONS } from '@/data/niches'
-import { seedStoreAction, reseedStoreAction } from '@/app/actions/seed-store'
 import { toast } from 'sonner'
+import { NICHE_LIST } from '@/lib/templates/niche-data'
+import { applyNicheAction } from '@/modules/store/actions'
 
-const iconMap: Record<string, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   IceCream,
   Beef,
   Pizza,
-  Beer,
-  Fish,
-  Cake,
-  Leaf,
-  Coffee,
-  UtensilsCrossed,
-  Croissant,
-  Apple,
-  ChefHat,
+  UtensilsCrossed
 }
 
 export default function NicheSettingsPage() {
@@ -35,17 +26,14 @@ export default function NicheSettingsPage() {
   
   const [storeId, setStoreId] = useState<string | null>(null)
   const [currentNiche, setCurrentNiche] = useState<string | null>(null)
-  const [selectedNiche, setSelectedNiche] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isLoadingStore, setIsLoadingStore] = useState(true)
+  const [selectedNiche, setSelectedNiche] = useState<string | null>(null)
   const [hasProducts, setHasProducts] = useState(false)
   const [productsCount, setProductsCount] = useState(0)
-  const [showConfirmReset, setShowConfirmReset] = useState(false)
 
-  // Carregar dados da loja
   useEffect(() => {
     async function loadStore() {
-      // Buscar loja pelo slug
       const { data: store } = await supabase
         .from('stores')
         .select('id, niche')
@@ -55,13 +43,12 @@ export default function NicheSettingsPage() {
       if (store) {
         setStoreId(store.id)
         setCurrentNiche(store.niche)
-        setSelectedNiche(store.niche)
 
-        // Verificar se já tem produtos
         const { count } = await supabase
           .from('products')
           .select('id', { count: 'exact', head: true })
           .eq('store_id', store.id)
+          .eq('is_active', true)
 
         setProductsCount(count || 0)
         setHasProducts((count || 0) > 0)
@@ -73,220 +60,212 @@ export default function NicheSettingsPage() {
     loadStore()
   }, [slug, supabase])
 
-  const handleSelectNiche = async () => {
-    if (!selectedNiche || !storeId) {
-      toast.error('Selecione um nicho')
-      return
-    }
-
+  const handleApplyNiche = async (nicheId: string) => {
+    if (!storeId) return
+    
+    setSelectedNiche(nicheId)
     setIsLoading(true)
     
     try {
-      const result = hasProducts 
-        ? await reseedStoreAction(storeId, selectedNiche)
-        : await seedStoreAction(storeId, selectedNiche)
+      const result = await applyNicheAction(storeId, nicheId, slug)
 
       if (result.success) {
         toast.success(
-          `🎉 Loja configurada! ${result.categoriesCreated} categorias e ${result.productsCreated} produtos criados.`
+          `🎉 Loja configurada! ${result.categoriesCreated} categorias e ${result.productsCreated} produtos criados.`,
+          { duration: 5000 }
         )
-        router.push(`/${slug}/dashboard/products`)
+        
+        // Aguarda um pouco para o toast aparecer, depois redireciona
+        setTimeout(() => {
+          router.push(`/${slug}/dashboard/products`)
+        }, 1500)
       } else {
         toast.error(result.error || 'Erro ao configurar loja')
+        setIsLoading(false)
+        setSelectedNiche(null)
       }
     } catch (error) {
       toast.error('Erro ao configurar loja')
       console.error(error)
-    } finally {
       setIsLoading(false)
-      setShowConfirmReset(false)
+      setSelectedNiche(null)
     }
   }
 
-  // Loading state
   if (isLoadingStore) {
     return (
-      <div className="p-6 max-w-6xl mx-auto flex items-center justify-center min-h-[400px]">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-violet-50/30 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-violet-600 mx-auto mb-4" />
-          <p className="text-gray-500">Carregando...</p>
+          <Loader2 className="w-12 h-12 animate-spin text-violet-600 mx-auto mb-4" />
+          <p className="text-xl text-gray-600">Carregando...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="p-2 bg-violet-100 rounded-lg">
-            <Sparkles className="w-6 h-6 text-violet-600" />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-violet-50/30 p-4 md:p-6 lg:p-8">
+      <div className="max-w-5xl mx-auto">
+        {/* Header Grande e Claro */}
+        <div className="text-center mb-10">
+          <div className="inline-flex p-5 bg-gradient-to-br from-violet-500 to-purple-600 rounded-3xl shadow-2xl shadow-violet-500/30 mb-6">
+            <Sparkles className="w-12 h-12 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Configurar Nicho</h1>
-        </div>
-        <p className="text-gray-600">
-          Escolha o tipo do seu negócio e sua loja será configurada automaticamente com produtos, 
-          categorias e configurações específicas.
-        </p>
-        {currentNiche && (
-          <p className="text-sm text-violet-600 mt-2">
-            Nicho atual: <strong>{NICHE_OPTIONS.find(n => n.id === currentNiche)?.name || currentNiche}</strong>
-            {productsCount > 0 && ` • ${productsCount} produtos cadastrados`}
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-800 mb-4">
+            Configure sua Loja em 1 Clique
+          </h1>
+          <p className="text-xl md:text-2xl text-slate-500 max-w-2xl mx-auto">
+            Escolha o tipo do seu negócio e nós configuramos tudo pra você!
           </p>
-        )}
-      </div>
-
-      {/* Grid de Nichos */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
-        {NICHE_OPTIONS.map((niche) => {
-          const IconComponent = iconMap[niche.icon] || UtensilsCrossed
-          const isSelected = selectedNiche === niche.id
           
-          return (
-            <button
-              key={niche.id}
-              onClick={() => setSelectedNiche(niche.id)}
-              className={`
-                relative p-6 rounded-xl border-2 transition-all duration-200
-                hover:shadow-lg hover:scale-[1.02]
-                ${isSelected 
-                  ? 'border-violet-500 bg-violet-50 shadow-md' 
-                  : 'border-gray-200 bg-white hover:border-gray-300'
-                }
-              `}
-            >
-              {/* Check icon */}
-              {isSelected && (
-                <div className="absolute top-2 right-2 w-6 h-6 bg-violet-500 rounded-full flex items-center justify-center">
-                  <Check className="w-4 h-4 text-white" />
-                </div>
+          {currentNiche && (
+            <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-violet-100 text-violet-700 rounded-full">
+              <Check className="w-5 h-5" />
+              <span className="font-medium">
+                Nicho atual: {NICHE_LIST.find(n => n.id === currentNiche)?.name || currentNiche}
+              </span>
+              {productsCount > 0 && (
+                <span className="text-violet-500">• {productsCount} produtos</span>
               )}
-              
-              {/* Icon */}
-              <div 
-                className="w-12 h-12 rounded-lg flex items-center justify-center mb-3"
-                style={{ backgroundColor: `${niche.color}20` }}
-              >
-                <IconComponent 
-                  className="w-6 h-6" 
-                  style={{ color: niche.color }}
-                />
-              </div>
-              
-              {/* Name */}
-              <h3 className="font-semibold text-gray-900 mb-1">{niche.name}</h3>
-              <p className="text-sm text-gray-500 line-clamp-2">{niche.description}</p>
-            </button>
-          )
-        })}
-      </div>
-
-      {/* Info Box */}
-      {selectedNiche && (
-        <div className="bg-violet-50 border border-violet-200 rounded-xl p-4 mb-6">
-          <h3 className="font-semibold text-violet-900 mb-2">
-            ✨ O que será configurado:
-          </h3>
-          <ul className="text-sm text-violet-800 space-y-1">
-            <li>• Categorias específicas para o seu tipo de negócio</li>
-            <li>• Produtos com preços médios de mercado</li>
-            <li>• Configurações de delivery, mesas e módulos</li>
-            <li>• Você poderá ajustar tudo depois!</li>
-          </ul>
-        </div>
-      )}
-
-      {/* Warning Box - se já tem produtos */}
-      {hasProducts && selectedNiche && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-amber-900 mb-1">
-                Atenção: Você já tem produtos cadastrados
-              </h3>
-              <p className="text-sm text-amber-800">
-                Ao confirmar, todos os produtos e categorias atuais serão substituídos pelos do template.
-                Esta ação não pode ser desfeita.
-              </p>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Action Button */}
-      <div className="flex justify-end gap-4">
-        <button
-          onClick={() => router.back()}
-          className="px-6 py-3 text-gray-600 hover:text-gray-900"
-        >
-          Cancelar
-        </button>
-        
-        <button
-          onClick={() => hasProducts ? setShowConfirmReset(true) : handleSelectNiche()}
-          disabled={!selectedNiche || isLoading}
-          className={`
-            px-8 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all
-            ${selectedNiche 
-              ? 'bg-violet-600 text-white hover:bg-violet-700' 
-              : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-            }
-          `}
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="w-5 h-5 animate-spin" />
-              Configurando...
-            </>
-          ) : (
-            <>
-              <Sparkles className="w-5 h-5" />
-              Configurar Loja
-            </>
           )}
-        </button>
-      </div>
+        </div>
 
-      {/* Modal de Confirmação - Reset */}
-      {showConfirmReset && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-amber-100 rounded-lg">
-                <AlertTriangle className="w-6 h-6 text-amber-600" />
+        {/* Aviso se já tem produtos */}
+        {hasProducts && (
+          <div className="mb-8 p-6 bg-amber-50 border-2 border-amber-200 rounded-2xl">
+            <div className="flex items-start gap-4">
+              <div className="p-3 bg-amber-100 rounded-xl">
+                <AlertTriangle className="w-8 h-8 text-amber-600" />
               </div>
-              <h2 className="text-xl font-bold text-gray-900">Confirmar Reset</h2>
-            </div>
-            
-            <p className="text-gray-600 mb-6">
-              Todos os seus produtos e categorias atuais serão <strong>excluídos</strong> e 
-              substituídos pelos do template. Deseja continuar?
-            </p>
-            
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowConfirmReset(false)}
-                className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleSelectNiche}
-                disabled={isLoading}
-                className="flex-1 px-4 py-3 bg-amber-600 text-white rounded-xl hover:bg-amber-700 flex items-center justify-center gap-2"
-              >
-                {isLoading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  'Sim, Resetar'
-                )}
-              </button>
+              <div>
+                <h3 className="text-xl font-bold text-amber-800 mb-2">
+                  Você já tem {productsCount} produtos cadastrados
+                </h3>
+                <p className="text-lg text-amber-700">
+                  Ao escolher um novo kit, seus produtos atuais serão <strong>arquivados</strong> (não deletados). 
+                  Você pode reativá-los depois em Produtos → Arquivados.
+                </p>
+              </div>
             </div>
           </div>
+        )}
+
+        {/* Grid de Cards Grandes */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          {NICHE_LIST.map((niche) => {
+            const IconComponent = iconMap[niche.icon] || UtensilsCrossed
+            const isSelected = selectedNiche === niche.id
+            const isApplying = isLoading && isSelected
+            
+            return (
+              <div
+                key={niche.id}
+                className={`
+                  relative overflow-hidden rounded-3xl border-4 transition-all duration-300
+                  ${isSelected 
+                    ? 'border-violet-500 shadow-2xl shadow-violet-500/20 scale-[1.02]' 
+                    : 'border-transparent shadow-xl hover:shadow-2xl hover:scale-[1.01]'
+                  }
+                `}
+                style={{ backgroundColor: niche.bgColor }}
+              >
+                {/* Fundo decorativo */}
+                <div 
+                  className="absolute top-0 right-0 w-40 h-40 rounded-full opacity-20 -translate-y-10 translate-x-10"
+                  style={{ backgroundColor: niche.color }}
+                />
+                
+                <div className="relative p-8">
+                  {/* Ícone Grande */}
+                  <div 
+                    className="w-24 h-24 rounded-3xl flex items-center justify-center mb-6 shadow-lg"
+                    style={{ backgroundColor: niche.color }}
+                  >
+                    <IconComponent className="w-14 h-14 text-white" />
+                  </div>
+                  
+                  {/* Título e Descrição */}
+                  <h2 className="text-3xl font-black text-slate-800 mb-3">
+                    {niche.name}
+                  </h2>
+                  <p className="text-lg text-slate-600 mb-6">
+                    {niche.description}
+                  </p>
+                  
+                  {/* Info dos produtos */}
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="flex items-center gap-2 px-4 py-2 bg-white/80 rounded-xl">
+                      <Package className="w-5 h-5 text-slate-500" />
+                      <span className="font-bold text-slate-700">{niche.categoriesCount} categorias</span>
+                    </div>
+                    <div className="flex items-center gap-2 px-4 py-2 bg-white/80 rounded-xl">
+                      <UtensilsCrossed className="w-5 h-5 text-slate-500" />
+                      <span className="font-bold text-slate-700">{niche.productsCount} produtos</span>
+                    </div>
+                  </div>
+                  
+                  {/* Botão Grande */}
+                  <button
+                    onClick={() => handleApplyNiche(niche.id)}
+                    disabled={isLoading}
+                    className={`
+                      w-full py-5 px-8 rounded-2xl font-bold text-xl
+                      flex items-center justify-center gap-3
+                      transition-all duration-300 transform
+                      ${isApplying 
+                        ? 'bg-violet-500 text-white' 
+                        : 'bg-white text-slate-800 hover:bg-slate-800 hover:text-white'
+                      }
+                      disabled:opacity-70 disabled:cursor-not-allowed
+                      shadow-lg hover:shadow-xl
+                    `}
+                    style={!isApplying ? { borderColor: niche.color } : {}}
+                  >
+                    {isApplying ? (
+                      <>
+                        <Loader2 className="w-7 h-7 animate-spin" />
+                        <span>Configurando sua loja...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Quero Este!</span>
+                        <ArrowRight className="w-7 h-7" />
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )
+          })}
         </div>
-      )}
+
+        {/* Card "Começar do Zero" - Menos destacado */}
+        <div className="bg-white/80 rounded-2xl border-2 border-dashed border-slate-300 p-8 text-center">
+          <div className="inline-flex p-4 bg-slate-100 rounded-2xl mb-4">
+            <Settings className="w-10 h-10 text-slate-400" />
+          </div>
+          <h3 className="text-2xl font-bold text-slate-600 mb-2">
+            Prefere Configurar na Mão?
+          </h3>
+          <p className="text-lg text-slate-500 mb-6 max-w-md mx-auto">
+            Se você tem um negócio diferente ou quer criar tudo do zero, vá direto para produtos.
+          </p>
+          <button
+            onClick={() => router.push(`/${slug}/dashboard/products`)}
+            className="px-8 py-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition-all text-lg"
+          >
+            Começar do Zero →
+          </button>
+        </div>
+
+        {/* Dica no rodapé */}
+        <div className="mt-8 text-center text-slate-500">
+          <p className="text-lg">
+            💡 <strong>Dica:</strong> Você pode personalizar os produtos e preços depois de escolher um kit!
+          </p>
+        </div>
+      </div>
     </div>
   )
 }

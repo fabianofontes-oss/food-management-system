@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { mergeWithDefaults, DEFAULT_MENU_THEME } from './types'
 import type { StoreWithSettings, StoreSettings, MenuTheme } from './types'
+import { NICHE_TEMPLATES } from '@/lib/templates/niche-data'
 
 /**
  * Server Action para buscar loja pelo slug (para uso em Server Components)
@@ -167,5 +168,151 @@ export async function updateMenuThemeAction(
   } catch (error: any) {
     console.error('Erro na updateMenuThemeAction:', error)
     return { success: false, error: error.message || 'Erro desconhecido' }
+  }
+}
+
+/**
+ * 🧠 Kit Preguiçoso - Aplica template de nicho completo
+ * 
+ * Esta action faz a mágica:
+ * 1. Arquiva categorias/produtos existentes
+ * 2. Cria novas categorias e produtos do template
+ * 3. Atualiza as cores do tema
+ */
+export async function applyNicheAction(
+  storeId: string,
+  nicheKey: string,
+  slug?: string
+): Promise<{
+  success: boolean
+  error?: string
+  categoriesCreated?: number
+  productsCreated?: number
+}> {
+  const supabase = await createClient()
+
+  // Busca o template
+  const template = NICHE_TEMPLATES[nicheKey]
+  if (!template) {
+    return { success: false, error: 'Template não encontrado' }
+  }
+
+  try {
+    // 1. ARQUIVAR categorias existentes (desativar, não deletar)
+    const { error: archiveError } = await supabase
+      .from('categories')
+      .update({ is_active: false })
+      .eq('store_id', storeId)
+
+    if (archiveError) {
+      console.error('Erro ao arquivar categorias:', archiveError)
+      // Continua mesmo se falhar (pode não ter categorias)
+    }
+
+    // 2. ARQUIVAR produtos existentes
+    const { error: archiveProductsError } = await supabase
+      .from('products')
+      .update({ is_active: false })
+      .eq('store_id', storeId)
+
+    if (archiveProductsError) {
+      console.error('Erro ao arquivar produtos:', archiveProductsError)
+    }
+
+    // 3. CRIAR novas categorias
+    let categoriesCreated = 0
+    let productsCreated = 0
+
+    for (const category of template.categories) {
+      // Inserir categoria
+      const { data: newCategory, error: catError } = await supabase
+        .from('categories')
+        .insert({
+          store_id: storeId,
+          name: category.name,
+          description: category.description,
+          sort_order: category.sortOrder,
+          is_active: true
+        })
+        .select('id')
+        .single()
+
+      if (catError) {
+        console.error('Erro ao criar categoria:', catError)
+        continue
+      }
+
+      categoriesCreated++
+
+      // 4. CRIAR produtos da categoria
+      for (const product of category.products) {
+        const { error: prodError } = await supabase
+          .from('products')
+          .insert({
+            store_id: storeId,
+            category_id: newCategory.id,
+            name: product.name,
+            description: product.description,
+            price: product.price * 100, // Converter para centavos
+            sort_order: product.sortOrder,
+            is_active: true
+          })
+
+        if (prodError) {
+          console.error('Erro ao criar produto:', prodError)
+          continue
+        }
+
+        productsCreated++
+      }
+    }
+
+    // 5. ATUALIZAR tema da loja com as cores do nicho
+    const newTheme: MenuTheme = {
+      layout: 'modern',
+      colors: {
+        primary: template.colors.primary,
+        background: template.colors.background,
+        header: '#ffffff'
+      },
+      display: {
+        showBanner: true,
+        showLogo: true,
+        showSocial: true,
+        showAddress: true,
+        showSearch: true
+      },
+      bannerUrl: null
+    }
+
+    const { error: themeError } = await supabase
+      .from('stores')
+      .update({ 
+        menu_theme: newTheme,
+        niche: nicheKey as any
+      })
+      .eq('id', storeId)
+
+    if (themeError) {
+      console.error('Erro ao atualizar tema:', themeError)
+    }
+
+    // 6. Revalidar cache
+    if (slug) {
+      revalidatePath(`/${slug}`)
+      revalidatePath(`/${slug}/dashboard`)
+      revalidatePath(`/${slug}/dashboard/products`)
+      revalidatePath(`/${slug}/dashboard/settings/niche`)
+    }
+    revalidatePath('/[slug]', 'layout')
+
+    return {
+      success: true,
+      categoriesCreated,
+      productsCreated
+    }
+  } catch (error: any) {
+    console.error('Erro na applyNicheAction:', error)
+    return { success: false, error: error.message || 'Erro ao aplicar template' }
   }
 }
