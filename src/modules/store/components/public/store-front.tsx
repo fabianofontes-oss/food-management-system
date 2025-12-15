@@ -74,8 +74,17 @@ class LayoutErrorBoundary extends Component<
  * 4. Proteger contra erros com ErrorBoundary
  */
 export function StoreFront({ store, categories = [], onAddToCart, isOwner = false }: StoreFrontProps) {
+  // DEBUG: Log para verificar o tema recebido
+  console.log('=== STOREFRONT DEBUG ===')
+  console.log('store.parsedTheme:', store.parsedTheme)
+  console.log('store.parsedTheme?.layout:', store.parsedTheme?.layout)
+  console.log('========================')
+  
   // BLINDAGEM: Sempre retorna um tema válido
   const theme = safeParseTheme(store.parsedTheme)
+  
+  // DEBUG: Log do tema após parse
+  console.log('Tema parseado - layout:', theme.layout)
   
   // Variáveis CSS para uso global
   const cssVars = getThemeCSSVariables(theme)
