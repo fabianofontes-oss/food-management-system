@@ -1,5 +1,6 @@
 'use server'
 
+import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { mergeWithDefaults, DEFAULT_MENU_THEME } from './types'
 import type { StoreWithSettings, StoreSettings, MenuTheme } from './types'
@@ -139,7 +140,8 @@ export async function updateStoreAction(
  */
 export async function updateMenuThemeAction(
   storeId: string,
-  theme: MenuTheme
+  theme: MenuTheme,
+  slug?: string
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = await createClient()
 
@@ -153,6 +155,13 @@ export async function updateMenuThemeAction(
       console.error('Erro ao atualizar tema do menu:', error)
       return { success: false, error: 'Erro ao salvar tema' }
     }
+
+    // Revalidar cache para o site público atualizar
+    if (slug) {
+      revalidatePath(`/${slug}`)
+      revalidatePath(`/${slug}/dashboard/appearance`)
+    }
+    revalidatePath('/[slug]', 'layout')
 
     return { success: true }
   } catch (error: any) {

@@ -276,11 +276,11 @@ export interface MenuTheme {
 }
 
 export const DEFAULT_MENU_THEME: MenuTheme = {
-  layout: 'modern',
+  layout: 'classic',
   colors: {
-    primary: '#8B5CF6',
-    background: '#FFFFFF',
-    header: '#1F2937'
+    primary: '#ea1d2c',
+    background: '#f4f4f5',
+    header: '#ffffff'
   },
   display: {
     showBanner: true,
@@ -291,6 +291,9 @@ export const DEFAULT_MENU_THEME: MenuTheme = {
   },
   bannerUrl: null
 }
+
+// Alias para compatibilidade
+export const defaultTheme = DEFAULT_MENU_THEME
 
 // ============================================
 // TIPO COMPOSTO: LOJA COM SETTINGS PARSEADO

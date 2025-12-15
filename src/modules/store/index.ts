@@ -32,3 +32,7 @@ export {
   DisplayToggles, 
   LivePreview 
 } from './components/site-builder'
+
+// Components - Theme Editor
+export { ThemeEditor } from './components/theme-editor'
+export { StorePreview } from './components/store-preview'
