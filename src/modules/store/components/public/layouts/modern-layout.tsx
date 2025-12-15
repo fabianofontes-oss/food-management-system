@@ -1,10 +1,11 @@
 'use client'
 
-import { Search, Plus, MapPin, Clock, ShoppingBag, ChevronRight } from 'lucide-react'
+import { Search, Plus, MapPin, Clock, ShoppingBag, ChevronRight, Sparkles, AlertCircle } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import type { MenuTheme } from '../../../types'
 import { useCartStore } from '@/modules/cart'
+import { applyNicheAction } from '@/modules/store/actions'
 
 // Mapeamento de cores de categoria para Tailwind
 const CATEGORY_COLOR_MAP: Record<string, { bg: string; bgActive: string; text: string }> = {
@@ -44,6 +45,11 @@ interface ModernLayoutProps {
   bannerUrl?: string | null
   categories: Category[]
   onAddToCart?: (product: Product) => void
+  // Props para botão de emergência (admin)
+  storeId?: string
+  storeSlug?: string
+  nicheSlug?: string
+  isOwner?: boolean
 }
 
 export function ModernLayout({
@@ -55,17 +61,48 @@ export function ModernLayout({
   logoUrl,
   bannerUrl,
   categories,
-  onAddToCart
+  onAddToCart,
+  storeId,
+  storeSlug,
+  nicheSlug,
+  isOwner = false
 }: ModernLayoutProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
   const [isNavSticky, setIsNavSticky] = useState(false)
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [generationError, setGenerationError] = useState<string | null>(null)
   const navRef = useRef<HTMLDivElement>(null)
   
   // Carrinho
   const { getTotalItems, getSubtotal, toggleCart } = useCartStore()
   const totalItems = getTotalItems()
   const subtotal = getSubtotal()
+  
+  // Handler para gerar cardápio demo
+  const handleGenerateDemo = async () => {
+    if (!storeId || !storeSlug || !nicheSlug) {
+      setGenerationError('Dados da loja incompletos')
+      return
+    }
+    
+    setIsGenerating(true)
+    setGenerationError(null)
+    
+    try {
+      const result = await applyNicheAction(storeId, storeSlug, nicheSlug)
+      if (result.success) {
+        // Recarregar a página para mostrar os novos produtos
+        window.location.reload()
+      } else {
+        setGenerationError(result.error || 'Erro ao gerar cardápio')
+      }
+    } catch (error) {
+      setGenerationError('Erro inesperado. Tente novamente.')
+    } finally {
+      setIsGenerating(false)
+    }
+  }
 
   // Detectar scroll para sticky nav
   useEffect(() => {
@@ -255,9 +292,53 @@ export function ModernLayout({
             <h3 className="text-xl font-bold text-slate-700 mb-2">
               {searchQuery ? 'Nenhum produto encontrado' : 'Cardápio vazio'}
             </h3>
-            <p className="text-slate-500">
+            <p className="text-slate-500 mb-6">
               {searchQuery ? 'Tente buscar por outro termo' : 'Em breve novos produtos!'}
             </p>
+            
+            {/* ========== BOTÃO DE EMERGÊNCIA (Admin) ========== */}
+            {isOwner && nicheSlug && !searchQuery && (
+              <div className="max-w-md mx-auto mt-8 p-6 bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl border-2 border-amber-200 shadow-lg">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-amber-100 rounded-xl">
+                    <AlertCircle className="w-6 h-6 text-amber-600" />
+                  </div>
+                  <h4 className="font-bold text-lg text-slate-800">Seu cardápio está vazio!</h4>
+                </div>
+                <p className="text-sm text-slate-600 mb-4">
+                  Deseja gerar produtos de exemplo baseados no nicho <strong>{nicheSlug}</strong>? 
+                  Você poderá editar ou remover depois.
+                </p>
+                
+                {generationError && (
+                  <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm">
+                    {generationError}
+                  </div>
+                )}
+                
+                <button
+                  onClick={handleGenerateDemo}
+                  disabled={isGenerating}
+                  className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl text-white font-bold text-base shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-xl active:scale-[0.98]"
+                  style={{ 
+                    backgroundColor: theme.colors.primary,
+                    boxShadow: `0 8px 20px -5px ${theme.colors.primary}50`
+                  }}
+                >
+                  {isGenerating ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Gerando cardápio...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-5 h-5" />
+                      🪄 Gerar Cardápio Demo
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
           </div>
         ) : (
           <div className="space-y-8">

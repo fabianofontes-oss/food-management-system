@@ -29,6 +29,7 @@ interface StoreFrontProps {
   store: StoreWithSettings
   categories?: Category[]
   onAddToCart?: (product: Product) => void
+  isOwner?: boolean
 }
 
 interface ErrorBoundaryState {
@@ -72,7 +73,7 @@ class LayoutErrorBoundary extends Component<
  * 3. Escolher o layout correto
  * 4. Proteger contra erros com ErrorBoundary
  */
-export function StoreFront({ store, categories = [], onAddToCart }: StoreFrontProps) {
+export function StoreFront({ store, categories = [], onAddToCart, isOwner = false }: StoreFrontProps) {
   // BLINDAGEM: Sempre retorna um tema válido
   const theme = safeParseTheme(store.parsedTheme)
   
@@ -97,7 +98,12 @@ export function StoreFront({ store, categories = [], onAddToCart }: StoreFrontPr
     logoUrl: store.logo_url || undefined,
     bannerUrl: theme.bannerUrl || store.banner_url || undefined,
     categories,
-    onAddToCart
+    onAddToCart,
+    // Props para botão de emergência
+    storeId: store.id,
+    storeSlug: store.slug || undefined,
+    nicheSlug: (store as any).niche_slug || undefined,
+    isOwner
   }
 
   // Fallback layout (Classic) em caso de erro
