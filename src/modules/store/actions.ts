@@ -157,12 +157,14 @@ export async function updateMenuThemeAction(
       return { success: false, error: 'Erro ao salvar tema' }
     }
 
-    // Revalidar cache para o site público atualizar
+    // Revalidar TUDO para garantir que o cache seja limpo
+    revalidatePath('/', 'layout')
+    revalidatePath('/[slug]', 'page')
+    
     if (slug) {
       revalidatePath(`/${slug}`)
       revalidatePath(`/${slug}/dashboard/appearance`)
     }
-    revalidatePath('/[slug]', 'layout')
 
     return { success: true }
   } catch (error: any) {

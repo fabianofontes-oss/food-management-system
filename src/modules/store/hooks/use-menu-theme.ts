@@ -22,8 +22,12 @@ interface UseMenuThemeReturn {
 
 export function useMenuTheme(
   storeId: string | null,
-  initialTheme?: MenuTheme
+  initialTheme?: MenuTheme,
+  storeSlug?: string
 ): UseMenuThemeReturn {
+  const params = useParams()
+  const slug = storeSlug || (params?.slug as string) || ''
+  
   const [theme, setThemeState] = useState<MenuTheme>(initialTheme || DEFAULT_MENU_THEME)
   const [originalTheme, setOriginalTheme] = useState<MenuTheme>(initialTheme || DEFAULT_MENU_THEME)
   const [isSaving, setIsSaving] = useState(false)
@@ -61,7 +65,8 @@ export function useMenuTheme(
     
     setIsSaving(true)
     try {
-      const result = await updateMenuThemeAction(storeId, theme)
+      // Passar o slug para revalidar o cache corretamente
+      const result = await updateMenuThemeAction(storeId, theme, slug)
       if (result.success) {
         setOriginalTheme(theme)
       }
@@ -72,7 +77,7 @@ export function useMenuTheme(
     } finally {
       setIsSaving(false)
     }
-  }, [storeId, theme])
+  }, [storeId, theme, slug])
 
   const reset = useCallback(() => {
     setThemeState(originalTheme)
