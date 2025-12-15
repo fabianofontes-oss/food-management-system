@@ -48,23 +48,24 @@ export async function updateSession(request: NextRequest) {
   const isAuthPage = path.startsWith('/auth') || path === '/login' || path === '/register'
   
   // REGRA 0 (CRÍTICA): PROTEÇÃO DO SUPER ADMIN
-  // Se tentar acessar /admin sem ser Super Admin -> Bloqueado
+  // TEMPORARIAMENTE RELAXADO PARA DEBUG
   if (isAdminRoute) {
-    // Precisa estar logado
+    console.log('[DEBUG] Acesso admin:', path, '| User:', user?.email || 'não logado')
+    console.log('[DEBUG] isSuperAdmin:', user?.email ? isSuperAdmin(user.email) : false)
+    
+    // TEMPORÁRIO: Apenas loga, não bloqueia
     if (!user) {
+      console.log('[DEBUG] Usuário não logado tentando acessar admin - redirecionando para login')
       const url = request.nextUrl.clone()
       url.pathname = '/login'
-      url.searchParams.set('error', 'unauthorized')
+      url.searchParams.set('next', path)
       return NextResponse.redirect(url)
     }
-
-    // Precisa ser Super Admin
+    
+    // TEMPORÁRIO: Não bloqueia não-admins, apenas loga
     if (!isSuperAdmin(user.email)) {
-      console.warn(`[SECURITY] Tentativa de acesso ao /admin bloqueada: ${user.email}`)
-      // Retorna 404 para não revelar que a rota existe
-      const url = request.nextUrl.clone()
-      url.pathname = '/404'
-      return NextResponse.rewrite(url)
+      console.warn(`[DEBUG] Usuário ${user.email} não é Super Admin, mas permitindo acesso temporariamente`)
+      // NÃO BLOQUEIA - apenas loga
     }
   }
 

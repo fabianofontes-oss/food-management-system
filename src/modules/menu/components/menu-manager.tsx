@@ -100,8 +100,36 @@ export function MenuManager({ storeId }: MenuManagerProps) {
     await deleteProduct(productId)
   }
 
+  // VERIFICAÇÃO DEFENSIVA: Early returns se dados não estão prontos
   if (loading) {
     return <MenuManagerSkeleton />
+  }
+
+  if (!catalog) {
+    return (
+      <div className="text-center py-16 bg-white rounded-2xl border">
+        <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+        <p className="text-gray-500 font-medium">Carregando catálogo...</p>
+      </div>
+    )
+  }
+
+  if (!safeCategories) {
+    return (
+      <div className="text-center py-16 bg-white rounded-2xl border">
+        <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+        <p className="text-gray-500 font-medium">Carregando categorias...</p>
+      </div>
+    )
+  }
+
+  if (!safeProducts) {
+    return (
+      <div className="text-center py-16 bg-white rounded-2xl border">
+        <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+        <p className="text-gray-500 font-medium">Carregando produtos...</p>
+      </div>
+    )
   }
 
   return (

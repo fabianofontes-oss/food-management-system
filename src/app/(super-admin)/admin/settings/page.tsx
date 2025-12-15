@@ -1,11 +1,38 @@
 'use client'
 
-import { useState } from 'react'
-import { Settings, Save, Database, Mail, Bell, Shield, Globe, Zap } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Settings, Save, Database, Mail, Bell, Shield, Globe, Zap, Bug, Trash2, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { createClient } from '@/lib/supabase/client'
+import { isSuperAdmin } from '@/lib/auth/super-admin'
+import { toast } from 'sonner'
 
 export default function SettingsPage() {
+  const [userEmail, setUserEmail] = useState<string | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [loadingUser, setLoadingUser] = useState(true)
+
+  useEffect(() => {
+    async function loadUser() {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      setUserEmail(user?.email || null)
+      setIsAdmin(user?.email ? isSuperAdmin(user.email) : false)
+      setLoadingUser(false)
+    }
+    loadUser()
+  }, [])
+
+  const handleClearCache = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.clear()
+      sessionStorage.clear()
+      toast.success('Cache limpo! Recarregando...')
+      setTimeout(() => window.location.reload(), 1000)
+    }
+  }
+
   const [settings, setSettings] = useState({
     systemName: 'Food Management System',
     systemEmail: 'system@foodmanagement.com',
@@ -36,6 +63,53 @@ export default function SettingsPage() {
           <h1 className="text-4xl font-bold text-gray-900">Configurações do Sistema</h1>
           <p className="text-gray-600 mt-1">Gerenciar configurações globais e preferências</p>
         </div>
+
+        {/* SEÇÃO DE DEBUG */}
+        <Card className="border-2 border-dashed border-orange-300 bg-orange-50 mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-orange-800">
+              <Bug className="w-5 h-5" />
+              Debug - Informações do Sistema
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-4 bg-white rounded-xl border">
+                <div className="text-sm font-medium text-gray-500">Usuário Atual</div>
+                <div className="text-lg font-bold text-gray-900">
+                  {loadingUser ? 'Carregando...' : userEmail || 'Não logado'}
+                </div>
+              </div>
+              <div className="p-4 bg-white rounded-xl border">
+                <div className="text-sm font-medium text-gray-500">É Super Admin?</div>
+                <div className={`text-lg font-bold ${isAdmin ? 'text-green-600' : 'text-red-600'}`}>
+                  {loadingUser ? 'Verificando...' : isAdmin ? '✓ SIM' : '✗ NÃO'}
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleClearCache}
+                className="border-orange-300 text-orange-700 hover:bg-orange-100"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Limpar Cache Local
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => window.location.reload()}
+                className="border-orange-300 text-orange-700 hover:bg-orange-100"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Recarregar Página
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
         <form onSubmit={handleSave} className="space-y-6">
           {/* Configurações Gerais */}
