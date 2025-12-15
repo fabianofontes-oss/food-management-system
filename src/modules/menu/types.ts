@@ -2,7 +2,9 @@ import { Database } from '@/types/database'
 
 // Tipos Puros do Banco
 export type ProductRow = Database['public']['Tables']['products']['Row']
-export type CategoryRow = Database['public']['Tables']['categories']['Row']
+export type CategoryRow = Database['public']['Tables']['categories']['Row'] & {
+  color?: string | null  // Campo extra para cor (pode não existir no banco ainda)
+}
 export type ModifierGroupRow = Database['public']['Tables']['modifier_groups']['Row']
 export type ModifierOptionRow = Database['public']['Tables']['modifier_options']['Row']
 
@@ -46,6 +48,7 @@ export type CreateCategoryInput = {
   description?: string
   sort_order?: number
   is_active?: boolean
+  color?: string  // Cor da categoria (red, orange, amber, green, blue, purple, stone, slate)
 }
 
 export type UpdateCategoryInput = Partial<Omit<CreateCategoryInput, 'store_id'>>

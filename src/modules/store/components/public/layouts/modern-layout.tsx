@@ -5,6 +5,18 @@ import { useState } from 'react'
 import type { MenuTheme } from '../../../types'
 import { isLightColor } from '../../../utils'
 
+// Mapeamento de cores de categoria para Tailwind
+const CATEGORY_COLOR_MAP: Record<string, { bg: string; bgLight: string; text: string; border: string }> = {
+  red: { bg: 'bg-red-500', bgLight: 'bg-red-50', text: 'text-red-600', border: 'border-red-500' },
+  orange: { bg: 'bg-orange-500', bgLight: 'bg-orange-50', text: 'text-orange-600', border: 'border-orange-500' },
+  amber: { bg: 'bg-amber-400', bgLight: 'bg-amber-50', text: 'text-amber-600', border: 'border-amber-400' },
+  green: { bg: 'bg-green-500', bgLight: 'bg-green-50', text: 'text-green-600', border: 'border-green-500' },
+  blue: { bg: 'bg-blue-500', bgLight: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-500' },
+  purple: { bg: 'bg-purple-500', bgLight: 'bg-purple-50', text: 'text-purple-600', border: 'border-purple-500' },
+  stone: { bg: 'bg-stone-600', bgLight: 'bg-stone-100', text: 'text-stone-700', border: 'border-stone-600' },
+  slate: { bg: 'bg-slate-900', bgLight: 'bg-slate-100', text: 'text-slate-900', border: 'border-slate-900' },
+}
+
 interface Product {
   id: string
   name: string
@@ -17,6 +29,7 @@ interface Product {
 interface Category {
   id: string
   name: string
+  color?: string | null
   products: Product[]
 }
 
@@ -137,19 +150,38 @@ export function ModernLayout({
       {!searchQuery && categories.length > 0 && (
         <div className="max-w-4xl mx-auto px-4 mt-6">
           <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setActiveCategory(cat.id)}
-                className="px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-all shadow-sm"
-                style={{
-                  backgroundColor: activeCategory === cat.id ? theme.colors.primary : '#ffffff',
-                  color: activeCategory === cat.id ? '#ffffff' : '#64748b'
-                }}
-              >
-                {cat.name}
-              </button>
-            ))}
+            {categories.map((cat) => {
+              const isActive = activeCategory === cat.id
+              const colorClasses = cat.color ? CATEGORY_COLOR_MAP[cat.color] : null
+              
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setActiveCategory(cat.id)}
+                  className={`
+                    px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-all shadow-sm
+                    border-b-4 border-transparent
+                    ${isActive && colorClasses 
+                      ? `${colorClasses.bgLight} ${colorClasses.text} ${colorClasses.border}` 
+                      : isActive 
+                        ? '' 
+                        : 'bg-white text-slate-500 hover:bg-slate-50'
+                    }
+                  `}
+                  style={isActive && !colorClasses ? {
+                    backgroundColor: theme.colors.primary,
+                    color: '#ffffff',
+                    borderColor: theme.colors.primary
+                  } : undefined}
+                >
+                  {/* Bolinha de cor ao lado do nome */}
+                  {colorClasses && (
+                    <span className={`inline-block w-2.5 h-2.5 rounded-full mr-2 ${colorClasses.bg}`} />
+                  )}
+                  {cat.name}
+                </button>
+              )
+            })}
           </div>
         </div>
       )}
