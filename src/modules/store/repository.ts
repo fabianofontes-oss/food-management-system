@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/client'
-import type { StoreRow, StoreWithSettings, StoreSettings } from './types'
-import { mergeWithDefaults } from './types'
+import type { StoreRow, StoreWithSettings, StoreSettings, MenuTheme } from './types'
+import { mergeWithDefaults, DEFAULT_MENU_THEME } from './types'
 
 const supabase = createClient()
 
@@ -130,18 +130,72 @@ export const StoreRepository = {
   async getSettings(storeId: string): Promise<StoreSettings | null> {
     const store = await this.getById(storeId)
     return store?.parsedSettings || null
+  },
+
+  /**
+   * Atualiza o tema do menu (Site Builder)
+   */
+  async updateMenuTheme(storeId: string, theme: MenuTheme): Promise<boolean> {
+    const { error } = await supabase
+      .from('stores')
+      .update({ menu_theme: theme })
+      .eq('id', storeId)
+
+    if (error) {
+      console.error('Erro ao atualizar tema do menu:', {
+        message: error.message,
+        code: error.code,
+        storeId
+      })
+      return false
+    }
+
+    return true
+  },
+
+  /**
+   * Busca apenas o tema do menu
+   */
+  async getMenuTheme(storeId: string): Promise<MenuTheme | null> {
+    const store = await this.getById(storeId)
+    return store?.parsedTheme || null
   }
 }
 
 /**
- * Converte StoreRow para StoreWithSettings (parseia o JSON de settings)
+ * Converte StoreRow para StoreWithSettings (parseia o JSON de settings e theme)
  */
 function parseStoreWithSettings(store: StoreRow): StoreWithSettings {
   const rawSettings = store.settings as Partial<StoreSettings> | null
   const parsedSettings = mergeWithDefaults(rawSettings)
+  
+  // Parse do tema do menu (usa campo menu_theme se existir)
+  const rawTheme = (store as Record<string, unknown>).menu_theme as Partial<MenuTheme> | null
+  const parsedTheme = mergeThemeWithDefaults(rawTheme)
 
   return {
     ...store,
-    parsedSettings
+    parsedSettings,
+    parsedTheme
+  }
+}
+
+/**
+ * Mescla tema parcial com valores padrão
+ */
+function mergeThemeWithDefaults(partial: Partial<MenuTheme> | null): MenuTheme {
+  if (!partial) return DEFAULT_MENU_THEME
+
+  return {
+    layout: partial.layout || DEFAULT_MENU_THEME.layout,
+    colors: {
+      ...DEFAULT_MENU_THEME.colors,
+      ...partial.colors
+    },
+    display: {
+      ...DEFAULT_MENU_THEME.display,
+      ...partial.display
+    },
+    bannerUrl: partial.bannerUrl ?? DEFAULT_MENU_THEME.bannerUrl
   }
 }

@@ -10,7 +10,8 @@ export { StoreRepository } from './repository'
 export {
   getStoreAction,
   updateStoreAction,
-  updateStoreSettingsAction
+  updateStoreSettingsAction,
+  updateMenuThemeAction
 } from './actions'
 
 // Hooks
@@ -20,3 +21,14 @@ export {
   useStoreSettings,
   useStoreById 
 } from './hooks/use-store'
+
+export { useMenuTheme } from './hooks/use-menu-theme'
+
+// Components - Site Builder
+export { 
+  SiteBuilder, 
+  LayoutSelector, 
+  ColorPicker, 
+  DisplayToggles, 
+  LivePreview 
+} from './components/site-builder'

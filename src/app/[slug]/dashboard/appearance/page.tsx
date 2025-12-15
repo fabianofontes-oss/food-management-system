@@ -66,7 +66,7 @@ export default function AppearancePage() {
       showSearch: true,
       showCategories: true,
     },
-  })
+  } as MenuTheme)
 
   const [publicProfile, setPublicProfile] = useState<PublicProfile>({
     displayName: '',

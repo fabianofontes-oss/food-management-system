@@ -1,8 +1,8 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { mergeWithDefaults } from './types'
-import type { StoreWithSettings, StoreSettings } from './types'
+import { mergeWithDefaults, DEFAULT_MENU_THEME } from './types'
+import type { StoreWithSettings, StoreSettings, MenuTheme } from './types'
 
 /**
  * Server Action para buscar loja pelo slug (para uso em Server Components)
@@ -31,9 +31,19 @@ export async function getStoreAction(slug: string): Promise<{
     const rawSettings = data.settings as Partial<StoreSettings> | null
     const parsedSettings = mergeWithDefaults(rawSettings)
 
+    // Parse theme com valores padrão
+    const rawTheme = (data as Record<string, unknown>).menu_theme as Partial<MenuTheme> | null
+    const parsedTheme = rawTheme ? {
+      layout: rawTheme.layout || DEFAULT_MENU_THEME.layout,
+      colors: { ...DEFAULT_MENU_THEME.colors, ...rawTheme.colors },
+      display: { ...DEFAULT_MENU_THEME.display, ...rawTheme.display },
+      bannerUrl: rawTheme.bannerUrl ?? DEFAULT_MENU_THEME.bannerUrl
+    } : DEFAULT_MENU_THEME
+
     const storeWithSettings: StoreWithSettings = {
       ...data,
-      parsedSettings
+      parsedSettings,
+      parsedTheme
     }
 
     return { success: true, data: storeWithSettings }
@@ -120,6 +130,33 @@ export async function updateStoreAction(
     return { success: true }
   } catch (error: any) {
     console.error('Erro na updateStoreAction:', error)
+    return { success: false, error: error.message || 'Erro desconhecido' }
+  }
+}
+
+/**
+ * Server Action para atualizar tema do menu (Site Builder)
+ */
+export async function updateMenuThemeAction(
+  storeId: string,
+  theme: MenuTheme
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient()
+
+  try {
+    const { error } = await supabase
+      .from('stores')
+      .update({ menu_theme: theme })
+      .eq('id', storeId)
+
+    if (error) {
+      console.error('Erro ao atualizar tema do menu:', error)
+      return { success: false, error: 'Erro ao salvar tema' }
+    }
+
+    return { success: true }
+  } catch (error: any) {
+    console.error('Erro na updateMenuThemeAction:', error)
     return { success: false, error: error.message || 'Erro desconhecido' }
   }
 }

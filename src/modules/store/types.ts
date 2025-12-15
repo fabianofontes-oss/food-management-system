@@ -250,10 +250,54 @@ export interface StoreSettings {
 }
 
 // ============================================
+// CONFIGURAÇÕES DE TEMA DO MENU (SITE BUILDER)
+// ============================================
+export type MenuLayout = 'classic' | 'modern' | 'minimal' | 'grid'
+
+export interface MenuThemeColors {
+  primary: string      // Cor principal (botões, destaques)
+  background: string   // Cor de fundo da página
+  header: string       // Cor do cabeçalho
+}
+
+export interface MenuThemeDisplay {
+  showBanner: boolean
+  showLogo: boolean
+  showSocial: boolean
+  showAddress: boolean
+  showSearch: boolean
+}
+
+export interface MenuTheme {
+  layout: MenuLayout
+  colors: MenuThemeColors
+  display: MenuThemeDisplay
+  bannerUrl?: string | null
+}
+
+export const DEFAULT_MENU_THEME: MenuTheme = {
+  layout: 'modern',
+  colors: {
+    primary: '#8B5CF6',
+    background: '#FFFFFF',
+    header: '#1F2937'
+  },
+  display: {
+    showBanner: true,
+    showLogo: true,
+    showSocial: true,
+    showAddress: true,
+    showSearch: true
+  },
+  bannerUrl: null
+}
+
+// ============================================
 // TIPO COMPOSTO: LOJA COM SETTINGS PARSEADO
 // ============================================
 export type StoreWithSettings = StoreRow & {
   parsedSettings: StoreSettings
+  parsedTheme: MenuTheme
 }
 
 // ============================================
