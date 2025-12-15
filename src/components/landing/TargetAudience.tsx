@@ -2,7 +2,8 @@
 
 import { 
   IceCream, Beef, UtensilsCrossed, Pizza, Coffee, Salad, 
-  Fish, Cake, Beer, Leaf, Building2, Croissant, LucideIcon 
+  Fish, Cake, Beer, Leaf, Building2, Croissant,
+  Apple, Store, Sandwich, Waves, LucideIcon 
 } from 'lucide-react'
 import { AnimatedSection, useStagger } from './AnimatedSection'
 
@@ -19,6 +20,10 @@ const iconMap: Record<string, LucideIcon> = {
   Leaf,
   Building2,
   Croissant,
+  Apple,
+  Store,
+  Sandwich,
+  Waves,
 }
 
 interface Segment {

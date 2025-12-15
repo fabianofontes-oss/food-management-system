@@ -99,16 +99,40 @@ export const landingContent = {
 
   targetAudience: {
     title: 'Perfeito para qualquer negócio de alimentação',
-    subtitle: 'Solução completa e adaptável para mais de 15 tipos de estabelecimentos',
+    subtitle: 'Solução completa e adaptável para mais de 20 tipos de estabelecimentos',
     segments: [
+      {
+        icon: 'Beef',
+        title: 'Açougue',
+        description: 'Venda por kg, cortes, temperos e origem.',
+        image: '/landing/acougue.jpg',
+      },
+      {
+        icon: 'Apple',
+        title: 'Sacolão/Hortifruti',
+        description: 'Venda por peso, promoções de feira e orgânicos.',
+        image: '/landing/sacolao.jpg',
+      },
+      {
+        icon: 'Fish',
+        title: 'Peixaria',
+        description: 'Venda por kg, preparos (filé, posta, limpo).',
+        image: '/landing/peixaria.jpg',
+      },
+      {
+        icon: 'Store',
+        title: 'Mercearia/Empório',
+        description: 'Código de barras, estoque e validade.',
+        image: '/landing/mercearia.jpg',
+      },
       {
         icon: 'IceCream',
         title: 'Açaí e Sorvetes',
-        description: 'Complementos, tamanhos e montagem personalizada.',
+        description: 'Complementos, tamanhos e montagem.',
         image: '/landing/acai.jpg',
       },
       {
-        icon: 'Beef',
+        icon: 'Sandwich',
         title: 'Hamburgueria',
         description: 'Adicionais, pontos da carne e combos.',
         image: '/landing/burger.jpg',
@@ -120,7 +144,7 @@ export const landingContent = {
         image: '/landing/pizza.jpg',
       },
       {
-        icon: 'Fish',
+        icon: 'Waves',
         title: 'Sushi e Japonês',
         description: 'Rodízio por tempo, combos e controle de peças.',
         image: '/landing/sushi.jpg',
