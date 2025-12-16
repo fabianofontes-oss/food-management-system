@@ -112,11 +112,12 @@ export default async function MenuPage({ params }: { params: { slug: string } })
         }]
       : []
 
-  // 6. Renderizar StoreFront
+  // 6. Renderizar StoreFront com isOwner=true para mostrar botão de emergência
   return (
     <StoreFront 
       store={storeWithSettings}
       categories={displayCategories}
+      isOwner={true}
     />
   )
 }
