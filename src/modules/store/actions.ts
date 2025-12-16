@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { mergeWithDefaults, DEFAULT_MENU_THEME } from './types'
 import type { StoreWithSettings, StoreSettings, MenuTheme } from './types'
-import { NICHE_TEMPLATES } from '@/lib/templates/niche-data'
+import { NICHE_TEMPLATES, getNicheTemplate } from '@/lib/templates/niche-data'
 
 /**
  * Server Action para buscar loja pelo slug (para uso em Server Components)
@@ -193,10 +193,10 @@ export async function applyNicheAction(
 }> {
   const supabase = await createClient()
 
-  // Busca o template
-  const template = NICHE_TEMPLATES[nicheKey]
+  // Busca o template (com mapeamento de slug)
+  const template = getNicheTemplate(nicheKey)
   if (!template) {
-    return { success: false, error: 'Template não encontrado' }
+    return { success: false, error: `Template não encontrado para: ${nicheKey}` }
   }
 
   try {

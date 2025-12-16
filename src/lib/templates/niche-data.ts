@@ -309,3 +309,56 @@ export const NICHE_LIST = Object.values(NICHE_TEMPLATES).map(niche => ({
   categoriesCount: niche.categories.length,
   productsCount: niche.categories.reduce((acc, cat) => acc + cat.products.length, 0)
 }))
+
+/**
+ * Mapeamento de slugs do banco para IDs dos templates
+ * Ex: "acaiteria" -> "acai", "hamburgueria" -> "burger"
+ */
+export const NICHE_SLUG_MAP: Record<string, string> = {
+  // Açaí
+  'acai': 'acai',
+  'acaiteria': 'acai',
+  'acai-e-sorvete': 'acai',
+  
+  // Hambúrguer
+  'burger': 'burger',
+  'hamburgueria': 'burger',
+  'hamburguer': 'burger',
+  'lanchonete': 'burger',
+  
+  // Pizza
+  'pizza': 'pizza',
+  'pizzaria': 'pizza',
+  
+  // Marmita
+  'marmita': 'marmita',
+  'marmitaria': 'marmita',
+  'restaurante': 'marmita',
+  'self-service': 'marmita'
+}
+
+/**
+ * Busca o template pelo slug (com fallback)
+ */
+export function getNicheTemplate(slug: string): NicheTemplate | null {
+  // Primeiro tenta o slug direto
+  if (NICHE_TEMPLATES[slug]) {
+    return NICHE_TEMPLATES[slug]
+  }
+  
+  // Depois tenta pelo mapeamento
+  const mappedId = NICHE_SLUG_MAP[slug.toLowerCase()]
+  if (mappedId && NICHE_TEMPLATES[mappedId]) {
+    return NICHE_TEMPLATES[mappedId]
+  }
+  
+  // Fallback: tenta match parcial
+  const lowerSlug = slug.toLowerCase()
+  for (const [key, templateId] of Object.entries(NICHE_SLUG_MAP)) {
+    if (lowerSlug.includes(key) || key.includes(lowerSlug)) {
+      return NICHE_TEMPLATES[templateId]
+    }
+  }
+  
+  return null
+}
