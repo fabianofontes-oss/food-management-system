@@ -11,7 +11,7 @@ import { toast } from 'sonner'
 import type { MenuTheme, StoreWithSettings } from '@/modules/store/types'
 
 const DEFAULT_THEME: MenuTheme = {
-  layout: 'classic',
+  layout: 'modern',
   colors: {
     primary: '#ea1d2c',
     background: '#f4f4f5',

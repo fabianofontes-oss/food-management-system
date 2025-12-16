@@ -4,7 +4,7 @@ import type { MenuTheme, MenuLayout } from './types'
  * Tema padrão seguro - usado quando o banco retorna null/undefined
  */
 export const DEFAULT_THEME: MenuTheme = {
-  layout: 'classic',
+  layout: 'modern',
   colors: {
     primary: '#ea1d2c',
     background: '#f4f4f5',

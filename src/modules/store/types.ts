@@ -276,7 +276,7 @@ export interface MenuTheme {
 }
 
 export const DEFAULT_MENU_THEME: MenuTheme = {
-  layout: 'classic',
+  layout: 'modern',
   colors: {
     primary: '#ea1d2c',
     background: '#f4f4f5',

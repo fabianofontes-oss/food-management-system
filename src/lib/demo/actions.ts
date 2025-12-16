@@ -22,7 +22,7 @@ const DEMO_PRODUCTS = [
 ]
 
 const DEMO_THEME = {
-  layout: 'classic' as const,
+  layout: 'modern' as const,
   colors: {
     primary: '#ea1d2c',
     background: '#f4f4f5',
