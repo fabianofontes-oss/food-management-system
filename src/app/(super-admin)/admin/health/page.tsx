@@ -1,16 +1,15 @@
 import Link from 'next/link'
 import { 
   Activity, Database, Wrench, Wand2, Camera, Printer, 
-  Link2, Heart, ArrowRight, Shield, Settings, Zap
+  Link2, Heart, ArrowRight, Zap
 } from 'lucide-react'
 
 export const metadata = {
-  title: 'Admin | Sistema de Saúde',
+  title: 'Sistema de Saúde | Admin',
   description: 'Painel administrativo de saúde e diagnóstico do sistema'
 }
 
 const tools = [
-  // Diagnóstico & Monitoramento
   {
     category: '🩺 Diagnóstico & Monitoramento',
     items: [
@@ -18,19 +17,18 @@ const tools = [
         title: 'Health Monitor',
         description: 'Dashboard de integridade de dados (crítico, atenção, status)',
         icon: Activity,
-        href: '/admin/health',
+        href: '/admin/health/monitor',
         color: 'emerald'
       },
       {
         title: 'Debug de Lojas',
         description: 'Lista todas as lojas com URL, nicho, layout, cor e produtos',
         icon: Database,
-        href: '/admin/debug',
+        href: '/admin/health/debug',
         color: 'violet'
       }
     ]
   },
-  // Ferramentas de Build
   {
     category: '🏗️ Ferramentas de Build',
     items: [
@@ -38,12 +36,11 @@ const tools = [
         title: 'Kit Preguiçoso Builder',
         description: 'Aplicar templates completos em lojas (cores, layout, produtos)',
         icon: Wand2,
-        href: '/admin/builder',
+        href: '/admin/health/builder',
         color: 'purple'
       }
     ]
   },
-  // Manutenção
   {
     category: '🔧 Manutenção & Reparo',
     items: [
@@ -51,21 +48,21 @@ const tools = [
         title: 'Scanner de Imagens',
         description: 'Encontrar produtos sem foto e fazer upload rápido',
         icon: Camera,
-        href: '/admin/diagnostics/images',
+        href: '/admin/health/images',
         color: 'pink'
       },
       {
         title: 'Validador de URLs',
         description: 'Detectar slugs inválidos e corrigir automaticamente',
         icon: Link2,
-        href: '/admin/diagnostics/slugs',
+        href: '/admin/health/slugs',
         color: 'blue'
       },
       {
         title: 'Teste de Impressora',
         description: 'Testar impressão térmica 80mm e 58mm',
         icon: Printer,
-        href: '/admin/diagnostics/printing',
+        href: '/admin/health/printing',
         color: 'amber'
       }
     ]
@@ -111,7 +108,7 @@ const colorClasses: Record<string, { bg: string; border: string; icon: string; h
   }
 }
 
-export default function AdminPage() {
+export default function HealthPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 p-4 sm:p-8">
       <div className="max-w-6xl mx-auto">
@@ -124,7 +121,7 @@ export default function AdminPage() {
             🏥 Sistema de Saúde
           </h1>
           <p className="text-slate-600 text-lg">
-            Painel administrativo de diagnóstico, build e manutenção
+            Diagnóstico, build e manutenção do sistema
           </p>
         </div>
 
@@ -132,7 +129,7 @@ export default function AdminPage() {
         <div className="space-y-8">
           {tools.map((category, catIndex) => (
             <div key={catIndex}>
-              <h2 className="text-xl font-bold text-slate-700 mb-4 flex items-center gap-2">
+              <h2 className="text-xl font-bold text-slate-700 mb-4">
                 {category.category}
               </h2>
               
@@ -169,7 +166,7 @@ export default function AdminPage() {
           ))}
         </div>
 
-        {/* Quick Stats */}
+        {/* Atalhos */}
         <div className="mt-10 p-6 bg-white rounded-2xl border border-slate-200 shadow-sm">
           <h3 className="font-bold text-slate-700 mb-4 flex items-center gap-2">
             <Zap className="w-5 h-5 text-amber-500" />
@@ -177,29 +174,28 @@ export default function AdminPage() {
           </h3>
           <div className="flex flex-wrap gap-3">
             <Link 
-              href="/admin/health"
+              href="/admin/health/monitor"
               className="px-4 py-2 bg-emerald-100 text-emerald-700 rounded-lg text-sm font-medium hover:bg-emerald-200 transition-colors"
             >
-              Ver Saúde do Sistema
+              Ver Saúde
             </Link>
             <Link 
-              href="/admin/builder"
+              href="/admin/health/builder"
               className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium hover:bg-purple-200 transition-colors"
             >
-              Aplicar Kit em Loja
+              Aplicar Kit
             </Link>
             <Link 
-              href="/admin/debug"
+              href="/admin/health/debug"
               className="px-4 py-2 bg-violet-100 text-violet-700 rounded-lg text-sm font-medium hover:bg-violet-200 transition-colors"
             >
-              Ver Todas as Lojas
+              Ver Lojas
             </Link>
           </div>
         </div>
 
-        {/* Footer */}
         <div className="mt-8 text-center text-sm text-slate-500">
-          Sistema de Saúde v1.0 | Food Management System
+          Sistema de Saúde v1.0
         </div>
       </div>
     </div>
