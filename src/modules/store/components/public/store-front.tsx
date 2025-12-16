@@ -103,7 +103,7 @@ export function StoreFront({ store, categories = [], onAddToCart, isOwner = fals
     // Props para botão de emergência
     storeId: store.id,
     storeSlug: store.slug || undefined,
-    nicheSlug: (store as any).niche_slug || undefined,
+    nicheSlug: (store as any).niche_slug || 'acaiteria', // Default para acaiteria se não tiver
     isOwner
   }
 
