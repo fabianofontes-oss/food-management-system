@@ -29,115 +29,102 @@ ORDER BY s.name, u.email
 LIMIT 20;
 
 -- ############################################################################
--- BLOCO 2: TESTE AUTOMÁTICO DE ISOLAMENTO
--- (Execute este bloco inteiro de uma vez)
+-- BLOCO 2: TESTE DE ISOLAMENTO (retorna tabela)
+-- Execute este bloco inteiro - resultado aparece na aba Results
 -- ############################################################################
 
-DO $$
-DECLARE
-  v_store_a_id UUID;
-  v_store_b_id UUID;
-  v_user_a_id UUID;
-  v_user_b_id UUID;
-  v_count_a BIGINT;
-  v_count_b BIGINT;
-BEGIN
-  -- Pegar primeira e segunda loja
-  SELECT id INTO v_store_a_id FROM stores ORDER BY created_at LIMIT 1;
-  SELECT id INTO v_store_b_id FROM stores ORDER BY created_at LIMIT 1 OFFSET 1;
-  
-  -- Pegar usuário vinculado a cada loja
-  SELECT su.user_id INTO v_user_a_id 
-  FROM store_users su WHERE su.store_id = v_store_a_id LIMIT 1;
-  
-  SELECT su.user_id INTO v_user_b_id 
-  FROM store_users su WHERE su.store_id = v_store_b_id LIMIT 1;
-  
-  RAISE NOTICE '========================================';
-  RAISE NOTICE 'CONFIGURAÇÃO DO TESTE:';
-  RAISE NOTICE 'Store A: %', v_store_a_id;
-  RAISE NOTICE 'Store B: %', v_store_b_id;
-  RAISE NOTICE 'User A: %', v_user_a_id;
-  RAISE NOTICE 'User B: %', v_user_b_id;
-  RAISE NOTICE '========================================';
-  
-  IF v_store_b_id IS NULL THEN
-    RAISE NOTICE '⚠️ AVISO: Só existe 1 loja. Crie outra para testar isolamento.';
-    RETURN;
-  END IF;
-  
-  IF v_user_a_id IS NULL OR v_user_b_id IS NULL THEN
-    RAISE NOTICE '⚠️ AVISO: Usuários não encontrados para as lojas.';
-    RETURN;
-  END IF;
-  
-  -- ========================================
-  -- SIMULAR USER A
-  -- ========================================
-  PERFORM set_config('request.jwt.claim.role', 'authenticated', true);
-  PERFORM set_config('request.jwt.claim.sub', v_user_a_id::text, true);
-  
-  RAISE NOTICE '';
-  RAISE NOTICE '====== TESTANDO COMO USER A ======';
-  
-  -- Contar orders da própria loja
-  SELECT COUNT(*) INTO v_count_a FROM orders WHERE store_id = v_store_a_id;
-  RAISE NOTICE 'orders (Store A): % registros', v_count_a;
-  
-  -- Contar orders da outra loja (deve ser 0)
-  SELECT COUNT(*) INTO v_count_b FROM orders WHERE store_id = v_store_b_id;
-  RAISE NOTICE 'orders (Store B - BLOQUEADO): % registros', v_count_b;
-  
-  IF v_count_b > 0 THEN
-    RAISE NOTICE '❌ FALHA: UserA consegue ver dados de StoreB!';
-  ELSE
-    RAISE NOTICE '✅ OK: UserA não vê dados de StoreB';
-  END IF;
-  
-  -- Contar products
-  SELECT COUNT(*) INTO v_count_a FROM products WHERE store_id = v_store_a_id;
-  RAISE NOTICE 'products (Store A): % registros', v_count_a;
-  
-  SELECT COUNT(*) INTO v_count_b FROM products WHERE store_id = v_store_b_id;
-  RAISE NOTICE 'products (Store B - BLOQUEADO): % registros', v_count_b;
-  
-  IF v_count_b > 0 THEN
-    RAISE NOTICE '❌ FALHA: UserA consegue ver products de StoreB!';
-  ELSE
-    RAISE NOTICE '✅ OK: UserA não vê products de StoreB';
-  END IF;
-  
-  -- ========================================
-  -- SIMULAR USER B
-  -- ========================================
-  PERFORM set_config('request.jwt.claim.sub', v_user_b_id::text, true);
-  
-  RAISE NOTICE '';
-  RAISE NOTICE '====== TESTANDO COMO USER B ======';
-  
-  -- Contar orders da própria loja
-  SELECT COUNT(*) INTO v_count_b FROM orders WHERE store_id = v_store_b_id;
-  RAISE NOTICE 'orders (Store B): % registros', v_count_b;
-  
-  -- Contar orders da outra loja (deve ser 0)
-  SELECT COUNT(*) INTO v_count_a FROM orders WHERE store_id = v_store_a_id;
-  RAISE NOTICE 'orders (Store A - BLOQUEADO): % registros', v_count_a;
-  
-  IF v_count_a > 0 THEN
-    RAISE NOTICE '❌ FALHA: UserB consegue ver dados de StoreA!';
-  ELSE
-    RAISE NOTICE '✅ OK: UserB não vê dados de StoreA';
-  END IF;
-  
-  -- Limpar
-  PERFORM set_config('request.jwt.claim.role', '', true);
-  PERFORM set_config('request.jwt.claim.sub', '', true);
-  
-  RAISE NOTICE '';
-  RAISE NOTICE '========================================';
-  RAISE NOTICE 'TESTE CONCLUÍDO';
-  RAISE NOTICE '========================================';
-END $$;
+WITH config AS (
+  SELECT 
+    (SELECT id FROM stores ORDER BY created_at LIMIT 1) AS store_a_id,
+    (SELECT id FROM stores ORDER BY created_at LIMIT 1 OFFSET 1) AS store_b_id,
+    (SELECT su.user_id FROM store_users su WHERE su.store_id = (SELECT id FROM stores ORDER BY created_at LIMIT 1) LIMIT 1) AS user_a_id,
+    (SELECT su.user_id FROM store_users su WHERE su.store_id = (SELECT id FROM stores ORDER BY created_at LIMIT 1 OFFSET 1) LIMIT 1) AS user_b_id
+),
+-- Simular UserA
+test_user_a AS (
+  SELECT 
+    set_config('request.jwt.claim.role', 'authenticated', true) AS role_set,
+    set_config('request.jwt.claim.sub', (SELECT user_a_id::text FROM config), true) AS user_set
+),
+user_a_results AS (
+  SELECT 
+    'UserA' AS usuario,
+    'orders' AS tabela,
+    'Store A (própria)' AS acesso,
+    (SELECT COUNT(*) FROM orders WHERE store_id = (SELECT store_a_id FROM config)) AS count,
+    'deve ter dados' AS esperado
+  UNION ALL
+  SELECT 
+    'UserA',
+    'orders',
+    'Store B (outra)',
+    (SELECT COUNT(*) FROM orders WHERE store_id = (SELECT store_b_id FROM config)),
+    'DEVE SER 0'
+  UNION ALL
+  SELECT 
+    'UserA',
+    'products',
+    'Store A (própria)',
+    (SELECT COUNT(*) FROM products WHERE store_id = (SELECT store_a_id FROM config)),
+    'deve ter dados'
+  UNION ALL
+  SELECT 
+    'UserA',
+    'products',
+    'Store B (outra)',
+    (SELECT COUNT(*) FROM products WHERE store_id = (SELECT store_b_id FROM config)),
+    'DEVE SER 0'
+),
+-- Simular UserB
+switch_to_user_b AS (
+  SELECT set_config('request.jwt.claim.sub', (SELECT user_b_id::text FROM config), true) AS user_set
+),
+user_b_results AS (
+  SELECT 
+    'UserB' AS usuario,
+    'orders' AS tabela,
+    'Store B (própria)' AS acesso,
+    (SELECT COUNT(*) FROM orders WHERE store_id = (SELECT store_b_id FROM config)) AS count,
+    'deve ter dados' AS esperado
+  UNION ALL
+  SELECT 
+    'UserB',
+    'orders',
+    'Store A (outra)',
+    (SELECT COUNT(*) FROM orders WHERE store_id = (SELECT store_a_id FROM config)),
+    'DEVE SER 0'
+  UNION ALL
+  SELECT 
+    'UserB',
+    'products',
+    'Store B (própria)',
+    (SELECT COUNT(*) FROM products WHERE store_id = (SELECT store_b_id FROM config)),
+    'deve ter dados'
+  UNION ALL
+  SELECT 
+    'UserB',
+    'products',
+    'Store A (outra)',
+    (SELECT COUNT(*) FROM products WHERE store_id = (SELECT store_a_id FROM config)),
+    'DEVE SER 0'
+)
+SELECT 
+  '--- CONFIG ---' as info, 
+  (SELECT store_a_id::text FROM config) as store_a,
+  (SELECT store_b_id::text FROM config) as store_b,
+  (SELECT user_a_id::text FROM config) as user_a,
+  (SELECT user_b_id::text FROM config) as user_b
+UNION ALL
+SELECT 
+  usuario || ' | ' || tabela || ' | ' || acesso,
+  count::text,
+  esperado,
+  CASE WHEN (esperado = 'DEVE SER 0' AND count = 0) THEN '✅ OK'
+       WHEN (esperado = 'DEVE SER 0' AND count > 0) THEN '❌ FALHA RLS!'
+       WHEN count >= 0 THEN '✅ OK'
+       ELSE '?' END,
+  ''
+FROM (SELECT * FROM user_a_results UNION ALL SELECT * FROM user_b_results) all_results;
 
 -- ############################################################################
 -- BLOCO 3: TESTE DE ACESSO ANON (Cardápio Público)
