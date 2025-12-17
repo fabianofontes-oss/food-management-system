@@ -866,3 +866,36 @@ CREATE TRIGGER create_store_settings_on_store_creation
   AFTER INSERT ON stores
   FOR EACH ROW
   EXECUTE FUNCTION create_default_store_settings();
+
+-- ============================================================================
+-- KITCHEN_CHEFS - Cozinheiros da loja
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS kitchen_chefs (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+  name VARCHAR(100) NOT NULL,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_kitchen_chefs_store ON kitchen_chefs(store_id);
+
+ALTER TABLE kitchen_chefs ENABLE ROW LEVEL SECURITY;
+
+-- RLS: Apenas membros da loja podem acessar
+CREATE POLICY "kitchen_chefs_store_access" ON kitchen_chefs
+FOR ALL
+USING (
+  EXISTS (
+    SELECT 1 FROM store_users su
+    WHERE su.store_id = kitchen_chefs.store_id
+      AND su.user_id = auth.uid()
+  )
+)
+WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM store_users su
+    WHERE su.store_id = kitchen_chefs.store_id
+      AND su.user_id = auth.uid()
+  )
+);
