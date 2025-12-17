@@ -9,6 +9,7 @@ interface CartStore {
   couponDiscount: number
   setStoreSlug: (slug: string) => void
   addItem: (
+    storeSlug: string,
     productId: string,
     productName: string,
     productImage: string | null,
@@ -17,7 +18,7 @@ interface CartStore {
     notes?: string,
     flavors?: CartItemFlavor[],
     isHalfHalf?: boolean
-  ) => void
+  ) => boolean // Retorna true se adicionou, false se bloqueou
   removeItem: (itemId: string) => void
   updateQuantity: (itemId: string, quantity: number) => void
   applyCoupon: (code: string, discount: number) => void
@@ -47,7 +48,16 @@ export const useCartStore = create<CartStore>()(
         }
       },
 
-      addItem: (productId, productName, productImage, unitPrice, modifiers, notes, flavors, isHalfHalf) => {
+      addItem: (storeSlug, productId, productName, productImage, unitPrice, modifiers, notes, flavors, isHalfHalf) => {
+        const currentSlug = get().storeSlug
+        
+        // Guard multi-store: se carrinho é de outra loja, limpar antes de adicionar
+        if (currentSlug && currentSlug !== storeSlug) {
+          set({ items: [], couponCode: null, couponDiscount: 0, storeSlug: storeSlug })
+        } else if (!currentSlug) {
+          set({ storeSlug: storeSlug })
+        }
+        
         const modifiersTotal = modifiers.reduce((sum, mod) => sum + mod.extra_price, 0)
         const itemPrice = unitPrice + modifiersTotal
         
@@ -68,6 +78,8 @@ export const useCartStore = create<CartStore>()(
         set((state) => ({
           items: [...state.items, newItem],
         }))
+        
+        return true
       },
 
       removeItem: (itemId) => {

@@ -19,13 +19,14 @@ interface SimpleProduct {
 
 interface ProductModalProps {
   productId: string
+  storeSlug: string
   isOpen: boolean
   onClose: () => void
   categoryName?: string // Nome da categoria para verificar se é pizza
   categoryProducts?: SimpleProduct[] // Produtos da mesma categoria para meio-a-meio
 }
 
-export function ProductModal({ productId, isOpen, onClose, categoryName, categoryProducts }: ProductModalProps) {
+export function ProductModal({ productId, storeSlug, isOpen, onClose, categoryName, categoryProducts }: ProductModalProps) {
   const [product, setProduct] = useState<ProductWithModifiers | null>(null)
   const [selectedModifiers, setSelectedModifiers] = useState<SelectedModifier[]>([])
   const [quantity, setQuantity] = useState(1)
@@ -114,6 +115,7 @@ export function ProductModal({ productId, isOpen, onClose, categoryName, categor
 
     for (let i = 0; i < quantity; i++) {
       addItem(
+        storeSlug,
         product.id,
         productName,
         product.image_url,
