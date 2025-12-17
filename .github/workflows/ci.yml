@@ -88,14 +88,10 @@ jobs:
         with:
           version: latest
 
-      - name: Start Supabase local (without migrations)
+      - name: Start Supabase local
         run: |
           supabase init --force || true
-          # Remover pasta de migrations temporariamente para evitar aplicação automática
-          mv supabase/migrations supabase/migrations_backup || true
           supabase start
-          # Restaurar migrations
-          mv supabase/migrations_backup supabase/migrations || true
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
 
@@ -109,13 +105,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y postgresql-client
-
-      - name: Apply schema (bootstrap database)
-        run: |
-          echo "Applying base schema (ignoring existing types)..."
-          psql "$DATABASE_URL" -v ON_ERROR_STOP=0 -f supabase/schema.sql || true
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
 
       - name: Apply E2E seed
         run: |
