@@ -83,22 +83,31 @@ ORDER BY c.relname;
 
 **Resultado Esperado:** Todas com `rls_enabled = true`
 
-**Resultado Obtido:**
+**Resultado Obtido (17/12/2025):**
 
 ```
-# Cole aqui o resultado da query
+| table_name     | rls_enabled |
+| -------------- | ----------- |
+| categories     | true        |
+| coupons        | true        |
+| customers      | true        |
+| kitchen_chefs  | true        |
+| order_items    | true        |
+| orders         | true        |
+| products       | true        |
+| store_settings | true        |
 ```
 
 | Tabela | RLS Enabled | Status |
 |--------|-------------|--------|
-| orders | | [ ] ✅ |
-| order_items | | [ ] ✅ |
-| products | | [ ] ✅ |
-| categories | | [ ] ✅ |
-| customers | | [ ] ✅ |
-| store_settings | | [ ] ✅ |
-| coupons | | [ ] ✅ |
-| kitchen_chefs | | [ ] ✅ |
+| categories | true | ✅ |
+| coupons | true | ✅ |
+| customers | true | ✅ |
+| kitchen_chefs | true | ✅ |
+| order_items | true | ✅ |
+| orders | true | ✅ |
+| products | true | ✅ |
+| store_settings | true | ✅ |
 
 ---
 
