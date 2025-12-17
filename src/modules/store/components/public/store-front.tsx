@@ -4,6 +4,7 @@ import { Component, ReactNode, useEffect } from 'react'
 import type { MenuTheme, StoreWithSettings } from '../../types'
 import { safeParseTheme, getThemeCSSVariables } from '../../utils'
 import { StoreHeader } from './header'
+import { StoreStatusBanner } from './store-status-banner'
 import { ClassicLayout } from './layouts/classic-layout'
 import { ModernLayout } from './layouts/modern-layout'
 import { GridLayout } from './layouts/grid-layout'
@@ -25,11 +26,18 @@ interface Category {
   products: Product[]
 }
 
+interface StoreStatus {
+  isOpen: boolean
+  nextOpenFormatted: string | null
+  schedulingEnabled: boolean
+}
+
 interface StoreFrontProps {
   store: StoreWithSettings
   categories?: Category[]
   onAddToCart?: (product: Product) => void
   isOwner?: boolean
+  storeStatus?: StoreStatus
 }
 
 interface ErrorBoundaryState {
@@ -73,7 +81,7 @@ class LayoutErrorBoundary extends Component<
  * 3. Escolher o layout correto
  * 4. Proteger contra erros com ErrorBoundary
  */
-export function StoreFront({ store, categories = [], onAddToCart, isOwner = false }: StoreFrontProps) {
+export function StoreFront({ store, categories = [], onAddToCart, isOwner = false, storeStatus }: StoreFrontProps) {
   // SOLUÇÃO DEFINITIVA: Usar parsedTheme diretamente se existir, senão parse do menu_theme
   const rawTheme = store.parsedTheme || (store as any).menu_theme
   const theme = safeParseTheme(rawTheme)
@@ -137,6 +145,17 @@ export function StoreFront({ store, categories = [], onAddToCart, isOwner = fals
       } as React.CSSProperties}
       className="store-front min-h-screen"
     >
+      {/* Banner de status da loja (fechada/agendamento) */}
+      {storeStatus && (
+        <StoreStatusBanner
+          isOpen={storeStatus.isOpen}
+          nextOpenFormatted={storeStatus.nextOpenFormatted}
+          schedulingEnabled={storeStatus.schedulingEnabled}
+          storeSlug={store.slug || ''}
+          primaryColor={theme.colors.primary}
+        />
+      )}
+
       <LayoutErrorBoundary fallback={fallbackLayout}>
         {renderLayout()}
       </LayoutErrorBoundary>

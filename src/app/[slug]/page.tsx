@@ -3,7 +3,8 @@ import { createClient } from '@/lib/supabase/server'
 import { StoreFront } from '@/modules/store/components/public'
 import { safeParseTheme } from '@/modules/store/utils'
 import { mergeWithDefaults } from '@/modules/store/types'
-import type { StoreWithSettings } from '@/modules/store'
+import { getStoreStatus } from '@/modules/store/utils/storeHours'
+import type { StoreWithSettings, BusinessHour } from '@/modules/store'
 
 // CRÍTICO: Desabilitar cache para sempre buscar dados frescos
 export const dynamic = 'force-dynamic'
@@ -21,10 +22,13 @@ export const revalidate = 0
 export default async function MenuPage({ params }: { params: { slug: string } }) {
   const supabase = await createClient()
   
-  // 1. Buscar loja pelo slug
+  // 1. Buscar loja pelo slug (incluindo dados de agendamento)
   const { data: storeData, error: storeError } = await supabase
     .from('stores')
-    .select('*')
+    .select(`
+      *,
+      tenants!inner(timezone)
+    `)
     .eq('slug', params.slug)
     .single()
 
@@ -76,6 +80,21 @@ export default async function MenuPage({ params }: { params: { slug: string } })
     parsedTheme
   } as StoreWithSettings
 
+  // 5. Calcular status da loja (aberta/fechada)
+  const businessHours: BusinessHour[] = parsedSettings.businessHours || []
+  const timezone = ((storeData as any).tenants as any)?.timezone || 'America/Sao_Paulo'
+  const schedulingEnabled = (storeData as any).scheduling_enabled || false
+  
+  let storeStatus = undefined
+  if (businessHours.length > 0) {
+    const status = getStoreStatus(businessHours, timezone)
+    storeStatus = {
+      isOpen: status.isOpen,
+      nextOpenFormatted: status.nextOpenFormatted,
+      schedulingEnabled,
+    }
+  }
+
   // 5. Formatar categorias com produtos
   const formattedCategories = categories.map((cat: any) => ({
     id: cat.id,
@@ -112,12 +131,13 @@ export default async function MenuPage({ params }: { params: { slug: string } })
         }]
       : []
 
-  // 6. Renderizar StoreFront com isOwner=true para mostrar botão de emergência
+  // 7. Renderizar StoreFront com isOwner=true para mostrar botão de emergência
   return (
     <StoreFront 
       store={storeWithSettings}
       categories={displayCategories}
       isOwner={true}
+      storeStatus={storeStatus}
     />
   )
 }

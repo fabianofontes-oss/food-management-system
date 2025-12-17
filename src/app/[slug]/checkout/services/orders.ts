@@ -9,6 +9,13 @@ export interface OrderSubmitResult {
   orderId?: string
   code?: string
   error?: string
+  errorCode?: string
+  errorDetails?: unknown
+}
+
+export interface SchedulingData {
+  scheduledDate?: string | null
+  scheduledTime?: string | null
 }
 
 export async function validateAndSubmitOrder(
@@ -17,7 +24,8 @@ export async function validateAndSubmitOrder(
   checkoutMode: CheckoutMode,
   items: CartItem[],
   couponData: { code: string; discount: number } | undefined,
-  idempotencyKey: string
+  idempotencyKey: string,
+  scheduling?: SchedulingData
 ): Promise<OrderSubmitResult> {
   try {
     // Validar telefone baseado no modo de checkout
@@ -61,7 +69,10 @@ export async function validateAndSubmitOrder(
       }
     }
 
-    const result = await createOrder(store.id, items, orderData, idempotencyKey)
+    const result = await createOrder(store.id, items, orderData, idempotencyKey, {
+      scheduledDate: scheduling?.scheduledDate,
+      scheduledTime: scheduling?.scheduledTime,
+    })
 
     if (result.success && result.orderId && result.code) {
       return {
@@ -72,7 +83,9 @@ export async function validateAndSubmitOrder(
     } else {
       return {
         success: false,
-        error: result.error || 'Erro ao criar pedido'
+        error: result.error || 'Erro ao criar pedido',
+        errorCode: (result as any).errorCode,
+        errorDetails: (result as any).errorDetails,
       }
     }
   } catch (err) {

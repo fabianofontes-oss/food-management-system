@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import type { CartItem, OrderData } from '@/types/menu'
+import { validateCheckout, CheckoutErrorCodes } from '@/modules/orders/validations/validateCheckout'
 
 const CreateOrderSchema = z
   .object({
@@ -79,15 +80,48 @@ const CreateOrderSchema = z
     }
   })
 
+export interface CreateOrderOptions {
+  scheduledDate?: string | null
+  scheduledTime?: string | null
+  skipValidation?: boolean
+}
+
 export async function createOrder(
   storeId: string,
   items: CartItem[],
   orderData: OrderData,
-  idempotencyKey: string
+  idempotencyKey: string,
+  options: CreateOrderOptions = {}
 ) {
   const supabase = (await createClient()) as any
 
   try {
+    // 1. Validação centralizada (se não for PDV com skipValidation)
+    if (!options.skipValidation) {
+      const validation = await validateCheckout({
+        storeId,
+        channel: orderData.channel,
+        items: items.map(item => ({
+          product_id: item.product_id,
+          quantity: item.quantity,
+          modifiers: item.modifiers.map(m => ({ option_id: m.option_id })),
+        })),
+        customer: orderData.customer,
+        address: orderData.delivery_address,
+        scheduledDate: options.scheduledDate,
+        scheduledTime: options.scheduledTime,
+      })
+
+      if (!validation.ok) {
+        return {
+          success: false,
+          error: validation.error.message,
+          errorCode: validation.error.code,
+          errorDetails: validation.error.details,
+        }
+      }
+    }
+
     const payload = CreateOrderSchema.parse({
       store_id: storeId,
       idempotency_key: idempotencyKey,
@@ -131,6 +165,8 @@ export async function createOrder(
           })),
         })),
         coupon_code: payload.coupon_code ?? null,
+        scheduled_date: options.scheduledDate ?? null,
+        scheduled_time: options.scheduledTime ?? null,
       },
     })
 

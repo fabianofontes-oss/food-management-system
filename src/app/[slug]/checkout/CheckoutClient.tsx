@@ -13,8 +13,11 @@ import { OrderSummary } from './components/OrderSummary'
 import { OrderTypeSelector } from './components/OrderTypeSelector'
 import { NotesSection } from './components/NotesSection'
 import { CouponSection } from './components/CouponSection'
+import { SchedulingSelector } from './components/SchedulingSelector'
 import { loadStoreSettings } from './services/storeSettings'
 import { validateAndSubmitOrder } from './services/orders'
+import { getStoreStatus } from '@/modules/store/utils/storeHours'
+import type { BusinessHour } from '@/modules/store/types'
 import { validateCoupon } from '@/lib/coupons/actions'
 import { supabase } from '@/lib/supabase'
 import type { CheckoutFormData, CheckoutMode, PaymentMethod } from './types'
@@ -36,6 +39,20 @@ export function CheckoutClient({ slug }: CheckoutClientProps) {
   const [storeId, setStoreId] = useState<string | null>(null)
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null)
   const [idempotencyKey, setIdempotencyKey] = useState<string | null>(null)
+  
+  // Estados de agendamento
+  const [businessHours, setBusinessHours] = useState<BusinessHour[]>([])
+  const [schedulingConfig, setSchedulingConfig] = useState({
+    enabled: false,
+    minHours: 2,
+    maxDays: 7,
+    intervalMinutes: 30,
+  })
+  const [storeTimezone, setStoreTimezone] = useState('America/Sao_Paulo')
+  const [isStoreClosed, setIsStoreClosed] = useState(false)
+  const [nextOpenFormatted, setNextOpenFormatted] = useState<string | null>(null)
+  const [scheduledDate, setScheduledDate] = useState<string | null>(null)
+  const [scheduledTime, setScheduledTime] = useState<string | null>(null)
 
   const [formData, setFormData] = useState<CheckoutFormData>({
     name: '',
@@ -70,15 +87,47 @@ export function CheckoutClient({ slug }: CheckoutClientProps) {
         setFormData(prev => ({ ...prev, paymentMethod: settings.availablePaymentMethods[0] }))
       }
 
-      // Load store ID
+      // Load store ID e configurações de agendamento
       const { data } = await supabase
         .from('stores')
-        .select('id')
+        .select(`
+          id,
+          settings,
+          scheduling_enabled,
+          scheduling_min_hours,
+          scheduling_max_days,
+          scheduling_interval,
+          tenants!inner(timezone)
+        `)
         .eq('slug', slug)
         .single()
       
       if (data) {
         setStoreId(data.id)
+        
+        // Configurações de agendamento
+        setSchedulingConfig({
+          enabled: (data as any).scheduling_enabled || false,
+          minHours: (data as any).scheduling_min_hours || 2,
+          maxDays: (data as any).scheduling_max_days || 7,
+          intervalMinutes: (data as any).scheduling_interval || 30,
+        })
+        
+        // Timezone
+        const timezone = ((data as any).tenants as any)?.timezone || 'America/Sao_Paulo'
+        setStoreTimezone(timezone)
+        
+        // Horários de funcionamento
+        const storeSettings = (data as any).settings as any
+        const hours: BusinessHour[] = storeSettings?.businessHours || []
+        setBusinessHours(hours)
+        
+        // Verificar se loja está aberta
+        if (hours.length > 0) {
+          const status = getStoreStatus(hours, timezone)
+          setIsStoreClosed(!status.isOpen)
+          setNextOpenFormatted(status.nextOpenFormatted)
+        }
       }
     }
     loadSettings()
@@ -167,7 +216,8 @@ export function CheckoutClient({ slug }: CheckoutClientProps) {
         checkoutMode, 
         items,
         appliedCoupon || undefined,
-        key
+        key,
+        scheduledDate && scheduledTime ? { scheduledDate, scheduledTime } : undefined
       )
 
       if (result.success && result.code) {
@@ -248,6 +298,21 @@ export function CheckoutClient({ slug }: CheckoutClientProps) {
             onRemove={handleRemoveCoupon}
           />
 
+          {/* Seletor de Agendamento */}
+          <SchedulingSelector
+            businessHours={businessHours}
+            schedulingConfig={schedulingConfig}
+            timezone={storeTimezone}
+            isStoreClosed={isStoreClosed}
+            nextOpenFormatted={nextOpenFormatted}
+            selectedDate={scheduledDate}
+            selectedTime={scheduledTime}
+            onSelect={(date, time) => {
+              setScheduledDate(date)
+              setScheduledTime(time)
+            }}
+          />
+
           <OrderSummary
             subtotal={subtotal}
             deliveryFee={deliveryFee}
@@ -265,7 +330,7 @@ export function CheckoutClient({ slug }: CheckoutClientProps) {
 
           <Button
             type="submit"
-            disabled={loading || isSubmitting}
+            disabled={loading || isSubmitting || (isStoreClosed && !scheduledDate)}
             className="w-full h-12 text-lg"
           >
             {loading || isSubmitting ? (
@@ -273,6 +338,8 @@ export function CheckoutClient({ slug }: CheckoutClientProps) {
                 <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                 Processando...
               </>
+            ) : scheduledDate && scheduledTime ? (
+              `Agendar Pedido • ${formatCurrency(total)}`
             ) : (
               `Confirmar Pedido • ${formatCurrency(total)}`
             )}
