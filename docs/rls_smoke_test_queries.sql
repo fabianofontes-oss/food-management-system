@@ -3,22 +3,18 @@
 -- ============================================================================
 -- 
 -- INSTRUÇÕES:
--- 1. Execute este script no Supabase SQL Editor
--- 2. ANTES de executar, substitua os UUIDs marcados com <<<SUBSTITUIR>>>
--- 3. Verifique os resultados conforme comentado
+-- 1. Execute CADA BLOCO SEPARADAMENTE no Supabase SQL Editor
+-- 2. Os UUIDs são descobertos automaticamente
 -- ============================================================================
 
 -- ############################################################################
--- PASSO 0: DESCOBRIR STORES E USERS EXISTENTES
+-- BLOCO 1: DESCOBRIR STORES E USERS (execute primeiro)
 -- ############################################################################
 
--- Listar lojas existentes
-SELECT id, name, slug, is_active 
-FROM stores 
-ORDER BY created_at 
-LIMIT 10;
+SELECT 'LOJAS DISPONÍVEIS:' as info;
+SELECT id, name, slug, is_active FROM stores ORDER BY created_at LIMIT 10;
 
--- Listar usuários e seus vínculos
+SELECT 'USUÁRIOS E VÍNCULOS:' as info;
 SELECT 
   u.id as user_id,
   u.email,
@@ -33,136 +29,138 @@ ORDER BY s.name, u.email
 LIMIT 20;
 
 -- ############################################################################
--- PASSO 1: DEFINIR UUIDs PARA O TESTE
--- ############################################################################
--- Substitua os valores abaixo pelos UUIDs reais do seu sistema:
-
--- Store A: <<<SUBSTITUIR>>>
--- Store B: <<<SUBSTITUIR>>>
--- User A (vinculado só à Store A): <<<SUBSTITUIR>>>
--- User B (vinculado só à Store B): <<<SUBSTITUIR>>>
-
--- ############################################################################
--- PASSO 2: SIMULAR USER A (vinculado à Store A)
+-- BLOCO 2: TESTE AUTOMÁTICO DE ISOLAMENTO
+-- (Execute este bloco inteiro de uma vez)
 -- ############################################################################
 
--- Configurar JWT claims para simular UserA
-SELECT set_config('request.jwt.claim.role', 'authenticated', true);
-SELECT set_config('request.jwt.claim.sub', '<<<USERA_UUID>>>', true);
-
--- Verificar configuração
-SELECT 
-  current_setting('request.jwt.claim.role', true) as role,
-  current_setting('request.jwt.claim.sub', true) as user_id;
-
--- ============================================================================
--- TESTE 2.1: UserA acessa dados da PRÓPRIA loja (Store A)
--- ESPERADO: Retornar dados (count > 0 se existirem)
--- ============================================================================
-
-SELECT 'orders (Store A)' as tabela, COUNT(*) as total 
-FROM public.orders WHERE store_id = '<<<STOREA_UUID>>>';
-
-SELECT 'products (Store A)' as tabela, COUNT(*) as total 
-FROM public.products WHERE store_id = '<<<STOREA_UUID>>>';
-
-SELECT 'categories (Store A)' as tabela, COUNT(*) as total 
-FROM public.categories WHERE store_id = '<<<STOREA_UUID>>>';
-
-SELECT 'customers (Store A)' as tabela, COUNT(*) as total 
-FROM public.customers WHERE store_id = '<<<STOREA_UUID>>>';
-
--- ============================================================================
--- TESTE 2.2: UserA tenta acessar dados da OUTRA loja (Store B)
--- ESPERADO: Retornar 0 (RLS bloqueando)
--- ============================================================================
-
-SELECT 'orders (Store B - BLOQUEADO)' as tabela, COUNT(*) as total 
-FROM public.orders WHERE store_id = '<<<STOREB_UUID>>>';
-
-SELECT 'products (Store B - BLOQUEADO)' as tabela, COUNT(*) as total 
-FROM public.products WHERE store_id = '<<<STOREB_UUID>>>';
-
-SELECT 'categories (Store B - BLOQUEADO)' as tabela, COUNT(*) as total 
-FROM public.categories WHERE store_id = '<<<STOREB_UUID>>>';
-
-SELECT 'customers (Store B - BLOQUEADO)' as tabela, COUNT(*) as total 
-FROM public.customers WHERE store_id = '<<<STOREB_UUID>>>';
+DO $$
+DECLARE
+  v_store_a_id UUID;
+  v_store_b_id UUID;
+  v_user_a_id UUID;
+  v_user_b_id UUID;
+  v_count_a BIGINT;
+  v_count_b BIGINT;
+BEGIN
+  -- Pegar primeira e segunda loja
+  SELECT id INTO v_store_a_id FROM stores ORDER BY created_at LIMIT 1;
+  SELECT id INTO v_store_b_id FROM stores ORDER BY created_at LIMIT 1 OFFSET 1;
+  
+  -- Pegar usuário vinculado a cada loja
+  SELECT su.user_id INTO v_user_a_id 
+  FROM store_users su WHERE su.store_id = v_store_a_id LIMIT 1;
+  
+  SELECT su.user_id INTO v_user_b_id 
+  FROM store_users su WHERE su.store_id = v_store_b_id LIMIT 1;
+  
+  RAISE NOTICE '========================================';
+  RAISE NOTICE 'CONFIGURAÇÃO DO TESTE:';
+  RAISE NOTICE 'Store A: %', v_store_a_id;
+  RAISE NOTICE 'Store B: %', v_store_b_id;
+  RAISE NOTICE 'User A: %', v_user_a_id;
+  RAISE NOTICE 'User B: %', v_user_b_id;
+  RAISE NOTICE '========================================';
+  
+  IF v_store_b_id IS NULL THEN
+    RAISE NOTICE '⚠️ AVISO: Só existe 1 loja. Crie outra para testar isolamento.';
+    RETURN;
+  END IF;
+  
+  IF v_user_a_id IS NULL OR v_user_b_id IS NULL THEN
+    RAISE NOTICE '⚠️ AVISO: Usuários não encontrados para as lojas.';
+    RETURN;
+  END IF;
+  
+  -- ========================================
+  -- SIMULAR USER A
+  -- ========================================
+  PERFORM set_config('request.jwt.claim.role', 'authenticated', true);
+  PERFORM set_config('request.jwt.claim.sub', v_user_a_id::text, true);
+  
+  RAISE NOTICE '';
+  RAISE NOTICE '====== TESTANDO COMO USER A ======';
+  
+  -- Contar orders da própria loja
+  SELECT COUNT(*) INTO v_count_a FROM orders WHERE store_id = v_store_a_id;
+  RAISE NOTICE 'orders (Store A): % registros', v_count_a;
+  
+  -- Contar orders da outra loja (deve ser 0)
+  SELECT COUNT(*) INTO v_count_b FROM orders WHERE store_id = v_store_b_id;
+  RAISE NOTICE 'orders (Store B - BLOQUEADO): % registros', v_count_b;
+  
+  IF v_count_b > 0 THEN
+    RAISE NOTICE '❌ FALHA: UserA consegue ver dados de StoreB!';
+  ELSE
+    RAISE NOTICE '✅ OK: UserA não vê dados de StoreB';
+  END IF;
+  
+  -- Contar products
+  SELECT COUNT(*) INTO v_count_a FROM products WHERE store_id = v_store_a_id;
+  RAISE NOTICE 'products (Store A): % registros', v_count_a;
+  
+  SELECT COUNT(*) INTO v_count_b FROM products WHERE store_id = v_store_b_id;
+  RAISE NOTICE 'products (Store B - BLOQUEADO): % registros', v_count_b;
+  
+  IF v_count_b > 0 THEN
+    RAISE NOTICE '❌ FALHA: UserA consegue ver products de StoreB!';
+  ELSE
+    RAISE NOTICE '✅ OK: UserA não vê products de StoreB';
+  END IF;
+  
+  -- ========================================
+  -- SIMULAR USER B
+  -- ========================================
+  PERFORM set_config('request.jwt.claim.sub', v_user_b_id::text, true);
+  
+  RAISE NOTICE '';
+  RAISE NOTICE '====== TESTANDO COMO USER B ======';
+  
+  -- Contar orders da própria loja
+  SELECT COUNT(*) INTO v_count_b FROM orders WHERE store_id = v_store_b_id;
+  RAISE NOTICE 'orders (Store B): % registros', v_count_b;
+  
+  -- Contar orders da outra loja (deve ser 0)
+  SELECT COUNT(*) INTO v_count_a FROM orders WHERE store_id = v_store_a_id;
+  RAISE NOTICE 'orders (Store A - BLOQUEADO): % registros', v_count_a;
+  
+  IF v_count_a > 0 THEN
+    RAISE NOTICE '❌ FALHA: UserB consegue ver dados de StoreA!';
+  ELSE
+    RAISE NOTICE '✅ OK: UserB não vê dados de StoreA';
+  END IF;
+  
+  -- Limpar
+  PERFORM set_config('request.jwt.claim.role', '', true);
+  PERFORM set_config('request.jwt.claim.sub', '', true);
+  
+  RAISE NOTICE '';
+  RAISE NOTICE '========================================';
+  RAISE NOTICE 'TESTE CONCLUÍDO';
+  RAISE NOTICE '========================================';
+END $$;
 
 -- ############################################################################
--- PASSO 3: SIMULAR USER B (vinculado à Store B)
+-- BLOCO 3: VERIFICAR POLICIES PERMISSIVAS RESTANTES
+-- (Deve retornar 0 linhas)
 -- ############################################################################
 
--- Configurar JWT claims para simular UserB
-SELECT set_config('request.jwt.claim.role', 'authenticated', true);
-SELECT set_config('request.jwt.claim.sub', '<<<USERB_UUID>>>', true);
-
--- Verificar configuração
-SELECT 
-  current_setting('request.jwt.claim.role', true) as role,
-  current_setting('request.jwt.claim.sub', true) as user_id;
-
--- ============================================================================
--- TESTE 3.1: UserB acessa dados da PRÓPRIA loja (Store B)
--- ESPERADO: Retornar dados (count > 0 se existirem)
--- ============================================================================
-
-SELECT 'orders (Store B)' as tabela, COUNT(*) as total 
-FROM public.orders WHERE store_id = '<<<STOREB_UUID>>>';
-
-SELECT 'products (Store B)' as tabela, COUNT(*) as total 
-FROM public.products WHERE store_id = '<<<STOREB_UUID>>>';
-
--- ============================================================================
--- TESTE 3.2: UserB tenta acessar dados da OUTRA loja (Store A)
--- ESPERADO: Retornar 0 (RLS bloqueando)
--- ============================================================================
-
-SELECT 'orders (Store A - BLOQUEADO)' as tabela, COUNT(*) as total 
-FROM public.orders WHERE store_id = '<<<STOREA_UUID>>>';
-
-SELECT 'products (Store A - BLOQUEADO)' as tabela, COUNT(*) as total 
-FROM public.products WHERE store_id = '<<<STOREA_UUID>>>';
+SELECT tablename, policyname, qual, with_check
+FROM pg_policies
+WHERE schemaname='public'
+  AND (qual='true' OR with_check='true')
+ORDER BY tablename, policyname;
 
 -- ############################################################################
--- PASSO 4: TESTE DE TABELAS ADICIONAIS (como UserA)
+-- BLOCO 4: VERIFICAR RLS HABILITADO NAS TABELAS CORE
+-- (Todas devem ter rls_enabled = true)
 -- ############################################################################
 
-SELECT set_config('request.jwt.claim.role', 'authenticated', true);
-SELECT set_config('request.jwt.claim.sub', '<<<USERA_UUID>>>', true);
-
--- Tabelas que foram corrigidas no RLS-REMAINDER-FIX
-SELECT 'kitchen_chefs (Store A)' as tabela, COUNT(*) as total 
-FROM public.kitchen_chefs WHERE store_id = '<<<STOREA_UUID>>>';
-
-SELECT 'kitchen_chefs (Store B - BLOQUEADO)' as tabela, COUNT(*) as total 
-FROM public.kitchen_chefs WHERE store_id = '<<<STOREB_UUID>>>';
-
--- Store Settings (RLS estava OFF)
-SELECT 'store_settings (Store A)' as tabela, COUNT(*) as total 
-FROM public.store_settings WHERE store_id = '<<<STOREA_UUID>>>';
-
-SELECT 'store_settings (Store B - BLOQUEADO)' as tabela, COUNT(*) as total 
-FROM public.store_settings WHERE store_id = '<<<STOREB_UUID>>>';
-
--- ############################################################################
--- PASSO 5: LIMPAR CONFIGURAÇÃO (opcional)
--- ############################################################################
-
-SELECT set_config('request.jwt.claim.role', '', true);
-SELECT set_config('request.jwt.claim.sub', '', true);
-
--- ############################################################################
--- RESUMO DO TESTE
--- ############################################################################
--- 
--- ESPERADO:
--- - Todas as queries "Store A" como UserA devem retornar dados (se existirem)
--- - Todas as queries "Store B - BLOQUEADO" como UserA devem retornar 0
--- - Todas as queries "Store B" como UserB devem retornar dados (se existirem)
--- - Todas as queries "Store A - BLOQUEADO" como UserB devem retornar 0
---
--- SE ALGUMA QUERY "BLOQUEADO" RETORNAR > 0:
--- ⚠️ RLS NÃO ESTÁ FUNCIONANDO CORRETAMENTE!
--- Verifique se a migration foi aplicada e se a tabela tem a policy correta.
--- ############################################################################
+SELECT c.relname AS table_name, c.relrowsecurity AS rls_enabled
+FROM pg_class c
+JOIN pg_namespace n ON n.oid = c.relnamespace
+WHERE n.nspname = 'public' AND c.relkind = 'r'
+  AND c.relname IN (
+    'orders', 'order_items', 'products', 'categories', 
+    'customers', 'store_settings', 'coupons', 'kitchen_chefs'
+  )
+ORDER BY c.relname;
