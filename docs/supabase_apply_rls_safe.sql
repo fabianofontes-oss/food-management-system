@@ -123,19 +123,11 @@ IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public'
   DROP POLICY IF EXISTS "waiter_schedules_update" ON public.waiter_schedules;
   DROP POLICY IF EXISTS "waiter_schedules_delete" ON public.waiter_schedules;
   
-  CREATE POLICY "waiter_schedules_select" ON public.waiter_schedules FOR SELECT USING (
-    EXISTS (SELECT 1 FROM public.store_waiters sw WHERE sw.id = waiter_schedules.waiter_id AND public.user_has_store_access(sw.store_id))
-  );
-  CREATE POLICY "waiter_schedules_insert" ON public.waiter_schedules FOR INSERT WITH CHECK (
-    EXISTS (SELECT 1 FROM public.store_waiters sw WHERE sw.id = waiter_schedules.waiter_id AND public.user_has_store_access(sw.store_id))
-  );
-  CREATE POLICY "waiter_schedules_update" ON public.waiter_schedules FOR UPDATE 
-    USING (EXISTS (SELECT 1 FROM public.store_waiters sw WHERE sw.id = waiter_schedules.waiter_id AND public.user_has_store_access(sw.store_id)))
-    WITH CHECK (EXISTS (SELECT 1 FROM public.store_waiters sw WHERE sw.id = waiter_schedules.waiter_id AND public.user_has_store_access(sw.store_id)));
-  CREATE POLICY "waiter_schedules_delete" ON public.waiter_schedules FOR DELETE USING (
-    EXISTS (SELECT 1 FROM public.store_waiters sw WHERE sw.id = waiter_schedules.waiter_id AND public.user_has_store_access(sw.store_id))
-  );
-  RAISE NOTICE 'waiter_schedules: policies criadas';
+  CREATE POLICY "waiter_schedules_select" ON public.waiter_schedules FOR SELECT USING (public.user_has_store_access(store_id));
+  CREATE POLICY "waiter_schedules_insert" ON public.waiter_schedules FOR INSERT WITH CHECK (public.user_has_store_access(store_id));
+  CREATE POLICY "waiter_schedules_update" ON public.waiter_schedules FOR UPDATE USING (public.user_has_store_access(store_id)) WITH CHECK (public.user_has_store_access(store_id));
+  CREATE POLICY "waiter_schedules_delete" ON public.waiter_schedules FOR DELETE USING (public.user_has_store_access(store_id));
+  RAISE NOTICE 'waiter_schedules: policies criadas (usa store_id direto)';
 END IF;
 END $$;
 
@@ -151,19 +143,11 @@ IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public'
   DROP POLICY IF EXISTS "waiter_commissions_update" ON public.waiter_commissions;
   DROP POLICY IF EXISTS "waiter_commissions_delete" ON public.waiter_commissions;
   
-  CREATE POLICY "waiter_commissions_select" ON public.waiter_commissions FOR SELECT USING (
-    EXISTS (SELECT 1 FROM public.store_waiters sw WHERE sw.id = waiter_commissions.waiter_id AND public.user_has_store_access(sw.store_id))
-  );
-  CREATE POLICY "waiter_commissions_insert" ON public.waiter_commissions FOR INSERT WITH CHECK (
-    EXISTS (SELECT 1 FROM public.store_waiters sw WHERE sw.id = waiter_commissions.waiter_id AND public.user_has_store_access(sw.store_id))
-  );
-  CREATE POLICY "waiter_commissions_update" ON public.waiter_commissions FOR UPDATE 
-    USING (EXISTS (SELECT 1 FROM public.store_waiters sw WHERE sw.id = waiter_commissions.waiter_id AND public.user_has_store_access(sw.store_id)))
-    WITH CHECK (EXISTS (SELECT 1 FROM public.store_waiters sw WHERE sw.id = waiter_commissions.waiter_id AND public.user_has_store_access(sw.store_id)));
-  CREATE POLICY "waiter_commissions_delete" ON public.waiter_commissions FOR DELETE USING (
-    EXISTS (SELECT 1 FROM public.store_waiters sw WHERE sw.id = waiter_commissions.waiter_id AND public.user_has_store_access(sw.store_id))
-  );
-  RAISE NOTICE 'waiter_commissions: policies criadas';
+  CREATE POLICY "waiter_commissions_select" ON public.waiter_commissions FOR SELECT USING (public.user_has_store_access(store_id));
+  CREATE POLICY "waiter_commissions_insert" ON public.waiter_commissions FOR INSERT WITH CHECK (public.user_has_store_access(store_id));
+  CREATE POLICY "waiter_commissions_update" ON public.waiter_commissions FOR UPDATE USING (public.user_has_store_access(store_id)) WITH CHECK (public.user_has_store_access(store_id));
+  CREATE POLICY "waiter_commissions_delete" ON public.waiter_commissions FOR DELETE USING (public.user_has_store_access(store_id));
+  RAISE NOTICE 'waiter_commissions: policies criadas (usa store_id direto)';
 END IF;
 END $$;
 
