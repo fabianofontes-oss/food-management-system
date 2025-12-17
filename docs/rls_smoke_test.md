@@ -210,6 +210,41 @@ SELECT set_config('request.jwt.claim.sub', '', true);
 
 ---
 
+## 🔓 Teste 1.5: Acesso Anon (Cardápio Público)
+
+> **CRÍTICO:** Verificar que `anon` (visitante não logado) consegue ver o cardápio mas NÃO dados sensíveis.
+
+### 1.5.1 Executar BLOCO 3 do Script
+
+```sql
+-- No SQL Editor, execute o BLOCO 3 de rls_smoke_test_queries.sql
+-- Ele simula role anon e testa acesso
+```
+
+### 1.5.2 Resultado Esperado
+
+| Tabela | Acesso Anon | Esperado |
+|--------|-------------|----------|
+| stores (ativas) | ✅ Permitido | > 0 |
+| categories (ativas) | ✅ Permitido | >= 0 |
+| products (ativos) | ✅ Permitido | >= 0 |
+| orders | ❌ Bloqueado | **0** |
+| customers | ❌ Bloqueado | **0** |
+| store_settings | ❌ Bloqueado | **0** |
+
+### 1.5.3 Resultado Obtido
+
+| Tabela | Count | Status |
+|--------|-------|--------|
+| stores | ___ | [ ] ✅ [ ] ❌ |
+| categories | ___ | [ ] ✅ [ ] ❌ |
+| products | ___ | [ ] ✅ [ ] ❌ |
+| orders | ___ | [ ] ✅ [ ] ❌ |
+| customers | ___ | [ ] ✅ [ ] ❌ |
+| store_settings | ___ | [ ] ✅ [ ] ❌ |
+
+---
+
 ## 🌐 Teste 2: Fluxo Público (Cardápio)
 
 ### 2.1 Acessar Cardápio Público

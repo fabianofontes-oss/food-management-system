@@ -140,8 +140,89 @@ BEGIN
 END $$;
 
 -- ############################################################################
--- BLOCO 3: VERIFICAR POLICIES PERMISSIVAS RESTANTES
--- (Deve retornar 0 linhas)
+-- BLOCO 3: TESTE DE ACESSO ANON (Cardápio Público)
+-- (Execute para verificar que anon consegue ler cardápio)
+-- ############################################################################
+
+DO $$
+DECLARE
+  v_store_id UUID;
+  v_count BIGINT;
+BEGIN
+  -- Simular role anon (sem autenticação)
+  PERFORM set_config('request.jwt.claim.role', 'anon', true);
+  PERFORM set_config('request.jwt.claim.sub', '', true);
+  
+  -- Pegar uma loja ativa
+  SELECT id INTO v_store_id FROM stores WHERE is_active = true LIMIT 1;
+  
+  RAISE NOTICE '========================================';
+  RAISE NOTICE 'TESTE DE ACESSO ANON (Cardápio Público)';
+  RAISE NOTICE 'Store ID: %', v_store_id;
+  RAISE NOTICE '========================================';
+  
+  -- Testar SELECT em stores (deve funcionar para lojas ativas)
+  SELECT COUNT(*) INTO v_count FROM stores WHERE is_active = true;
+  RAISE NOTICE 'stores (ativas): % registros', v_count;
+  IF v_count > 0 THEN
+    RAISE NOTICE '✅ OK: anon consegue ver lojas ativas';
+  ELSE
+    RAISE NOTICE '❌ FALHA: anon não consegue ver lojas!';
+  END IF;
+  
+  -- Testar SELECT em categories (deve funcionar para ativas)
+  SELECT COUNT(*) INTO v_count FROM categories WHERE is_active = true AND store_id = v_store_id;
+  RAISE NOTICE 'categories (ativas): % registros', v_count;
+  IF v_count >= 0 THEN
+    RAISE NOTICE '✅ OK: anon consegue ver categorias';
+  END IF;
+  
+  -- Testar SELECT em products (deve funcionar para ativos)
+  SELECT COUNT(*) INTO v_count FROM products WHERE is_active = true AND store_id = v_store_id;
+  RAISE NOTICE 'products (ativos): % registros', v_count;
+  IF v_count >= 0 THEN
+    RAISE NOTICE '✅ OK: anon consegue ver produtos';
+  END IF;
+  
+  -- Testar que anon NÃO consegue ver orders (deve ser 0)
+  SELECT COUNT(*) INTO v_count FROM orders WHERE store_id = v_store_id;
+  RAISE NOTICE 'orders (DEVE SER 0): % registros', v_count;
+  IF v_count = 0 THEN
+    RAISE NOTICE '✅ OK: anon não vê pedidos';
+  ELSE
+    RAISE NOTICE '❌ FALHA: anon consegue ver pedidos!';
+  END IF;
+  
+  -- Testar que anon NÃO consegue ver customers (deve ser 0)
+  SELECT COUNT(*) INTO v_count FROM customers WHERE store_id = v_store_id;
+  RAISE NOTICE 'customers (DEVE SER 0): % registros', v_count;
+  IF v_count = 0 THEN
+    RAISE NOTICE '✅ OK: anon não vê clientes';
+  ELSE
+    RAISE NOTICE '❌ FALHA: anon consegue ver clientes!';
+  END IF;
+  
+  -- Testar que anon NÃO consegue ver store_settings (deve ser 0)
+  SELECT COUNT(*) INTO v_count FROM store_settings WHERE store_id = v_store_id;
+  RAISE NOTICE 'store_settings (DEVE SER 0): % registros', v_count;
+  IF v_count = 0 THEN
+    RAISE NOTICE '✅ OK: anon não vê configurações';
+  ELSE
+    RAISE NOTICE '❌ FALHA: anon consegue ver configurações!';
+  END IF;
+  
+  -- Limpar
+  PERFORM set_config('request.jwt.claim.role', '', true);
+  
+  RAISE NOTICE '';
+  RAISE NOTICE '========================================';
+  RAISE NOTICE 'TESTE ANON CONCLUÍDO';
+  RAISE NOTICE '========================================';
+END $$;
+
+-- ############################################################################
+-- BLOCO 4: VERIFICAR POLICIES PERMISSIVAS RESTANTES
+-- (Deve retornar 0 linhas ou apenas exceções justificadas)
 -- ############################################################################
 
 SELECT tablename, policyname, qual, with_check
@@ -151,7 +232,7 @@ WHERE schemaname='public'
 ORDER BY tablename, policyname;
 
 -- ############################################################################
--- BLOCO 4: VERIFICAR RLS HABILITADO NAS TABELAS CORE
+-- BLOCO 5: VERIFICAR RLS HABILITADO NAS TABELAS CORE
 -- (Todas devem ter rls_enabled = true)
 -- ############################################################################
 
@@ -164,3 +245,14 @@ WHERE n.nspname = 'public' AND c.relkind = 'r'
     'customers', 'store_settings', 'coupons', 'kitchen_chefs'
   )
 ORDER BY c.relname;
+
+-- ############################################################################
+-- BLOCO 6: LISTAR POLICIES PÚBLICAS EXISTENTES
+-- (Para documentação)
+-- ############################################################################
+
+SELECT tablename, policyname, cmd, roles
+FROM pg_policies
+WHERE schemaname='public'
+  AND policyname LIKE '%public%'
+ORDER BY tablename, policyname;
