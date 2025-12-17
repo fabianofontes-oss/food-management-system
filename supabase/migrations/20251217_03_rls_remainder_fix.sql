@@ -187,7 +187,7 @@ END IF;
 END $$;
 
 -- ############################################################################
--- 6) CASH_MOVEMENTS (tem store_id)
+-- 6) CASH_MOVEMENTS (pode ter store_id ou cash_register_id)
 -- ############################################################################
 
 DO $$ BEGIN
@@ -200,19 +200,44 @@ IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public'
   DROP POLICY IF EXISTS "cash_movements_update" ON public.cash_movements;
   DROP POLICY IF EXISTS "cash_movements_delete" ON public.cash_movements;
   
-  CREATE POLICY "cash_movements_select" ON public.cash_movements
-  FOR SELECT USING (public.user_has_store_access(store_id));
-  
-  CREATE POLICY "cash_movements_insert" ON public.cash_movements
-  FOR INSERT WITH CHECK (public.user_has_store_access(store_id));
-  
-  CREATE POLICY "cash_movements_update" ON public.cash_movements
-  FOR UPDATE USING (public.user_has_store_access(store_id)) WITH CHECK (public.user_has_store_access(store_id));
-  
-  CREATE POLICY "cash_movements_delete" ON public.cash_movements
-  FOR DELETE USING (public.user_has_store_access(store_id));
-  
-  RAISE NOTICE 'cash_movements: policies corrigidas';
+  -- Verificar se tem store_id direto ou precisa de join via cash_registers
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'cash_movements' AND column_name = 'store_id') THEN
+    CREATE POLICY "cash_movements_select" ON public.cash_movements
+    FOR SELECT USING (public.user_has_store_access(store_id));
+    
+    CREATE POLICY "cash_movements_insert" ON public.cash_movements
+    FOR INSERT WITH CHECK (public.user_has_store_access(store_id));
+    
+    CREATE POLICY "cash_movements_update" ON public.cash_movements
+    FOR UPDATE USING (public.user_has_store_access(store_id)) WITH CHECK (public.user_has_store_access(store_id));
+    
+    CREATE POLICY "cash_movements_delete" ON public.cash_movements
+    FOR DELETE USING (public.user_has_store_access(store_id));
+    
+    RAISE NOTICE 'cash_movements: policies corrigidas (store_id direto)';
+  ELSE
+    CREATE POLICY "cash_movements_select" ON public.cash_movements
+    FOR SELECT USING (
+      EXISTS (SELECT 1 FROM public.cash_registers cr WHERE cr.id = cash_movements.cash_register_id AND public.user_has_store_access(cr.store_id))
+    );
+    
+    CREATE POLICY "cash_movements_insert" ON public.cash_movements
+    FOR INSERT WITH CHECK (
+      EXISTS (SELECT 1 FROM public.cash_registers cr WHERE cr.id = cash_movements.cash_register_id AND public.user_has_store_access(cr.store_id))
+    );
+    
+    CREATE POLICY "cash_movements_update" ON public.cash_movements
+    FOR UPDATE 
+    USING (EXISTS (SELECT 1 FROM public.cash_registers cr WHERE cr.id = cash_movements.cash_register_id AND public.user_has_store_access(cr.store_id)))
+    WITH CHECK (EXISTS (SELECT 1 FROM public.cash_registers cr WHERE cr.id = cash_movements.cash_register_id AND public.user_has_store_access(cr.store_id)));
+    
+    CREATE POLICY "cash_movements_delete" ON public.cash_movements
+    FOR DELETE USING (
+      EXISTS (SELECT 1 FROM public.cash_registers cr WHERE cr.id = cash_movements.cash_register_id AND public.user_has_store_access(cr.store_id))
+    );
+    
+    RAISE NOTICE 'cash_movements: policies corrigidas (via cash_registers)';
+  END IF;
 END IF;
 END $$;
 
