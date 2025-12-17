@@ -78,67 +78,135 @@ WHERE NOT EXISTS (SELECT 1 FROM stores WHERE slug = 'loja-teste-b');
 
 ---
 
-## 🔒 Teste 1: Isolamento de Dados (SQL)
+## 🔒 Teste 1: Isolamento de Dados (SQL com Simulação de JWT)
 
-### 1.1 Testar como UserA (via Supabase Dashboard)
+> **IMPORTANTE:** No SQL Editor do Supabase, RLS não é testado como `postgres`. 
+> Você deve simular o contexto `authenticated` usando `set_config`.
 
-**Método:** Use o SQL Editor do Supabase logado como UserA (ou use a API com token do UserA)
+### 1.0 Descobrir UUIDs Reais
 
 ```sql
--- Contar registros visíveis para o usuário atual
-SELECT 'orders' as tabela, COUNT(*) as total FROM orders
-UNION ALL
-SELECT 'products', COUNT(*) FROM products
-UNION ALL
-SELECT 'categories', COUNT(*) FROM categories
-UNION ALL
-SELECT 'customers', COUNT(*) FROM customers
-UNION ALL
-SELECT 'kitchen_chefs', COUNT(*) FROM kitchen_chefs;
+-- Listar lojas existentes
+SELECT id, name, slug, is_active FROM stores ORDER BY created_at LIMIT 10;
+
+-- Listar usuários e vínculos
+SELECT 
+  u.id as user_id, u.email,
+  su.store_id, s.name as store_name, su.role
+FROM auth.users u
+JOIN public.store_users su ON su.user_id = u.id
+JOIN public.stores s ON s.id = su.store_id
+ORDER BY s.name LIMIT 20;
+```
+
+**UUIDs identificados:**
+
+| Item | UUID | Nome/Email |
+|------|------|------------|
+| Store A | `________________________________` | ____________ |
+| Store B | `________________________________` | ____________ |
+| User A | `________________________________` | ____________ |
+| User B | `________________________________` | ____________ |
+
+### 1.1 Simular UserA e Testar Acesso
+
+```sql
+-- ====== SIMULAR USER A ======
+SELECT set_config('request.jwt.claim.role', 'authenticated', true);
+SELECT set_config('request.jwt.claim.sub', 'USERA_UUID_AQUI', true);
+
+-- Verificar configuração
+SELECT current_setting('request.jwt.claim.sub', true) as user_simulado;
+
+-- TESTE: Acesso à PRÓPRIA loja (Store A) - DEVE RETORNAR DADOS
+SELECT 'orders (Store A)' as tabela, COUNT(*) as total 
+FROM public.orders WHERE store_id = 'STOREA_UUID_AQUI';
+
+SELECT 'products (Store A)' as tabela, COUNT(*) as total 
+FROM public.products WHERE store_id = 'STOREA_UUID_AQUI';
+
+-- TESTE: Acesso à OUTRA loja (Store B) - DEVE RETORNAR 0
+SELECT 'orders (Store B - BLOQUEADO)' as tabela, COUNT(*) as total 
+FROM public.orders WHERE store_id = 'STOREB_UUID_AQUI';
+
+SELECT 'products (Store B - BLOQUEADO)' as tabela, COUNT(*) as total 
+FROM public.products WHERE store_id = 'STOREB_UUID_AQUI';
 ```
 
 **Resultado UserA:**
 
-| Tabela | Count | Esperado |
-|--------|-------|----------|
-| orders | ___ | Apenas de Store A |
-| products | ___ | Apenas de Store A |
-| categories | ___ | Apenas de Store A |
-| customers | ___ | Apenas de Store A |
-| kitchen_chefs | ___ | Apenas de Store A |
+| Query | Esperado | Obtido | Status |
+|-------|----------|--------|--------|
+| orders (Store A) | > 0 | ___ | [ ] ✅ [ ] ❌ |
+| products (Store A) | > 0 | ___ | [ ] ✅ [ ] ❌ |
+| orders (Store B - BLOQUEADO) | **0** | ___ | [ ] ✅ [ ] ❌ |
+| products (Store B - BLOQUEADO) | **0** | ___ | [ ] ✅ [ ] ❌ |
 
-### 1.2 Testar como UserB
+### 1.2 Simular UserB e Testar Acesso
 
-**Método:** Logout e login como UserB, repetir a query acima
+```sql
+-- ====== SIMULAR USER B ======
+SELECT set_config('request.jwt.claim.role', 'authenticated', true);
+SELECT set_config('request.jwt.claim.sub', 'USERB_UUID_AQUI', true);
+
+-- TESTE: Acesso à PRÓPRIA loja (Store B) - DEVE RETORNAR DADOS
+SELECT 'orders (Store B)' as tabela, COUNT(*) as total 
+FROM public.orders WHERE store_id = 'STOREB_UUID_AQUI';
+
+SELECT 'products (Store B)' as tabela, COUNT(*) as total 
+FROM public.products WHERE store_id = 'STOREB_UUID_AQUI';
+
+-- TESTE: Acesso à OUTRA loja (Store A) - DEVE RETORNAR 0
+SELECT 'orders (Store A - BLOQUEADO)' as tabela, COUNT(*) as total 
+FROM public.orders WHERE store_id = 'STOREA_UUID_AQUI';
+
+SELECT 'products (Store A - BLOQUEADO)' as tabela, COUNT(*) as total 
+FROM public.products WHERE store_id = 'STOREA_UUID_AQUI';
+```
 
 **Resultado UserB:**
 
-| Tabela | Count | Esperado |
-|--------|-------|----------|
-| orders | ___ | Apenas de Store B |
-| products | ___ | Apenas de Store B |
-| categories | ___ | Apenas de Store B |
-| customers | ___ | Apenas de Store B |
-| kitchen_chefs | ___ | Apenas de Store B |
+| Query | Esperado | Obtido | Status |
+|-------|----------|--------|--------|
+| orders (Store B) | > 0 | ___ | [ ] ✅ [ ] ❌ |
+| products (Store B) | > 0 | ___ | [ ] ✅ [ ] ❌ |
+| orders (Store A - BLOQUEADO) | **0** | ___ | [ ] ✅ [ ] ❌ |
+| products (Store A - BLOQUEADO) | **0** | ___ | [ ] ✅ [ ] ❌ |
 
-### 1.3 Teste de Isolamento Direto (CRÍTICO)
+### 1.3 Testar Tabelas Adicionais (Corrigidas no RLS-REMAINDER-FIX)
 
 ```sql
--- Como UserA, tentar acessar dados de Store B diretamente
--- Substitua STORE_B_ID pelo ID real da Store B
-SELECT * FROM orders WHERE store_id = 'STORE_B_ID' LIMIT 5;
-SELECT * FROM products WHERE store_id = 'STORE_B_ID' LIMIT 5;
-SELECT * FROM customers WHERE store_id = 'STORE_B_ID' LIMIT 5;
+-- Como UserA
+SELECT set_config('request.jwt.claim.sub', 'USERA_UUID_AQUI', true);
+
+SELECT 'kitchen_chefs (A)' as t, COUNT(*) FROM kitchen_chefs WHERE store_id = 'STOREA_UUID';
+SELECT 'kitchen_chefs (B-BLOCK)' as t, COUNT(*) FROM kitchen_chefs WHERE store_id = 'STOREB_UUID';
+
+SELECT 'store_settings (A)' as t, COUNT(*) FROM store_settings WHERE store_id = 'STOREA_UUID';
+SELECT 'store_settings (B-BLOCK)' as t, COUNT(*) FROM store_settings WHERE store_id = 'STOREB_UUID';
 ```
 
-**Resultado Esperado:** 0 linhas retornadas (RLS bloqueando acesso)
+**Resultado:**
 
-### 1.4 Checklist de Isolamento
+| Tabela | Store A | Store B (Bloq.) | Status |
+|--------|---------|-----------------|--------|
+| kitchen_chefs | ___ | 0 esperado: ___ | [ ] ✅ [ ] ❌ |
+| store_settings | ___ | 0 esperado: ___ | [ ] ✅ [ ] ❌ |
 
-- [ ] UserA **NÃO** vê dados de Store B
-- [ ] UserB **NÃO** vê dados de Store A
-- [ ] Query direta com `WHERE store_id = 'OUTRA_LOJA'` retorna 0 linhas
-- [ ] Counts são diferentes entre usuários (se lojas têm dados diferentes)
+### 1.4 Limpar Simulação
+
+```sql
+SELECT set_config('request.jwt.claim.role', '', true);
+SELECT set_config('request.jwt.claim.sub', '', true);
+```
+
+### 1.5 Checklist de Isolamento SQL
+
+- [ ] UserA acessa dados de Store A ✅
+- [ ] UserA **NÃO** acessa dados de Store B (retorna 0)
+- [ ] UserB acessa dados de Store B ✅
+- [ ] UserB **NÃO** acessa dados de Store A (retorna 0)
+- [ ] Tabelas corrigidas (kitchen_chefs, store_settings) bloqueiam corretamente
 
 ---
 
