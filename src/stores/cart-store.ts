@@ -37,7 +37,15 @@ export const useCartStore = create<CartStore>()(
       couponCode: null,
       couponDiscount: 0,
 
-      setStoreSlug: (slug) => set({ storeSlug: slug }),
+      setStoreSlug: (slug) => {
+        const currentSlug = get().storeSlug
+        // Se mudar de loja, limpar o carrinho para evitar itens de lojas diferentes
+        if (currentSlug && currentSlug !== slug) {
+          set({ items: [], couponCode: null, couponDiscount: 0, storeSlug: slug })
+        } else {
+          set({ storeSlug: slug })
+        }
+      },
 
       addItem: (productId, productName, productImage, unitPrice, modifiers, notes, flavors, isHalfHalf) => {
         const modifiersTotal = modifiers.reduce((sum, mod) => sum + mod.extra_price, 0)
