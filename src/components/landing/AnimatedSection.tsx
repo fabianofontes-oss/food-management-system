@@ -96,6 +96,6 @@ export function AnimatedSection({
   )
 }
 
-export function useStagger(index: number, base = 0, step = 80) {
+export function getStaggerDelay(index: number, base = 0, step = 80) {
   return base + index * step
 }

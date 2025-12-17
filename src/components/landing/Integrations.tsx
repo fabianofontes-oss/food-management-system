@@ -1,6 +1,6 @@
 'use client'
 
-import { AnimatedSection, useStagger } from './AnimatedSection'
+import { AnimatedSection, getStaggerDelay } from './AnimatedSection'
 import { 
   MessageCircle, 
   CreditCard, 
@@ -79,7 +79,7 @@ export function Integrations() {
         {/* Integration Cards */}
         <div className="grid lg:grid-cols-3 gap-6 mb-16">
           {integrations.map((category, catIndex) => (
-            <AnimatedSection key={category.category} delay={useStagger(catIndex, 0, 100)}>
+            <AnimatedSection key={category.category} delay={getStaggerDelay(catIndex, 0, 100)}>
               <div className="h-full p-6 rounded-3xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-xl shadow-gray-200/50 dark:shadow-none">
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-gradient-to-r from-violet-500 to-indigo-500" />

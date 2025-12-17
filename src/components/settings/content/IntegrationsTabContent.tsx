@@ -88,7 +88,7 @@ export function IntegrationsTabContent({ integrations, setIntegrations }: Integr
         color="blue"
       >
         <p className="text-sm text-slate-600 col-span-3">
-          Clique em "Conectar" na página de Avaliações para autorizar o Google.
+          Clique em &quot;Conectar&quot; na página de Avaliações para autorizar o Google.
         </p>
       </ModuleCard>
     </div>

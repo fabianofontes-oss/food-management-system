@@ -5,7 +5,7 @@ import {
   Fish, Cake, Beer, Leaf, Building2, Croissant,
   Apple, Store, Sandwich, Waves, LucideIcon 
 } from 'lucide-react'
-import { AnimatedSection, useStagger } from './AnimatedSection'
+import { AnimatedSection, getStaggerDelay } from './AnimatedSection'
 
 const iconMap: Record<string, LucideIcon> = {
   IceCream,
@@ -58,7 +58,7 @@ export function TargetAudience({ title, subtitle, segments }: TargetAudienceProp
             return (
               <AnimatedSection 
                 key={index}
-                delay={useStagger(index, 0, 80)}
+                delay={getStaggerDelay(index, 0, 80)}
               >
                 <div className="group h-full p-5 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-emerald-200 dark:hover:border-emerald-800 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                   <div className="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mb-4 transition-transform group-hover:scale-110 group-hover:rotate-3">

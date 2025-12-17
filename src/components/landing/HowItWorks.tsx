@@ -1,7 +1,7 @@
 'use client'
 
 import { Store, Share2, ShoppingBag, LucideIcon, ArrowRight } from 'lucide-react'
-import { AnimatedSection, useStagger } from './AnimatedSection'
+import { AnimatedSection, getStaggerDelay } from './AnimatedSection'
 
 const iconMap: Record<string, LucideIcon> = {
   Store,
@@ -52,7 +52,7 @@ export function HowItWorks({ title, subtitle, steps }: HowItWorksProps) {
             return (
               <AnimatedSection 
                 key={index} 
-                delay={useStagger(index, 150)}
+                delay={getStaggerDelay(index, 150)}
                 className="relative"
               >
                 <div className="group relative flex flex-col items-center text-center p-8 rounded-3xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl overflow-hidden">

@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { Check, Sparkles, Zap, Building2 } from 'lucide-react'
-import { AnimatedSection, useStagger } from './AnimatedSection'
+import { AnimatedSection, getStaggerDelay } from './AnimatedSection'
 
 const planIcons = [Zap, Sparkles, Building2]
 
@@ -47,7 +47,7 @@ export function Pricing({ title, subtitle, plans }: PricingProps) {
             return (
               <AnimatedSection 
                 key={index}
-                delay={useStagger(index, 100)}
+                delay={getStaggerDelay(index, 100)}
                 className={plan.highlighted ? 'md:-mt-6 md:mb-6' : ''}
               >
                 <div className={`

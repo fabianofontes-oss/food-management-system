@@ -1,7 +1,7 @@
 'use client'
 
 import { Quote } from 'lucide-react'
-import { AnimatedSection, useStagger } from './AnimatedSection'
+import { AnimatedSection, getStaggerDelay } from './AnimatedSection'
 
 interface Logo {
   name: string
@@ -39,12 +39,12 @@ export function SocialProof({ title, subtitle, testimonials }: SocialProofProps)
           {testimonials.map((testimonial, index) => (
             <AnimatedSection 
               key={index}
-              delay={useStagger(index, 100)}
+              delay={getStaggerDelay(index, 100)}
             >
               <div className="h-full p-6 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-emerald-200 dark:hover:border-emerald-800 transition-colors">
                 <Quote className="w-8 h-8 text-emerald-500/30 mb-4" />
                 <p className="text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
-                  "{testimonial.quote}"
+                  &ldquo;{testimonial.quote}&rdquo;
                 </p>
                 <div className="flex items-center gap-3 pt-4 border-t border-gray-100 dark:border-gray-700">
                   <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 font-semibold text-sm">

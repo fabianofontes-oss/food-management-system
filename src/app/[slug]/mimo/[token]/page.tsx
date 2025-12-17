@@ -318,7 +318,7 @@ export default function MimoPaymentPage() {
                   <p className="text-sm font-medium text-pink-700 mb-1">
                     Mensagem de {mimoData.target_name || 'alguém especial'}:
                   </p>
-                  <p className="text-gray-700 italic">"{mimoData.message}"</p>
+                  <p className="text-gray-700 italic">&ldquo;{mimoData.message}&rdquo;</p>
                 </div>
               </div>
             </CardContent>

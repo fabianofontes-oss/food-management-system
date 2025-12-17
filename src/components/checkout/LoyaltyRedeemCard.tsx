@@ -145,7 +145,7 @@ export function LoyaltyRedeemCard({ storeId, customerId, onRedeemToggle }: Loyal
             </p>
           ) : (
             <p className="text-amber-700 text-sm">
-              🎉 Você completou o cartão! Clique em "Usar Selos" para ganhar{' '}
+              🎉 Você completou o cartão! Clique em &quot;Usar Selos&quot; para ganhar{' '}
               <strong>{formatCurrency(loyaltyData.reward_value)}</strong> de desconto.
             </p>
           )}

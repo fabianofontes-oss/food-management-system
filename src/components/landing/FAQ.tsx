@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { ChevronDown } from 'lucide-react'
-import { AnimatedSection, useStagger } from './AnimatedSection'
+import { AnimatedSection, getStaggerDelay } from './AnimatedSection'
 
 interface Question {
   question: string
@@ -34,7 +34,7 @@ export function FAQ({ title, subtitle, questions }: FAQProps) {
           {questions.map((item, index) => (
             <AnimatedSection 
               key={index}
-              delay={useStagger(index, 0, 50)}
+              delay={getStaggerDelay(index, 0, 50)}
             >
               <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 overflow-hidden">
                 <button

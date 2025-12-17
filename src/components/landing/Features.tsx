@@ -5,7 +5,7 @@ import {
   Receipt, Printer, Users, TrendingUp, Shield, Zap,
   Palette, Globe, MessageCircle, Package, LucideIcon
 } from 'lucide-react'
-import { AnimatedSection, useStagger } from './AnimatedSection'
+import { AnimatedSection, getStaggerDelay } from './AnimatedSection'
 
 const features = [
   {
@@ -133,7 +133,7 @@ export function Features() {
           {features.map((feature, index) => (
             <AnimatedSection
               key={feature.title}
-              delay={useStagger(index, 0, 50)}
+              delay={getStaggerDelay(index, 0, 50)}
             >
               <div className="group relative h-full p-5 rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:border-violet-200 dark:hover:border-violet-800 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl overflow-hidden">
                 {/* Gradient line on top */}

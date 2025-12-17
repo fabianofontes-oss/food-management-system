@@ -3,7 +3,7 @@
 import { 
   Menu, ShoppingCart, Monitor, ChefHat, Truck, Users, Package, BarChart3, LucideIcon 
 } from 'lucide-react'
-import { AnimatedSection, useStagger } from './AnimatedSection'
+import { AnimatedSection, getStaggerDelay } from './AnimatedSection'
 
 const iconMap: Record<string, LucideIcon> = {
   Menu,
@@ -65,7 +65,7 @@ export function Modules({ title, subtitle, items }: ModulesProps) {
             return (
               <AnimatedSection
                 key={index}
-                delay={useStagger(index, 0, 80)}
+                delay={getStaggerDelay(index, 0, 80)}
                 className={isWide ? 'sm:col-span-2' : ''}
               >
                 <div className="group relative h-full p-6 rounded-3xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl overflow-hidden">

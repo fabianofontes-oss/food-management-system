@@ -98,18 +98,18 @@ jobs:
       - name: Wait for Supabase to be ready
         run: |
           echo "Waiting for Supabase services..."
-          sleep 10
+          sleep 15
           supabase status
 
-      - name: Apply migrations
+      - name: Install PostgreSQL client
         run: |
-          # Aplicar todas as migrations
-          for file in supabase/migrations/*.sql; do
-            if [ -f "$file" ]; then
-              echo "Applying migration: $file"
-              psql "$DATABASE_URL" -f "$file" || true
-            fi
-          done
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Apply schema (bootstrap database)
+        run: |
+          echo "Applying base schema..."
+          psql "$DATABASE_URL" -f supabase/schema.sql
         env:
           DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
 
