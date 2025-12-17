@@ -41,16 +41,55 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // ============================================
-  // MODO DEBUG: TODOS OS BLOQUEIOS REMOVIDOS
-  // ============================================
-  // TODO: Reimplementar segurança após estabilização
-  
   const path = request.nextUrl.pathname
-  console.log('[DEBUG MODE] Acesso livre:', path, '| User:', user?.email || 'anônimo')
 
-  // NENHUM BLOQUEIO - SISTEMA ABERTO PARA DEBUG
-  // Apenas atualiza sessão e deixa passar
+  // Rotas públicas que não requerem autenticação
+  const publicRoutes = ['/', '/login', '/signup', '/reset-password', '/update-password', '/unauthorized', '/landing']
+  const isPublicRoute = publicRoutes.some(route => path === route)
+  
+  // Rotas de cardápio público (/{slug}, /{slug}/cart, /{slug}/checkout, /{slug}/order)
+  const isPublicStoreRoute = path.match(/^\/[^\/]+\/(cart|checkout|order)/) || 
+                             (path.match(/^\/[^\/]+$/) && !path.includes('/dashboard'))
+
+  // Permitir rotas públicas
+  if (isPublicRoute || isPublicStoreRoute) {
+    return response
+  }
+
+  // Rotas do dashboard requerem autenticação
+  const dashboardMatch = path.match(/^\/([^\/]+)\/dashboard/)
+  if (dashboardMatch) {
+    if (!user) {
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
+
+    const slug = dashboardMatch[1]
+
+    // Buscar store pelo slug
+    const { data: store, error: storeError } = await supabase
+      .from('stores')
+      .select('id')
+      .eq('slug', slug)
+      .single()
+
+    if (storeError || !store) {
+      console.log(`[Middleware] Store not found: ${slug}`)
+      return NextResponse.redirect(new URL('/unauthorized', request.url))
+    }
+
+    // Verificar se usuário tem acesso à loja
+    const { data: storeUser, error: accessError } = await supabase
+      .from('store_users')
+      .select('id')
+      .eq('store_id', store.id)
+      .eq('user_id', user.id)
+      .single()
+
+    if (accessError || !storeUser) {
+      console.log(`[Middleware] ACCESS DENIED: user=${user.id} store=${store.id}`)
+      return NextResponse.redirect(new URL('/unauthorized', request.url))
+    }
+  }
 
   return response
 }

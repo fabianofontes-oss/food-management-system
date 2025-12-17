@@ -42,21 +42,12 @@ function getSuperAdminEmails(): string[] {
  * @returns true se o email está na lista de Super Admins
  */
 export function isSuperAdmin(email: string | null | undefined): boolean {
-  // ============================================
-  // MODO DEBUG: SEMPRE RETORNA TRUE
-  // ============================================
-  // TODO: Reimplementar verificação após estabilização
-  console.log('[DEBUG MODE] isSuperAdmin: retornando TRUE para:', email || 'anônimo')
-  return true
-
-  /* CÓDIGO ORIGINAL - COMENTADO PARA DEBUG
   if (!email) return false
 
   const normalizedEmail = email.trim().toLowerCase()
   const superAdminEmails = getSuperAdminEmails()
 
   return superAdminEmails.includes(normalizedEmail)
-  */
 }
 
 /**

@@ -20,13 +20,10 @@ export default async function StoreDashboardLayout({
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  // ============================================
-  // MODO DEBUG: TODOS OS BLOQUEIOS REMOVIDOS
-  // ============================================
-  // TODO: Reimplementar segurança após estabilização
-  console.log('[DEBUG MODE] Dashboard acesso livre:', params.slug, '| User:', user?.email || 'anônimo')
-
-  let storeId: string | null = null
+  // Verificar autenticação
+  if (!user) {
+    redirect('/login')
+  }
 
   // Buscar a store pelo slug
   const { data: store } = await supabase
@@ -40,8 +37,22 @@ export default async function StoreDashboardLayout({
     redirect('/404')
   }
 
-  // MODO DEBUG: Acesso direto sem verificações
-  storeId = store.id
+  // Verificar se usuário tem acesso à loja
+  const { data: storeUser } = await supabase
+    .from('store_users')
+    .select('id')
+    .eq('store_id', store.id)
+    .eq('user_id', user.id)
+    .single()
+
+  // Super admin tem acesso a todas as lojas
+  const isAdmin = await isSuperAdmin(user.email || '')
+  
+  if (!storeUser && !isAdmin) {
+    redirect('/unauthorized')
+  }
+
+  const storeId = store.id
 
   // Validate and ensure type safety
   const validLocale: SupportedLocale = isValidLocale(language) ? language : 'pt-BR'
