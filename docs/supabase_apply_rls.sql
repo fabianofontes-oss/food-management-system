@@ -263,30 +263,39 @@ CREATE POLICY "table_sessions_delete" ON public.table_sessions
 FOR DELETE USING (public.user_has_store_access(store_id));
 
 -- ############################################################################
--- PARTE 9: DRIVER_RATINGS
+-- PARTE 9: DRIVER_RATINGS (OPCIONAL - pode não existir)
 -- ############################################################################
 
-ALTER TABLE IF EXISTS public.driver_ratings ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "driver_ratings_all" ON public.driver_ratings;
-DROP POLICY IF EXISTS "driver_ratings_select" ON public.driver_ratings;
-DROP POLICY IF EXISTS "driver_ratings_insert" ON public.driver_ratings;
-DROP POLICY IF EXISTS "driver_ratings_update" ON public.driver_ratings;
-DROP POLICY IF EXISTS "driver_ratings_delete" ON public.driver_ratings;
-
-CREATE POLICY "driver_ratings_select" ON public.driver_ratings
-FOR SELECT USING (public.user_has_store_access(store_id));
-
-CREATE POLICY "driver_ratings_insert" ON public.driver_ratings
-FOR INSERT WITH CHECK (public.user_has_store_access(store_id));
-
-CREATE POLICY "driver_ratings_update" ON public.driver_ratings
-FOR UPDATE 
-USING (public.user_has_store_access(store_id))
-WITH CHECK (public.user_has_store_access(store_id));
-
-CREATE POLICY "driver_ratings_delete" ON public.driver_ratings
-FOR DELETE USING (public.user_has_store_access(store_id));
+DO $$ 
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'driver_ratings') THEN
+    ALTER TABLE public.driver_ratings ENABLE ROW LEVEL SECURITY;
+    
+    DROP POLICY IF EXISTS "driver_ratings_all" ON public.driver_ratings;
+    DROP POLICY IF EXISTS "driver_ratings_select" ON public.driver_ratings;
+    DROP POLICY IF EXISTS "driver_ratings_insert" ON public.driver_ratings;
+    DROP POLICY IF EXISTS "driver_ratings_update" ON public.driver_ratings;
+    DROP POLICY IF EXISTS "driver_ratings_delete" ON public.driver_ratings;
+    
+    CREATE POLICY "driver_ratings_select" ON public.driver_ratings
+    FOR SELECT USING (public.user_has_store_access(store_id));
+    
+    CREATE POLICY "driver_ratings_insert" ON public.driver_ratings
+    FOR INSERT WITH CHECK (public.user_has_store_access(store_id));
+    
+    CREATE POLICY "driver_ratings_update" ON public.driver_ratings
+    FOR UPDATE 
+    USING (public.user_has_store_access(store_id))
+    WITH CHECK (public.user_has_store_access(store_id));
+    
+    CREATE POLICY "driver_ratings_delete" ON public.driver_ratings
+    FOR DELETE USING (public.user_has_store_access(store_id));
+    
+    RAISE NOTICE 'driver_ratings: RLS aplicado';
+  ELSE
+    RAISE NOTICE 'driver_ratings: tabela não existe, pulando...';
+  END IF;
+END $$;
 
 -- ############################################################################
 -- PARTE 10: SCHEDULING_SLOTS
