@@ -88,10 +88,14 @@ jobs:
         with:
           version: latest
 
-      - name: Start Supabase local
+      - name: Start Supabase local (without migrations)
         run: |
           supabase init --force || true
+          # Remover pasta de migrations temporariamente para evitar aplicação automática
+          mv supabase/migrations supabase/migrations_backup || true
           supabase start
+          # Restaurar migrations
+          mv supabase/migrations_backup supabase/migrations || true
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
 
