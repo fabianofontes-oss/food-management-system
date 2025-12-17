@@ -557,16 +557,16 @@ IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public'
   DROP POLICY IF EXISTS "addons_delete" ON public.addons;
   
   CREATE POLICY "addons_select" ON public.addons FOR SELECT USING (
-    EXISTS (SELECT 1 FROM public.addon_groups ag WHERE ag.id = addons.group_id AND public.user_has_store_access(ag.store_id))
+    EXISTS (SELECT 1 FROM public.addon_groups ag WHERE ag.id = addons.addon_group_id AND public.user_has_store_access(ag.store_id))
   );
   CREATE POLICY "addons_insert" ON public.addons FOR INSERT WITH CHECK (
-    EXISTS (SELECT 1 FROM public.addon_groups ag WHERE ag.id = addons.group_id AND public.user_has_store_access(ag.store_id))
+    EXISTS (SELECT 1 FROM public.addon_groups ag WHERE ag.id = addons.addon_group_id AND public.user_has_store_access(ag.store_id))
   );
   CREATE POLICY "addons_update" ON public.addons FOR UPDATE 
-    USING (EXISTS (SELECT 1 FROM public.addon_groups ag WHERE ag.id = addons.group_id AND public.user_has_store_access(ag.store_id)))
-    WITH CHECK (EXISTS (SELECT 1 FROM public.addon_groups ag WHERE ag.id = addons.group_id AND public.user_has_store_access(ag.store_id)));
+    USING (EXISTS (SELECT 1 FROM public.addon_groups ag WHERE ag.id = addons.addon_group_id AND public.user_has_store_access(ag.store_id)))
+    WITH CHECK (EXISTS (SELECT 1 FROM public.addon_groups ag WHERE ag.id = addons.addon_group_id AND public.user_has_store_access(ag.store_id)));
   CREATE POLICY "addons_delete" ON public.addons FOR DELETE USING (
-    EXISTS (SELECT 1 FROM public.addon_groups ag WHERE ag.id = addons.group_id AND public.user_has_store_access(ag.store_id))
+    EXISTS (SELECT 1 FROM public.addon_groups ag WHERE ag.id = addons.addon_group_id AND public.user_has_store_access(ag.store_id))
   );
   RAISE NOTICE 'addons: policies criadas';
 END IF;
