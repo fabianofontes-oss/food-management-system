@@ -1,49 +1,42 @@
 # 🔐 RLS Apply Proof - Evidência de Aplicação
 
-**Data:** _____________  
-**Método:** [ ] CLI (`supabase db push`) | [ ] Manual (SQL Editor)  
-**Executor:** _____________
+**Data:** 17 de Dezembro de 2025  
+**Método:** [x] Manual (SQL Editor)  
+**Executor:** Release Engineer
 
 ---
 
 ## 📋 Checklist de Aplicação
 
-- [ ] Backup realizado (opcional mas recomendado)
-- [ ] Migrations identificadas
-- [ ] SQL executado no Supabase
+- [x] Migrations identificadas
+- [x] SQL consolidado criado (`docs/supabase_apply_rls_safe.sql`)
+- [ ] SQL executado no Supabase SQL Editor
 - [ ] Queries de validação executadas
 - [ ] Resultados documentados abaixo
 
 ---
 
-## 📁 Migrations Aplicadas
+## 📁 Arquivo Aplicado
 
-| Arquivo | Linhas | Status |
-|---------|--------|--------|
-| `20251217_fix_kitchen_chefs_rls.sql` | 12 | [ ] Aplicada |
-| `20251217_02_rls_core_fix.sql` | 901 | [ ] Aplicada |
+| Arquivo Consolidado | Linhas | Status |
+|---------------------|--------|--------|
+| `docs/supabase_apply_rls_safe.sql` | ~636 | [ ] Aplicada |
 
-**OU**
-
-| Arquivo Consolidado | Status |
-|---------------------|--------|
-| `docs/supabase_apply_rls.sql` | [ ] Aplicada |
+**Conteúdo:** 
+- Função `user_has_store_access()`
+- 24 tabelas com RLS corrigido
+- Verificação de existência de cada tabela (não falha em tabelas inexistentes)
 
 ---
 
 ## 🖥️ Output da Execução
 
-### Opção A: CLI Output
+### SQL Editor Output
 
 ```
-# Cole aqui o output de: supabase db push
-```
-
-### Opção B: SQL Editor Output
-
-```
-# Cole aqui a mensagem de sucesso do SQL Editor
-# Exemplo: "Success. No rows returned" ou similar
+# Cole aqui a mensagem de sucesso do SQL Editor após executar docs/supabase_apply_rls_safe.sql
+# Exemplo: "Success. No rows returned" 
+# Ou as mensagens NOTICE mostrando quais tabelas foram processadas
 ```
 
 ---
