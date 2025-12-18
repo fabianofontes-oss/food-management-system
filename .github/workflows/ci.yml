@@ -101,6 +101,13 @@ jobs:
           sleep 15
           supabase status
 
+      - name: Reset DB and apply migrations (clean slate for E2E)
+        run: |
+          echo "Resetting database for E2E tests..."
+          supabase db reset --force
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
       - name: Install PostgreSQL client
         run: |
           sudo apt-get update
