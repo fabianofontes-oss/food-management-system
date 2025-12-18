@@ -46,23 +46,11 @@ async function sendToSentry(entry: LogEntry): Promise<void> {
   if (!isProduction) return
   
   // Integração com Sentry (quando configurado)
-  try {
-    const Sentry = await import('@sentry/nextjs').catch(() => null)
-    if (Sentry) {
-      if (entry.level === 'error') {
-        Sentry.captureMessage(entry.message, {
-          level: 'error',
-          extra: entry.context,
-        })
-      } else if (entry.level === 'warn') {
-        Sentry.captureMessage(entry.message, {
-          level: 'warning',
-          extra: entry.context,
-        })
-      }
-    }
-  } catch {
-    // Sentry não configurado - ignorar silenciosamente
+  // Sentry deve ser instalado separadamente: npm install @sentry/nextjs
+  // Por enquanto, apenas logamos que seria enviado para Sentry
+  if (entry.level === 'error' || entry.level === 'warn') {
+    // TODO: Configurar Sentry quando disponível
+    // import('@sentry/nextjs').then(Sentry => Sentry.captureMessage(...))
   }
 }
 
@@ -111,13 +99,6 @@ export const logger = {
     const entry = createLogEntry('error', message, errorContext)
     console.error(formatLog(entry))
     sendToSentry(entry)
-    
-    // Capturar exceção no Sentry
-    if (isProduction && error instanceof Error) {
-      import('@sentry/nextjs')
-        .then(Sentry => Sentry.captureException(error, { extra: context }))
-        .catch(() => {})
-    }
   },
 
   // Helper para Server Actions
