@@ -109,6 +109,8 @@ CREATE POLICY "Store owners can manage store users"
 -- FUNÇÃO: get_user_stores (opcional, para compatibilidade)
 -- ============================================================================
 
+DROP FUNCTION IF EXISTS get_user_stores();
+
 CREATE OR REPLACE FUNCTION get_user_stores()
 RETURNS TABLE (
   store_id UUID,
