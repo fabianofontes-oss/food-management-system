@@ -61,6 +61,12 @@ export async function updateSession(request: NextRequest) {
   if (dashboardMatch) {
     const slug = dashboardMatch[1]
 
+    // DEMO MODE: slug "demo" sempre liberado sem autenticação
+    if (slug === 'demo') {
+      console.log(`[Middleware] DEMO MODE: allowing public access to /demo/dashboard`)
+      return response
+    }
+
     // Buscar store pelo slug
     const { data: store, error: storeError } = await supabase
       .from('stores')
@@ -73,10 +79,10 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(new URL('/unauthorized', request.url))
     }
 
-    // Modo DEMO: permite acesso sem login se a loja tem isDemo: true
+    // Modo DEMO via settings: permite acesso sem login se a loja tem isDemo: true
     const settings = store.settings as any
     if (settings?.isDemo === true) {
-      console.log(`[Middleware] DEMO MODE: allowing access to ${slug}`)
+      console.log(`[Middleware] DEMO MODE (settings): allowing access to ${slug}`)
       return response
     }
 
