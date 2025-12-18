@@ -205,6 +205,8 @@ export default function HealthPage() {
   const [health, setHealth] = useState<SystemHealth | null>(null)
   const [diagnostic, setDiagnostic] = useState<DiagnosticResult | null>(null)
   const [loading, setLoading] = useState(true)
+  const [fixing, setFixing] = useState(false)
+  const [fixResult, setFixResult] = useState<any>(null)
   const [lastCheck, setLastCheck] = useState<Date | null>(null)
 
   async function checkHealth() {
@@ -226,6 +228,22 @@ export default function HealthPage() {
       console.error('Erro ao verificar saúde:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function fixProblems() {
+    setFixing(true)
+    setFixResult(null)
+    try {
+      const response = await fetch('/api/health/fix', { method: 'POST' })
+      const result = await response.json()
+      setFixResult(result)
+      // Recarregar diagnóstico após correções
+      await checkHealth()
+    } catch (error) {
+      console.error('Erro ao corrigir:', error)
+    } finally {
+      setFixing(false)
     }
   }
 
@@ -421,10 +439,30 @@ export default function HealthPage() {
                 {/* Problemas Detectados */}
                 {hasProblems && (
                   <div className="border-t pt-4">
-                    <h4 className="font-bold text-red-700 mb-3 flex items-center gap-2">
-                      <AlertCircle className="w-5 h-5" />
-                      Problemas Detectados ({brokenFeatures.length + incompleteFeatures.length})
-                    </h4>
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-bold text-red-700 flex items-center gap-2">
+                        <AlertCircle className="w-5 h-5" />
+                        Problemas Detectados ({brokenFeatures.length + incompleteFeatures.length})
+                      </h4>
+                      <Button 
+                        onClick={fixProblems} 
+                        disabled={fixing}
+                        className="bg-green-600 hover:bg-green-700 text-white gap-2"
+                        size="sm"
+                      >
+                        {fixing ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Corrigindo...
+                          </>
+                        ) : (
+                          <>
+                            <Wrench className="w-4 h-4" />
+                            Corrigir Tudo
+                          </>
+                        )}
+                      </Button>
+                    </div>
                     <div className="space-y-2 max-h-48 overflow-y-auto">
                       {brokenFeatures.map((feature, idx) => (
                         <div key={`broken-${idx}`} className="flex items-center justify-between p-2 bg-red-100 rounded-lg border border-red-200">
@@ -452,6 +490,44 @@ export default function HealthPage() {
                   <div className="border-t pt-4 text-center">
                     <CheckCircle className="w-8 h-8 text-green-500 mx-auto mb-2" />
                     <p className="text-green-700 font-medium">Nenhum problema crítico detectado!</p>
+                  </div>
+                )}
+
+                {/* Resultado da Correção */}
+                {fixResult && (
+                  <div className="border-t pt-4 mt-4">
+                    <h4 className="font-bold text-slate-700 mb-3 flex items-center gap-2">
+                      <Wrench className="w-5 h-5" />
+                      Resultado da Correção
+                    </h4>
+                    <div className="grid grid-cols-3 gap-2 mb-3">
+                      <div className="text-center p-2 bg-green-100 rounded-lg">
+                        <div className="text-lg font-bold text-green-600">{fixResult.summary.fixed}</div>
+                        <div className="text-xs text-green-700">Corrigidos</div>
+                      </div>
+                      <div className="text-center p-2 bg-gray-100 rounded-lg">
+                        <div className="text-lg font-bold text-gray-600">{fixResult.summary.skipped}</div>
+                        <div className="text-xs text-gray-700">Já OK</div>
+                      </div>
+                      <div className="text-center p-2 bg-red-100 rounded-lg">
+                        <div className="text-lg font-bold text-red-600">{fixResult.summary.failed}</div>
+                        <div className="text-xs text-red-700">Falhou</div>
+                      </div>
+                    </div>
+                    <div className="space-y-1 text-sm">
+                      {fixResult.fixes.map((fix: any, idx: number) => (
+                        <div key={idx} className={`flex items-center gap-2 p-1 rounded ${
+                          fix.status === 'fixed' ? 'text-green-700' :
+                          fix.status === 'skipped' ? 'text-gray-600' : 'text-red-600'
+                        }`}>
+                          {fix.status === 'fixed' ? <CheckCircle className="w-4 h-4" /> :
+                           fix.status === 'skipped' ? <Clock className="w-4 h-4" /> :
+                           <XCircle className="w-4 h-4" />}
+                          <span className="font-medium">{fix.name}:</span>
+                          <span>{fix.message}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
 
