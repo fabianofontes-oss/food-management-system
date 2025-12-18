@@ -141,3 +141,76 @@ export async function removeStoreUserAction(
     return { success: false, error: error.message || 'Erro desconhecido' }
   }
 }
+
+/**
+ * Exclui uma loja e todos os dados relacionados
+ * Apenas Super Admins podem executar esta ação
+ */
+export async function deleteStoreAction(
+  storeId: string
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient()
+
+  // Verificar se o usuário atual é Super Admin
+  const { data: { user: currentUser } } = await supabase.auth.getUser()
+  if (!currentUser || !isSuperAdmin(currentUser.email)) {
+    return { success: false, error: 'Acesso não autorizado - apenas Super Admins' }
+  }
+
+  try {
+    // O banco tem ON DELETE CASCADE, então excluir a loja exclui tudo relacionado
+    const { error } = await supabase
+      .from('stores')
+      .delete()
+      .eq('id', storeId)
+
+    if (error) {
+      console.error('Erro ao excluir loja:', error)
+      return { success: false, error: `Erro ao excluir loja: ${error.message}` }
+    }
+
+    revalidatePath('/admin/stores')
+    revalidatePath('/admin')
+    return { success: true }
+  } catch (error: any) {
+    console.error('Erro em deleteStoreAction:', error)
+    return { success: false, error: error.message || 'Erro desconhecido' }
+  }
+}
+
+/**
+ * Exclui um tenant e todas as lojas relacionadas
+ * Apenas Super Admins podem executar esta ação
+ */
+export async function deleteTenantAction(
+  tenantId: string
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient()
+
+  // Verificar se o usuário atual é Super Admin
+  const { data: { user: currentUser } } = await supabase.auth.getUser()
+  if (!currentUser || !isSuperAdmin(currentUser.email)) {
+    return { success: false, error: 'Acesso não autorizado - apenas Super Admins' }
+  }
+
+  try {
+    // O banco tem ON DELETE CASCADE, então excluir o tenant exclui todas as lojas
+    const { error } = await supabase
+      .from('tenants')
+      .delete()
+      .eq('id', tenantId)
+
+    if (error) {
+      console.error('Erro ao excluir tenant:', error)
+      return { success: false, error: `Erro ao excluir tenant: ${error.message}` }
+    }
+
+    revalidatePath('/admin/tenants')
+    revalidatePath('/admin/stores')
+    revalidatePath('/admin')
+    return { success: true }
+  } catch (error: any) {
+    console.error('Erro em deleteTenantAction:', error)
+    return { success: false, error: error.message || 'Erro desconhecido' }
+  }
+}

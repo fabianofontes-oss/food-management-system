@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Store, MapPin, Phone, ExternalLink, LayoutDashboard, Loader2, KeyRound, Plus, Edit, Trash2 } from 'lucide-react'
-import { getStores, createStore, updateStore, deleteStore, getTenants, type StoreWithTenant, type Tenant } from '@/lib/superadmin/queries'
+import { getStores, createStore, updateStore, getTenants, type StoreWithTenant, type Tenant } from '@/lib/superadmin/queries'
+import { deleteStoreAction } from '@/lib/superadmin/actions'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 
@@ -154,15 +155,19 @@ export default function StoresPage() {
   }
 
   async function handleDelete(id: string, name: string) {
-    if (!confirm(`Tem certeza que deseja excluir a loja "${name}"?`)) return
+    if (!confirm(`Tem certeza que deseja excluir a loja "${name}"? Esta ação não pode ser desfeita.`)) return
 
     try {
-      await deleteStore(id)
-      toast.success('Loja excluída com sucesso!')
-      await loadData()
+      const result = await deleteStoreAction(id)
+      if (result.success) {
+        toast.success('Loja excluída com sucesso!')
+        await loadData()
+      } else {
+        toast.error(result.error || 'Erro ao excluir loja')
+      }
     } catch (err) {
       console.error('Erro ao excluir loja:', err)
-      toast.error('Erro ao excluir loja. Verifique se não há pedidos vinculados.')
+      toast.error('Erro ao excluir loja')
     }
   }
 
