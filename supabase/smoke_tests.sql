@@ -24,7 +24,7 @@ LIMIT 5;
 
 -- ✅ DEVE FUNCIONAR: Ver produtos ativos
 SELECT 'TEST 1.3: Produtos ativos' AS test;
-SELECT p.id, p.name, p.price, p.store_id
+SELECT p.id, p.name, p.base_price, p.store_id
 FROM products p
 JOIN stores s ON p.store_id = s.id
 WHERE p.is_active = true AND s.is_active = true
