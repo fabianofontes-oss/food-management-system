@@ -1,10 +1,6 @@
 -- Migração: Controle de Caixa (PDV)
 -- Data: 2025-12-18
 
--- Limpar policies existentes se houver
-DROP POLICY IF EXISTS "cash_sessions_store_access" ON cash_register_sessions;
-DROP POLICY IF EXISTS "cash_movements_store_access" ON cash_movements;
-
 -- Tabela de sessões de caixa
 CREATE TABLE IF NOT EXISTS cash_register_sessions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
