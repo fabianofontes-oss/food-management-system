@@ -70,6 +70,13 @@ const tools = [
         icon: Activity,
         href: '/admin/health/mocks',
         color: 'amber'
+      },
+      {
+        title: 'Páginas Grandes',
+        description: 'Arquivos que violam a regra de 300 linhas e precisam refatorar',
+        icon: Database,
+        href: '/admin/health/files',
+        color: 'pink'
       }
     ]
   },
