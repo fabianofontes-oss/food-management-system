@@ -1,12 +1,35 @@
+'use client'
+
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { 
   Activity, Database, Wrench, Wand2, Camera, Printer, 
-  Link2, Heart, ArrowRight, Zap
+  Link2, Heart, ArrowRight, Zap, RefreshCw, CheckCircle,
+  AlertCircle, XCircle, Clock, Server, Wifi, HardDrive,
+  CreditCard, Shield, Globe, Loader2
 } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 
-export const metadata = {
-  title: 'Sistema de Saúde | Admin',
-  description: 'Painel administrativo de saúde e diagnóstico do sistema'
+interface HealthCheck {
+  name: string
+  status: 'healthy' | 'degraded' | 'down' | 'unknown'
+  latency?: number
+  message?: string
+}
+
+interface SystemHealth {
+  status: 'healthy' | 'degraded' | 'down'
+  timestamp: string
+  version: string
+  uptime: number
+  checks: HealthCheck[]
+  metrics: {
+    tenantsCount: number
+    storesCount: number
+    ordersToday: number
+    activeUsers: number
+  }
 }
 
 const tools = [
@@ -109,20 +132,188 @@ const colorClasses: Record<string, { bg: string; border: string; icon: string; h
 }
 
 export default function HealthPage() {
+  const [health, setHealth] = useState<SystemHealth | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [lastCheck, setLastCheck] = useState<Date | null>(null)
+
+  async function checkHealth() {
+    setLoading(true)
+    try {
+      const response = await fetch('/api/health/status')
+      const data = await response.json()
+      setHealth(data)
+      setLastCheck(new Date())
+    } catch (error) {
+      console.error('Erro ao verificar saúde:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    checkHealth()
+    // Auto-refresh a cada 30 segundos
+    const interval = setInterval(checkHealth, 30000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const statusConfig = {
+    healthy: { label: 'Saudável', color: 'text-green-600', bg: 'bg-green-100', icon: CheckCircle },
+    degraded: { label: 'Degradado', color: 'text-yellow-600', bg: 'bg-yellow-100', icon: AlertCircle },
+    down: { label: 'Fora do Ar', color: 'text-red-600', bg: 'bg-red-100', icon: XCircle },
+    unknown: { label: 'Desconhecido', color: 'text-gray-600', bg: 'bg-gray-100', icon: Clock }
+  }
+
+  const formatUptime = (seconds: number) => {
+    const days = Math.floor(seconds / 86400)
+    const hours = Math.floor((seconds % 86400) / 3600)
+    const mins = Math.floor((seconds % 3600) / 60)
+    if (days > 0) return `${days}d ${hours}h`
+    if (hours > 0) return `${hours}h ${mins}m`
+    return `${mins}m`
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 p-4 sm:p-8">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl mb-4 shadow-lg">
-            <Heart className="w-10 h-10 text-white" />
+        {/* Header com Status Geral */}
+        <div className="mb-8">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
+            <div className="flex items-center gap-4">
+              <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg ${
+                health?.status === 'healthy' ? 'bg-gradient-to-br from-emerald-500 to-teal-600' :
+                health?.status === 'degraded' ? 'bg-gradient-to-br from-yellow-500 to-amber-600' :
+                'bg-gradient-to-br from-red-500 to-rose-600'
+              }`}>
+                <Heart className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-slate-800">Saúde do Sistema</h1>
+                <p className="text-slate-600">Monitoramento em tempo real</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              {lastCheck && (
+                <span className="text-sm text-slate-500">
+                  Última verificação: {lastCheck.toLocaleTimeString('pt-BR')}
+                </span>
+              )}
+              <Button onClick={checkHealth} disabled={loading} variant="outline" className="gap-2">
+                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                Atualizar
+              </Button>
+            </div>
           </div>
-          <h1 className="text-4xl font-bold text-slate-800 mb-2">
-            🏥 Sistema de Saúde
-          </h1>
-          <p className="text-slate-600 text-lg">
-            Diagnóstico, build e manutenção do sistema
-          </p>
+
+          {/* Status Cards */}
+          {health && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              <Card className={`border-l-4 ${
+                health.status === 'healthy' ? 'border-l-green-500' :
+                health.status === 'degraded' ? 'border-l-yellow-500' : 'border-l-red-500'
+              }`}>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    {(() => {
+                      const config = statusConfig[health.status]
+                      const Icon = config.icon
+                      return (
+                        <>
+                          <div className={`p-2 rounded-lg ${config.bg}`}>
+                            <Icon className={`w-5 h-5 ${config.color}`} />
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-500">Status</p>
+                            <p className={`font-bold ${config.color}`}>{config.label}</p>
+                          </div>
+                        </>
+                      )
+                    })()}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-blue-100">
+                      <Clock className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Uptime</p>
+                      <p className="font-bold text-gray-900">{formatUptime(health.uptime)}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-purple-100">
+                      <Server className="w-5 h-5 text-purple-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Versão</p>
+                      <p className="font-bold text-gray-900">{health.version}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-emerald-100">
+                      <Activity className="w-5 h-5 text-emerald-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Pedidos Hoje</p>
+                      <p className="font-bold text-gray-900">{health.metrics.ordersToday}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Checks Detalhados */}
+          {health && (
+            <Card className="mb-8">
+              <CardContent className="p-6">
+                <h3 className="font-bold text-lg text-slate-800 mb-4 flex items-center gap-2">
+                  <Shield className="w-5 h-5" />
+                  Verificações de Saúde
+                </h3>
+                <div className="space-y-3">
+                  {health.checks.map((check, index) => {
+                    const config = statusConfig[check.status]
+                    const Icon = config.icon
+                    return (
+                      <div key={index} className={`flex items-center justify-between p-3 rounded-lg ${config.bg}`}>
+                        <div className="flex items-center gap-3">
+                          <Icon className={`w-5 h-5 ${config.color}`} />
+                          <div>
+                            <p className={`font-medium ${config.color}`}>{check.name}</p>
+                            <p className="text-sm text-gray-600">{check.message}</p>
+                          </div>
+                        </div>
+                        {check.latency !== undefined && (
+                          <span className="text-sm text-gray-500">{check.latency}ms</span>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {loading && !health && (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+            </div>
+          )}
         </div>
 
         {/* Categorias */}
