@@ -49,7 +49,7 @@ export function ScaleDisplay({
   // OCULTO
   if (layout === 'hidden') {
     return (
-      <div className="relative px-4 pt-4 pb-2">
+      <div className="relative p-4">
         <button
           onClick={() => setShowMenu(!showMenu)}
           className="w-full py-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-500 text-xs flex items-center justify-center gap-2 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
@@ -66,7 +66,7 @@ export function ScaleDisplay({
   // LAYOUT DIGITAL - Display profissional estilo caixa registradora
   if (layout === 'large') {
     return (
-      <div className="relative px-4 pt-4 pb-3">
+      <div className="relative p-4">
         <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl overflow-hidden shadow-2xl">
           {/* Barra superior */}
           <div className="bg-gradient-to-r from-slate-700 to-slate-800 px-4 py-2 flex items-center justify-between">
@@ -113,7 +113,7 @@ export function ScaleDisplay({
   // LAYOUT MODERNO - Gradiente colorido
   if (layout === 'compact') {
     return (
-      <div className="relative px-4 pt-4 pb-3">
+      <div className="relative p-4">
         <div className={`rounded-2xl overflow-hidden shadow-xl ${
           connected 
             ? 'bg-gradient-to-br from-emerald-500 via-green-500 to-teal-600' 
@@ -153,7 +153,7 @@ export function ScaleDisplay({
 
   // LAYOUT COMPACTO - Barra elegante
   return (
-    <div className="relative px-4 pt-4 pb-2">
+    <div className="relative p-4">
       <div className={`rounded-xl overflow-hidden shadow-lg ${
         connected 
           ? 'bg-gradient-to-r from-emerald-500 to-teal-600' 
