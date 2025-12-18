@@ -20,12 +20,17 @@ export default function PDVPage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [barcodeInput, setBarcodeInput] = useState('')
   const [darkMode, setDarkMode] = useState(false)
-  const [layoutType, setLayoutType] = useState<LayoutType>('grid')
+  const [layoutType, setLayoutType] = useState<LayoutType>('large')
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [showAttendantModal, setShowAttendantModal] = useState(true)
   const [showReceipt, setShowReceipt] = useState(false)
   const [showAddons, setShowAddons] = useState<any>(null)
   const [cashSession, setCashSession] = useState<CashRegisterSession | null>(null)
+  
+  // Estados da balança
+  const [scaleWeight, setScaleWeight] = useState(0)
+  const [scaleConnected, setScaleConnected] = useState(false)
+  const [weightProduct, setWeightProduct] = useState<any>(null)
 
   // Atalhos de teclado
   useEffect(() => {
@@ -58,12 +63,29 @@ export default function PDVPage() {
     }
   }
 
-  const handleAddToCart = (product: any) => {
+  const handleAddToCart = (product: any, weight?: number) => {
     // Se produto tem adicionais, mostrar modal
     if (product.has_addons) {
       setShowAddons(product)
     } else {
       pdv.addToCart(product)
+    }
+  }
+
+  const handleWeightProduct = (product: any) => {
+    setWeightProduct(product)
+  }
+
+  const confirmWeightProduct = () => {
+    if (weightProduct && scaleWeight > 0) {
+      // Adiciona produto com preço calculado pelo peso
+      const priceByWeight = weightProduct.base_price * scaleWeight
+      pdv.addToCart({
+        ...weightProduct,
+        base_price: priceByWeight,
+        name: `${weightProduct.name} (${scaleWeight.toFixed(3)}kg)`
+      })
+      setWeightProduct(null)
     }
   }
 
@@ -189,6 +211,9 @@ export default function PDVPage() {
           layoutType={layoutType}
           setLayoutType={setLayoutType}
           darkMode={darkMode}
+          scaleWeight={scaleWeight}
+          scaleConnected={scaleConnected}
+          onWeightProduct={handleWeightProduct}
         />
 
         {/* Atalhos */}
@@ -269,6 +294,57 @@ export default function PDVPage() {
           }}
           onClose={() => setShowReceipt(false)}
         />
+      )}
+
+      {/* Modal Pesagem */}
+      {weightProduct && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className={`${cardBg} rounded-2xl p-6 w-full max-w-sm shadow-2xl`}>
+            <h2 className={`text-xl font-bold ${textColor} mb-4`}>Pesagem</h2>
+            <p className={`${mutedText} mb-2`}>{weightProduct.name}</p>
+            <p className={`text-sm ${mutedText} mb-4`}>Preço: {formatCurrency(weightProduct.base_price)}/kg</p>
+            
+            <div className={`p-6 rounded-xl border-2 ${scaleConnected ? 'border-green-500 bg-green-50' : `${borderColor}`} mb-4`}>
+              <p className={`text-center font-mono text-4xl font-bold ${scaleConnected ? 'text-green-700' : textColor}`}>
+                {scaleWeight.toFixed(3)} kg
+              </p>
+              <p className={`text-center text-2xl font-bold text-blue-600 mt-2`}>
+                {formatCurrency(weightProduct.base_price * scaleWeight)}
+              </p>
+            </div>
+
+            {!scaleConnected && (
+              <div className="mb-4">
+                <label className={`block text-sm ${mutedText} mb-2`}>Peso manual (kg)</label>
+                <input
+                  type="number"
+                  step="0.001"
+                  value={scaleWeight || ''}
+                  onChange={(e) => setScaleWeight(parseFloat(e.target.value) || 0)}
+                  className={`w-full p-3 rounded-xl border ${borderColor} ${cardBg} ${textColor}`}
+                  placeholder="0.000"
+                />
+              </div>
+            )}
+
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setWeightProduct(null)}
+                className="flex-1"
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={confirmWeightProduct}
+                disabled={scaleWeight <= 0}
+                className="flex-1 bg-green-600 hover:bg-green-700"
+              >
+                Confirmar
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

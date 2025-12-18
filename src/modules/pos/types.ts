@@ -15,7 +15,8 @@ export interface CartAddon {
 
 export type PaymentMethod = 'cash' | 'card' | 'pix'
 export type DiscountType = 'percent' | 'fixed'
-export type LayoutType = 'grid' | 'compact'
+export type LayoutType = 'large' | 'medium' | 'compact'
+export type CardSize = 'lg' | 'md' | 'sm'
 
 export interface CashRegisterSession {
   id: string
