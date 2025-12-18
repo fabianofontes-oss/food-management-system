@@ -184,43 +184,6 @@ export function ProductGrid({
   return (
     <div className="flex-1 flex flex-col overflow-hidden min-h-0">
       {/* ═══════════════════════════════════════════════════════════════════
-          BALANÇA - DISPLAY GRANDE 
-      ═══════════════════════════════════════════════════════════════════ */}
-      <div className={`flex-shrink-0 mb-3 rounded-xl overflow-hidden ${
-        scaleConnected 
-          ? 'bg-gradient-to-r from-emerald-500 to-green-600' 
-          : 'bg-gradient-to-r from-gray-400 to-gray-500'
-      }`}>
-        <div className="flex items-stretch">
-          {/* Info da balança */}
-          <div className="flex items-center gap-3 px-4 py-3 flex-shrink-0">
-            <div className="p-2 bg-white/20 rounded-lg">
-              <Scale className="w-6 h-6 text-white" />
-            </div>
-            <div className="hidden sm:block">
-              <p className="text-white font-semibold text-sm">
-                {scaleConnected ? 'BALANÇA ONLINE' : 'BALANÇA OFFLINE'}
-              </p>
-              <p className="text-white/70 text-xs">
-                {scaleConnected ? 'Pronta para uso' : 'Aguardando conexão'}
-              </p>
-            </div>
-          </div>
-          
-          {/* Display do peso */}
-          <div className="flex-1 flex items-center justify-end bg-black/20 px-4 sm:px-6">
-            <div className="text-right py-2">
-              <p className="text-white/60 text-[10px] uppercase tracking-widest">PESO</p>
-              <p className="font-mono font-black text-3xl sm:text-4xl md:text-5xl text-white tracking-tighter leading-none">
-                {scaleWeight.toFixed(3)}
-              </p>
-              <p className="text-white/80 text-xs sm:text-sm font-medium">kg</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ═══════════════════════════════════════════════════════════════════
           BUSCA + CÓDIGO + LAYOUTS
       ═══════════════════════════════════════════════════════════════════ */}
       <div className="flex-shrink-0 mb-3 flex flex-wrap gap-2">
