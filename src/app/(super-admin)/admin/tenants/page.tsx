@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Building2, Plus, Edit, Trash2, Store, Loader2, CreditCard, Info } from 'lucide-react'
+import { Building2, Plus, Edit, Trash2, Store, Loader2, CreditCard, Info, Mail, Phone, FileText, MapPin, Calendar, AlertCircle, CheckCircle, Clock, Ban } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { getTenants, createTenant, updateTenant, deleteTenant, type Tenant } from '@/lib/superadmin/queries'
 import { createClient } from '@/lib/superadmin/queries'
@@ -20,7 +20,19 @@ export default function TenantsPage() {
   const [editingTenant, setEditingTenant] = useState<Tenant | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [formData, setFormData] = useState({
-    name: ''
+    name: '',
+    email: '',
+    phone: '',
+    document: '',
+    document_type: 'cpf' as 'cpf' | 'cnpj',
+    responsible_name: '',
+    address: '',
+    city: '',
+    state: '',
+    cep: '',
+    status: 'active',
+    billing_day: 1,
+    notes: ''
   })
   
   const [showPlanModal, setShowPlanModal] = useState(false)
@@ -82,14 +94,30 @@ export default function TenantsPage() {
     try {
       setSubmitting(true)
       
+      const tenantData = {
+        name: formData.name,
+        email: formData.email || null,
+        phone: formData.phone || null,
+        document: formData.document || null,
+        document_type: formData.document_type,
+        responsible_name: formData.responsible_name || null,
+        address: formData.address || null,
+        city: formData.city || null,
+        state: formData.state || null,
+        cep: formData.cep || null,
+        status: formData.status,
+        billing_day: formData.billing_day,
+        notes: formData.notes || null
+      }
+      
       if (editingTenant) {
-        await updateTenant(editingTenant.id, { name: formData.name })
+        await updateTenant(editingTenant.id, tenantData as any)
       } else {
-        await createTenant({ name: formData.name })
+        await createTenant(tenantData as any)
       }
       
       await loadTenants()
-      setFormData({ name: '' })
+      resetForm()
       setShowForm(false)
       setEditingTenant(null)
     } catch (err) {
@@ -100,9 +128,41 @@ export default function TenantsPage() {
     }
   }
 
+  function resetForm() {
+    setFormData({
+      name: '',
+      email: '',
+      phone: '',
+      document: '',
+      document_type: 'cpf',
+      responsible_name: '',
+      address: '',
+      city: '',
+      state: '',
+      cep: '',
+      status: 'active',
+      billing_day: 1,
+      notes: ''
+    })
+  }
+
   function handleEdit(tenant: Tenant) {
     setEditingTenant(tenant)
-    setFormData({ name: tenant.name })
+    setFormData({
+      name: tenant.name || '',
+      email: (tenant as any).email || '',
+      phone: (tenant as any).phone || '',
+      document: (tenant as any).document || '',
+      document_type: (tenant as any).document_type || 'cpf',
+      responsible_name: (tenant as any).responsible_name || '',
+      address: (tenant as any).address || '',
+      city: (tenant as any).city || '',
+      state: (tenant as any).state || '',
+      cep: (tenant as any).cep || '',
+      status: (tenant as any).status || 'active',
+      billing_day: (tenant as any).billing_day || 1,
+      notes: (tenant as any).notes || ''
+    })
     setShowForm(true)
   }
 
@@ -121,7 +181,7 @@ export default function TenantsPage() {
   function handleCancel() {
     setShowForm(false)
     setEditingTenant(null)
-    setFormData({ name: '' })
+    resetForm()
   }
   
   function handleOpenPlanModal(tenantId: string, currentPlanId: string | null) {
@@ -215,18 +275,203 @@ export default function TenantsPage() {
               {editingTenant ? 'Editar Tenant' : 'Novo Tenant'}
             </h2>
             
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Dados Básicos */}
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Nome do Tenant *
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Ex: Rede Açaí Premium"
+                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none"
+                    required
+                    disabled={submitting}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Nome do Responsável
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.responsible_name}
+                    onChange={(e) => setFormData(prev => ({ ...prev, responsible_name: e.target.value }))}
+                    placeholder="Ex: João da Silva"
+                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none"
+                    disabled={submitting}
+                  />
+                </div>
+              </div>
+
+              {/* Contato */}
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                    placeholder="contato@empresa.com"
+                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none"
+                    disabled={submitting}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Telefone
+                  </label>
+                  <input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                    placeholder="(31) 99914-0095"
+                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none"
+                    disabled={submitting}
+                  />
+                </div>
+              </div>
+
+              {/* Documento */}
+              <div className="grid md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Tipo Documento
+                  </label>
+                  <select
+                    value={formData.document_type}
+                    onChange={(e) => setFormData(prev => ({ ...prev, document_type: e.target.value as 'cpf' | 'cnpj' }))}
+                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none"
+                    disabled={submitting}
+                  >
+                    <option value="cpf">CPF</option>
+                    <option value="cnpj">CNPJ</option>
+                  </select>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    {formData.document_type === 'cpf' ? 'CPF' : 'CNPJ'}
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.document}
+                    onChange={(e) => setFormData(prev => ({ ...prev, document: e.target.value }))}
+                    placeholder={formData.document_type === 'cpf' ? '000.000.000-00' : '00.000.000/0000-00'}
+                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none"
+                    disabled={submitting}
+                  />
+                </div>
+              </div>
+
+              {/* Endereço */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Nome do Tenant *
+                  Endereço
                 </label>
                 <input
                   type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ name: e.target.value })}
-                  placeholder="Ex: Rede Açaí Premium"
+                  value={formData.address}
+                  onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+                  placeholder="Rua, número, bairro"
                   className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none"
-                  required
+                  disabled={submitting}
+                />
+              </div>
+
+              <div className="grid md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Cidade
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.city}
+                    onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+                    placeholder="Belo Horizonte"
+                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none"
+                    disabled={submitting}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Estado
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.state}
+                    onChange={(e) => setFormData(prev => ({ ...prev, state: e.target.value.toUpperCase().slice(0, 2) }))}
+                    placeholder="MG"
+                    maxLength={2}
+                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none"
+                    disabled={submitting}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    CEP
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.cep}
+                    onChange={(e) => setFormData(prev => ({ ...prev, cep: e.target.value }))}
+                    placeholder="32.010-370"
+                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none"
+                    disabled={submitting}
+                  />
+                </div>
+              </div>
+
+              {/* Status e Billing */}
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Status
+                  </label>
+                  <select
+                    value={formData.status}
+                    onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value }))}
+                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none"
+                    disabled={submitting}
+                  >
+                    <option value="active">✅ Ativo</option>
+                    <option value="trial">⏳ Trial (Período de Teste)</option>
+                    <option value="suspended">⚠️ Suspenso</option>
+                    <option value="cancelled">❌ Cancelado</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Dia de Vencimento
+                  </label>
+                  <select
+                    value={formData.billing_day}
+                    onChange={(e) => setFormData(prev => ({ ...prev, billing_day: parseInt(e.target.value) }))}
+                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none"
+                    disabled={submitting}
+                  >
+                    {Array.from({ length: 28 }, (_, i) => i + 1).map(day => (
+                      <option key={day} value={day}>Dia {day}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Anotações */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Anotações Internas
+                </label>
+                <textarea
+                  value={formData.notes}
+                  onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                  placeholder="Observações sobre o cliente..."
+                  rows={3}
+                  className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none"
                   disabled={submitting}
                 />
               </div>
