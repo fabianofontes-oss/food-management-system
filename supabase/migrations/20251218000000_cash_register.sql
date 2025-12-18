@@ -147,7 +147,7 @@ DROP TRIGGER IF EXISTS trigger_order_updates_cash_session ON public.orders;
 CREATE TRIGGER trigger_order_updates_cash_session
   AFTER INSERT ON public.orders
   FOR EACH ROW
-  WHEN (NEW.status = 'confirmed')
+  WHEN (NEW.status = 'ACCEPTED')
   EXECUTE FUNCTION public.update_cash_session_on_order();
 
 -- ============================================================================
