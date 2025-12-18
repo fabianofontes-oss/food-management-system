@@ -71,6 +71,13 @@ export const PLAN_MODULES: PlanModule[] = [
 
   // === VENDAS ===
   {
+    id: 'pos',
+    name: 'PDV',
+    description: 'Ponto de venda para atendimento no balcão',
+    category: 'sales',
+    icon: 'ShoppingCart'
+  },
+  {
     id: 'delivery',
     name: 'Delivery',
     description: 'Gestão de entregas e entregadores',

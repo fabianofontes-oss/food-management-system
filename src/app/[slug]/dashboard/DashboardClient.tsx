@@ -2,7 +2,7 @@
 
 import { createContext, useContext } from 'react'
 import {
-  LayoutDashboard, ChefHat, Truck, 
+  LayoutDashboard, ChefHat, Truck, ShoppingCart,
   Package, Settings, Users, ShoppingBag, UserCog, BarChart3, 
   Ticket, DollarSign, Warehouse, LayoutGrid, PieChart, Star, 
   Megaphone, CalendarDays, LogOut, Coffee, Palette, Sparkles, Store
@@ -20,6 +20,7 @@ export function useDashboardStoreId() {
 const ROUTE_TO_MODULE: Record<string, string> = {
   'orders': 'orders',
   'kitchen': 'kitchen',
+  'pos': 'pos',
   'products': 'products',
   'addons': 'addons',
   'inventory': 'inventory',
@@ -69,6 +70,7 @@ export default function DashboardClient({
       items: [
         { href: base, label: 'Dashboard', icon: LayoutDashboard, gradient: 'from-violet-500 to-purple-600' },
         { href: `${base}/orders`, label: 'Pedidos', icon: ShoppingBag, gradient: 'from-blue-500 to-cyan-600' },
+        hasModule('pos') && { href: `${base}/pos`, label: 'PDV', icon: ShoppingCart, gradient: 'from-emerald-500 to-teal-600' },
         hasModule('kitchen') && { href: `${base}/kitchen`, label: 'Cozinha (KDS)', icon: ChefHat, gradient: 'from-red-500 to-rose-600' },
       ].filter(Boolean) as SidebarSection['items']
     },
