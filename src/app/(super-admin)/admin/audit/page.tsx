@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { 
-  Activity, FileCode, AlertTriangle, Bug, Ghost, FileText, 
-  Globe, RefreshCw, CheckCircle, XCircle, Code2, Terminal,
-  Search, Wrench, AlertOctagon, Loader2, Play
+  Activity, FileCode, AlertTriangle, Bug, FileText, 
+  Globe, RefreshCw, CheckCircle, Terminal, Search, 
+  Loader2, Link2, Copy, Eye, X, AlertCircle
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
@@ -33,13 +33,20 @@ interface AuditReport {
   }
 }
 
-const BADGE_COLORS: Record<string, string> = {
-  '👻': 'bg-purple-100 text-purple-700 border-purple-200',
-  '🐛': 'bg-yellow-100 text-yellow-700 border-yellow-200',
-  '🤡': 'bg-orange-100 text-orange-700 border-orange-200',
-  '📝': 'bg-blue-100 text-blue-700 border-blue-200',
-  '🔀': 'bg-red-100 text-red-700 border-red-200',
-  '🏠': 'bg-pink-100 text-pink-700 border-pink-200',
+// Severidade por tipo de erro
+const SEVERITY: Record<string, 'critical' | 'warning' | 'info'> = {
+  '🏠': 'critical',  // localhost - quebra em produção
+  '👻': 'critical',  // botão fantasma
+  '🔀': 'critical',  // redirect vazio
+  '🐛': 'warning',   // console.log
+  '🤡': 'warning',   // mock data
+  '📝': 'info',      // TODO/FIXME
+}
+
+const SEVERITY_COLORS = {
+  critical: 'bg-red-100 text-red-700 border-red-200',
+  warning: 'bg-yellow-100 text-yellow-700 border-yellow-200',
+  info: 'bg-blue-100 text-blue-700 border-blue-200',
 }
 
 export default function AuditPage() {
@@ -48,13 +55,14 @@ export default function AuditPage() {
   const [error, setError] = useState<string | null>(null)
   const [groupedErrors, setGroupedErrors] = useState<Record<string, AuditError[]>>({})
   const [runningAudit, setRunningAudit] = useState(false)
-  const [runningFix, setRunningFix] = useState(false)
+  const [fixingLocalhost, setFixingLocalhost] = useState(false)
   const [actionLog, setActionLog] = useState<string | null>(null)
-  const [showConfirmFix, setShowConfirmFix] = useState(false)
   const [isProduction, setIsProduction] = useState(false)
+  const [showConsoleModal, setShowConsoleModal] = useState(false)
+  const [showTodoModal, setShowTodoModal] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
-    // Detecta se está em produção (Vercel)
     const isProd = window.location.hostname !== 'localhost' && !window.location.hostname.includes('127.0.0.1')
     setIsProduction(isProd)
     loadReport()
@@ -72,7 +80,7 @@ export default function AuditPage() {
         setActionLog('✅ Auditoria concluída! Atualizando relatório...')
         await loadReport()
       } else {
-        setActionLog('❌ Erro: ' + (data.error || 'Falha desconhecida'))
+        setActionLog('❌ ' + (data.message || 'Falha desconhecida'))
       }
     } catch (err) {
       setActionLog('❌ Erro ao executar auditoria')
@@ -81,27 +89,44 @@ export default function AuditPage() {
     }
   }
 
-  async function runFix() {
+  async function fixLocalhost() {
     try {
-      setRunningFix(true)
-      setShowConfirmFix(false)
-      setActionLog('🧹 Executando faxina... Isso pode demorar alguns segundos.')
+      setFixingLocalhost(true)
+      setActionLog('🔗 Corrigindo URLs localhost...')
       
-      const response = await fetch('/api/admin/audit/fix', { method: 'POST' })
+      const response = await fetch('/api/admin/audit/fix-localhost', { method: 'POST' })
       const data = await response.json()
       
       if (data.success) {
-        setActionLog('✅ Faxina concluída! Executando nova auditoria...')
+        setActionLog('✅ URLs corrigidas! Executando nova auditoria...')
         await runAudit()
       } else {
-        setActionLog('❌ Erro: ' + (data.error || 'Falha desconhecida'))
+        setActionLog('❌ ' + (data.message || 'Falha desconhecida'))
       }
     } catch (err) {
-      setActionLog('❌ Erro ao executar faxina')
+      setActionLog('❌ Erro ao corrigir URLs')
     } finally {
-      setRunningFix(false)
+      setFixingLocalhost(false)
     }
   }
+
+  function copyTodoList() {
+    if (!report) return
+    
+    const todos = report.errors
+      .filter(e => e.emoji === '📝')
+      .map(e => `${e.file}:${e.line} - ${e.message}`)
+      .join('\n')
+    
+    navigator.clipboard.writeText(todos)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  // Filtrar erros por categoria
+  const localhostErrors = report?.errors.filter(e => e.emoji === '🏠') || []
+  const consoleErrors = report?.errors.filter(e => e.emoji === '🐛') || []
+  const todoErrors = report?.errors.filter(e => e.emoji === '📝') || []
 
   async function loadReport() {
     try {
@@ -207,184 +232,198 @@ export default function AuditPage() {
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3">
-            <Activity className="w-10 h-10 text-indigo-600" />
-            Raio-X do Código
-          </h1>
-          <p className="text-gray-600 mt-1">
-            Última varredura: {report.generated_at}
-          </p>
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3">
+              <Activity className="w-10 h-10 text-indigo-600" />
+              Saúde do Código
+            </h1>
+            <p className="text-gray-600 mt-1">
+              Última varredura: {report.generated_at}
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button 
+              onClick={runAudit}
+              disabled={runningAudit || fixingLocalhost || isProduction}
+              className="bg-indigo-600 hover:bg-indigo-700"
+            >
+              {runningAudit ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Search className="w-4 h-4 mr-2" />
+              )}
+              {runningAudit ? 'Analisando...' : 'Rodar Auditoria'}
+            </Button>
+            <Button onClick={loadReport} variant="outline">
+              <RefreshCw className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
 
-        {/* Painel de Ações */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
-          {isProduction ? (
-            <div className="flex items-center gap-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
-              <Terminal className="w-6 h-6 text-blue-600" />
-              <div>
-                <p className="font-semibold text-blue-800">📊 Modo Visualização</p>
-                <p className="text-sm text-blue-700">
-                  Os scripts de auditoria e faxina só funcionam em ambiente de desenvolvimento local.
-                  Este relatório foi gerado no último commit.
-                </p>
+        {/* Modo Produção */}
+        {isProduction && (
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl flex items-center gap-3">
+            <Terminal className="w-5 h-5 text-blue-600" />
+            <p className="text-sm text-blue-700">
+              <strong>Modo Visualização:</strong> Ações de correção só funcionam em desenvolvimento local.
+            </p>
+          </div>
+        )}
+
+        {/* Log de Ação */}
+        {actionLog && (
+          <div className={`mb-6 p-4 rounded-xl ${
+            actionLog.startsWith('✅') ? 'bg-green-50 text-green-800 border border-green-200' :
+            actionLog.startsWith('❌') ? 'bg-red-50 text-red-800 border border-red-200' :
+            'bg-blue-50 text-blue-800 border border-blue-200'
+          }`}>
+            <p className="font-medium">{actionLog}</p>
+          </div>
+        )}
+
+        {/* 3 Cards de Categorias */}
+        <div className="grid md:grid-cols-3 gap-6 mb-8">
+          
+          {/* CARD 1: Links Quebrados (Localhost) - CRÍTICO */}
+          <div className="bg-white rounded-2xl shadow-lg border-t-4 border-red-500 overflow-hidden">
+            <div className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-3 bg-red-100 rounded-xl">
+                  <Link2 className="w-6 h-6 text-red-600" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900">Links Quebrados</h3>
+                  <p className="text-xs text-red-600 font-medium">🔴 CRÍTICO</p>
+                </div>
+                <span className="ml-auto text-4xl font-bold text-red-600">{summary.localhost_urls}</span>
               </div>
-              <Button onClick={loadReport} variant="outline" className="ml-auto">
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Atualizar
+              <p className="text-sm text-gray-600 mb-4">
+                URLs apontando para <code className="bg-gray-100 px-1 rounded">localhost:3000</code>. 
+                <strong className="text-red-600"> Vão quebrar na internet.</strong>
+              </p>
+              <Button 
+                onClick={fixLocalhost}
+                disabled={fixingLocalhost || isProduction || summary.localhost_urls === 0}
+                className="w-full bg-red-600 hover:bg-red-700"
+              >
+                {fixingLocalhost ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Link2 className="w-4 h-4 mr-2" />
+                )}
+                {fixingLocalhost ? 'Corrigindo...' : 'Corrigir Links Automaticamente'}
               </Button>
             </div>
-          ) : (
-            <>
-              <div className="flex flex-wrap items-center gap-4">
-                <Button 
-                  onClick={runAudit}
-                  disabled={runningAudit || runningFix}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-6 text-lg rounded-xl shadow-lg"
-                >
-                  {runningAudit ? (
-                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  ) : (
-                    <Search className="w-5 h-5 mr-2" />
-                  )}
-                  {runningAudit ? 'Analisando...' : '🔍 Rodar Auditoria Agora'}
-                </Button>
-
-                {!showConfirmFix ? (
-                  <Button 
-                    onClick={() => setShowConfirmFix(true)}
-                    disabled={runningAudit || runningFix || summary.total_errors === 0}
-                    variant="outline"
-                    className="border-red-300 text-red-600 hover:bg-red-50 px-6 py-6 text-lg rounded-xl"
-                  >
-                    <Wrench className="w-5 h-5 mr-2" />
-                    🧹 Executar Faxina Automática
-                  </Button>
-                ) : (
-                  <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl p-4">
-                    <AlertOctagon className="w-6 h-6 text-red-500" />
-                    <span className="text-red-700 font-medium">Confirmar faxina?</span>
-                    <Button 
-                      onClick={runFix}
-                      className="bg-red-600 hover:bg-red-700 text-white ml-2"
-                    >
-                      {runningFix ? (
-                        <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                      ) : (
-                        <Play className="w-4 h-4 mr-1" />
-                      )}
-                      Sim, executar
-                    </Button>
-                    <Button 
-                      onClick={() => setShowConfirmFix(false)}
-                      variant="ghost"
-                    >
-                      Cancelar
-                    </Button>
-                  </div>
+            {localhostErrors.length > 0 && (
+              <div className="border-t bg-red-50 p-3 max-h-32 overflow-y-auto">
+                <p className="text-xs text-red-700 font-medium mb-1">Arquivos afetados:</p>
+                {[...new Set(localhostErrors.map(e => e.file))].slice(0, 3).map(f => (
+                  <p key={f} className="text-xs text-red-600 truncate">• {f}</p>
+                ))}
+                {[...new Set(localhostErrors.map(e => e.file))].length > 3 && (
+                  <p className="text-xs text-red-500">+ mais arquivos...</p>
                 )}
-
-                <Button onClick={loadReport} variant="outline" className="ml-auto">
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Atualizar
-                </Button>
               </div>
+            )}
+          </div>
 
-              {/* Log de Ação */}
-              {actionLog && (
-                <div className={`mt-4 p-4 rounded-xl ${
-                  actionLog.startsWith('✅') ? 'bg-green-50 text-green-800 border border-green-200' :
-                  actionLog.startsWith('❌') ? 'bg-red-50 text-red-800 border border-red-200' :
-                  'bg-blue-50 text-blue-800 border border-blue-200'
-                }`}>
-                  <p className="font-medium">{actionLog}</p>
+          {/* CARD 2: Rastros de Debug (Console.log) - AVISO */}
+          <div className="bg-white rounded-2xl shadow-lg border-t-4 border-yellow-500 overflow-hidden">
+            <div className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-3 bg-yellow-100 rounded-xl">
+                  <Bug className="w-6 h-6 text-yellow-600" />
                 </div>
-              )}
-
-              {/* Aviso de Segurança */}
-              <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3">
-                <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                <div className="text-sm text-amber-800">
-                  <p className="font-semibold">⚠️ Aviso de Segurança</p>
-                  <p>A faxina automática altera arquivos do projeto. Certifique-se de ter um backup ou commit antes de executar. Os arquivos originais são salvos em <code className="bg-amber-100 px-1 rounded">_BACKUP_BEFORE_FIX/</code></p>
+                <div>
+                  <h3 className="font-bold text-gray-900">Rastros de Debug</h3>
+                  <p className="text-xs text-yellow-600 font-medium">🟡 AVISO</p>
                 </div>
+                <span className="ml-auto text-4xl font-bold text-yellow-600">{summary.console_logs}</span>
               </div>
-            </>
-          )}
+              <p className="text-sm text-gray-600 mb-4">
+                <code className="bg-gray-100 px-1 rounded">console.log</code> útil para desenvolvimento, 
+                mas pode deixar o site lento e expor dados.
+              </p>
+              <Button 
+                onClick={() => setShowConsoleModal(true)}
+                disabled={summary.console_logs === 0}
+                variant="outline"
+                className="w-full border-yellow-300 text-yellow-700 hover:bg-yellow-50"
+              >
+                <Eye className="w-4 h-4 mr-2" />
+                Ver Arquivos ({summary.console_logs})
+              </Button>
+            </div>
+          </div>
+
+          {/* CARD 3: Tarefas Pendentes (TODO/FIXME) - INFO */}
+          <div className="bg-white rounded-2xl shadow-lg border-t-4 border-blue-500 overflow-hidden">
+            <div className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-3 bg-blue-100 rounded-xl">
+                  <FileText className="w-6 h-6 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900">Tarefas Pendentes</h3>
+                  <p className="text-xs text-blue-600 font-medium">🔵 INFO</p>
+                </div>
+                <span className="ml-auto text-4xl font-bold text-blue-600">{summary.todos_pending}</span>
+              </div>
+              <p className="text-sm text-gray-600 mb-4">
+                <code className="bg-gray-100 px-1 rounded">TODO</code> e <code className="bg-gray-100 px-1 rounded">FIXME</code> - 
+                funcionalidades que você anotou para fazer depois.
+              </p>
+              <Button 
+                onClick={copyTodoList}
+                disabled={summary.todos_pending === 0}
+                variant="outline"
+                className="w-full border-blue-300 text-blue-700 hover:bg-blue-50"
+              >
+                {copied ? (
+                  <CheckCircle className="w-4 h-4 mr-2 text-green-600" />
+                ) : (
+                  <Copy className="w-4 h-4 mr-2" />
+                )}
+                {copied ? 'Copiado!' : 'Exportar Lista'}
+              </Button>
+            </div>
+          </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-indigo-500">
-            <div className="flex items-center justify-between">
-              <FileCode className="w-8 h-8 text-indigo-500" />
-              <span className="text-3xl font-bold text-gray-900">{summary.files_scanned}</span>
-            </div>
-            <p className="text-gray-600 mt-2">Arquivos Analisados</p>
-          </div>
-          
-          <div className={`bg-white rounded-2xl shadow-lg p-6 border-l-4 ${summary.total_errors > 0 ? 'border-red-500' : 'border-green-500'}`}>
-            <div className="flex items-center justify-between">
-              {summary.total_errors > 0 ? (
-                <AlertTriangle className="w-8 h-8 text-red-500" />
-              ) : (
-                <CheckCircle className="w-8 h-8 text-green-500" />
-              )}
-              <span className="text-3xl font-bold text-gray-900">{summary.total_errors}</span>
-            </div>
-            <p className="text-gray-600 mt-2">Problemas Encontrados</p>
-          </div>
-          
-          <div className="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-purple-500">
-            <div className="flex items-center justify-between">
-              <Ghost className="w-8 h-8 text-purple-500" />
-              <span className="text-3xl font-bold text-gray-900">{summary.broken_buttons}</span>
-            </div>
-            <p className="text-gray-600 mt-2">Botões Quebrados</p>
-          </div>
-          
-          <div className="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-yellow-500">
-            <div className="flex items-center justify-between">
-              <Bug className="w-8 h-8 text-yellow-500" />
-              <span className="text-3xl font-bold text-gray-900">{summary.console_logs}</span>
-            </div>
-            <p className="text-gray-600 mt-2">Console.logs</p>
-          </div>
-        </div>
-
-        {/* Secondary Stats */}
-        <div className="grid sm:grid-cols-4 gap-4 mb-8">
+        {/* Resumo Geral */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-white rounded-xl shadow p-4 flex items-center gap-3">
-            <FileText className="w-6 h-6 text-blue-500" />
+            <FileCode className="w-6 h-6 text-indigo-500" />
             <div>
-              <p className="text-2xl font-bold">{summary.todos_pending}</p>
-              <p className="text-sm text-gray-500">TODOs Pendentes</p>
+              <p className="text-2xl font-bold">{summary.files_scanned}</p>
+              <p className="text-xs text-gray-500">Arquivos Analisados</p>
             </div>
           </div>
           <div className="bg-white rounded-xl shadow p-4 flex items-center gap-3">
-            <Code2 className="w-6 h-6 text-orange-500" />
+            <AlertTriangle className="w-6 h-6 text-red-500" />
+            <div>
+              <p className="text-2xl font-bold">{summary.total_errors}</p>
+              <p className="text-xs text-gray-500">Total de Problemas</p>
+            </div>
+          </div>
+          <div className="bg-white rounded-xl shadow p-4 flex items-center gap-3">
+            <AlertCircle className="w-6 h-6 text-orange-500" />
             <div>
               <p className="text-2xl font-bold">{summary.mock_data}</p>
-              <p className="text-sm text-gray-500">Dados Mock</p>
+              <p className="text-xs text-gray-500">Dados Mock</p>
             </div>
           </div>
           <div className="bg-white rounded-xl shadow p-4 flex items-center gap-3">
-            <Globe className="w-6 h-6 text-pink-500" />
-            <div>
-              <p className="text-2xl font-bold">{summary.localhost_urls}</p>
-              <p className="text-sm text-gray-500">URLs Localhost</p>
-            </div>
-          </div>
-          <div className="bg-white rounded-xl shadow p-4 flex items-center gap-3">
-            <XCircle className="w-6 h-6 text-gray-500" />
+            <Globe className="w-6 h-6 text-purple-500" />
             <div>
               <p className="text-2xl font-bold">{summary.files_with_problems}</p>
-              <p className="text-sm text-gray-500">Arquivos c/ Problemas</p>
+              <p className="text-xs text-gray-500">Arquivos c/ Problemas</p>
             </div>
           </div>
         </div>
 
-        {/* Errors List */}
+        {/* Lista Detalhada */}
         {summary.total_errors > 0 ? (
           <div className="space-y-4">
             <h2 className="text-2xl font-bold text-gray-900">Detalhamento por Arquivo</h2>
@@ -394,21 +433,24 @@ export default function AuditPage() {
                 <div className="bg-gray-50 px-6 py-3 border-b flex items-center gap-2">
                   <FileCode className="w-5 h-5 text-gray-500" />
                   <span className="font-mono text-sm text-gray-700">{file}</span>
-                  <span className="ml-auto bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-xs font-medium">
-                    {errors.length} problema{errors.length > 1 ? 's' : ''}
+                  <span className="ml-auto bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full text-xs font-medium">
+                    {errors.length} item{errors.length > 1 ? 's' : ''}
                   </span>
                 </div>
                 <div className="divide-y divide-gray-100">
-                  {errors.map((err, idx) => (
-                    <div key={idx} className="px-6 py-3 flex items-center gap-4 hover:bg-gray-50">
-                      <span className="font-mono text-sm text-gray-400 w-20">
-                        Linha {err.line}
-                      </span>
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium border ${BADGE_COLORS[err.emoji] || 'bg-gray-100 text-gray-700'}`}>
-                        {err.emoji} {err.message}
-                      </span>
-                    </div>
-                  ))}
+                  {errors.map((err, idx) => {
+                    const severity = SEVERITY[err.emoji] || 'info'
+                    return (
+                      <div key={idx} className="px-6 py-3 flex items-center gap-4 hover:bg-gray-50">
+                        <span className="font-mono text-sm text-gray-400 w-20">
+                          Linha {err.line}
+                        </span>
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium border ${SEVERITY_COLORS[severity]}`}>
+                          {err.emoji} {err.message}
+                        </span>
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             ))}
@@ -425,36 +467,72 @@ export default function AuditPage() {
           </div>
         )}
 
-        {/* Legenda */}
-        <div className="mt-8 bg-gray-50 rounded-xl p-6">
-          <h3 className="font-bold text-gray-700 mb-3">Legenda</h3>
-          <div className="grid sm:grid-cols-3 gap-3 text-sm">
-            <div className="flex items-center gap-2">
-              <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded">👻</span>
-              <span>Botão/Link fantasma</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded">🐛</span>
-              <span>Console.log esquecido</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded">🤡</span>
-              <span>Dados mock/fake</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded">📝</span>
-              <span>TODO/FIXME pendente</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="px-2 py-1 bg-red-100 text-red-700 rounded">🔀</span>
-              <span>Redirecionamento vazio</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="px-2 py-1 bg-pink-100 text-pink-700 rounded">🏠</span>
-              <span>URL localhost</span>
+        {/* Modal Console.logs */}
+        {showConsoleModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
+              <div className="p-4 border-b flex items-center justify-between bg-yellow-50">
+                <h3 className="font-bold text-lg flex items-center gap-2">
+                  <Bug className="w-5 h-5 text-yellow-600" />
+                  Arquivos com Console.log
+                </h3>
+                <Button variant="ghost" size="sm" onClick={() => setShowConsoleModal(false)}>
+                  <X className="w-5 h-5" />
+                </Button>
+              </div>
+              <div className="p-4 overflow-y-auto max-h-[60vh]">
+                {consoleErrors.length === 0 ? (
+                  <p className="text-gray-500 text-center py-8">Nenhum console.log encontrado</p>
+                ) : (
+                  <div className="space-y-2">
+                    {consoleErrors.map((err, idx) => (
+                      <div key={idx} className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                        <p className="font-mono text-sm text-gray-700">{err.file}</p>
+                        <p className="text-xs text-yellow-700">Linha {err.line}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="p-4 border-t bg-gray-50">
+                <p className="text-xs text-gray-500">
+                  💡 Remova manualmente os console.log antes de fazer deploy em produção.
+                </p>
+              </div>
             </div>
           </div>
-        </div>
+        )}
+
+        {/* Modal TODOs */}
+        {showTodoModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
+              <div className="p-4 border-b flex items-center justify-between bg-blue-50">
+                <h3 className="font-bold text-lg flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-blue-600" />
+                  Tarefas Pendentes (TODO/FIXME)
+                </h3>
+                <Button variant="ghost" size="sm" onClick={() => setShowTodoModal(false)}>
+                  <X className="w-5 h-5" />
+                </Button>
+              </div>
+              <div className="p-4 overflow-y-auto max-h-[60vh]">
+                {todoErrors.length === 0 ? (
+                  <p className="text-gray-500 text-center py-8">Nenhum TODO/FIXME encontrado</p>
+                ) : (
+                  <div className="space-y-2">
+                    {todoErrors.map((err, idx) => (
+                      <div key={idx} className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <p className="font-mono text-sm text-gray-700">{err.file}</p>
+                        <p className="text-xs text-blue-700">Linha {err.line}: {err.message}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
