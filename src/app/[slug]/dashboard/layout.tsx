@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { isSuperAdmin } from '@/lib/auth/super-admin'
 import { redirect } from 'next/navigation'
 import { getStoreModules } from '@/lib/plan-access'
+import { getAllModules } from '@/lib/superadmin/plan-modules'
 
 export default async function StoreDashboardLayout({
   children,
@@ -61,7 +62,7 @@ export default async function StoreDashboardLayout({
   const storeId = store?.id || 'demo'
   
   // Buscar módulos disponíveis do plano (todos liberados para demo)
-  const availableModules = isDemoMode ? [] : await getStoreModules(storeId)
+  const availableModules = isDemoMode ? getAllModules() : await getStoreModules(storeId)
 
   // Validate and ensure type safety
   const validLocale: SupportedLocale = isValidLocale(language) ? language : 'pt-BR'
