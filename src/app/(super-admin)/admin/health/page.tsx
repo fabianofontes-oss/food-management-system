@@ -392,8 +392,36 @@ export default function HealthPage() {
           ))}
         </div>
 
+        {/* Loja Demo */}
+        <div className="mt-10 p-6 bg-gradient-to-r from-violet-500 to-purple-600 rounded-2xl shadow-lg">
+          <div className="flex items-center justify-between">
+            <div className="text-white">
+              <h3 className="font-bold text-xl mb-1 flex items-center gap-2">
+                🎪 Loja Demonstração
+              </h3>
+              <p className="text-violet-100 text-sm">
+                Acesso público ao dashboard sem login (para clientes testarem)
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <Link 
+                href="/demo"
+                className="px-4 py-2 bg-white/20 text-white rounded-lg text-sm font-medium hover:bg-white/30 transition-colors"
+              >
+                Ver Cardápio
+              </Link>
+              <Link 
+                href="/demo/dashboard"
+                className="px-5 py-2 bg-white text-purple-600 rounded-lg text-sm font-bold hover:bg-violet-50 transition-colors"
+              >
+                Abrir Dashboard Demo →
+              </Link>
+            </div>
+          </div>
+        </div>
+
         {/* Atalhos */}
-        <div className="mt-10 p-6 bg-white rounded-2xl border border-slate-200 shadow-sm">
+        <div className="mt-6 p-6 bg-white rounded-2xl border border-slate-200 shadow-sm">
           <h3 className="font-bold text-slate-700 mb-4 flex items-center gap-2">
             <Zap className="w-5 h-5 text-amber-500" />
             Atalhos Rápidos
