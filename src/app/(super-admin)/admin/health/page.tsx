@@ -37,8 +37,15 @@ const tools = [
     category: '🩺 Diagnóstico & Monitoramento',
     items: [
       {
-        title: 'Auditoria Completa',
-        description: 'Verifica TODOS os problemas no banco: tenants, lojas, produtos, pedidos, faturas',
+        title: '🚀 Diagnóstico Automático',
+        description: 'Verifica TODAS as funcionalidades e mostra o que está funcionando ou quebrado',
+        icon: Zap,
+        href: '/admin/health/diagnostic',
+        color: 'emerald'
+      },
+      {
+        title: 'Auditoria do Banco',
+        description: 'Verifica problemas no banco: tenants, lojas, produtos, pedidos, faturas',
         icon: Activity,
         href: '/admin/health/audit',
         color: 'pink'
@@ -428,10 +435,10 @@ export default function HealthPage() {
           </h3>
           <div className="flex flex-wrap gap-3">
             <Link 
-              href="/admin/health/monitor"
+              href="/admin/health/diagnostic"
               className="px-4 py-2 bg-emerald-100 text-emerald-700 rounded-lg text-sm font-medium hover:bg-emerald-200 transition-colors"
             >
-              Ver Saúde
+              🚀 Diagnóstico
             </Link>
             <Link 
               href="/admin/health/builder"
