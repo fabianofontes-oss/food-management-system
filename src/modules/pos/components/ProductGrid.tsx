@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { Search, Package, Barcode, Image, Square, LayoutList, Grid2X2, Grid3X3, Scale } from 'lucide-react'
+import { Search, Package, Barcode, Grid2X2, Grid3X3, Square, LayoutList, Scale, Wifi, WifiOff } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 import { LayoutType } from '../types'
 
@@ -24,9 +24,8 @@ interface ProductGridProps {
 }
 
 const LAYOUTS: { type: LayoutType; icon: any; label: string }[] = [
-  { type: 'photo-lg', icon: Image, label: 'Foto G' },
-  { type: 'photo-md', icon: Grid2X2, label: 'Foto M' },
-  { type: 'photo-sm', icon: Grid3X3, label: 'Foto P' },
+  { type: 'photo-md', icon: Grid2X2, label: 'Foto' },
+  { type: 'photo-sm', icon: Grid3X3, label: 'Mini' },
   { type: 'card', icon: Square, label: 'Card' },
   { type: 'list', icon: LayoutList, label: 'Lista' },
 ]
@@ -49,10 +48,9 @@ export function ProductGrid({
   onWeightProduct
 }: ProductGridProps) {
   const cardBg = darkMode ? 'bg-gray-800' : 'bg-white'
-  const cardBgHover = darkMode ? 'hover:bg-gray-750' : 'hover:bg-gray-50'
   const textColor = darkMode ? 'text-white' : 'text-gray-900'
-  const mutedText = darkMode ? 'text-gray-400' : 'text-gray-500'
-  const borderColor = darkMode ? 'border-gray-700' : 'border-gray-200'
+  const mutedText = darkMode ? 'text-gray-400' : 'text-gray-600'
+  const borderColor = darkMode ? 'border-gray-700' : 'border-gray-300'
 
   const categories = useMemo(() => {
     if (!products) return []
@@ -80,48 +78,15 @@ export function ProductGrid({
 
   const getGridClass = () => {
     switch (layoutType) {
-      case 'photo-lg': return 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4'
-      case 'photo-md': return 'grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3'
-      case 'photo-sm': return 'grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-2'
-      case 'card': return 'grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2'
-      case 'list': return 'grid-cols-1 gap-1'
+      case 'photo-md': return 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3'
+      case 'photo-sm': return 'grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2'
+      case 'card': return 'grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-2'
+      case 'list': return 'flex flex-col gap-1'
     }
   }
 
   const renderProduct = (product: any) => {
     const isWeightProduct = product.unit === 'kg' || product.sold_by_weight
-
-    // FOTO GRANDE
-    if (layoutType === 'photo-lg') {
-      return (
-        <button
-          key={product.id}
-          onClick={() => handleProductClick(product)}
-          className={`${cardBg} rounded-2xl border-2 ${borderColor} hover:border-blue-500 hover:shadow-lg transition-all text-left group overflow-hidden`}
-        >
-          <div className={`w-full aspect-square ${darkMode ? 'bg-gray-700' : 'bg-gradient-to-br from-gray-100 to-gray-200'} flex items-center justify-center overflow-hidden`}>
-            {product.image_url ? (
-              <img src={product.image_url} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-            ) : (
-              <Package className={`w-16 h-16 ${mutedText}`} />
-            )}
-          </div>
-          <div className="p-4">
-            <p className={`font-semibold ${textColor} text-base mb-1 line-clamp-2`}>{product.name}</p>
-            <div className="flex items-center justify-between">
-              <p className="text-blue-600 font-bold text-lg">
-                {formatCurrency(product.base_price)}
-                {isWeightProduct && <span className="text-sm text-gray-400 font-normal">/kg</span>}
-              </p>
-              {isWeightProduct && <Scale className="w-4 h-4 text-orange-500" />}
-            </div>
-            {product.addons_count > 0 && (
-              <span className="text-xs text-orange-500 mt-1 block">+{product.addons_count} adicionais</span>
-            )}
-          </div>
-        </button>
-      )
-    }
 
     // FOTO MÉDIA
     if (layoutType === 'photo-md') {
@@ -129,20 +94,20 @@ export function ProductGrid({
         <button
           key={product.id}
           onClick={() => handleProductClick(product)}
-          className={`${cardBg} rounded-xl border ${borderColor} hover:border-blue-500 hover:shadow-md transition-all text-left group overflow-hidden`}
+          className={`${cardBg} rounded-xl border-2 ${borderColor} hover:border-blue-500 hover:shadow-lg active:scale-[0.98] transition-all text-left overflow-hidden`}
         >
-          <div className={`w-full aspect-[4/3] ${darkMode ? 'bg-gray-700' : 'bg-gray-100'} flex items-center justify-center overflow-hidden`}>
+          <div className={`w-full aspect-square ${darkMode ? 'bg-gray-700' : 'bg-gray-100'} flex items-center justify-center`}>
             {product.image_url ? (
-              <img src={product.image_url} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+              <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
             ) : (
-              <Package className={`w-10 h-10 ${mutedText}`} />
+              <Package className={`w-12 h-12 ${mutedText} opacity-40`} />
             )}
           </div>
           <div className="p-3">
-            <p className={`font-medium ${textColor} text-sm truncate`}>{product.name}</p>
-            <div className="flex items-center justify-between mt-1">
-              <p className="text-blue-600 font-bold text-sm">{formatCurrency(product.base_price)}</p>
-              {isWeightProduct && <Scale className="w-3 h-3 text-orange-500" />}
+            <p className={`font-semibold ${textColor} text-sm leading-tight line-clamp-2 min-h-[2.5rem]`}>{product.name}</p>
+            <div className="flex items-center justify-between mt-2">
+              <span className="text-blue-600 font-bold text-lg">{formatCurrency(product.base_price)}</span>
+              {isWeightProduct && <Scale className="w-4 h-4 text-orange-500" />}
             </div>
           </div>
         </button>
@@ -155,18 +120,18 @@ export function ProductGrid({
         <button
           key={product.id}
           onClick={() => handleProductClick(product)}
-          className={`${cardBg} rounded-lg border ${borderColor} hover:border-blue-500 transition-all text-left group overflow-hidden`}
+          className={`${cardBg} rounded-lg border ${borderColor} hover:border-blue-500 active:scale-[0.98] transition-all text-left overflow-hidden`}
         >
-          <div className={`w-full aspect-square ${darkMode ? 'bg-gray-700' : 'bg-gray-100'} flex items-center justify-center overflow-hidden`}>
+          <div className={`w-full aspect-square ${darkMode ? 'bg-gray-700' : 'bg-gray-100'} flex items-center justify-center`}>
             {product.image_url ? (
               <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
             ) : (
-              <Package className={`w-6 h-6 ${mutedText}`} />
+              <Package className={`w-8 h-8 ${mutedText} opacity-40`} />
             )}
           </div>
           <div className="p-2">
             <p className={`font-medium ${textColor} text-xs truncate`}>{product.name}</p>
-            <p className="text-blue-600 font-bold text-xs">{formatCurrency(product.base_price)}</p>
+            <p className="text-blue-600 font-bold text-sm">{formatCurrency(product.base_price)}</p>
           </div>
         </button>
       )
@@ -178,12 +143,12 @@ export function ProductGrid({
         <button
           key={product.id}
           onClick={() => handleProductClick(product)}
-          className={`${cardBg} rounded-lg border-2 ${borderColor} hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all p-3 text-left`}
+          className={`${cardBg} rounded-xl border-2 ${borderColor} hover:border-blue-500 hover:shadow-md active:scale-[0.98] transition-all p-4 text-left h-full flex flex-col justify-between`}
         >
-          <p className={`font-medium ${textColor} text-xs truncate mb-1`}>{product.name}</p>
-          <div className="flex items-center justify-between">
-            <p className="text-blue-600 font-bold text-sm">{formatCurrency(product.base_price)}</p>
-            {isWeightProduct && <Scale className="w-3 h-3 text-orange-500" />}
+          <p className={`font-semibold ${textColor} text-sm leading-tight line-clamp-2`}>{product.name}</p>
+          <div className="flex items-center justify-between mt-2">
+            <span className="text-blue-600 font-bold text-lg">{formatCurrency(product.base_price)}</span>
+            {isWeightProduct && <Scale className="w-4 h-4 text-orange-500" />}
           </div>
         </button>
       )
@@ -194,26 +159,22 @@ export function ProductGrid({
       <button
         key={product.id}
         onClick={() => handleProductClick(product)}
-        className={`${cardBg} ${cardBgHover} rounded-lg border ${borderColor} hover:border-blue-500 transition-all px-4 py-3 text-left flex items-center justify-between`}
+        className={`${cardBg} rounded-lg border ${borderColor} hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-gray-700 active:scale-[0.995] transition-all px-4 py-3 text-left flex items-center gap-4`}
       >
-        <div className="flex items-center gap-3 flex-1 min-w-0">
-          {product.image_url ? (
-            <img src={product.image_url} alt={product.name} className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
-          ) : (
-            <div className={`w-10 h-10 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-100'} flex items-center justify-center flex-shrink-0`}>
-              <Package className={`w-5 h-5 ${mutedText}`} />
-            </div>
-          )}
-          <div className="min-w-0 flex-1">
-            <p className={`font-medium ${textColor} text-sm truncate`}>{product.name}</p>
-            {product.category?.name && (
-              <p className={`text-xs ${mutedText} truncate`}>{product.category.name}</p>
-            )}
+        {product.image_url ? (
+          <img src={product.image_url} alt={product.name} className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
+        ) : (
+          <div className={`w-12 h-12 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-100'} flex items-center justify-center flex-shrink-0`}>
+            <Package className={`w-6 h-6 ${mutedText} opacity-40`} />
           </div>
+        )}
+        <div className="flex-1 min-w-0">
+          <p className={`font-semibold ${textColor} text-sm truncate`}>{product.name}</p>
+          {product.category?.name && <p className={`text-xs ${mutedText}`}>{product.category.name}</p>}
         </div>
-        <div className="flex items-center gap-2 ml-4">
+        <div className="flex items-center gap-3">
           {isWeightProduct && <Scale className="w-4 h-4 text-orange-500" />}
-          <p className="text-blue-600 font-bold text-base whitespace-nowrap">{formatCurrency(product.base_price)}</p>
+          <span className="text-blue-600 font-bold text-lg">{formatCurrency(product.base_price)}</span>
         </div>
       </button>
     )
@@ -221,113 +182,129 @@ export function ProductGrid({
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      {/* Barra de Busca e Controles */}
-      <div className="mb-4 flex gap-2 flex-wrap">
-        {/* Busca */}
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+      {/* BALANÇA GRANDE */}
+      <div className={`mb-4 p-4 rounded-2xl border-2 ${
+        scaleConnected 
+          ? 'border-green-500 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30' 
+          : 'border-gray-300 bg-gray-50 dark:bg-gray-800 dark:border-gray-600'
+      }`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className={`p-3 rounded-xl ${scaleConnected ? 'bg-green-500' : 'bg-gray-400'}`}>
+              <Scale className="w-8 h-8 text-white" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                {scaleConnected ? (
+                  <Wifi className="w-4 h-4 text-green-600" />
+                ) : (
+                  <WifiOff className="w-4 h-4 text-gray-400" />
+                )}
+                <span className={`text-sm font-medium ${scaleConnected ? 'text-green-600' : 'text-gray-500'}`}>
+                  {scaleConnected ? 'Balança Conectada' : 'Balança Offline'}
+                </span>
+              </div>
+              <p className={`text-xs ${mutedText}`}>Clique no produto para pesar</p>
+            </div>
+          </div>
+          <div className={`text-right px-6 py-2 rounded-xl ${scaleConnected ? 'bg-green-100 dark:bg-green-900/50' : 'bg-gray-100 dark:bg-gray-700'}`}>
+            <p className={`text-xs uppercase tracking-wider ${scaleConnected ? 'text-green-600' : 'text-gray-500'}`}>PESO</p>
+            <p className={`font-mono font-black text-4xl tracking-tight ${scaleConnected ? 'text-green-700 dark:text-green-400' : 'text-gray-400'}`}>
+              {scaleWeight.toFixed(3)}
+            </p>
+            <p className={`text-sm font-medium ${scaleConnected ? 'text-green-600' : 'text-gray-500'}`}>kg</p>
+          </div>
+        </div>
+      </div>
+
+      {/* BARRA DE BUSCA E CONTROLES */}
+      <div className="mb-4 flex gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
             id="search-input"
             type="text"
             placeholder="Buscar produto... (F1)"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className={`w-full pl-10 pr-4 py-3 ${cardBg} rounded-xl border-2 ${borderColor} focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none ${textColor} transition-all`}
+            className={`w-full pl-12 pr-4 py-3 ${cardBg} rounded-xl border-2 ${borderColor} focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 outline-none ${textColor} text-base transition-all`}
           />
         </div>
 
-        {/* Código de Barras */}
-        <div className="relative w-36">
-          <Barcode className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <div className="relative">
+          <Barcode className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
             type="text"
             placeholder="Código"
             value={barcodeInput}
             onChange={(e) => setBarcodeInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && onBarcodeSearch()}
-            className={`w-full pl-9 pr-3 py-3 ${cardBg} rounded-xl border ${borderColor} focus:border-blue-500 outline-none ${textColor} text-sm`}
+            className={`w-32 pl-10 pr-3 py-3 ${cardBg} rounded-xl border-2 ${borderColor} focus:border-blue-500 outline-none ${textColor}`}
           />
         </div>
 
-        {/* Visor da Balança */}
-        <div className={`flex items-center gap-2 px-4 py-2 rounded-xl border-2 ${
-          scaleConnected ? 'border-green-500 bg-green-50 dark:bg-green-900/20' : `${borderColor} ${cardBg}`
-        }`}>
-          <Scale className={`w-5 h-5 ${scaleConnected ? 'text-green-600' : mutedText}`} />
-          <div className="text-right">
-            <p className={`text-[10px] uppercase tracking-wide ${scaleConnected ? 'text-green-600' : mutedText}`}>
-              {scaleConnected ? 'Balança' : 'Offline'}
-            </p>
-            <p className={`font-mono font-bold text-lg leading-tight ${scaleConnected ? 'text-green-700' : mutedText}`}>
-              {scaleWeight.toFixed(3)}
-            </p>
-          </div>
-        </div>
-
-        {/* Seletor de Layout */}
-        <div className={`flex rounded-xl border ${borderColor} overflow-hidden ${cardBg}`}>
+        <div className={`flex rounded-xl border-2 ${borderColor} overflow-hidden ${cardBg}`}>
           {LAYOUTS.map(({ type, icon: Icon, label }) => (
             <button
               key={type}
               onClick={() => setLayoutType(type)}
-              className={`p-3 transition-all ${
+              className={`px-4 py-3 transition-all flex items-center gap-2 ${
                 layoutType === type 
                   ? 'bg-blue-600 text-white' 
-                  : `${cardBgHover} ${mutedText}`
+                  : `hover:bg-gray-100 dark:hover:bg-gray-700 ${mutedText}`
               }`}
               title={label}
             >
-              <Icon className="w-4 h-4" />
+              <Icon className="w-5 h-5" />
+              <span className="text-sm font-medium hidden lg:block">{label}</span>
             </button>
           ))}
         </div>
       </div>
 
-      {/* Categorias */}
+      {/* CATEGORIAS */}
       {categories.length > 0 && (
-        <div className="mb-4 flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
+        <div className="mb-4 flex gap-2 overflow-x-auto pb-2">
           <button
             onClick={() => setSelectedCategory(null)}
-            className={`px-4 py-2.5 rounded-xl whitespace-nowrap transition-all font-medium ${
+            className={`px-5 py-2.5 rounded-xl whitespace-nowrap transition-all font-semibold text-sm ${
               !selectedCategory 
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' 
-                : `${cardBg} ${textColor} border-2 ${borderColor} hover:border-blue-300`
+                ? 'bg-blue-600 text-white shadow-lg' 
+                : `${cardBg} ${textColor} border-2 ${borderColor} hover:border-blue-400`
             }`}
           >
-            🏷️ Todos
+            Todos ({products?.filter((p: any) => p.is_active).length || 0})
           </button>
-          {categories.map(cat => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-4 py-2.5 rounded-xl whitespace-nowrap transition-all font-medium ${
-                selectedCategory === cat 
-                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' 
-                  : `${cardBg} ${textColor} border-2 ${borderColor} hover:border-blue-300`
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
+          {categories.map(cat => {
+            const count = products?.filter((p: any) => p.is_active && p.category?.name === cat).length || 0
+            return (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={`px-5 py-2.5 rounded-xl whitespace-nowrap transition-all font-semibold text-sm ${
+                  selectedCategory === cat 
+                    ? 'bg-blue-600 text-white shadow-lg' 
+                    : `${cardBg} ${textColor} border-2 ${borderColor} hover:border-blue-400`
+                }`}
+              >
+                {cat} ({count})
+              </button>
+            )
+          })}
         </div>
       )}
 
-      {/* Contador de Produtos */}
-      <div className={`mb-3 text-sm ${mutedText}`}>
-        {filteredProducts.length} produto{filteredProducts.length !== 1 ? 's' : ''} encontrado{filteredProducts.length !== 1 ? 's' : ''}
-      </div>
-
-      {/* Grid de Produtos */}
-      <div className="flex-1 overflow-y-auto pr-2">
-        <div className={`grid ${getGridClass()}`}>
+      {/* GRID DE PRODUTOS */}
+      <div className="flex-1 overflow-y-auto">
+        <div className={`${getGridClass()}`}>
           {filteredProducts.map(renderProduct)}
         </div>
 
         {filteredProducts.length === 0 && (
-          <div className={`flex flex-col items-center justify-center py-20 ${mutedText}`}>
-            <Package className="w-16 h-16 mb-4 opacity-50" />
-            <p className="text-lg font-medium">Nenhum produto encontrado</p>
-            <p className="text-sm">Tente outra busca ou categoria</p>
+          <div className={`flex flex-col items-center justify-center py-16 ${mutedText}`}>
+            <Package className="w-20 h-20 mb-4 opacity-30" />
+            <p className="text-xl font-semibold">Nenhum produto encontrado</p>
+            <p className="text-sm mt-1">Tente outra busca ou categoria</p>
           </div>
         )}
       </div>
