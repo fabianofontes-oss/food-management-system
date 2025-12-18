@@ -21,8 +21,11 @@ export default async function StoreDashboardLayout({
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Verificar autenticação
-  if (!user) {
+  // DEMO MODE: slug "demo" não requer autenticação
+  const isDemoMode = params.slug === 'demo'
+
+  // Verificar autenticação (exceto modo demo)
+  if (!user && !isDemoMode) {
     redirect('/login')
   }
 
@@ -33,30 +36,32 @@ export default async function StoreDashboardLayout({
     .eq('slug', params.slug)
     .single()
 
-  // Se loja não existe, mostra 404
-  if (!store?.id) {
+  // Se loja não existe e não é demo, mostra 404
+  if (!store?.id && !isDemoMode) {
     redirect('/404')
   }
 
-  // Verificar se usuário tem acesso à loja
-  const { data: storeUser } = await supabase
-    .from('store_users')
-    .select('id')
-    .eq('store_id', store.id)
-    .eq('user_id', user.id)
-    .single()
+  // Verificar se usuário tem acesso à loja (exceto modo demo)
+  if (!isDemoMode) {
+    const { data: storeUser } = await supabase
+      .from('store_users')
+      .select('id')
+      .eq('store_id', store.id)
+      .eq('user_id', user!.id)
+      .single()
 
-  // Super admin tem acesso a todas as lojas
-  const isAdmin = await isSuperAdmin(user.email || '')
-  
-  if (!storeUser && !isAdmin) {
-    redirect('/unauthorized')
+    // Super admin tem acesso a todas as lojas
+    const isAdmin = await isSuperAdmin(user!.email || '')
+    
+    if (!storeUser && !isAdmin) {
+      redirect('/unauthorized')
+    }
   }
 
-  const storeId = store.id
+  const storeId = store?.id || 'demo'
   
-  // Buscar módulos disponíveis do plano
-  const availableModules = await getStoreModules(storeId)
+  // Buscar módulos disponíveis do plano (todos liberados para demo)
+  const availableModules = isDemoMode ? [] : await getStoreModules(storeId)
 
   // Validate and ensure type safety
   const validLocale: SupportedLocale = isValidLocale(language) ? language : 'pt-BR'
