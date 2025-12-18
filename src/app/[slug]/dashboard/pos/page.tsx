@@ -154,30 +154,43 @@ export default function PDVPage() {
     <div className={`h-screen flex ${bg} transition-colors`}>
       {/* Painel de Produtos */}
       <div className="flex-1 flex flex-col p-4 overflow-hidden">
-        {/* Header */}
+        {/* Header - Barra de Status */}
         <div className="mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className={`${cardBg} rounded-xl px-4 py-2 flex items-center gap-3`}>
-              <TrendingUp className="w-5 h-5 text-green-500" />
+          <div className="flex items-center gap-2">
+            {/* Vendas Hoje */}
+            <div className="bg-gradient-to-r from-emerald-500 to-green-600 rounded-xl px-4 py-3 flex items-center gap-3 shadow-lg">
+              <div className="p-2 bg-white/20 rounded-lg">
+                <TrendingUp className="w-5 h-5 text-white" />
+              </div>
               <div>
-                <p className={`text-xs ${mutedText}`}>Vendas Hoje</p>
-                <p className={`font-bold ${textColor}`}>{formatCurrency(pdv.stats.todaySales)}</p>
+                <p className="text-xs text-white/80 font-medium">Vendas Hoje</p>
+                <p className="font-bold text-white text-lg">{formatCurrency(pdv.stats.todaySales)}</p>
               </div>
             </div>
-            <div className={`${cardBg} rounded-xl px-4 py-2 flex items-center gap-3`}>
-              <ShoppingCart className="w-5 h-5 text-blue-500" />
+            
+            {/* Pedidos */}
+            <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl px-4 py-3 flex items-center gap-3 shadow-lg">
+              <div className="p-2 bg-white/20 rounded-lg">
+                <ShoppingCart className="w-5 h-5 text-white" />
+              </div>
               <div>
-                <p className={`text-xs ${mutedText}`}>Pedidos</p>
-                <p className={`font-bold ${textColor}`}>{pdv.stats.todayOrders}</p>
+                <p className="text-xs text-white/80 font-medium">Pedidos</p>
+                <p className="font-bold text-white text-lg">{pdv.stats.todayOrders}</p>
               </div>
             </div>
-            <div className={`${cardBg} rounded-xl px-4 py-2 flex items-center gap-3`}>
-              <User className="w-5 h-5 text-purple-500" />
+            
+            {/* Atendente */}
+            <div className="bg-gradient-to-r from-violet-500 to-purple-600 rounded-xl px-4 py-3 flex items-center gap-3 shadow-lg">
+              <div className="p-2 bg-white/20 rounded-lg">
+                <User className="w-5 h-5 text-white" />
+              </div>
               <div>
-                <p className={`text-xs ${mutedText}`}>Atendente</p>
-                <p className={`font-bold ${textColor}`}>{pdv.attendant}</p>
+                <p className="text-xs text-white/80 font-medium">Atendente</p>
+                <p className="font-bold text-white text-lg">{pdv.attendant}</p>
               </div>
             </div>
+            
+            {/* Caixa */}
             {storeId && (
               <CashRegister
                 storeId={storeId}
@@ -188,12 +201,13 @@ export default function PDVPage() {
               />
             )}
           </div>
+          
           <div className="flex items-center gap-2">
-            <button onClick={() => setDarkMode(!darkMode)} className={`p-2 rounded-lg ${cardBg} ${borderColor} border`}>
-              {darkMode ? <Sun className="w-5 h-5 text-yellow-500" /> : <Moon className={`w-5 h-5 ${mutedText}`} />}
+            <button onClick={() => setDarkMode(!darkMode)} className={`p-2.5 rounded-xl ${cardBg} border ${borderColor} hover:border-blue-400 transition-colors`}>
+              {darkMode ? <Sun className="w-5 h-5 text-amber-400" /> : <Moon className="w-5 h-5 text-gray-400" />}
             </button>
-            <button onClick={toggleFullscreen} className={`p-2 rounded-lg ${cardBg} ${borderColor} border`}>
-              {isFullscreen ? <Minimize className={`w-5 h-5 ${mutedText}`} /> : <Maximize className={`w-5 h-5 ${mutedText}`} />}
+            <button onClick={toggleFullscreen} className={`p-2.5 rounded-xl ${cardBg} border ${borderColor} hover:border-blue-400 transition-colors`}>
+              {isFullscreen ? <Minimize className="w-5 h-5 text-gray-400" /> : <Maximize className="w-5 h-5 text-gray-400" />}
             </button>
           </div>
         </div>
