@@ -2,7 +2,7 @@
 
 import { createContext, useContext } from 'react'
 import {
-  LayoutDashboard, ShoppingCart, ChefHat, Truck, 
+  LayoutDashboard, ChefHat, Truck, 
   Package, Settings, Users, ShoppingBag, UserCog, BarChart3, 
   Ticket, DollarSign, Warehouse, LayoutGrid, PieChart, Star, 
   Megaphone, CalendarDays, LogOut, Coffee, Palette, Sparkles, Store
@@ -20,7 +20,6 @@ export function useDashboardStoreId() {
 const ROUTE_TO_MODULE: Record<string, string> = {
   'orders': 'orders',
   'kitchen': 'kitchen',
-  'pos': 'pos',
   'products': 'products',
   'addons': 'addons',
   'inventory': 'inventory',
@@ -71,8 +70,6 @@ export default function DashboardClient({
         { href: base, label: 'Dashboard', icon: LayoutDashboard, gradient: 'from-violet-500 to-purple-600' },
         { href: `${base}/orders`, label: 'Pedidos', icon: ShoppingBag, gradient: 'from-blue-500 to-cyan-600' },
         hasModule('kitchen') && { href: `${base}/kitchen`, label: 'Cozinha (KDS)', icon: ChefHat, gradient: 'from-red-500 to-rose-600' },
-        hasModule('pos') && { href: `${base}/pos`, label: 'PDV', icon: ShoppingCart, gradient: 'from-emerald-500 to-teal-600' },
-        hasModule('pos_new') && { href: `${base}/pos-new`, label: 'PDV Novo', icon: ShoppingCart, gradient: 'from-teal-500 to-emerald-600' },
       ].filter(Boolean) as SidebarSection['items']
     },
     {
@@ -126,7 +123,6 @@ export default function DashboardClient({
         { href: `${base}/settings/store`, label: 'Dados da Loja', icon: Store, gradient: 'from-emerald-500 to-green-600' },
         hasModule('appearance') && { href: `${base}/appearance`, label: 'Aparência', icon: Palette, gradient: 'from-purple-500 to-fuchsia-600' },
         hasModule('onboarding') && { href: `${base}/onboarding`, label: 'Onboarding', icon: Sparkles, gradient: 'from-violet-500 to-purple-600' },
-        hasModule('pos') && { href: `${base}/settings/pdv`, label: 'Config PDV', icon: Settings, gradient: 'from-blue-500 to-indigo-600' },
         { href: `${base}/settings`, label: 'Avançado', icon: Settings, gradient: 'from-slate-500 to-slate-600' },
       ].filter(Boolean) as SidebarSection['items']
     },

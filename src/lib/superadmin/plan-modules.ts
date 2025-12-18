@@ -71,20 +71,6 @@ export const PLAN_MODULES: PlanModule[] = [
 
   // === VENDAS ===
   {
-    id: 'pos',
-    name: 'PDV (Ponto de Venda)',
-    description: 'Venda no balcão com interface otimizada',
-    category: 'sales',
-    icon: 'Monitor'
-  },
-  {
-    id: 'pos_new',
-    name: 'PDV Novo (Beta)',
-    description: 'Nova versão do PDV com mais recursos',
-    category: 'sales',
-    icon: 'Monitor'
-  },
-  {
     id: 'delivery',
     name: 'Delivery',
     description: 'Gestão de entregas e entregadores',

@@ -74,49 +74,6 @@ export interface PrinterSettings {
   customerCopy: boolean
 }
 
-export interface PDVSettings {
-  enabled: boolean
-  theme: 'light' | 'dark' | 'auto'
-  layout: 'grid' | 'list' | 'compact'
-  productSize: 'small' | 'medium' | 'large'
-  showImages: boolean
-  fontSize: 'small' | 'medium' | 'large'
-  primaryColor: string
-  showStock: boolean
-  lowStockAlert: number
-  hideOutOfStock: boolean
-  barcodeEnabled: boolean
-  scaleEnabled: boolean
-  openDrawer: boolean
-  soundEnabled: boolean
-  autoPrint: boolean
-  printCopies: string
-  printCustomerCopy: boolean
-  printKitchen: boolean
-  discountEnabled: boolean
-  maxDiscount: number
-  managerDiscount: number
-  requireCustomer: boolean
-  allowObs: boolean
-  cancelItemPassword: boolean
-  reprintPassword: boolean
-  defaultPayment: 'money' | 'debit' | 'credit' | 'pix'
-  allowSplitPayment: boolean
-  calculateChange: boolean
-  tipEnabled: boolean
-  tipSuggestions: string
-  sangriaEnabled: boolean
-  suprimentoEnabled: boolean
-  blindClose: boolean
-  autoLogout: number
-  shiftRequired: boolean
-  quickSale: boolean
-  shortcutF1: string
-  shortcutF2: string
-  shortcutF3: string
-  shortcutF4: string
-}
-
 export interface SalesSettings {
   delivery: DeliverySettings
   pickup: PickupSettings
@@ -126,7 +83,6 @@ export interface SalesSettings {
   inventory: InventorySettings
   kitchen: KitchenSettings
   printer: PrinterSettings
-  pdv: PDVSettings
 }
 
 // ============================================
@@ -342,22 +298,7 @@ export const DEFAULT_STORE_SETTINGS: StoreSettings = {
     reservations: { enabled: false, duration: 90, maxParty: 20, advanceDays: 30 },
     inventory: { enabled: false, lowAlert: 10, autoDeduct: true },
     kitchen: { enabled: true, autoAccept: false, prepAlert: 30 },
-    printer: { enabled: false, auto: false, type: 'thermal80', customerCopy: true },
-    pdv: {
-      enabled: true, theme: 'light', layout: 'grid', productSize: 'medium',
-      showImages: true, fontSize: 'medium', primaryColor: '#8B5CF6',
-      showStock: true, lowStockAlert: 5, hideOutOfStock: false,
-      barcodeEnabled: true, scaleEnabled: false, openDrawer: true,
-      soundEnabled: true, autoPrint: true, printCopies: '1',
-      printCustomerCopy: false, printKitchen: true, discountEnabled: true,
-      maxDiscount: 10, managerDiscount: 30, requireCustomer: false,
-      allowObs: true, cancelItemPassword: false, reprintPassword: false,
-      defaultPayment: 'money', allowSplitPayment: true, calculateChange: true,
-      tipEnabled: false, tipSuggestions: '5,10,15', sangriaEnabled: true,
-      suprimentoEnabled: true, blindClose: false, autoLogout: 0,
-      shiftRequired: false, quickSale: true, shortcutF1: 'search',
-      shortcutF2: 'quick_sale', shortcutF3: 'discount', shortcutF4: 'cancel'
-    }
+    printer: { enabled: false, auto: false, type: 'thermal80', customerCopy: true }
   },
   payments: {
     cash: true,
@@ -396,8 +337,7 @@ export function mergeWithDefaults(partial: Partial<StoreSettings> | null): Store
       reservations: { ...DEFAULT_STORE_SETTINGS.sales.reservations, ...partial.sales?.reservations },
       inventory: { ...DEFAULT_STORE_SETTINGS.sales.inventory, ...partial.sales?.inventory },
       kitchen: { ...DEFAULT_STORE_SETTINGS.sales.kitchen, ...partial.sales?.kitchen },
-      printer: { ...DEFAULT_STORE_SETTINGS.sales.printer, ...partial.sales?.printer },
-      pdv: { ...DEFAULT_STORE_SETTINGS.sales.pdv, ...partial.sales?.pdv }
+      printer: { ...DEFAULT_STORE_SETTINGS.sales.printer, ...partial.sales?.printer }
     },
     payments: {
       ...DEFAULT_STORE_SETTINGS.payments,

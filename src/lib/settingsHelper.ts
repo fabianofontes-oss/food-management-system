@@ -11,7 +11,6 @@ export class SettingsHelper {
   }
 
   // Funcionalidades Principais
-  get isPOSEnabled() { return (this.s.sales?.pdv?.enabled ?? this.s.enable_pos ?? false) as boolean }
   get isKitchenEnabled() { return (this.s.sales?.kitchen?.enabled ?? this.s.enable_kitchen ?? false) as boolean }
   get isDeliveryEnabled() { return (this.s.sales?.delivery?.enabled ?? this.s.enable_delivery ?? false) as boolean }
   get isDineInEnabled() { return (this.s.sales?.tables?.enabled ?? this.s.enable_dine_in ?? false) as boolean }

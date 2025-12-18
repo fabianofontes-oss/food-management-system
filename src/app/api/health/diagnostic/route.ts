@@ -216,19 +216,6 @@ export async function GET(request: NextRequest) {
     const sales = settings.sales || {}
     const payments = settings.payments || {}
 
-    // PDV
-    features.push({
-      id: 'pdv',
-      name: 'PDV (Ponto de Venda)',
-      category: 'Funcionalidades',
-      status: sales.pdv?.enabled !== false ? 'working' : 'not_configured',
-      message: sales.pdv?.enabled !== false ? 'Habilitado' : 'Desabilitado nas configurações',
-      details: [
-        `Tema: ${sales.pdv?.theme || 'light'}`,
-        `Layout: ${sales.pdv?.layout || 'grid'}`
-      ]
-    })
-
     // Delivery
     features.push({
       id: 'delivery',

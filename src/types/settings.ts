@@ -68,49 +68,6 @@ export interface PrinterSettings {
   customerCopy: boolean
 }
 
-export interface PDVSettings {
-  enabled: boolean
-  theme: 'light' | 'dark' | 'auto'
-  layout: 'grid' | 'list' | 'compact'
-  productSize: 'small' | 'medium' | 'large'
-  showImages: boolean
-  fontSize: 'small' | 'medium' | 'large'
-  primaryColor: string
-  showStock: boolean
-  lowStockAlert: number
-  hideOutOfStock: boolean
-  barcodeEnabled: boolean
-  scaleEnabled: boolean
-  openDrawer: boolean
-  soundEnabled: boolean
-  autoPrint: boolean
-  printCopies: string
-  printCustomerCopy: boolean
-  printKitchen: boolean
-  discountEnabled: boolean
-  maxDiscount: number
-  managerDiscount: number
-  requireCustomer: boolean
-  allowObs: boolean
-  cancelItemPassword: boolean
-  reprintPassword: boolean
-  defaultPayment: 'money' | 'debit' | 'credit' | 'pix'
-  allowSplitPayment: boolean
-  calculateChange: boolean
-  tipEnabled: boolean
-  tipSuggestions: string
-  sangriaEnabled: boolean
-  suprimentoEnabled: boolean
-  blindClose: boolean
-  autoLogout: number
-  shiftRequired: boolean
-  quickSale: boolean
-  shortcutF1: string
-  shortcutF2: string
-  shortcutF3: string
-  shortcutF4: string
-}
-
 export interface SalesSettings {
   delivery: DeliverySettings
   pickup: PickupSettings
@@ -120,7 +77,6 @@ export interface SalesSettings {
   inventory: InventorySettings
   kitchen: KitchenSettings
   printer: PrinterSettings
-  pdv: PDVSettings
 }
 
 // ============================================
@@ -310,49 +266,6 @@ export const DEFAULT_PRINTER_SETTINGS: PrinterSettings = {
   customerCopy: true
 }
 
-export const DEFAULT_PDV_SETTINGS: PDVSettings = {
-  enabled: true,
-  theme: 'light',
-  layout: 'grid',
-  productSize: 'medium',
-  showImages: true,
-  fontSize: 'medium',
-  primaryColor: '#8B5CF6',
-  showStock: true,
-  lowStockAlert: 5,
-  hideOutOfStock: false,
-  barcodeEnabled: true,
-  scaleEnabled: false,
-  openDrawer: true,
-  soundEnabled: true,
-  autoPrint: true,
-  printCopies: '1',
-  printCustomerCopy: false,
-  printKitchen: true,
-  discountEnabled: true,
-  maxDiscount: 10,
-  managerDiscount: 30,
-  requireCustomer: false,
-  allowObs: true,
-  cancelItemPassword: false,
-  reprintPassword: false,
-  defaultPayment: 'money',
-  allowSplitPayment: true,
-  calculateChange: true,
-  tipEnabled: false,
-  tipSuggestions: '5,10,15',
-  sangriaEnabled: true,
-  suprimentoEnabled: true,
-  blindClose: false,
-  autoLogout: 0,
-  shiftRequired: false,
-  quickSale: true,
-  shortcutF1: 'search',
-  shortcutF2: 'quick_sale',
-  shortcutF3: 'discount',
-  shortcutF4: 'cancel'
-}
-
 export const DEFAULT_SALES_SETTINGS: SalesSettings = {
   delivery: DEFAULT_DELIVERY_SETTINGS,
   pickup: DEFAULT_PICKUP_SETTINGS,
@@ -361,8 +274,7 @@ export const DEFAULT_SALES_SETTINGS: SalesSettings = {
   reservations: DEFAULT_RESERVATIONS_SETTINGS,
   inventory: DEFAULT_INVENTORY_SETTINGS,
   kitchen: DEFAULT_KITCHEN_SETTINGS,
-  printer: DEFAULT_PRINTER_SETTINGS,
-  pdv: DEFAULT_PDV_SETTINGS
+  printer: DEFAULT_PRINTER_SETTINGS
 }
 
 export const DEFAULT_PIX_SETTINGS: PixSettings = {
