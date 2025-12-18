@@ -6,10 +6,38 @@ import {
   Activity, Database, Wrench, Wand2, Camera, Printer, 
   Link2, Heart, ArrowRight, Zap, RefreshCw, CheckCircle,
   AlertCircle, XCircle, Clock, Server, Wifi, HardDrive,
-  CreditCard, Shield, Globe, Loader2
+  CreditCard, Shield, Globe, Loader2, Settings, Gauge
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+
+interface FeatureStatus {
+  id: string
+  name: string
+  category: string
+  status: 'working' | 'broken' | 'incomplete' | 'not_configured'
+  message: string
+  details?: string[]
+  fixAction?: string
+}
+
+interface DiagnosticResult {
+  timestamp: string
+  summary: {
+    total: number
+    working: number
+    broken: number
+    incomplete: number
+    notConfigured: number
+    healthScore: number
+  }
+  features: FeatureStatus[]
+  byCategory: {
+    category: string
+    features: FeatureStatus[]
+    score: number
+  }[]
+}
 
 interface HealthCheck {
   name: string
@@ -175,15 +203,24 @@ const colorClasses: Record<string, { bg: string; border: string; icon: string; h
 
 export default function HealthPage() {
   const [health, setHealth] = useState<SystemHealth | null>(null)
+  const [diagnostic, setDiagnostic] = useState<DiagnosticResult | null>(null)
   const [loading, setLoading] = useState(true)
   const [lastCheck, setLastCheck] = useState<Date | null>(null)
 
   async function checkHealth() {
     setLoading(true)
     try {
-      const response = await fetch('/api/health/status')
-      const data = await response.json()
-      setHealth(data)
+      // Carregar ambos em paralelo
+      const [healthRes, diagnosticRes] = await Promise.all([
+        fetch('/api/health/status'),
+        fetch('/api/health/diagnostic')
+      ])
+      
+      const healthData = await healthRes.json()
+      const diagnosticData = await diagnosticRes.json()
+      
+      setHealth(healthData)
+      setDiagnostic(diagnosticData)
       setLastCheck(new Date())
     } catch (error) {
       console.error('Erro ao verificar saúde:', error)
@@ -204,6 +241,25 @@ export default function HealthPage() {
     degraded: { label: 'Degradado', color: 'text-yellow-600', bg: 'bg-yellow-100', icon: AlertCircle },
     down: { label: 'Fora do Ar', color: 'text-red-600', bg: 'bg-red-100', icon: XCircle },
     unknown: { label: 'Desconhecido', color: 'text-gray-600', bg: 'bg-gray-100', icon: Clock }
+  }
+
+  const diagnosticStatusConfig = {
+    working: { label: 'OK', color: 'text-green-600', bg: 'bg-green-50 border-green-200', icon: CheckCircle },
+    broken: { label: 'Erro', color: 'text-red-600', bg: 'bg-red-50 border-red-200', icon: XCircle },
+    incomplete: { label: 'Incompleto', color: 'text-yellow-600', bg: 'bg-yellow-50 border-yellow-200', icon: AlertCircle },
+    not_configured: { label: 'Não Config.', color: 'text-gray-500', bg: 'bg-gray-50 border-gray-200', icon: Settings }
+  }
+
+  // Problemas que precisam de atenção
+  const brokenFeatures = diagnostic?.features.filter(f => f.status === 'broken') || []
+  const incompleteFeatures = diagnostic?.features.filter(f => f.status === 'incomplete') || []
+  const hasProblems = brokenFeatures.length > 0 || incompleteFeatures.length > 0
+
+  const getScoreColor = (score: number) => {
+    if (score >= 80) return 'text-green-600'
+    if (score >= 60) return 'text-yellow-600'
+    if (score >= 40) return 'text-orange-600'
+    return 'text-red-600'
   }
 
   const formatUptime = (seconds: number) => {
@@ -319,13 +375,105 @@ export default function HealthPage() {
             </div>
           )}
 
-          {/* Checks Detalhados */}
+          {/* DIAGNÓSTICO AUTOMÁTICO - Score e Problemas */}
+          {diagnostic && (
+            <Card className={`mb-6 border-2 ${
+              diagnostic.summary.healthScore >= 80 ? 'border-green-300 bg-green-50' :
+              diagnostic.summary.healthScore >= 60 ? 'border-yellow-300 bg-yellow-50' :
+              'border-red-300 bg-red-50'
+            }`}>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <Gauge className={`w-8 h-8 ${getScoreColor(diagnostic.summary.healthScore)}`} />
+                    <div>
+                      <h3 className="font-bold text-lg text-slate-800">Diagnóstico Automático</h3>
+                      <p className="text-sm text-slate-600">
+                        {diagnostic.summary.working} de {diagnostic.summary.total} funcionando
+                      </p>
+                    </div>
+                  </div>
+                  <div className={`text-4xl font-bold ${getScoreColor(diagnostic.summary.healthScore)}`}>
+                    {diagnostic.summary.healthScore}%
+                  </div>
+                </div>
+
+                {/* Resumo de Status */}
+                <div className="grid grid-cols-4 gap-3 mb-4">
+                  <div className="text-center p-2 bg-white rounded-lg">
+                    <div className="text-xl font-bold text-green-600">{diagnostic.summary.working}</div>
+                    <div className="text-xs text-gray-500">OK</div>
+                  </div>
+                  <div className="text-center p-2 bg-white rounded-lg">
+                    <div className="text-xl font-bold text-red-600">{diagnostic.summary.broken}</div>
+                    <div className="text-xs text-gray-500">Erro</div>
+                  </div>
+                  <div className="text-center p-2 bg-white rounded-lg">
+                    <div className="text-xl font-bold text-yellow-600">{diagnostic.summary.incomplete}</div>
+                    <div className="text-xs text-gray-500">Incompleto</div>
+                  </div>
+                  <div className="text-center p-2 bg-white rounded-lg">
+                    <div className="text-xl font-bold text-gray-500">{diagnostic.summary.notConfigured}</div>
+                    <div className="text-xs text-gray-500">Opcional</div>
+                  </div>
+                </div>
+
+                {/* Problemas Detectados */}
+                {hasProblems && (
+                  <div className="border-t pt-4">
+                    <h4 className="font-bold text-red-700 mb-3 flex items-center gap-2">
+                      <AlertCircle className="w-5 h-5" />
+                      Problemas Detectados ({brokenFeatures.length + incompleteFeatures.length})
+                    </h4>
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                      {brokenFeatures.map((feature, idx) => (
+                        <div key={`broken-${idx}`} className="flex items-center justify-between p-2 bg-red-100 rounded-lg border border-red-200">
+                          <div className="flex items-center gap-2">
+                            <XCircle className="w-4 h-4 text-red-600" />
+                            <span className="font-medium text-red-800">{feature.name}</span>
+                          </div>
+                          <span className="text-xs text-red-600">{feature.message}</span>
+                        </div>
+                      ))}
+                      {incompleteFeatures.map((feature, idx) => (
+                        <div key={`incomplete-${idx}`} className="flex items-center justify-between p-2 bg-yellow-100 rounded-lg border border-yellow-200">
+                          <div className="flex items-center gap-2">
+                            <AlertCircle className="w-4 h-4 text-yellow-600" />
+                            <span className="font-medium text-yellow-800">{feature.name}</span>
+                          </div>
+                          <span className="text-xs text-yellow-600">{feature.message}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {!hasProblems && (
+                  <div className="border-t pt-4 text-center">
+                    <CheckCircle className="w-8 h-8 text-green-500 mx-auto mb-2" />
+                    <p className="text-green-700 font-medium">Nenhum problema crítico detectado!</p>
+                  </div>
+                )}
+
+                <div className="mt-4 text-center">
+                  <Link 
+                    href="/admin/health/diagnostic" 
+                    className="text-sm text-blue-600 hover:underline"
+                  >
+                    Ver diagnóstico detalhado →
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Checks Detalhados da Infraestrutura */}
           {health && (
             <Card className="mb-8">
               <CardContent className="p-6">
                 <h3 className="font-bold text-lg text-slate-800 mb-4 flex items-center gap-2">
                   <Shield className="w-5 h-5" />
-                  Verificações de Saúde
+                  Infraestrutura
                 </h3>
                 <div className="space-y-3">
                   {health.checks.map((check, index) => {
