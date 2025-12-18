@@ -1,6 +1,33 @@
 /**
- * Módulos disponíveis para ativar/desativar nos planos
- * Cada módulo corresponde a uma funcionalidade no dashboard do lojista
+ * ============================================================
+ * MÓDULOS DO SISTEMA - CONTROLE POR PLANO
+ * ============================================================
+ * 
+ * REGRA OBRIGATÓRIA:
+ * Sempre que adicionar uma nova funcionalidade/página no dashboard,
+ * você DEVE adicionar o módulo aqui para que o Super Admin possa
+ * ativar/desativar por plano.
+ * 
+ * PASSOS:
+ * 1. Adicione o módulo no array PLAN_MODULES abaixo
+ * 2. Adicione no menu em DashboardClient.tsx com hasModule('id')
+ * 
+ * ESTRUTURA:
+ * {
+ *   id: 'nome_unico',           // ID único do módulo
+ *   name: 'Nome Exibido',       // Nome no painel de planos
+ *   description: 'Descrição',   // Descrição curta
+ *   category: 'sales',          // core|sales|operations|marketing|advanced
+ *   icon: 'NomeLucide'          // Nome do ícone Lucide
+ * }
+ * 
+ * CATEGORIAS:
+ * - core: Sempre incluídos (não podem ser desativados)
+ * - sales: Funcionalidades de venda (PDV, Mesas, Delivery)
+ * - operations: Gestão interna (Cozinha, Estoque, Financeiro)
+ * - marketing: Promoções e clientes (Cupons, CRM, Campanhas)
+ * - advanced: Funcionalidades extras (Analytics, Relatórios)
+ * ============================================================
  */
 
 export interface PlanModule {
