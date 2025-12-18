@@ -8,7 +8,7 @@ export const ACOUGUE_TEMPLATE: NicheTemplate = {
   icon: 'Beef',
   color: '#B91C1C',
   
-  modules: createModules(['menu', 'orders', 'delivery', 'pos', 'weight', 'inventory', 'reports']),
+  modules: createModules(['menu', 'orders', 'delivery', 'weight', 'inventory', 'reports']),
   
   categories: [
     { name: 'Bovinos', icon: '🥩', sort_order: 0 },

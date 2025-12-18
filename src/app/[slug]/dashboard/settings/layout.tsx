@@ -31,16 +31,6 @@ export default function SettingsLayout({
             {/* Botões de Navegação - Sempre Visíveis */}
             <div className="flex items-center gap-2">
               <Button
-                variant="outline"
-                size="sm"
-                onClick={() => router.push(`${base}/pos`)}
-                className="hidden sm:flex items-center gap-2 h-10 px-4 border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-300"
-              >
-                <ShoppingCart className="w-4 h-4" />
-                <span>Voltar ao PDV</span>
-              </Button>
-              
-              <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => router.push(base)}
@@ -48,16 +38,6 @@ export default function SettingsLayout({
               >
                 <LayoutDashboard className="w-4 h-4" />
                 <span>Dashboard</span>
-              </Button>
-
-              {/* Mobile: Botão compacto */}
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => router.push(`${base}/pos`)}
-                className="sm:hidden min-w-[44px] min-h-[44px] border-emerald-200 text-emerald-700"
-              >
-                <ShoppingCart className="w-5 h-5" />
               </Button>
               
               <Button

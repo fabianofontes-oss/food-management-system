@@ -9,7 +9,7 @@ export const SUSHI_JAPONES_TEMPLATE: NicheTemplate = {
   icon: 'Fish',
   color: '#0891B2',
   
-  modules: createModules(['menu', 'orders', 'delivery', 'pos', 'kitchen', 'tables', 'rodizio', 'loyalty', 'reports', 'mimo']),
+  modules: createModules(['menu', 'orders', 'delivery', 'kitchen', 'tables', 'rodizio', 'loyalty', 'reports', 'mimo']),
   
   categories: [
     { name: 'Sushis', icon: '🍣', sort_order: 0 },

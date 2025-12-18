@@ -62,7 +62,6 @@ export const BASE_MODULES: NicheModule[] = [
   { id: 'menu', name: 'Cardápio Digital', enabled: true },
   { id: 'orders', name: 'Pedidos', enabled: true },
   { id: 'delivery', name: 'Delivery', enabled: true },
-  { id: 'pos', name: 'PDV', enabled: true },
   { id: 'kitchen', name: 'Cozinha (KDS)', enabled: true },
   { id: 'tables', name: 'Mesas', enabled: false },
   { id: 'tabs', name: 'Comanda Aberta', enabled: false },

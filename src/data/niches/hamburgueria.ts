@@ -9,7 +9,7 @@ export const HAMBURGUERIA_TEMPLATE: NicheTemplate = {
   icon: 'Beef',
   color: '#DC2626',
   
-  modules: createModules(['menu', 'orders', 'delivery', 'pos', 'kitchen', 'tables', 'loyalty', 'reports', 'inventory', 'mimo']),
+  modules: createModules(['menu', 'orders', 'delivery', 'kitchen', 'tables', 'loyalty', 'reports', 'inventory', 'mimo']),
   
   categories: [
     { name: 'Hambúrgueres', icon: '🍔', sort_order: 0 },

@@ -8,42 +8,6 @@ import type { Module } from './types'
 
 export const SALES_MODULES: Module[] = [
   {
-    id: 'pdv',
-    name: 'PDV (Ponto de Venda)',
-    description: 'Sistema de caixa completo',
-    longDescription: 'Configure o comportamento do sistema de caixa, impressão, descontos e interface.',
-    icon: <Monitor className="w-6 h-6" />,
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-100',
-    category: 'sales',
-    configPage: '/dashboard/settings/pdv',
-    hasCustomCard: true,
-    settings: [
-      { key: 'pdv_enabled', label: 'Sistema PDV Ativo', description: 'Habilita o módulo de vendas no balcão', type: 'toggle', icon: <Monitor className="w-4 h-4" />, defaultValue: true },
-      { key: 'pdv_layout', label: 'Layout da Tela', description: 'Como organizar produtos e carrinho', type: 'select', icon: <LayoutGrid className="w-4 h-4" />, options: [{ value: 'grid', label: 'Grade de Produtos' }, { value: 'list', label: 'Lista Vertical' }, { value: 'compact', label: 'Compacto (mais itens)' }], defaultValue: 'grid' },
-      { key: 'pdv_product_size', label: 'Tamanho dos Cards', description: 'Tamanho dos produtos na grade', type: 'select', icon: <Grid3X3 className="w-4 h-4" />, options: [{ value: 'small', label: 'Pequeno (80px)' }, { value: 'medium', label: 'Médio (120px)' }, { value: 'large', label: 'Grande (160px)' }], defaultValue: 'medium' },
-      { key: 'pdv_show_images', label: 'Exibir Fotos dos Produtos', description: 'Mostra imagem nos cards', type: 'toggle', icon: <Image className="w-4 h-4" />, defaultValue: true },
-      { key: 'pdv_show_stock', label: 'Exibir Estoque Disponível', description: 'Mostra quantidade em estoque', type: 'toggle', icon: <Package className="w-4 h-4" />, defaultValue: true },
-      { key: 'pdv_low_stock_alert', label: 'Alerta de Estoque Baixo', description: 'Destaca produtos com pouco estoque', type: 'number', icon: <Bell className="w-4 h-4" />, placeholder: '5', defaultValue: 5 },
-      { key: 'pdv_barcode_enabled', label: 'Leitor de Código de Barras', description: 'Busca produto por código', type: 'toggle', icon: <ScanBarcode className="w-4 h-4" />, defaultValue: true },
-      { key: 'pdv_scale_enabled', label: 'Integração com Balança', description: 'Para produtos vendidos por peso', type: 'toggle', icon: <Scale className="w-4 h-4" />, defaultValue: false },
-      { key: 'pdv_discount_enabled', label: 'Permitir Descontos', description: 'Operador pode dar desconto', type: 'toggle', icon: <Percent className="w-4 h-4" />, defaultValue: true },
-      { key: 'pdv_max_discount', label: 'Desconto Máximo (%)', description: 'Limite de desconto sem gerente', type: 'number', icon: <Percent className="w-4 h-4" />, placeholder: '10', defaultValue: 10, suffix: '%' },
-      { key: 'pdv_manager_discount', label: 'Desconto com Senha Gerente (%)', description: 'Desconto máximo com autorização', type: 'number', icon: <Percent className="w-4 h-4" />, placeholder: '30', defaultValue: 30, suffix: '%' },
-      { key: 'pdv_require_customer', label: 'Obrigar Identificação do Cliente', description: 'Não finaliza sem cliente', type: 'toggle', icon: <Users className="w-4 h-4" />, defaultValue: false },
-      { key: 'pdv_allow_obs', label: 'Observações nos Itens', description: 'Permite adicionar notas aos produtos', type: 'toggle', icon: <FileText className="w-4 h-4" />, defaultValue: true },
-      { key: 'pdv_auto_print', label: 'Impressão Automática', description: 'Imprime cupom ao finalizar', type: 'toggle', icon: <Printer className="w-4 h-4" />, defaultValue: true },
-      { key: 'pdv_print_copies', label: 'Cópias do Cupom', description: 'Quantas vias imprimir', type: 'select', icon: <Receipt className="w-4 h-4" />, options: [{ value: '1', label: '1 via' }, { value: '2', label: '2 vias' }, { value: '3', label: '3 vias' }], defaultValue: '1' },
-      { key: 'pdv_open_drawer', label: 'Abrir Gaveta Automaticamente', description: 'Abre ao receber dinheiro', type: 'toggle', icon: <Archive className="w-4 h-4" />, defaultValue: true },
-      { key: 'pdv_sound_enabled', label: 'Sons de Feedback', description: 'Bip ao adicionar item', type: 'toggle', icon: <Volume2 className="w-4 h-4" />, defaultValue: true },
-      { key: 'pdv_quick_sale', label: 'Venda Rápida (F2)', description: 'Atalho para finalizar em dinheiro', type: 'toggle', icon: <Zap className="w-4 h-4" />, defaultValue: true },
-      { key: 'pdv_default_payment', label: 'Forma de Pagamento Padrão', description: 'Seleção inicial ao finalizar', type: 'select', icon: <CreditCard className="w-4 h-4" />, options: [{ value: 'money', label: 'Dinheiro' }, { value: 'debit', label: 'Débito' }, { value: 'credit', label: 'Crédito' }, { value: 'pix', label: 'PIX' }], defaultValue: 'money' },
-      { key: 'pdv_sangria_enabled', label: 'Sangria de Caixa', description: 'Permite retirada de valores', type: 'toggle', icon: <DollarSign className="w-4 h-4" />, defaultValue: true },
-      { key: 'pdv_suprimento_enabled', label: 'Suprimento de Caixa', description: 'Permite entrada de valores', type: 'toggle', icon: <Banknote className="w-4 h-4" />, defaultValue: true },
-      { key: 'pdv_blind_close', label: 'Fechamento Cego', description: 'Operador informa valor sem ver sistema', type: 'toggle', icon: <EyeOff className="w-4 h-4" />, defaultValue: false }
-    ]
-  },
-  {
     id: 'delivery',
     name: 'Delivery',
     description: 'Entregas na casa do cliente',

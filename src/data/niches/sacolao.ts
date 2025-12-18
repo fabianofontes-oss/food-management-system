@@ -8,7 +8,7 @@ export const SACOLAO_TEMPLATE: NicheTemplate = {
   icon: 'Apple',
   color: '#22C55E',
   
-  modules: createModules(['menu', 'orders', 'delivery', 'pos', 'weight', 'inventory', 'reports']),
+  modules: createModules(['menu', 'orders', 'delivery', 'weight', 'inventory', 'reports']),
   
   categories: [
     { name: 'Frutas', icon: '🍎', sort_order: 0 },

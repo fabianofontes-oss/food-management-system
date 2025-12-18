@@ -10,7 +10,6 @@ export function ModuleNav() {
   const modules = [
     { name: 'Início', href: '/', icon: Home, color: 'text-gray-600' },
     { name: 'Cardápio', href: '/acai-sabor-real', icon: Store, color: 'text-green-600' },
-    { name: 'PDV', href: '/pos', icon: ShoppingCart, color: 'text-blue-600' },
     { name: 'Cozinha', href: '/kitchen', icon: ChefHat, color: 'text-orange-600' },
     { name: 'Delivery', href: '/delivery', icon: Truck, color: 'text-purple-600' },
     { name: 'Admin', href: '/dashboard', icon: BarChart3, color: 'text-red-600' },

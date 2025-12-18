@@ -8,7 +8,7 @@ export const FIT_HEALTHY_TEMPLATE: NicheTemplate = {
   icon: 'Leaf',
   color: '#16A34A',
   
-  modules: createModules(['menu', 'orders', 'delivery', 'pos', 'nutritional', 'loyalty', 'reports', 'crm']),
+  modules: createModules(['menu', 'orders', 'delivery', 'nutritional', 'loyalty', 'reports', 'crm']),
   
   categories: [
     { name: 'Pratos Principais', icon: '🍽️', sort_order: 0 },

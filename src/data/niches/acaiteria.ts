@@ -9,7 +9,7 @@ export const ACAITERIA_TEMPLATE: NicheTemplate = {
   icon: 'IceCream',
   color: '#7C3AED',
   
-  modules: createModules(['menu', 'orders', 'delivery', 'pos', 'kitchen', 'loyalty', 'reports', 'crm', 'mimo', 'marketing']),
+  modules: createModules(['menu', 'orders', 'delivery', 'kitchen', 'loyalty', 'reports', 'crm', 'mimo', 'marketing']),
   
   categories: [
     { name: 'Açaí', icon: '🍇', sort_order: 0 },

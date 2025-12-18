@@ -9,7 +9,7 @@ export const RESTAURANTE_TEMPLATE: NicheTemplate = {
   icon: 'UtensilsCrossed',
   color: '#7C3AED',
   
-  modules: createModules(['menu', 'orders', 'delivery', 'pos', 'kitchen', 'tables', 'loyalty', 'reports', 'inventory', 'crm', 'mimo']),
+  modules: createModules(['menu', 'orders', 'delivery', 'kitchen', 'tables', 'loyalty', 'reports', 'inventory', 'crm', 'mimo']),
   
   categories: [
     { name: 'Entradas', icon: '🥗', sort_order: 0 },

@@ -8,7 +8,7 @@ export const CAFETERIA_TEMPLATE: NicheTemplate = {
   icon: 'Coffee',
   color: '#78350F',
   
-  modules: createModules(['menu', 'orders', 'delivery', 'pos', 'loyalty', 'reports', 'crm', 'marketing']),
+  modules: createModules(['menu', 'orders', 'delivery', 'loyalty', 'reports', 'crm', 'marketing']),
   
   categories: [
     { name: 'Cafés', icon: '☕', sort_order: 0 },

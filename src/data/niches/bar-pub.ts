@@ -9,7 +9,7 @@ export const BAR_PUB_TEMPLATE: NicheTemplate = {
   icon: 'Beer',
   color: '#CA8A04',
   
-  modules: createModules(['menu', 'orders', 'pos', 'tables', 'tabs', 'reports', 'inventory']),
+  modules: createModules(['menu', 'orders', 'tables', 'tabs', 'reports', 'inventory']),
   
   categories: [
     { name: 'Cervejas', icon: '🍺', sort_order: 0 },

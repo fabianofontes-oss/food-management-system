@@ -9,7 +9,7 @@ export const DARK_KITCHEN_TEMPLATE: NicheTemplate = {
   icon: 'ChefHat',
   color: '#1F2937',
   
-  modules: createModules(['menu', 'orders', 'delivery', 'pos', 'kitchen', 'reports', 'inventory', 'marketing']),
+  modules: createModules(['menu', 'orders', 'delivery', 'kitchen', 'reports', 'inventory', 'marketing']),
   
   categories: [
     { name: 'Pratos Principais', icon: '🍽️', sort_order: 0 },

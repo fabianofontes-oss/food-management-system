@@ -8,7 +8,7 @@ export const PADARIA_TEMPLATE: NicheTemplate = {
   icon: 'Croissant',
   color: '#D97706',
   
-  modules: createModules(['menu', 'orders', 'delivery', 'pos', 'weight', 'loyalty', 'reports', 'inventory']),
+  modules: createModules(['menu', 'orders', 'delivery', 'weight', 'loyalty', 'reports', 'inventory']),
   
   categories: [
     { name: 'Pães', icon: '🍞', sort_order: 0 },

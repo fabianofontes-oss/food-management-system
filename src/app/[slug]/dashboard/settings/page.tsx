@@ -78,16 +78,6 @@ const SETTINGS_SECTIONS = [
     textColor: 'text-sky-600',
     href: '/settings/scheduling'
   },
-  {
-    id: 'pdv',
-    name: 'PDV',
-    description: 'Configurações do ponto de venda',
-    icon: Monitor,
-    color: 'from-slate-500 to-slate-700',
-    bgColor: 'bg-slate-100',
-    textColor: 'text-slate-600',
-    href: '/settings/pdv'
-  }
 ]
 
 export default function SettingsPage() {

@@ -18,14 +18,6 @@ export function FunctionalitiesSection({ watchedValues, register, setValue, erro
       </div>
       <div className="space-y-3">
         <ToggleCard
-          icon={ShoppingCart}
-          iconColor="text-blue-600"
-          title="PDV (Point of Sale)"
-          description="Sistema de vendas no balcão"
-          enabled={watchedValues.enablePOS}
-          onToggle={(val) => setValue('enablePOS', val)}
-        />
-        <ToggleCard
           icon={ChefHat}
           iconColor="text-orange-600"
           title="Cozinha / KDS"

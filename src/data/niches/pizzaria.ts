@@ -9,7 +9,7 @@ export const PIZZARIA_TEMPLATE: NicheTemplate = {
   icon: 'Pizza',
   color: '#EA580C',
   
-  modules: createModules(['menu', 'orders', 'delivery', 'pos', 'kitchen', 'tables', 'loyalty', 'reports', 'mimo']),
+  modules: createModules(['menu', 'orders', 'delivery', 'kitchen', 'tables', 'loyalty', 'reports', 'mimo']),
   
   categories: [
     { name: 'Pizzas Tradicionais', icon: '🍕', sort_order: 0 },

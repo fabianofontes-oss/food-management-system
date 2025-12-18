@@ -9,7 +9,7 @@ export const MARMITARIA_TEMPLATE: NicheTemplate = {
   icon: 'UtensilsCrossed',
   color: '#EA580C',
   
-  modules: createModules(['menu', 'orders', 'delivery', 'pos', 'kitchen', 'loyalty', 'reports', 'inventory']),
+  modules: createModules(['menu', 'orders', 'delivery', 'kitchen', 'loyalty', 'reports', 'inventory']),
   
   categories: [
     { name: 'Marmitas', icon: '🍱', sort_order: 0 },

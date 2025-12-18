@@ -8,7 +8,7 @@ export const CONFEITARIA_TEMPLATE: NicheTemplate = {
   icon: 'Cake',
   color: '#DB2777',
   
-  modules: createModules(['menu', 'orders', 'delivery', 'pos', 'custom_orders', 'loyalty', 'reports', 'marketing']),
+  modules: createModules(['menu', 'orders', 'delivery', 'custom_orders', 'loyalty', 'reports', 'marketing']),
   
   categories: [
     { name: 'Bolos', icon: '🎂', sort_order: 0 },
