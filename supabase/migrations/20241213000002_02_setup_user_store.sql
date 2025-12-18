@@ -25,9 +25,12 @@ ON CONFLICT (id) DO NOTHING;
 -- SUBSTITUA 'SEU_EMAIL@exemplo.com' pelo seu email
 INSERT INTO store_users (store_id, user_id, role)
 SELECT 
-  (SELECT id FROM stores WHERE slug = 'acai-sabor-real'),
-  (SELECT id FROM auth.users WHERE email = 'SEU_EMAIL@exemplo.com'),
+  s.id,
+  u.id,
   'OWNER'
+FROM stores s, auth.users u
+WHERE s.slug = 'acai-sabor-real'
+  AND u.email = 'SEU_EMAIL@exemplo.com'
 ON CONFLICT (store_id, user_id) DO UPDATE SET role = 'OWNER';
 
 -- Passo 5: Verificar se deu certo
