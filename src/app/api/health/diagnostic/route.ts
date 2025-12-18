@@ -115,7 +115,8 @@ export async function GET(request: NextRequest) {
   // 2. TABELAS DO BANCO
   // ==========================================
 
-  const tables = [
+  // Tabelas essenciais (críticas se não existirem)
+  const essentialTables = [
     { name: 'tenants', display: 'Tenants' },
     { name: 'stores', display: 'Lojas' },
     { name: 'products', display: 'Produtos' },
@@ -124,22 +125,29 @@ export async function GET(request: NextRequest) {
     { name: 'order_items', display: 'Itens de Pedido' },
     { name: 'users', display: 'Usuários' },
     { name: 'store_users', display: 'Usuários de Loja' },
+    { name: 'customers', display: 'Clientes' },
+  ]
+
+  // Tabelas opcionais (funcionalidades extras)
+  const optionalTables = [
     { name: 'plans', display: 'Planos' },
     { name: 'tenant_subscriptions', display: 'Assinaturas' },
     { name: 'invoices', display: 'Faturas' },
-    { name: 'customers', display: 'Clientes' },
     { name: 'tables', display: 'Mesas' },
-    { name: 'waiters', display: 'Garçons' },
-    { name: 'delivery_people', display: 'Entregadores' },
+    { name: 'store_waiters', display: 'Garçons' },
     { name: 'coupons', display: 'Cupons' },
     { name: 'reviews', display: 'Avaliações' },
     { name: 'addons', display: 'Adicionais' },
     { name: 'addon_groups', display: 'Grupos de Adicionais' },
     { name: 'cash_registers', display: 'Caixas' },
-    { name: 'cash_transactions', display: 'Transações de Caixa' },
+    { name: 'cash_movements', display: 'Movimentações de Caixa' },
+    { name: 'deliveries', display: 'Entregas' },
+    { name: 'notifications', display: 'Notificações' },
+    { name: 'inventory_items', display: 'Estoque' },
   ]
 
-  for (const table of tables) {
+  // Verificar tabelas essenciais
+  for (const table of essentialTables) {
     try {
       const { count, error } = await supabase
         .from(table.name)
@@ -161,7 +169,36 @@ export async function GET(request: NextRequest) {
         category: 'Banco de Dados',
         status: 'broken',
         message: e.message || 'Tabela não existe',
-        fixAction: `Criar tabela ${table.name} no Supabase`
+        fixAction: `Executar migration para criar tabela ${table.name}`
+      })
+    }
+  }
+
+  // Verificar tabelas opcionais (não críticas)
+  for (const table of optionalTables) {
+    try {
+      const { count, error } = await supabase
+        .from(table.name)
+        .select('*', { count: 'exact', head: true })
+      
+      if (error) throw error
+      
+      features.push({
+        id: `table_${table.name}`,
+        name: `Tabela: ${table.display}`,
+        category: 'Banco de Dados',
+        status: 'working',
+        message: `${count || 0} registros`
+      })
+    } catch (e: any) {
+      // Tabelas opcionais não são críticas - marcamos como não configurado
+      features.push({
+        id: `table_${table.name}`,
+        name: `Tabela: ${table.display}`,
+        category: 'Banco de Dados',
+        status: 'not_configured',
+        message: 'Tabela opcional não criada',
+        fixAction: `Executar migration para criar tabela ${table.name}`
       })
     }
   }
@@ -268,37 +305,34 @@ export async function GET(request: NextRequest) {
   }
 
   // ==========================================
-  // 4. INTEGRAÇÕES
+  // 4. INTEGRAÇÕES (todas opcionais)
   // ==========================================
 
-  // MercadoPago
+  // MercadoPago - Importante para billing automático
   features.push({
     id: 'mercadopago',
     name: 'MercadoPago',
-    category: 'Integrações',
+    category: 'Integrações (Opcional)',
     status: process.env.MP_ACCESS_TOKEN ? 'working' : 'not_configured',
-    message: process.env.MP_ACCESS_TOKEN ? 'Configurado' : 'MP_ACCESS_TOKEN não definido',
-    fixAction: !process.env.MP_ACCESS_TOKEN ? 'Adicionar MP_ACCESS_TOKEN no .env' : undefined
+    message: process.env.MP_ACCESS_TOKEN ? 'Configurado' : 'Opcional - Para pagamentos online',
   })
 
   // WhatsApp (Evolution API)
   features.push({
     id: 'whatsapp',
     name: 'WhatsApp (Evolution)',
-    category: 'Integrações',
+    category: 'Integrações (Opcional)',
     status: process.env.EVOLUTION_API_URL ? 'working' : 'not_configured',
-    message: process.env.EVOLUTION_API_URL ? 'Configurado' : 'Não configurado',
-    fixAction: !process.env.EVOLUTION_API_URL ? 'Adicionar EVOLUTION_API_URL e EVOLUTION_API_KEY' : undefined
+    message: process.env.EVOLUTION_API_URL ? 'Configurado' : 'Opcional - Para notificações',
   })
 
   // Google
   features.push({
     id: 'google',
     name: 'Google My Business',
-    category: 'Integrações',
+    category: 'Integrações (Opcional)',
     status: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ? 'working' : 'not_configured',
-    message: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ? 'Configurado' : 'Não configurado',
-    fixAction: !process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ? 'Adicionar GOOGLE_CLIENT_ID e GOOGLE_CLIENT_SECRET' : undefined
+    message: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ? 'Configurado' : 'Opcional - Para avaliações',
   })
 
   // ==========================================
@@ -371,14 +405,23 @@ export async function GET(request: NextRequest) {
     healthScore: 0
   }
 
-  // Score: working = 100%, incomplete = 50%, not_configured = 25%, broken = 0%
-  const totalPoints = features.reduce((sum, f) => {
+  // Score calculado apenas com features essenciais (não opcionais)
+  // Integrações e tabelas opcionais não devem penalizar o score
+  const essentialFeatures = features.filter(f => 
+    !f.category.includes('Opcional') && 
+    !f.id.startsWith('table_') // Tabelas já são separadas
+  )
+  
+  // Score: working = 100%, incomplete = 50%, not_configured = 50%, broken = 0%
+  const totalPoints = essentialFeatures.reduce((sum, f) => {
     if (f.status === 'working') return sum + 100
     if (f.status === 'incomplete') return sum + 50
-    if (f.status === 'not_configured') return sum + 25
+    if (f.status === 'not_configured') return sum + 50 // Não penaliza tanto configs opcionais
     return sum // broken = 0
   }, 0)
-  summary.healthScore = Math.round(totalPoints / features.length)
+  summary.healthScore = essentialFeatures.length > 0 
+    ? Math.round(totalPoints / essentialFeatures.length)
+    : 100
 
   // Agrupar por categoria
   const categories = [...new Set(features.map(f => f.category))]
