@@ -36,7 +36,9 @@ const typeConfig: Record<string, { label: string; color: string; icon: any }> = 
   coming_soon: { label: 'Em Breve', color: 'bg-amber-100 text-amber-700', icon: Clock },
   incomplete: { label: 'Incompleto', color: 'bg-yellow-100 text-yellow-700', icon: AlertTriangle },
   hardcoded: { label: 'Hardcoded', color: 'bg-purple-100 text-purple-700', icon: Code },
-  mock_data: { label: 'Dados Mock', color: 'bg-blue-100 text-blue-700', icon: AlertCircle }
+  mock_data: { label: 'Dados Mock', color: 'bg-blue-100 text-blue-700', icon: AlertCircle },
+  dead_button: { label: 'Botão Morto', color: 'bg-rose-100 text-rose-700', icon: XCircle },
+  dead_link: { label: 'Link Quebrado', color: 'bg-orange-100 text-orange-700', icon: AlertTriangle }
 }
 
 const priorityConfig: Record<string, { label: string; color: string; icon: any }> = {
@@ -209,6 +211,14 @@ export default function MocksPage() {
               <div className="flex items-center gap-2">
                 <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs">Hardcoded</span>
                 <span>Dados não persistem no banco</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-1 bg-rose-100 text-rose-700 rounded text-xs">Botão Morto</span>
+                <span>Botão não faz nada ao clicar</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs">Link Quebrado</span>
+                <span>Link leva a página inexistente</span>
               </div>
             </div>
           </CardContent>

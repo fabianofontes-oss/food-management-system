@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from 'next/server'
 interface MockItem {
   path: string
   name: string
-  type: 'placeholder_page' | 'coming_soon' | 'mock_data' | 'incomplete' | 'hardcoded'
+  type: 'placeholder_page' | 'coming_soon' | 'mock_data' | 'incomplete' | 'hardcoded' | 'dead_button' | 'dead_link'
   description: string
   priority: 'high' | 'medium' | 'low'
 }
@@ -160,6 +160,108 @@ const KNOWN_MOCKS: MockItem[] = [
     description: 'Funciona básico, falta alertas automáticos e integração com pedidos.',
     priority: 'medium'
   },
+
+  // ========== BOTÕES NÃO CLICÁVEIS (DEAD BUTTONS) ==========
+  {
+    path: '/{slug}/dashboard/settings/integrations',
+    name: 'Botão "Conectar iFood"',
+    type: 'dead_button',
+    description: 'Botão existe mas está desabilitado ou não faz nada ao clicar.',
+    priority: 'high'
+  },
+  {
+    path: '/{slug}/dashboard/settings/integrations',
+    name: 'Botão "Conectar Rappi"',
+    type: 'dead_button',
+    description: 'Botão existe mas está desabilitado ou não faz nada ao clicar.',
+    priority: 'medium'
+  },
+  {
+    path: '/{slug}/dashboard/marketing',
+    name: 'Botão "Criar Campanha"',
+    type: 'dead_button',
+    description: 'Botão abre modal mas não salva/envia campanha real.',
+    priority: 'medium'
+  },
+  {
+    path: '/{slug}/dashboard/settings/platforms',
+    name: 'Botões de Plataformas',
+    type: 'dead_button',
+    description: 'Toggles de ativar/desativar plataformas podem não persistir.',
+    priority: 'medium'
+  },
+  {
+    path: '/admin/settings',
+    name: 'Botão "Salvar Configurações"',
+    type: 'dead_button',
+    description: 'Configurações são salvas em estado local, não no banco.',
+    priority: 'high'
+  },
+  {
+    path: '/{slug}/dashboard/crm',
+    name: 'Botão "Enviar SMS/Email"',
+    type: 'dead_button',
+    description: 'Não há integração com serviço de SMS/Email.',
+    priority: 'high'
+  },
+  {
+    path: '/{slug}/dashboard/reservations',
+    name: 'Botão "Enviar Lembrete"',
+    type: 'dead_button',
+    description: 'Não envia lembrete real por SMS/WhatsApp.',
+    priority: 'medium'
+  },
+
+  // ========== LINKS QUEBRADOS / SEM ROTA ==========
+  {
+    path: '/admin/partners',
+    name: 'Link "Ver Detalhes do Parceiro"',
+    type: 'dead_link',
+    description: 'Link existe mas página de detalhes não foi implementada.',
+    priority: 'low'
+  },
+  {
+    path: '/{slug}/dashboard/financial',
+    name: 'Link "Exportar Relatório"',
+    type: 'dead_link',
+    description: 'Link de exportação pode não funcionar ou baixar arquivo vazio.',
+    priority: 'medium'
+  },
+  {
+    path: '/{slug}/dashboard/orders',
+    name: 'Link "Ver Nota Fiscal"',
+    type: 'dead_link',
+    description: 'Não há integração com sistema de NF-e.',
+    priority: 'high'
+  },
+  {
+    path: '/{slug}/dashboard/reports',
+    name: 'Link "Relatório Fiscal"',
+    type: 'dead_link',
+    description: 'Relatório fiscal não implementado.',
+    priority: 'medium'
+  },
+  {
+    path: '/{slug}/dashboard/team',
+    name: 'Link "Histórico do Funcionário"',
+    type: 'dead_link',
+    description: 'Página de histórico não existe.',
+    priority: 'low'
+  },
+  {
+    path: '/admin/users',
+    name: 'Link "Ver Atividade do Usuário"',
+    type: 'dead_link',
+    description: 'Não há tracking de atividade de usuários.',
+    priority: 'low'
+  },
+  {
+    path: '/{slug}/dashboard',
+    name: 'Link "Ver Mais" em Gráficos',
+    type: 'dead_link',
+    description: 'Links de "ver mais" em cards podem não ter página destino.',
+    priority: 'low'
+  },
 ]
 
 export async function GET(request: NextRequest) {
@@ -169,7 +271,9 @@ export async function GET(request: NextRequest) {
     coming_soon: KNOWN_MOCKS.filter(m => m.type === 'coming_soon'),
     incomplete: KNOWN_MOCKS.filter(m => m.type === 'incomplete'),
     hardcoded: KNOWN_MOCKS.filter(m => m.type === 'hardcoded'),
-    mock_data: KNOWN_MOCKS.filter(m => m.type === 'mock_data')
+    mock_data: KNOWN_MOCKS.filter(m => m.type === 'mock_data'),
+    dead_button: KNOWN_MOCKS.filter(m => m.type === 'dead_button'),
+    dead_link: KNOWN_MOCKS.filter(m => m.type === 'dead_link')
   }
 
   // Agrupar por prioridade
@@ -187,7 +291,9 @@ export async function GET(request: NextRequest) {
       coming_soon: byType.coming_soon.length,
       incomplete: byType.incomplete.length,
       hardcoded: byType.hardcoded.length,
-      mock_data: byType.mock_data.length
+      mock_data: byType.mock_data.length,
+      dead_button: byType.dead_button.length,
+      dead_link: byType.dead_link.length
     },
     byPriority: {
       high: byPriority.high.length,
