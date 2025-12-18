@@ -4,6 +4,7 @@ import DashboardClient from './DashboardClient'
 import { createClient } from '@/lib/supabase/server'
 import { isSuperAdmin } from '@/lib/auth/super-admin'
 import { redirect } from 'next/navigation'
+import { getStoreModules } from '@/lib/plan-access'
 
 export default async function StoreDashboardLayout({
   children,
@@ -53,6 +54,9 @@ export default async function StoreDashboardLayout({
   }
 
   const storeId = store.id
+  
+  // Buscar módulos disponíveis do plano
+  const availableModules = await getStoreModules(storeId)
 
   // Validate and ensure type safety
   const validLocale: SupportedLocale = isValidLocale(language) ? language : 'pt-BR'
@@ -65,7 +69,7 @@ export default async function StoreDashboardLayout({
       currency={currency}
       timezone={timezone}
     >
-      <DashboardClient slug={params.slug} storeId={storeId}>
+      <DashboardClient slug={params.slug} storeId={storeId} availableModules={availableModules}>
         {children}
       </DashboardClient>
     </LanguageProviderWrapper>
