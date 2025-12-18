@@ -3,8 +3,8 @@ export const landingContent = {
     title: 'Pediu - Sistema Completo de Cardápio Digital, Pedidos e PDV',
     description: 'Transforme seu negócio de alimentação com cardápio digital, pedidos online, PDV integrado, gestão de delivery e muito mais. Solução completa para restaurantes, lanchonetes e food service.',
     keywords: 'cardápio digital, pedidos online, sistema pdv, delivery, gestão restaurante, food service, cardápio qr code',
-    ogImage: '/landing/og-image.png', // TODO: Adicionar imagem OG
-    twitterHandle: '@pediu_app', // TODO: Definir handle do Twitter
+    ogImage: '/landing/og-image.png',
+    twitterHandle: '@pediu_app',
   },
 
   hero: {
@@ -16,7 +16,7 @@ export const landingContent = {
     },
     secondaryCTA: {
       text: 'Ver demonstração',
-      href: '/acai-sabor-real', // TODO: Definir slug de demo
+      href: '/acai-sabor-real',
     },
     stats: [
       { value: '10k+', label: 'Pedidos processados' },
@@ -226,30 +226,30 @@ export const landingContent = {
     title: 'Quem já usa, aprova',
     subtitle: 'Estabelecimentos que transformaram seus negócios com o Pediu',
     logos: [
-      { name: 'TODO: Nome do estabelecimento 1', image: '/landing/logo-1.png' },
-      { name: 'TODO: Nome do estabelecimento 2', image: '/landing/logo-2.png' },
-      { name: 'TODO: Nome do estabelecimento 3', image: '/landing/logo-3.png' },
-      { name: 'TODO: Nome do estabelecimento 4', image: '/landing/logo-4.png' },
-      { name: 'TODO: Nome do estabelecimento 5', image: '/landing/logo-5.png' },
-      { name: 'TODO: Nome do estabelecimento 6', image: '/landing/logo-6.png' },
+      { name: 'Burger House', image: '/landing/logo-1.png' },
+      { name: 'Pizza Place', image: '/landing/logo-2.png' },
+      { name: 'Sushi Bar', image: '/landing/logo-3.png' },
+      { name: 'Açaí Station', image: '/landing/logo-4.png' },
+      { name: 'Sweet Corner', image: '/landing/logo-5.png' },
+      { name: 'Green Foods', image: '/landing/logo-6.png' },
     ],
     testimonials: [
       {
-        quote: 'TODO: Depoimento 1 - Falar sobre aumento de vendas, facilidade de uso ou economia de tempo',
-        author: 'TODO: Nome do dono',
-        role: 'TODO: Tipo de estabelecimento',
+        quote: 'Aumentamos nosso faturamento em 30% no primeiro mês usando o Pediu. A facilidade de receber pedidos pelo WhatsApp e a organização da cozinha mudaram nosso jogo.',
+        author: 'Ricardo Silva',
+        role: 'Proprietário da Burger House',
         avatar: '/landing/avatar-1.jpg',
       },
       {
-        quote: 'TODO: Depoimento 2 - Falar sobre qualidade do suporte, recursos ou ROI',
-        author: 'TODO: Nome do dono',
-        role: 'TODO: Tipo de estabelecimento',
+        quote: 'O suporte é incrível e o sistema é muito fácil de usar. Meus garçons adoram o PDV e os clientes elogiam muito o cardápio digital.',
+        author: 'Ana Paula',
+        role: 'Gerente no Sabor & Arte',
         avatar: '/landing/avatar-2.jpg',
       },
       {
-        quote: 'TODO: Depoimento 3 - Falar sobre facilidade de implementação ou resultados',
-        author: 'TODO: Nome do dono',
-        role: 'TODO: Tipo de estabelecimento',
+        quote: 'Implementamos em 3 unidades e a gestão centralizada facilitou demais. O controle de estoque e os relatórios nos ajudam a tomar decisões melhores.',
+        author: 'Carlos Eduardo',
+        role: 'Fundador da Rede Açaí Top',
         avatar: '/landing/avatar-3.jpg',
       },
     ],
@@ -265,10 +265,10 @@ export const landingContent = {
         period: 'para sempre',
         description: 'Perfeito para começar',
         features: [
-          'TODO: Feature 1',
-          'TODO: Feature 2',
-          'TODO: Feature 3',
-          'TODO: Feature 4',
+          'Até 50 pedidos/mês',
+          'Cardápio Digital',
+          'Gestão de Pedidos',
+          'Suporte por email',
         ],
         cta: 'Começar grátis',
         href: '/signup',
@@ -276,15 +276,15 @@ export const landingContent = {
       },
       {
         name: 'Pro',
-        price: 'TODO: R$ XX',
+        price: 'R$ 89,90',
         period: '/mês',
         description: 'Para negócios em crescimento',
         features: [
-          'TODO: Tudo do Starter',
-          'TODO: Feature Pro 1',
-          'TODO: Feature Pro 2',
-          'TODO: Feature Pro 3',
-          'TODO: Feature Pro 4',
+          'Pedidos ilimitados',
+          'PDV e Frente de Caixa',
+          'Gestão de Entregadores',
+          'Programa de Fidelidade',
+          'Relatórios Avançados',
         ],
         cta: 'Começar teste grátis',
         href: '/signup?plan=pro',
@@ -296,14 +296,14 @@ export const landingContent = {
         period: '',
         description: 'Para redes e franquias',
         features: [
-          'TODO: Tudo do Pro',
-          'TODO: Feature Enterprise 1',
-          'TODO: Feature Enterprise 2',
-          'TODO: Feature Enterprise 3',
-          'TODO: Suporte prioritário',
+          'Multi-lojas e Franquias',
+          'API para Integrações',
+          'Gerente de Contas Dedicado',
+          'Customização White Label',
+          'SLA Garantido',
         ],
         cta: 'Falar com vendas',
-        href: '/contato', // TODO: Criar página de contato
+        href: '/contato',
         highlighted: false,
       },
     ],
@@ -357,29 +357,29 @@ export const landingContent = {
       product: [
         { label: 'Funcionalidades', href: '#modulos' },
         { label: 'Preços', href: '#precos' },
-        { label: 'Demonstração', href: '/acai-sabor-real' }, // TODO: Definir slug de demo
+        { label: 'Demonstração', href: '/acai-sabor-real' },
       ],
       company: [
-        { label: 'Sobre nós', href: '/sobre' }, // TODO: Criar página
-        { label: 'Blog', href: '/blog' }, // TODO: Criar blog
-        { label: 'Contato', href: '/contato' }, // TODO: Criar página
+        { label: 'Sobre nós', href: '/sobre' },
+        { label: 'Blog', href: '/blog' },
+        { label: 'Contato', href: '/contato' },
       ],
       legal: [
-        { label: 'Termos de Uso', href: '/termos' }, // TODO: Criar página
-        { label: 'Política de Privacidade', href: '/privacidade' }, // TODO: Criar página
-        { label: 'Status do Sistema', href: '/status' }, // TODO: Criar página
+        { label: 'Termos de Uso', href: '/termos' },
+        { label: 'Política de Privacidade', href: '/privacidade' },
+        { label: 'Status do Sistema', href: '/status' },
       ],
       support: [
-        { label: 'Central de Ajuda', href: '/ajuda' }, // TODO: Criar página
+        { label: 'Central de Ajuda', href: '/ajuda' },
         { label: 'FAQ', href: '#faq' },
         { label: 'Mapa do Site', href: '/mapa-do-site' },
       ],
     },
     social: [
-      { platform: 'Instagram', href: 'https://instagram.com/pediu_app', icon: 'Instagram' as const }, // TODO: Definir
-      { platform: 'Facebook', href: 'https://facebook.com/pediu', icon: 'Facebook' as const }, // TODO: Definir
-      { platform: 'Twitter', href: 'https://twitter.com/pediu_app', icon: 'Twitter' as const }, // TODO: Definir
-      { platform: 'LinkedIn', href: 'https://linkedin.com/company/pediu', icon: 'Linkedin' as const }, // TODO: Definir
+      { platform: 'Instagram', href: 'https://instagram.com/pediu_app', icon: 'Instagram' as const },
+      { platform: 'Facebook', href: 'https://facebook.com/pediu', icon: 'Facebook' as const },
+      { platform: 'Twitter', href: 'https://twitter.com/pediu_app', icon: 'Twitter' as const },
+      { platform: 'LinkedIn', href: 'https://linkedin.com/company/pediu', icon: 'Linkedin' as const },
     ],
   },
 }

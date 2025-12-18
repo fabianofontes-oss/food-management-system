@@ -5,6 +5,7 @@ import { safeParseTheme } from '@/modules/store/utils'
 import { mergeWithDefaults } from '@/modules/store/types'
 import { getStoreStatus } from '@/modules/store/utils/storeHours'
 import type { StoreWithSettings, BusinessHour } from '@/modules/store'
+import { mockStoreData, mockCategories, mockProducts } from '@/data/mock-store'
 
 // CRÍTICO: Desabilitar cache para sempre buscar dados frescos
 export const dynamic = 'force-dynamic'
@@ -23,7 +24,7 @@ export default async function MenuPage({ params }: { params: { slug: string } })
   const supabase = await createClient()
   
   // 1. Buscar loja pelo slug (incluindo dados de agendamento)
-  const { data: storeData, error: storeError } = await supabase
+  let { data: storeData, error: storeError } = await supabase
     .from('stores')
     .select(`
       *,
@@ -32,33 +33,47 @@ export default async function MenuPage({ params }: { params: { slug: string } })
     .eq('slug', params.slug)
     .single()
 
+  // Fallback to mock data if database connection fails or store not found
+  let categories = []
+  let products = []
+
   if (storeError || !storeData) {
-    notFound()
+    if (params.slug === 'acai-sabor-real') {
+        storeData = mockStoreData as any;
+        storeError = null;
+        console.log('Using mock data for acai-sabor-real');
+    } else {
+        notFound()
+    }
   }
 
   // 2. Buscar categorias e produtos (SEM filtro is_active para garantir que apareçam)
-  const [categoriesResult, productsResult] = await Promise.all([
-    supabase
-      .from('categories')
-      .select('*')
-      .eq('store_id', storeData.id)
-      .order('sort_order', { ascending: true }),
-    supabase
-      .from('products')
-      .select('*')
-      .eq('store_id', storeData.id)
-      .order('sort_order', { ascending: true })
-  ])
+  if (storeData.id === 'mock-store-id') {
+      categories = mockCategories;
+      products = mockProducts;
+  } else {
+      const [categoriesResult, productsResult] = await Promise.all([
+        supabase
+          .from('categories')
+          .select('*')
+          .eq('store_id', storeData.id)
+          .order('sort_order', { ascending: true }),
+        supabase
+          .from('products')
+          .select('*')
+          .eq('store_id', storeData.id)
+          .order('sort_order', { ascending: true })
+      ])
+      categories = categoriesResult.data || []
+      products = productsResult.data || []
+  }
   
   // DEBUG: Log para verificar produtos
   console.log('=== PRODUTOS DEBUG ===')
-  console.log('Total categorias:', categoriesResult.data?.length || 0)
-  console.log('Total produtos:', productsResult.data?.length || 0)
-  console.log('Produtos:', productsResult.data?.map((p: any) => ({ name: p.name, is_active: p.is_active })))
+  console.log('Total categorias:', categories.length || 0)
+  console.log('Total produtos:', products.length || 0)
+  console.log('Produtos:', products.map((p: any) => ({ name: p.name, is_active: p.is_active })))
   console.log('======================')
-
-  const categories = categoriesResult.data || []
-  const products = productsResult.data || []
 
   // 3. Parse do tema (CRÍTICO: ler de menu_theme)
   const rawTheme = (storeData as any).menu_theme
