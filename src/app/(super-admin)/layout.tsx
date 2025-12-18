@@ -81,9 +81,15 @@ const menuItems = [
     description: 'Relatórios'
   },
   { 
+    href: '/admin/health', 
+    label: 'Saúde do Sistema', 
+    icon: Gauge,
+    description: 'Monitoramento'
+  },
+  { 
     href: '/admin/demanda', 
     label: 'Controle de Demanda', 
-    icon: Gauge,
+    icon: ToggleRight,
     description: 'APIs e Features'
   },
   { 
