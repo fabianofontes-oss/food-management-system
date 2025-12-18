@@ -1,14 +1,14 @@
- 'use client'
- 
+'use client'
+
 import { useParams } from 'next/navigation'
-import POSClient from './POSClient'
+import PDVModerno from './PDVModerno'
 import { useDashboardStoreId } from '../DashboardClient'
- 
+
 export default function POSPage() {
   const params = useParams()
   const slug = params.slug as string
   const storeId = useDashboardStoreId()
- 
+
   if (!storeId) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center p-6">
@@ -19,6 +19,6 @@ export default function POSPage() {
       </div>
     )
   }
- 
-  return <POSClient slug={slug} storeId={storeId} />
+
+  return <PDVModerno slug={slug} storeId={storeId} />
 }
