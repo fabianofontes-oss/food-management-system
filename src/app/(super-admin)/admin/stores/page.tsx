@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Store, MapPin, Phone, ExternalLink, LayoutDashboard, Loader2, KeyRound } from 'lucide-react'
-import { getStores, type StoreWithTenant } from '@/lib/superadmin/queries'
+import { Store, MapPin, Phone, ExternalLink, LayoutDashboard, Loader2, KeyRound, Plus, Edit, Trash2 } from 'lucide-react'
+import { getStores, createStore, updateStore, deleteStore, getTenants, type StoreWithTenant, type Tenant } from '@/lib/superadmin/queries'
+import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 
 const nicheLabels: Record<string, string> = {
@@ -25,15 +26,58 @@ const modeLabels: Record<string, string> = {
   home: 'Home-based'
 }
 
+const nicheOptions = [
+  { value: 'acai', label: 'Açaíteria' },
+  { value: 'burger', label: 'Hamburgueria' },
+  { value: 'hotdog', label: 'Hotdog' },
+  { value: 'marmita', label: 'Marmitaria' },
+  { value: 'butcher', label: 'Açougue' },
+  { value: 'ice_cream', label: 'Sorveteria' },
+  { value: 'pizza', label: 'Pizzaria' },
+  { value: 'sushi', label: 'Sushi' },
+  { value: 'bakery', label: 'Padaria' },
+  { value: 'other', label: 'Outro' },
+]
+
 export default function StoresPage() {
   const router = useRouter()
   const [stores, setStores] = useState<StoreWithTenant[]>([])
+  const [tenants, setTenants] = useState<Tenant[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [showForm, setShowForm] = useState(false)
+  const [editingStore, setEditingStore] = useState<StoreWithTenant | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+  const [formData, setFormData] = useState({
+    name: '',
+    slug: '',
+    tenant_id: '',
+    niche: 'burger',
+    mode: 'store',
+    phone: '',
+    address: '',
+  })
 
   useEffect(() => {
-    loadStores()
+    loadData()
   }, [])
+
+  async function loadData() {
+    try {
+      setLoading(true)
+      const [storesData, tenantsData] = await Promise.all([
+        getStores(),
+        getTenants()
+      ])
+      setStores(storesData)
+      setTenants(tenantsData)
+    } catch (err) {
+      console.error('Erro ao carregar dados:', err)
+      setError('Erro ao carregar dados')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   async function loadStores() {
     try {
@@ -51,6 +95,98 @@ export default function StoresPage() {
   function handleAssumeStore(storeSlug: string, storeName: string) {
     toast.success(`Entrando em ${storeName}...`)
     router.push(`/${storeSlug}/dashboard`)
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!formData.name || !formData.slug || !formData.tenant_id) {
+      toast.error('Preencha todos os campos obrigatórios')
+      return
+    }
+
+    try {
+      setSubmitting(true)
+      if (editingStore) {
+        await updateStore(editingStore.id, {
+          name: formData.name,
+          slug: formData.slug,
+          niche: formData.niche as any,
+          mode: formData.mode as any,
+          phone: formData.phone || null,
+          address: formData.address || null,
+        })
+        toast.success('Loja atualizada com sucesso!')
+      } else {
+        await createStore({
+          name: formData.name,
+          slug: formData.slug,
+          tenant_id: formData.tenant_id,
+          niche: formData.niche as any,
+          mode: formData.mode as any,
+          phone: formData.phone || null,
+          address: formData.address || null,
+          is_active: true,
+        })
+        toast.success('Loja criada com sucesso!')
+      }
+      await loadData()
+      handleCancel()
+    } catch (err) {
+      console.error('Erro ao salvar loja:', err)
+      toast.error('Erro ao salvar loja')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  function handleEdit(store: StoreWithTenant) {
+    setEditingStore(store)
+    setFormData({
+      name: store.name,
+      slug: store.slug,
+      tenant_id: store.tenant_id,
+      niche: store.niche || 'burger',
+      mode: store.mode || 'store',
+      phone: store.phone || '',
+      address: store.address || '',
+    })
+    setShowForm(true)
+  }
+
+  async function handleDelete(id: string, name: string) {
+    if (!confirm(`Tem certeza que deseja excluir a loja "${name}"?`)) return
+
+    try {
+      await deleteStore(id)
+      toast.success('Loja excluída com sucesso!')
+      await loadData()
+    } catch (err) {
+      console.error('Erro ao excluir loja:', err)
+      toast.error('Erro ao excluir loja. Verifique se não há pedidos vinculados.')
+    }
+  }
+
+  function handleCancel() {
+    setShowForm(false)
+    setEditingStore(null)
+    setFormData({
+      name: '',
+      slug: '',
+      tenant_id: '',
+      niche: 'burger',
+      mode: 'store',
+      phone: '',
+      address: '',
+    })
+  }
+
+  function generateSlug(name: string) {
+    return name
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '')
   }
 
   if (loading) {
@@ -87,6 +223,154 @@ export default function StoresPage() {
           <h1 className="text-4xl font-bold text-gray-900">Gestão de Lojas</h1>
           <p className="text-gray-600 mt-1">Gerenciar Lojas e Unidades</p>
         </div>
+
+        {/* Add Store Button */}
+        <div className="mb-6">
+          <Button
+            onClick={() => setShowForm(true)}
+            className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
+          >
+            <Plus className="w-5 h-5 mr-2" />
+            Nova Loja
+          </Button>
+        </div>
+
+        {/* Form */}
+        {showForm && (
+          <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+            <h2 className="text-2xl font-bold mb-6">
+              {editingStore ? 'Editar Loja' : 'Nova Loja'}
+            </h2>
+            
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Nome da Loja *
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => {
+                      const name = e.target.value
+                      setFormData(prev => ({ 
+                        ...prev, 
+                        name,
+                        slug: prev.slug || generateSlug(name)
+                      }))
+                    }}
+                    placeholder="Ex: Açaí do João"
+                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none"
+                    required
+                    disabled={submitting}
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Slug (URL) *
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.slug}
+                    onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
+                    placeholder="acai-do-joao"
+                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none"
+                    required
+                    disabled={submitting}
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Tenant (Rede) *
+                  </label>
+                  <select
+                    value={formData.tenant_id}
+                    onChange={(e) => setFormData(prev => ({ ...prev, tenant_id: e.target.value }))}
+                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none"
+                    required
+                    disabled={submitting || !!editingStore}
+                  >
+                    <option value="">Selecione um tenant...</option>
+                    {tenants.map(t => (
+                      <option key={t.id} value={t.id}>{t.name}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Nicho
+                  </label>
+                  <select
+                    value={formData.niche}
+                    onChange={(e) => setFormData(prev => ({ ...prev, niche: e.target.value }))}
+                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none"
+                    disabled={submitting}
+                  >
+                    {nicheOptions.map(opt => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Telefone
+                  </label>
+                  <input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                    placeholder="(31) 99914-0095"
+                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none"
+                    disabled={submitting}
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Endereço
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.address}
+                    onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+                    placeholder="Rua, número, bairro"
+                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none"
+                    disabled={submitting}
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <Button
+                  type="submit"
+                  disabled={submitting}
+                  className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 disabled:opacity-50"
+                >
+                  {submitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Salvando...
+                    </>
+                  ) : (
+                    editingStore ? 'Salvar Alterações' : 'Criar Loja'
+                  )}
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleCancel}
+                  disabled={submitting}
+                  className="bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50"
+                >
+                  Cancelar
+                </Button>
+              </div>
+            </form>
+          </div>
+        )}
 
         {/* Stats */}
         <div className="grid sm:grid-cols-3 gap-6 mb-6">
@@ -213,6 +497,22 @@ export default function StoresPage() {
                       >
                         <KeyRound className="w-4 h-4" />
                         Entrar na Loja
+                      </button>
+                      <button
+                        onClick={() => handleEdit(store)}
+                        className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-blue-600 border border-blue-300 rounded-lg hover:bg-blue-50 transition-colors"
+                        title="Editar loja"
+                      >
+                        <Edit className="w-4 h-4" />
+                        Editar
+                      </button>
+                      <button
+                        onClick={() => handleDelete(store.id, store.name)}
+                        className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition-colors"
+                        title="Excluir loja"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Excluir
                       </button>
                     </div>
                   </div>
