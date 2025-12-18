@@ -3,19 +3,38 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Store, Building2, MapPin, ArrowRight, ExternalLink, LayoutDashboard, Loader2, RefreshCw, Rocket } from 'lucide-react'
+import { 
+  Store, Building2, MapPin, ArrowRight, ExternalLink, Loader2, RefreshCw, Rocket,
+  DollarSign, Users, TrendingUp, TrendingDown, AlertCircle, CheckCircle, Clock,
+  CreditCard, FileText, Activity, Calendar, BarChart3, PieChart
+} from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { getTenantsCount, getStoresCount, getRecentStores, type StoreWithTenant } from '@/lib/superadmin/queries'
+import { getTenantsCount, getStoresCount, getRecentStores, type StoreWithTenant, createClient } from '@/lib/superadmin/queries'
 import { resetDemoStoreAction } from '@/lib/demo/actions'
 import { toast } from 'sonner'
+
+interface DashboardStats {
+  tenantsCount: number
+  storesCount: number
+  activeTenantsCount: number
+  trialTenantsCount: number
+  suspendedTenantsCount: number
+  mrrCents: number // Monthly Recurring Revenue
+  pendingInvoicesCents: number
+  paidInvoicesCount: number
+  overdueInvoicesCount: number
+  newTenantsThisMonth: number
+  ordersToday: number
+  revenueToday: number
+}
 
 export default function SuperAdminDashboard() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
-  const [tenantsCount, setTenantsCount] = useState(0)
-  const [storesCount, setStoresCount] = useState(0)
+  const [stats, setStats] = useState<DashboardStats | null>(null)
   const [recentStores, setRecentStores] = useState<StoreWithTenant[]>([])
+  const [recentActivity, setRecentActivity] = useState<any[]>([])
   const [error, setError] = useState<string | null>(null)
   const [resettingDemo, setResettingDemo] = useState(false)
 
@@ -43,14 +62,85 @@ export default function SuperAdminDashboard() {
     async function loadData() {
       try {
         setLoading(true)
-        const [tenants, stores, recent] = await Promise.all([
+        const supabase = createClient()
+        
+        // Carregar dados básicos
+        const [tenantsCount, storesCount, recent] = await Promise.all([
           getTenantsCount(),
           getStoresCount(),
           getRecentStores(10),
         ])
-        setTenantsCount(tenants)
-        setStoresCount(stores)
+        
         setRecentStores(recent)
+        
+        // Buscar estatísticas avançadas dos tenants
+        const { data: tenantsData } = await supabase
+          .from('tenants')
+          .select('id, status, created_at')
+        
+        const allTenants = tenantsData || []
+        const now = new Date()
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+        
+        const activeCount = allTenants.filter((t: any) => t.status === 'active').length
+        const trialCount = allTenants.filter((t: any) => t.status === 'trial').length
+        const suspendedCount = allTenants.filter((t: any) => t.status === 'suspended').length
+        const newThisMonth = allTenants.filter((t: any) => new Date(t.created_at) >= startOfMonth).length
+        
+        // Buscar estatísticas de faturas
+        let paidCount = 0
+        let overdueCount = 0
+        let mrrCents = 0
+        let pendingCents = 0
+        
+        try {
+          const { data: invoicesData } = await supabase
+            .from('invoices')
+            .select('status, amount_cents')
+          
+          if (invoicesData) {
+            paidCount = invoicesData.filter((i: any) => i.status === 'paid').length
+            overdueCount = invoicesData.filter((i: any) => i.status === 'overdue').length
+            mrrCents = invoicesData.filter((i: any) => i.status === 'paid').reduce((sum: number, i: any) => sum + (i.amount_cents || 0), 0)
+            pendingCents = invoicesData.filter((i: any) => i.status === 'pending' || i.status === 'overdue').reduce((sum: number, i: any) => sum + (i.amount_cents || 0), 0)
+          }
+        } catch (e) {
+          // Tabela de invoices pode não existir ainda
+        }
+        
+        // Buscar pedidos de hoje
+        let ordersToday = 0
+        let revenueToday = 0
+        
+        try {
+          const today = new Date().toISOString().slice(0, 10)
+          const { data: ordersData } = await supabase
+            .from('orders')
+            .select('id, total_amount')
+            .gte('created_at', today)
+          
+          if (ordersData) {
+            ordersToday = ordersData.length
+            revenueToday = ordersData.reduce((sum: number, o: any) => sum + (o.total_amount || 0), 0)
+          }
+        } catch (e) {
+          // Ignorar erros
+        }
+        
+        setStats({
+          tenantsCount,
+          storesCount,
+          activeTenantsCount: activeCount,
+          trialTenantsCount: trialCount,
+          suspendedTenantsCount: suspendedCount,
+          mrrCents,
+          pendingInvoicesCents: pendingCents,
+          paidInvoicesCount: paidCount,
+          overdueInvoicesCount: overdueCount,
+          newTenantsThisMonth: newThisMonth,
+          ordersToday,
+          revenueToday
+        })
       } catch (err) {
         console.error('Erro ao carregar dados:', err)
         setError('Erro ao carregar dados do dashboard')
@@ -104,30 +194,143 @@ export default function SuperAdminDashboard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Total de Tenants</CardTitle>
-              <div className="p-2 rounded-lg bg-indigo-50">
-                <Building2 className="w-5 h-5 text-indigo-600" />
+        {/* KPIs Principais */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-indigo-500">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-gray-500 uppercase font-medium">Tenants</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats?.tenantsCount || 0}</p>
+                </div>
+                <Building2 className="w-8 h-8 text-indigo-500" />
               </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-gray-900">{tenantsCount}</div>
-              <p className="text-sm text-gray-500 mt-1">Redes cadastradas</p>
+              <div className="mt-2 flex items-center gap-2 text-xs">
+                <span className="text-green-600 font-medium">{stats?.activeTenantsCount || 0} ativos</span>
+                <span className="text-gray-400">•</span>
+                <span className="text-blue-600">{stats?.trialTenantsCount || 0} trial</span>
+                {(stats?.suspendedTenantsCount || 0) > 0 && (
+                  <>
+                    <span className="text-gray-400">•</span>
+                    <span className="text-red-600">{stats?.suspendedTenantsCount} suspensos</span>
+                  </>
+                )}
+              </div>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Total de Lojas</CardTitle>
-              <div className="p-2 rounded-lg bg-green-50">
-                <Store className="w-5 h-5 text-green-600" />
+          <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-green-500">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-gray-500 uppercase font-medium">Lojas</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats?.storesCount || 0}</p>
+                </div>
+                <Store className="w-8 h-8 text-green-500" />
               </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-gray-900">{storesCount}</div>
-              <p className="text-sm text-gray-500 mt-1">Unidades operacionais</p>
+              <div className="mt-2 text-xs text-gray-500">
+                Unidades operacionais
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-emerald-500">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-gray-500 uppercase font-medium">MRR</p>
+                  <p className="text-2xl font-bold text-emerald-600">
+                    R$ {((stats?.mrrCents || 0) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </p>
+                </div>
+                <DollarSign className="w-8 h-8 text-emerald-500" />
+              </div>
+              <div className="mt-2 text-xs text-gray-500">
+                Receita Mensal Recorrente
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-amber-500">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-gray-500 uppercase font-medium">A Receber</p>
+                  <p className="text-2xl font-bold text-amber-600">
+                    R$ {((stats?.pendingInvoicesCents || 0) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </p>
+                </div>
+                <CreditCard className="w-8 h-8 text-amber-500" />
+              </div>
+              <div className="mt-2 flex items-center gap-2 text-xs">
+                {(stats?.overdueInvoicesCount || 0) > 0 && (
+                  <span className="text-red-600 font-medium flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    {stats?.overdueInvoicesCount} vencidas
+                  </span>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Métricas Secundárias */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card className="bg-gradient-to-br from-blue-50 to-white">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-blue-100">
+                  <TrendingUp className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Novos este mês</p>
+                  <p className="text-xl font-bold text-gray-900">{stats?.newTenantsThisMonth || 0}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-green-50 to-white">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-green-100">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Faturas Pagas</p>
+                  <p className="text-xl font-bold text-gray-900">{stats?.paidInvoicesCount || 0}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-purple-50 to-white">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-purple-100">
+                  <Activity className="w-5 h-5 text-purple-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Pedidos Hoje</p>
+                  <p className="text-xl font-bold text-gray-900">{stats?.ordersToday || 0}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-emerald-50 to-white">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-emerald-100">
+                  <DollarSign className="w-5 h-5 text-emerald-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">GMV Hoje</p>
+                  <p className="text-xl font-bold text-gray-900">
+                    R$ {(stats?.revenueToday || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </p>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
