@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { formatCurrency } from '@/lib/utils'
 import { useProducts } from '@/hooks/useProducts'
 import { useDashboardStoreId } from '../DashboardClient'
-import { usePDV, ProductGrid, CartPanel, CashRegister, ReceiptPrinter, AddonsModal, LayoutType, ReceiptData, CashRegisterSession, CartAddon } from '@/modules/pos'
+import { usePDV, ProductGrid, CartPanel, CashRegister, ReceiptPrinter, AddonsModal, ScaleDisplay, LayoutType, ScaleLayout, ReceiptData, CashRegisterSession, CartAddon } from '@/modules/pos'
 
 export default function PDVPage() {
   const storeId = useDashboardStoreId()
@@ -30,6 +30,7 @@ export default function PDVPage() {
   // Estados da balança
   const [scaleWeight, setScaleWeight] = useState(0)
   const [scaleConnected, setScaleConnected] = useState(false)
+  const [scaleLayout, setScaleLayout] = useState<ScaleLayout>('compact')
   const [weightProduct, setWeightProduct] = useState<any>(null)
 
   // Atalhos de teclado
@@ -228,32 +229,13 @@ export default function PDVPage() {
       {/* Coluna do Carrinho */}
       <div className="w-96 flex flex-col h-full">
         {/* BALANÇA */}
-        <div className={`flex-shrink-0 mb-3 mx-4 mt-4 rounded-xl overflow-hidden ${
-          scaleConnected 
-            ? 'bg-gradient-to-r from-emerald-500 to-green-600' 
-            : 'bg-gradient-to-r from-gray-400 to-gray-500'
-        }`}>
-          <div className="flex items-center justify-between px-4 py-3">
-            <div className="flex items-center gap-2">
-              <div className="p-2 bg-white/20 rounded-lg">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-white font-semibold text-xs">
-                  {scaleConnected ? 'ONLINE' : 'OFFLINE'}
-                </p>
-              </div>
-            </div>
-            <div className="text-right bg-black/20 px-4 py-2 rounded-lg">
-              <p className="font-mono font-black text-3xl text-white leading-none">
-                {scaleWeight.toFixed(3)}
-              </p>
-              <p className="text-white/70 text-xs">kg</p>
-            </div>
-          </div>
-        </div>
+        <ScaleDisplay
+          weight={scaleWeight}
+          connected={scaleConnected}
+          layout={scaleLayout}
+          onLayoutChange={setScaleLayout}
+          darkMode={darkMode}
+        />
 
         {/* Carrinho */}
         <CartPanel
