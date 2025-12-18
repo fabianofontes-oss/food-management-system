@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Building2, Store, ChevronLeft, ChevronRight, Menu, LayoutDashboard, Users, Settings, CreditCard, BarChart3, FileText, Ticket, Flag, Zap, FileSpreadsheet, LogOut, Gauge, ToggleRight } from 'lucide-react'
+import { Building2, Store, ChevronLeft, ChevronRight, Menu, LayoutDashboard, Users, Settings, CreditCard, BarChart3, FileText, Ticket, Flag, Zap, FileSpreadsheet, LogOut, Gauge, ToggleRight, Activity } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { LanguageProvider } from '@/lib/LanguageContext'
 
@@ -85,6 +85,12 @@ const menuItems = [
     label: 'Saúde do Sistema', 
     icon: Gauge,
     description: 'Monitoramento'
+  },
+  { 
+    href: '/admin/audit', 
+    label: 'Raio-X do Código', 
+    icon: Activity,
+    description: 'Auditoria Funcional'
   },
   { 
     href: '/admin/demanda', 

@@ -1,0 +1,840 @@
+{
+  "timestamp": "2025-12-18T14:47:53.414355",
+  "generated_at": "18/12/2025 14:47:53",
+  "errors": [
+    {
+      "file": "src/app/actions/loyalty.ts",
+      "line": 253,
+      "type": "Comentário TODO/FIXME pendente",
+      "category": "other",
+      "message": "Comentário TODO/FIXME pendente",
+      "emoji": "📝"
+    },
+    {
+      "file": "src/app/api/cron/billing/route.ts",
+      "line": 105,
+      "type": "Console.log esquecido",
+      "category": "other",
+      "message": "Console.log esquecido",
+      "emoji": "🐛"
+    },
+    {
+      "file": "src/app/api/webhooks/mercadopago/route.ts",
+      "line": 15,
+      "type": "Console.log esquecido",
+      "category": "other",
+      "message": "Console.log esquecido",
+      "emoji": "🐛"
+    },
+    {
+      "file": "src/app/api/webhooks/mercadopago/route.ts",
+      "line": 21,
+      "type": "Console.log esquecido",
+      "category": "other",
+      "message": "Console.log esquecido",
+      "emoji": "🐛"
+    },
+    {
+      "file": "src/app/api/webhooks/mercadopago/route.ts",
+      "line": 26,
+      "type": "Console.log esquecido",
+      "category": "other",
+      "message": "Console.log esquecido",
+      "emoji": "🐛"
+    },
+    {
+      "file": "src/app/qa/page.tsx",
+      "line": 56,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/page.tsx",
+      "line": 57,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/page.tsx",
+      "line": 58,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/page.tsx",
+      "line": 65,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/page.tsx",
+      "line": 66,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/page.tsx",
+      "line": 67,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/page.tsx",
+      "line": 68,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/page.tsx",
+      "line": 69,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/page.tsx",
+      "line": 70,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/page.tsx",
+      "line": 71,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/page.tsx",
+      "line": 72,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/page.tsx",
+      "line": 73,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/page.tsx",
+      "line": 74,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/page.tsx",
+      "line": 75,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/page.tsx",
+      "line": 82,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/page.tsx",
+      "line": 83,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/page.tsx",
+      "line": 84,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/page.tsx",
+      "line": 85,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/page.tsx",
+      "line": 86,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/page.tsx",
+      "line": 99,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/page.tsx",
+      "line": 100,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/page.tsx",
+      "line": 101,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/page.tsx",
+      "line": 108,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/page.tsx",
+      "line": 109,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/page.tsx",
+      "line": 110,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/page.tsx",
+      "line": 111,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/page.tsx",
+      "line": 112,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/page.tsx",
+      "line": 113,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/page.tsx",
+      "line": 114,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/page.tsx",
+      "line": 115,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/page.tsx",
+      "line": 116,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/page.tsx",
+      "line": 117,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/page.tsx",
+      "line": 118,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/page.tsx",
+      "line": 125,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/page.tsx",
+      "line": 126,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/page.tsx",
+      "line": 127,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/page.tsx",
+      "line": 128,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/page.tsx",
+      "line": 129,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/QAHubSimple.tsx",
+      "line": 142,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/QAHubSimple.tsx",
+      "line": 143,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/QAHubSimple.tsx",
+      "line": 144,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/QAHubSimple.tsx",
+      "line": 148,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/QAHubSimple.tsx",
+      "line": 149,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/QAHubSimple.tsx",
+      "line": 150,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/QAHubSimple.tsx",
+      "line": 154,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/qa/QAHubSimple.tsx",
+      "line": 155,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/app/[slug]/page.tsx",
+      "line": 54,
+      "type": "Console.log esquecido",
+      "category": "other",
+      "message": "Console.log esquecido",
+      "emoji": "🐛"
+    },
+    {
+      "file": "src/app/[slug]/page.tsx",
+      "line": 55,
+      "type": "Console.log esquecido",
+      "category": "other",
+      "message": "Console.log esquecido",
+      "emoji": "🐛"
+    },
+    {
+      "file": "src/app/[slug]/page.tsx",
+      "line": 56,
+      "type": "Console.log esquecido",
+      "category": "other",
+      "message": "Console.log esquecido",
+      "emoji": "🐛"
+    },
+    {
+      "file": "src/app/[slug]/page.tsx",
+      "line": 57,
+      "type": "Console.log esquecido",
+      "category": "other",
+      "message": "Console.log esquecido",
+      "emoji": "🐛"
+    },
+    {
+      "file": "src/app/[slug]/page.tsx",
+      "line": 58,
+      "type": "Console.log esquecido",
+      "category": "other",
+      "message": "Console.log esquecido",
+      "emoji": "🐛"
+    },
+    {
+      "file": "src/app/[slug]/page.tsx",
+      "line": 68,
+      "type": "Console.log esquecido",
+      "category": "other",
+      "message": "Console.log esquecido",
+      "emoji": "🐛"
+    },
+    {
+      "file": "src/app/[slug]/page.tsx",
+      "line": 69,
+      "type": "Console.log esquecido",
+      "category": "other",
+      "message": "Console.log esquecido",
+      "emoji": "🐛"
+    },
+    {
+      "file": "src/app/[slug]/page.tsx",
+      "line": 70,
+      "type": "Console.log esquecido",
+      "category": "other",
+      "message": "Console.log esquecido",
+      "emoji": "🐛"
+    },
+    {
+      "file": "src/app/[slug]/page.tsx",
+      "line": 71,
+      "type": "Console.log esquecido",
+      "category": "other",
+      "message": "Console.log esquecido",
+      "emoji": "🐛"
+    },
+    {
+      "file": "src/app/[slug]/page.tsx",
+      "line": 72,
+      "type": "Console.log esquecido",
+      "category": "other",
+      "message": "Console.log esquecido",
+      "emoji": "🐛"
+    },
+    {
+      "file": "src/app/[slug]/dashboard/delivery/page.tsx",
+      "line": 187,
+      "type": "Console.log esquecido",
+      "category": "other",
+      "message": "Console.log esquecido",
+      "emoji": "🐛"
+    },
+    {
+      "file": "src/app/[slug]/dashboard/delivery/page.tsx",
+      "line": 212,
+      "type": "Console.log esquecido",
+      "category": "other",
+      "message": "Console.log esquecido",
+      "emoji": "🐛"
+    },
+    {
+      "file": "src/app/[slug]/dashboard/kitchen/page.tsx",
+      "line": 102,
+      "type": "Console.log esquecido",
+      "category": "other",
+      "message": "Console.log esquecido",
+      "emoji": "🐛"
+    },
+    {
+      "file": "src/app/[slug]/dashboard/kitchen/page.tsx",
+      "line": 203,
+      "type": "Console.log esquecido",
+      "category": "other",
+      "message": "Console.log esquecido",
+      "emoji": "🐛"
+    },
+    {
+      "file": "src/app/[slug]/dashboard/kitchen/page.tsx",
+      "line": 207,
+      "type": "Console.log esquecido",
+      "category": "other",
+      "message": "Console.log esquecido",
+      "emoji": "🐛"
+    },
+    {
+      "file": "src/app/[slug]/dashboard/kitchen/page.tsx",
+      "line": 215,
+      "type": "Console.log esquecido",
+      "category": "other",
+      "message": "Console.log esquecido",
+      "emoji": "🐛"
+    },
+    {
+      "file": "src/app/[slug]/dashboard/kitchen/page.tsx",
+      "line": 218,
+      "type": "Console.log esquecido",
+      "category": "other",
+      "message": "Console.log esquecido",
+      "emoji": "🐛"
+    },
+    {
+      "file": "src/app/[slug]/dashboard/pos/POSClient.tsx",
+      "line": 475,
+      "type": "Console.log esquecido",
+      "category": "other",
+      "message": "Console.log esquecido",
+      "emoji": "🐛"
+    },
+    {
+      "file": "src/app/[slug]/dashboard/pos/POSClient.tsx",
+      "line": 478,
+      "type": "Console.log esquecido",
+      "category": "other",
+      "message": "Console.log esquecido",
+      "emoji": "🐛"
+    },
+    {
+      "file": "src/app/[slug]/dashboard/reservations/page.tsx",
+      "line": 135,
+      "type": "Console.log esquecido",
+      "category": "other",
+      "message": "Console.log esquecido",
+      "emoji": "🐛"
+    },
+    {
+      "file": "src/app/[slug]/dashboard/reviews/integrations/page.tsx",
+      "line": 141,
+      "type": "Console.log esquecido",
+      "category": "other",
+      "message": "Console.log esquecido",
+      "emoji": "🐛"
+    },
+    {
+      "file": "src/app/[slug]/dashboard/tables/page.tsx",
+      "line": 188,
+      "type": "Console.log esquecido",
+      "category": "other",
+      "message": "Console.log esquecido",
+      "emoji": "🐛"
+    },
+    {
+      "file": "src/app/[slug]/dashboard/team/page.tsx",
+      "line": 64,
+      "type": "Console.log esquecido",
+      "category": "other",
+      "message": "Console.log esquecido",
+      "emoji": "🐛"
+    },
+    {
+      "file": "src/app/[slug]/garcom/page.tsx",
+      "line": 122,
+      "type": "Console.log esquecido",
+      "category": "other",
+      "message": "Console.log esquecido",
+      "emoji": "🐛"
+    },
+    {
+      "file": "src/app/[slug]/motorista/page.tsx",
+      "line": 168,
+      "type": "Console.log esquecido",
+      "category": "other",
+      "message": "Console.log esquecido",
+      "emoji": "🐛"
+    },
+    {
+      "file": "src/app/[slug]/motorista/page.tsx",
+      "line": 227,
+      "type": "Console.log esquecido",
+      "category": "other",
+      "message": "Console.log esquecido",
+      "emoji": "🐛"
+    },
+    {
+      "file": "src/content/landing.ts",
+      "line": 6,
+      "type": "Comentário TODO/FIXME pendente",
+      "category": "other",
+      "message": "Comentário TODO/FIXME pendente",
+      "emoji": "📝"
+    },
+    {
+      "file": "src/content/landing.ts",
+      "line": 7,
+      "type": "Comentário TODO/FIXME pendente",
+      "category": "other",
+      "message": "Comentário TODO/FIXME pendente",
+      "emoji": "📝"
+    },
+    {
+      "file": "src/content/landing.ts",
+      "line": 306,
+      "type": "Comentário TODO/FIXME pendente",
+      "category": "other",
+      "message": "Comentário TODO/FIXME pendente",
+      "emoji": "📝"
+    },
+    {
+      "file": "src/content/landing.ts",
+      "line": 360,
+      "type": "Comentário TODO/FIXME pendente",
+      "category": "other",
+      "message": "Comentário TODO/FIXME pendente",
+      "emoji": "📝"
+    },
+    {
+      "file": "src/content/landing.ts",
+      "line": 363,
+      "type": "Comentário TODO/FIXME pendente",
+      "category": "other",
+      "message": "Comentário TODO/FIXME pendente",
+      "emoji": "📝"
+    },
+    {
+      "file": "src/content/landing.ts",
+      "line": 364,
+      "type": "Comentário TODO/FIXME pendente",
+      "category": "other",
+      "message": "Comentário TODO/FIXME pendente",
+      "emoji": "📝"
+    },
+    {
+      "file": "src/content/landing.ts",
+      "line": 365,
+      "type": "Comentário TODO/FIXME pendente",
+      "category": "other",
+      "message": "Comentário TODO/FIXME pendente",
+      "emoji": "📝"
+    },
+    {
+      "file": "src/content/landing.ts",
+      "line": 368,
+      "type": "Comentário TODO/FIXME pendente",
+      "category": "other",
+      "message": "Comentário TODO/FIXME pendente",
+      "emoji": "📝"
+    },
+    {
+      "file": "src/content/landing.ts",
+      "line": 369,
+      "type": "Comentário TODO/FIXME pendente",
+      "category": "other",
+      "message": "Comentário TODO/FIXME pendente",
+      "emoji": "📝"
+    },
+    {
+      "file": "src/content/landing.ts",
+      "line": 370,
+      "type": "Comentário TODO/FIXME pendente",
+      "category": "other",
+      "message": "Comentário TODO/FIXME pendente",
+      "emoji": "📝"
+    },
+    {
+      "file": "src/content/landing.ts",
+      "line": 373,
+      "type": "Comentário TODO/FIXME pendente",
+      "category": "other",
+      "message": "Comentário TODO/FIXME pendente",
+      "emoji": "📝"
+    },
+    {
+      "file": "src/content/landing.ts",
+      "line": 379,
+      "type": "Comentário TODO/FIXME pendente",
+      "category": "other",
+      "message": "Comentário TODO/FIXME pendente",
+      "emoji": "📝"
+    },
+    {
+      "file": "src/content/landing.ts",
+      "line": 380,
+      "type": "Comentário TODO/FIXME pendente",
+      "category": "other",
+      "message": "Comentário TODO/FIXME pendente",
+      "emoji": "📝"
+    },
+    {
+      "file": "src/content/landing.ts",
+      "line": 381,
+      "type": "Comentário TODO/FIXME pendente",
+      "category": "other",
+      "message": "Comentário TODO/FIXME pendente",
+      "emoji": "📝"
+    },
+    {
+      "file": "src/content/landing.ts",
+      "line": 382,
+      "type": "Comentário TODO/FIXME pendente",
+      "category": "other",
+      "message": "Comentário TODO/FIXME pendente",
+      "emoji": "📝"
+    },
+    {
+      "file": "src/hooks/useProductsComplete.ts",
+      "line": 25,
+      "type": "Console.log esquecido",
+      "category": "other",
+      "message": "Console.log esquecido",
+      "emoji": "🐛"
+    },
+    {
+      "file": "src/hooks/useProductsComplete.ts",
+      "line": 64,
+      "type": "Console.log esquecido",
+      "category": "other",
+      "message": "Console.log esquecido",
+      "emoji": "🐛"
+    },
+    {
+      "file": "src/lib/logger.ts",
+      "line": 52,
+      "type": "Comentário TODO/FIXME pendente",
+      "category": "other",
+      "message": "Comentário TODO/FIXME pendente",
+      "emoji": "📝"
+    },
+    {
+      "file": "src/lib/billing/mercadopago.ts",
+      "line": 193,
+      "type": "Console.log esquecido",
+      "category": "other",
+      "message": "Console.log esquecido",
+      "emoji": "🐛"
+    },
+    {
+      "file": "src/lib/integrations/google-reviews.ts",
+      "line": 8,
+      "type": "URL localhost hardcoded",
+      "category": "other",
+      "message": "URL localhost hardcoded",
+      "emoji": "🏠"
+    },
+    {
+      "file": "src/lib/supabase/middleware.ts",
+      "line": 66,
+      "type": "Console.log esquecido",
+      "category": "other",
+      "message": "Console.log esquecido",
+      "emoji": "🐛"
+    },
+    {
+      "file": "src/lib/supabase/middleware.ts",
+      "line": 78,
+      "type": "Console.log esquecido",
+      "category": "other",
+      "message": "Console.log esquecido",
+      "emoji": "🐛"
+    },
+    {
+      "file": "src/lib/supabase/middleware.ts",
+      "line": 85,
+      "type": "Console.log esquecido",
+      "category": "other",
+      "message": "Console.log esquecido",
+      "emoji": "🐛"
+    },
+    {
+      "file": "src/lib/supabase/middleware.ts",
+      "line": 103,
+      "type": "Console.log esquecido",
+      "category": "other",
+      "message": "Console.log esquecido",
+      "emoji": "🐛"
+    },
+    {
+      "file": "src/modules/orders/validations/validateCheckout.ts",
+      "line": 420,
+      "type": "Comentário TODO/FIXME pendente",
+      "category": "other",
+      "message": "Comentário TODO/FIXME pendente",
+      "emoji": "📝"
+    },
+    {
+      "file": "src/modules/store/components/site-builder/live-preview.tsx",
+      "line": 24,
+      "type": "Dados Mock/Fake detectados",
+      "category": "other",
+      "message": "Dados Mock/Fake detectados",
+      "emoji": "🤡"
+    }
+  ],
+  "summary": {
+    "total_errors": 103,
+    "files_scanned": 384,
+    "files_with_problems": 23,
+    "broken_buttons": 0,
+    "todos_pending": 18,
+    "console_logs": 37,
+    "mock_data": 1,
+    "localhost_urls": 47
+  }
+}

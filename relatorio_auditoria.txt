@@ -1,0 +1,170 @@
+============================================================
+📋 RELATÓRIO DE AUDITORIA FUNCIONAL
+📅 Data: 18/12/2025 14:47:53
+📁 Arquivos analisados: 384
+============================================================
+
+📂 src\app\actions\loyalty.ts
+   [Linha  253] 📝 Comentário TODO/FIXME pendente
+
+📂 src\app\api\cron\billing\route.ts
+   [Linha  105] 🐛 Console.log esquecido
+
+📂 src\app\api\webhooks\mercadopago\route.ts
+   [Linha   15] 🐛 Console.log esquecido
+   [Linha   21] 🐛 Console.log esquecido
+   [Linha   26] 🐛 Console.log esquecido
+
+📂 src\app\qa\page.tsx
+   [Linha   56] 🏠 URL localhost hardcoded
+   [Linha   57] 🏠 URL localhost hardcoded
+   [Linha   58] 🏠 URL localhost hardcoded
+   [Linha   65] 🏠 URL localhost hardcoded
+   [Linha   66] 🏠 URL localhost hardcoded
+   [Linha   67] 🏠 URL localhost hardcoded
+   [Linha   68] 🏠 URL localhost hardcoded
+   [Linha   69] 🏠 URL localhost hardcoded
+   [Linha   70] 🏠 URL localhost hardcoded
+   [Linha   71] 🏠 URL localhost hardcoded
+   [Linha   72] 🏠 URL localhost hardcoded
+   [Linha   73] 🏠 URL localhost hardcoded
+   [Linha   74] 🏠 URL localhost hardcoded
+   [Linha   75] 🏠 URL localhost hardcoded
+   [Linha   82] 🏠 URL localhost hardcoded
+   [Linha   83] 🏠 URL localhost hardcoded
+   [Linha   84] 🏠 URL localhost hardcoded
+   [Linha   85] 🏠 URL localhost hardcoded
+   [Linha   86] 🏠 URL localhost hardcoded
+   [Linha   99] 🏠 URL localhost hardcoded
+   [Linha  100] 🏠 URL localhost hardcoded
+   [Linha  101] 🏠 URL localhost hardcoded
+   [Linha  108] 🏠 URL localhost hardcoded
+   [Linha  109] 🏠 URL localhost hardcoded
+   [Linha  110] 🏠 URL localhost hardcoded
+   [Linha  111] 🏠 URL localhost hardcoded
+   [Linha  112] 🏠 URL localhost hardcoded
+   [Linha  113] 🏠 URL localhost hardcoded
+   [Linha  114] 🏠 URL localhost hardcoded
+   [Linha  115] 🏠 URL localhost hardcoded
+   [Linha  116] 🏠 URL localhost hardcoded
+   [Linha  117] 🏠 URL localhost hardcoded
+   [Linha  118] 🏠 URL localhost hardcoded
+   [Linha  125] 🏠 URL localhost hardcoded
+   [Linha  126] 🏠 URL localhost hardcoded
+   [Linha  127] 🏠 URL localhost hardcoded
+   [Linha  128] 🏠 URL localhost hardcoded
+   [Linha  129] 🏠 URL localhost hardcoded
+
+📂 src\app\qa\QAHubSimple.tsx
+   [Linha  142] 🏠 URL localhost hardcoded
+   [Linha  143] 🏠 URL localhost hardcoded
+   [Linha  144] 🏠 URL localhost hardcoded
+   [Linha  148] 🏠 URL localhost hardcoded
+   [Linha  149] 🏠 URL localhost hardcoded
+   [Linha  150] 🏠 URL localhost hardcoded
+   [Linha  154] 🏠 URL localhost hardcoded
+   [Linha  155] 🏠 URL localhost hardcoded
+
+📂 src\app\[slug]\page.tsx
+   [Linha   54] 🐛 Console.log esquecido
+   [Linha   55] 🐛 Console.log esquecido
+   [Linha   56] 🐛 Console.log esquecido
+   [Linha   57] 🐛 Console.log esquecido
+   [Linha   58] 🐛 Console.log esquecido
+   [Linha   68] 🐛 Console.log esquecido
+   [Linha   69] 🐛 Console.log esquecido
+   [Linha   70] 🐛 Console.log esquecido
+   [Linha   71] 🐛 Console.log esquecido
+   [Linha   72] 🐛 Console.log esquecido
+
+📂 src\app\[slug]\dashboard\delivery\page.tsx
+   [Linha  187] 🐛 Console.log esquecido
+   [Linha  212] 🐛 Console.log esquecido
+
+📂 src\app\[slug]\dashboard\kitchen\page.tsx
+   [Linha  102] 🐛 Console.log esquecido
+   [Linha  203] 🐛 Console.log esquecido
+   [Linha  207] 🐛 Console.log esquecido
+   [Linha  215] 🐛 Console.log esquecido
+   [Linha  218] 🐛 Console.log esquecido
+
+📂 src\app\[slug]\dashboard\pos\POSClient.tsx
+   [Linha  475] 🐛 Console.log esquecido
+   [Linha  478] 🐛 Console.log esquecido
+
+📂 src\app\[slug]\dashboard\reservations\page.tsx
+   [Linha  135] 🐛 Console.log esquecido
+
+📂 src\app\[slug]\dashboard\reviews\integrations\page.tsx
+   [Linha  141] 🐛 Console.log esquecido
+
+📂 src\app\[slug]\dashboard\tables\page.tsx
+   [Linha  188] 🐛 Console.log esquecido
+
+📂 src\app\[slug]\dashboard\team\page.tsx
+   [Linha   64] 🐛 Console.log esquecido
+
+📂 src\app\[slug]\garcom\page.tsx
+   [Linha  122] 🐛 Console.log esquecido
+
+📂 src\app\[slug]\motorista\page.tsx
+   [Linha  168] 🐛 Console.log esquecido
+   [Linha  227] 🐛 Console.log esquecido
+
+📂 src\content\landing.ts
+   [Linha    6] 📝 Comentário TODO/FIXME pendente
+   [Linha    7] 📝 Comentário TODO/FIXME pendente
+   [Linha  306] 📝 Comentário TODO/FIXME pendente
+   [Linha  360] 📝 Comentário TODO/FIXME pendente
+   [Linha  363] 📝 Comentário TODO/FIXME pendente
+   [Linha  364] 📝 Comentário TODO/FIXME pendente
+   [Linha  365] 📝 Comentário TODO/FIXME pendente
+   [Linha  368] 📝 Comentário TODO/FIXME pendente
+   [Linha  369] 📝 Comentário TODO/FIXME pendente
+   [Linha  370] 📝 Comentário TODO/FIXME pendente
+   [Linha  373] 📝 Comentário TODO/FIXME pendente
+   [Linha  379] 📝 Comentário TODO/FIXME pendente
+   [Linha  380] 📝 Comentário TODO/FIXME pendente
+   [Linha  381] 📝 Comentário TODO/FIXME pendente
+   [Linha  382] 📝 Comentário TODO/FIXME pendente
+
+📂 src\hooks\useProductsComplete.ts
+   [Linha   25] 🐛 Console.log esquecido
+   [Linha   64] 🐛 Console.log esquecido
+
+📂 src\lib\logger.ts
+   [Linha   52] 📝 Comentário TODO/FIXME pendente
+
+📂 src\lib\billing\mercadopago.ts
+   [Linha  193] 🐛 Console.log esquecido
+
+📂 src\lib\integrations\google-reviews.ts
+   [Linha    8] 🏠 URL localhost hardcoded
+
+📂 src\lib\supabase\middleware.ts
+   [Linha   66] 🐛 Console.log esquecido
+   [Linha   78] 🐛 Console.log esquecido
+   [Linha   85] 🐛 Console.log esquecido
+   [Linha  103] 🐛 Console.log esquecido
+
+📂 src\modules\orders\validations\validateCheckout.ts
+   [Linha  420] 📝 Comentário TODO/FIXME pendente
+
+📂 src\modules\store\components\site-builder\live-preview.tsx
+   [Linha   24] 🤡 Dados Mock/Fake detectados
+
+============================================================
+📊 RESUMO
+============================================================
+   Total de arquivos analisados: 384
+   Arquivos com problemas: 23
+   Total de problemas encontrados: 103
+
+📌 LEGENDA:
+   👻 Botão/Link fantasma (sem ação)
+   🐛 Debug esquecido (console.log)
+   🤡 Dados mock/fake
+   📝 TODO/FIXME pendente
+   🔀 Redirecionamento suspeito
+   🏠 URL localhost hardcoded
+============================================================
