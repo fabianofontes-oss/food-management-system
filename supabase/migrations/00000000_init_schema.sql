@@ -816,38 +816,7 @@ CREATE TABLE store_settings (
 
 CREATE INDEX idx_store_settings_store_id ON store_settings(store_id);
 
--- RLS Policies para store_settings
-ALTER TABLE store_settings ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Users can view their store settings"
-  ON store_settings FOR SELECT
-  USING (
-    store_id IN (
-      SELECT s.id FROM stores s
-      INNER JOIN tenants t ON s.tenant_id = t.id
-      WHERE t.id = (SELECT tenant_id FROM users WHERE id = auth.uid())
-    )
-  );
-
-CREATE POLICY "Users can update their store settings"
-  ON store_settings FOR UPDATE
-  USING (
-    store_id IN (
-      SELECT s.id FROM stores s
-      INNER JOIN tenants t ON s.tenant_id = t.id
-      WHERE t.id = (SELECT tenant_id FROM users WHERE id = auth.uid())
-    )
-  );
-
-CREATE POLICY "Users can insert their store settings"
-  ON store_settings FOR INSERT
-  WITH CHECK (
-    store_id IN (
-      SELECT s.id FROM stores s
-      INNER JOIN tenants t ON s.tenant_id = t.id
-      WHERE t.id = (SELECT tenant_id FROM users WHERE id = auth.uid())
-    )
-  );
+-- RLS Policies para store_settings são criadas em migrations RLS separadas
 
 CREATE TRIGGER update_store_settings_updated_at BEFORE UPDATE ON store_settings
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
@@ -880,22 +849,4 @@ CREATE TABLE IF NOT EXISTS kitchen_chefs (
 
 CREATE INDEX IF NOT EXISTS idx_kitchen_chefs_store ON kitchen_chefs(store_id);
 
-ALTER TABLE kitchen_chefs ENABLE ROW LEVEL SECURITY;
-
--- RLS: Apenas membros da loja podem acessar
-CREATE POLICY "kitchen_chefs_store_access" ON kitchen_chefs
-FOR ALL
-USING (
-  EXISTS (
-    SELECT 1 FROM store_users su
-    WHERE su.store_id = kitchen_chefs.store_id
-      AND su.user_id = auth.uid()
-  )
-)
-WITH CHECK (
-  EXISTS (
-    SELECT 1 FROM store_users su
-    WHERE su.store_id = kitchen_chefs.store_id
-      AND su.user_id = auth.uid()
-  )
-);
+-- RLS para kitchen_chefs é criada em migrations RLS separadas

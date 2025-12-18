@@ -12,6 +12,7 @@ ALTER TABLE products ENABLE ROW LEVEL SECURITY;
 -- REMOVER POLICIES ANTIGAS (evitar conflitos)
 -- ============================================================================
 DROP POLICY IF EXISTS "Public can view active stores" ON stores;
+DROP POLICY IF EXISTS "Store users can manage their stores" ON stores;
 DROP POLICY IF EXISTS "Authenticated users can manage their stores" ON stores;
 DROP POLICY IF EXISTS "Store users can view their stores" ON stores;
 DROP POLICY IF EXISTS "Public can view categories of active stores" ON categories;
