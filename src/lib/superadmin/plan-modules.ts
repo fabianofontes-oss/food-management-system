@@ -51,6 +51,13 @@ export const PLAN_MODULES: PlanModule[] = [
     icon: 'Monitor'
   },
   {
+    id: 'pos_new',
+    name: 'PDV Novo (Beta)',
+    description: 'Nova versão do PDV com mais recursos',
+    category: 'sales',
+    icon: 'Monitor'
+  },
+  {
     id: 'delivery',
     name: 'Delivery',
     description: 'Gestão de entregas e entregadores',
@@ -104,9 +111,16 @@ export const PLAN_MODULES: PlanModule[] = [
   {
     id: 'team',
     name: 'Equipe',
-    description: 'Gestão de funcionários',
+    description: 'Gestão de funcionários e permissões',
     category: 'operations',
     icon: 'Users'
+  },
+  {
+    id: 'onboarding',
+    name: 'Onboarding',
+    description: 'Assistente de configuração inicial',
+    category: 'operations',
+    icon: 'Sparkles'
   },
 
   // === MARKETING ===
@@ -150,7 +164,7 @@ export const PLAN_MODULES: PlanModule[] = [
   {
     id: 'reports',
     name: 'Relatórios',
-    description: 'Relatórios detalhados',
+    description: 'Relatórios detalhados e exportação',
     category: 'advanced',
     icon: 'FileText'
   },
@@ -181,6 +195,13 @@ export const PLAN_MODULES: PlanModule[] = [
     description: 'Personalização visual do cardápio',
     category: 'advanced',
     icon: 'Palette'
+  },
+  {
+    id: 'pdv_config',
+    name: 'Configuração PDV',
+    description: 'Configurações avançadas do PDV',
+    category: 'advanced',
+    icon: 'Settings'
   }
 ]
 
