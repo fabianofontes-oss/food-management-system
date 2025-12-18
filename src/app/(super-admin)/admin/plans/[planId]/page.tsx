@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Loader2, Info, Building2 } from 'lucide-react'
+import { ArrowLeft, Loader2, Info, Building2, Check, X } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { getPlanById, updatePlan, getTenantsByPlan, type Plan } from '@/lib/superadmin/plans'
+import { PLAN_MODULES, MODULE_CATEGORIES, getDefaultPlanModules } from '@/lib/superadmin/plan-modules'
 
 export default function EditPlanPage({ params }: { params: { planId: string } }) {
   const router = useRouter()
@@ -22,6 +23,7 @@ export default function EditPlanPage({ params }: { params: { planId: string } })
     is_active: true,
     features_note: ''
   })
+  const [selectedModules, setSelectedModules] = useState<string[]>(getDefaultPlanModules())
 
   useEffect(() => {
     loadData()
@@ -53,6 +55,14 @@ export default function EditPlanPage({ params }: { params: { planId: string } })
         is_active: planData.is_active,
         features_note: features?.note || ''
       })
+      
+      // Carregar módulos do plano
+      if (features?.modules && Array.isArray(features.modules)) {
+        setSelectedModules(features.modules)
+      } else {
+        // Se não tem módulos definidos, usar os padrões (core)
+        setSelectedModules(getDefaultPlanModules())
+      }
     } catch (err) {
       console.error('Erro ao carregar plano:', err)
       alert('Erro ao carregar plano')
@@ -68,9 +78,10 @@ export default function EditPlanPage({ params }: { params: { planId: string } })
     try {
       setSubmitting(true)
 
-      const features = formData.features_note 
-        ? { note: formData.features_note }
-        : null
+      const features = {
+        note: formData.features_note || '',
+        modules: selectedModules
+      }
 
       await updatePlan(params.planId, {
         name: formData.name,
@@ -231,14 +242,105 @@ export default function EditPlanPage({ params }: { params: { planId: string } })
                   </label>
                 </div>
 
-                {/* Info Box */}
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex gap-3">
-                  <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                  <div className="text-sm text-blue-900">
-                    <p className="font-semibold mb-1">Informação Importante</p>
-                    <p>
-                      Campos de features e limites ainda não são usados para bloqueio de funcionalidades. 
-                      Eles foram deixados prontos para uma futura fase de controle por plano.
+                {/* Módulos do Plano */}
+                <div className="border-t pt-6">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4">Módulos Incluídos no Plano</h3>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Selecione quais funcionalidades estarão disponíveis para lojas neste plano.
+                  </p>
+                  
+                  <div className="space-y-6">
+                    {MODULE_CATEGORIES.map((category) => {
+                      const categoryModules = PLAN_MODULES.filter(m => m.category === category.id)
+                      if (categoryModules.length === 0) return null
+                      
+                      const isCore = category.id === 'core'
+                      
+                      return (
+                        <div key={category.id} className="bg-gray-50 rounded-xl p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <div>
+                              <h4 className="font-semibold text-gray-900">{category.name}</h4>
+                              <p className="text-xs text-gray-500">{category.description}</p>
+                            </div>
+                            {!isCore && (
+                              <div className="flex gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const moduleIds = categoryModules.map(m => m.id)
+                                    setSelectedModules(prev => [...new Set([...prev, ...moduleIds])])
+                                  }}
+                                  className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200"
+                                >
+                                  Marcar Todos
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const moduleIds = categoryModules.map(m => m.id)
+                                    setSelectedModules(prev => prev.filter(id => !moduleIds.includes(id)))
+                                  }}
+                                  className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200"
+                                >
+                                  Desmarcar Todos
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                            {categoryModules.map((module) => {
+                              const isSelected = selectedModules.includes(module.id)
+                              const isDisabled = isCore // Core modules são sempre obrigatórios
+                              
+                              return (
+                                <label
+                                  key={module.id}
+                                  className={`
+                                    flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all
+                                    ${isSelected 
+                                      ? 'border-green-500 bg-green-50' 
+                                      : 'border-gray-200 bg-white hover:border-gray-300'
+                                    }
+                                    ${isDisabled ? 'opacity-60 cursor-not-allowed' : ''}
+                                  `}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={isSelected}
+                                    disabled={isDisabled}
+                                    onChange={(e) => {
+                                      if (isDisabled) return
+                                      if (e.target.checked) {
+                                        setSelectedModules(prev => [...prev, module.id])
+                                      } else {
+                                        setSelectedModules(prev => prev.filter(id => id !== module.id))
+                                      }
+                                    }}
+                                    className="w-4 h-4 text-green-600 rounded focus:ring-green-500"
+                                  />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="font-medium text-sm text-gray-900 truncate">{module.name}</p>
+                                    <p className="text-xs text-gray-500 truncate">{module.description}</p>
+                                  </div>
+                                  {isSelected ? (
+                                    <Check className="w-4 h-4 text-green-600 flex-shrink-0" />
+                                  ) : (
+                                    <X className="w-4 h-4 text-gray-300 flex-shrink-0" />
+                                  )}
+                                </label>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                  
+                  <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-sm text-blue-900">
+                      <strong>{selectedModules.length}</strong> módulos selecionados
                     </p>
                   </div>
                 </div>
