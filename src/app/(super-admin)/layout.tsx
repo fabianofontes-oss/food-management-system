@@ -33,6 +33,12 @@ const menuItems = [
     description: 'Gestão de Planos'
   },
   { 
+    href: '/admin/billing', 
+    label: 'Billing', 
+    icon: CreditCard,
+    description: 'Faturas e Pagamentos'
+  },
+  { 
     href: '/admin/users', 
     label: 'Usuários', 
     icon: Users,
