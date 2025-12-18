@@ -25,6 +25,14 @@ const SYSTEM_PAGES: PageInfo[] = [
   { path: '/landing', name: 'Landing Page', category: 'Público', requiresAuth: false, requiresSlug: false },
   { path: '/profile', name: 'Perfil', category: 'Público', requiresAuth: true, requiresSlug: false },
   
+  // ========== DEMO (Acesso Público) ==========
+  { path: '/demo', name: 'Cardápio Demo', category: 'Demo', requiresAuth: false, requiresSlug: false },
+  { path: '/demo/dashboard', name: 'Dashboard Demo', category: 'Demo', requiresAuth: false, requiresSlug: false },
+  { path: '/demo/dashboard/products', name: 'Produtos Demo', category: 'Demo', requiresAuth: false, requiresSlug: false },
+  { path: '/demo/dashboard/orders', name: 'Pedidos Demo', category: 'Demo', requiresAuth: false, requiresSlug: false },
+  { path: '/demo/dashboard/kitchen', name: 'Cozinha Demo', category: 'Demo', requiresAuth: false, requiresSlug: false },
+  { path: '/demo/dashboard/pos', name: 'PDV Demo', category: 'Demo', requiresAuth: false, requiresSlug: false },
+  
   // ========== SUPER ADMIN ==========
   { path: '/admin', name: 'Dashboard Admin', category: 'Super Admin', requiresAuth: true, requiresSlug: false },
   { path: '/admin/tenants', name: 'Tenants', category: 'Super Admin', requiresAuth: true, requiresSlug: false },
