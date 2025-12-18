@@ -16,7 +16,7 @@ export const landingContent = {
     },
     secondaryCTA: {
       text: 'Ver demonstração',
-      href: '/acai-sabor-real', // TODO: Definir slug de demo
+      href: '/demo/dashboard',
     },
     stats: [
       { value: '10k+', label: 'Pedidos processados' },
