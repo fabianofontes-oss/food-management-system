@@ -37,6 +37,13 @@ const tools = [
     category: '🩺 Diagnóstico & Monitoramento',
     items: [
       {
+        title: 'Auditoria Completa',
+        description: 'Verifica TODOS os problemas no banco: tenants, lojas, produtos, pedidos, faturas',
+        icon: Activity,
+        href: '/admin/health/audit',
+        color: 'pink'
+      },
+      {
         title: 'Health Monitor',
         description: 'Dashboard de integridade de dados (crítico, atenção, status)',
         icon: Activity,
