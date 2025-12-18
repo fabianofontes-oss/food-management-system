@@ -63,6 +63,13 @@ const tools = [
         icon: Database,
         href: '/admin/health/debug',
         color: 'emerald'
+      },
+      {
+        title: 'Mocks & Placeholders',
+        description: 'Lista todas as funcionalidades incompletas ou com dados mock',
+        icon: Activity,
+        href: '/admin/health/mocks',
+        color: 'amber'
       }
     ]
   },
