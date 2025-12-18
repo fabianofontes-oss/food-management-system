@@ -41,7 +41,7 @@ export function CashRegister({ storeId, attendant, session, onSessionChange, dar
     const { data } = await supabase
       .from('cash_movements')
       .select('*')
-      .eq('session_id', session.id)
+      .eq('cash_session_id', session.id)
       .order('created_at', { ascending: false })
     if (data) setMovements(data)
   }
@@ -115,7 +115,7 @@ export function CashRegister({ storeId, attendant, session, onSessionChange, dar
       const value = parseFloat(amount)
       
       await supabase.from('cash_movements').insert({
-        session_id: session.id,
+        cash_session_id: session.id,
         type,
         amount: value,
         reason,

@@ -37,7 +37,7 @@ export interface CashRegisterSession {
 
 export interface CashMovement {
   id: string
-  session_id: string
+  cash_session_id: string
   type: 'withdrawal' | 'deposit'
   amount: number
   reason: string

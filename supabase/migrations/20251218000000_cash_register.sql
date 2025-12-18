@@ -1,6 +1,10 @@
 -- Migração: Controle de Caixa (PDV)
 -- Data: 2025-12-18
 
+-- Limpar policies existentes se houver
+DROP POLICY IF EXISTS "cash_sessions_store_access" ON cash_register_sessions;
+DROP POLICY IF EXISTS "cash_movements_store_access" ON cash_movements;
+
 -- Tabela de sessões de caixa
 CREATE TABLE IF NOT EXISTS cash_register_sessions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -26,7 +30,7 @@ CREATE TABLE IF NOT EXISTS cash_register_sessions (
 -- Tabela de movimentações de caixa (sangria/suprimento)
 CREATE TABLE IF NOT EXISTS cash_movements (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  session_id UUID NOT NULL REFERENCES cash_register_sessions(id) ON DELETE CASCADE,
+  cash_session_id UUID NOT NULL REFERENCES cash_register_sessions(id) ON DELETE CASCADE,
   type TEXT NOT NULL CHECK (type IN ('withdrawal', 'deposit')),
   amount DECIMAL(10,2) NOT NULL,
   reason TEXT NOT NULL,
@@ -38,7 +42,7 @@ CREATE TABLE IF NOT EXISTS cash_movements (
 CREATE INDEX IF NOT EXISTS idx_cash_sessions_store ON cash_register_sessions(store_id);
 CREATE INDEX IF NOT EXISTS idx_cash_sessions_status ON cash_register_sessions(store_id, status);
 CREATE INDEX IF NOT EXISTS idx_cash_sessions_date ON cash_register_sessions(store_id, opened_at);
-CREATE INDEX IF NOT EXISTS idx_cash_movements_session ON cash_movements(session_id);
+CREATE INDEX IF NOT EXISTS idx_cash_movements_session ON cash_movements(cash_session_id);
 
 -- RLS Policies
 ALTER TABLE cash_register_sessions ENABLE ROW LEVEL SECURITY;
@@ -54,7 +58,7 @@ CREATE POLICY "cash_sessions_store_access" ON cash_register_sessions
 
 CREATE POLICY "cash_movements_store_access" ON cash_movements
   FOR ALL USING (
-    session_id IN (
+    cash_session_id IN (
       SELECT id FROM cash_register_sessions WHERE store_id IN (
         SELECT id FROM stores WHERE user_id = auth.uid()
       )
