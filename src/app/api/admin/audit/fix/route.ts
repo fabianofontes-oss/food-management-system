@@ -5,6 +5,15 @@ import { promisify } from 'util'
 const execAsync = promisify(exec)
 
 export async function POST() {
+  // Verifica se está em produção (Vercel não tem Python)
+  if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
+    return NextResponse.json({
+      success: false,
+      message: 'Scripts Python só funcionam em ambiente de desenvolvimento local.',
+      isProduction: true
+    }, { status: 400 })
+  }
+
   try {
     // O script faxineiro.py precisa de confirmação, então vamos criar uma versão
     // que aceita "s" automaticamente via stdin

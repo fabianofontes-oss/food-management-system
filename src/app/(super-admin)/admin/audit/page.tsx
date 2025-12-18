@@ -51,8 +51,12 @@ export default function AuditPage() {
   const [runningFix, setRunningFix] = useState(false)
   const [actionLog, setActionLog] = useState<string | null>(null)
   const [showConfirmFix, setShowConfirmFix] = useState(false)
+  const [isProduction, setIsProduction] = useState(false)
 
   useEffect(() => {
+    // Detecta se está em produção (Vercel)
+    const isProd = window.location.hostname !== 'localhost' && !window.location.hostname.includes('127.0.0.1')
+    setIsProduction(isProd)
     loadReport()
   }, [])
 
@@ -215,79 +219,98 @@ export default function AuditPage() {
 
         {/* Painel de Ações */}
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
-          <div className="flex flex-wrap items-center gap-4">
-            <Button 
-              onClick={runAudit}
-              disabled={runningAudit || runningFix}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-6 text-lg rounded-xl shadow-lg"
-            >
-              {runningAudit ? (
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-              ) : (
-                <Search className="w-5 h-5 mr-2" />
-              )}
-              {runningAudit ? 'Analisando...' : '🔍 Rodar Auditoria Agora'}
-            </Button>
-
-            {!showConfirmFix ? (
-              <Button 
-                onClick={() => setShowConfirmFix(true)}
-                disabled={runningAudit || runningFix || summary.total_errors === 0}
-                variant="outline"
-                className="border-red-300 text-red-600 hover:bg-red-50 px-6 py-6 text-lg rounded-xl"
-              >
-                <Wrench className="w-5 h-5 mr-2" />
-                🧹 Executar Faxina Automática
+          {isProduction ? (
+            <div className="flex items-center gap-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+              <Terminal className="w-6 h-6 text-blue-600" />
+              <div>
+                <p className="font-semibold text-blue-800">📊 Modo Visualização</p>
+                <p className="text-sm text-blue-700">
+                  Os scripts de auditoria e faxina só funcionam em ambiente de desenvolvimento local.
+                  Este relatório foi gerado no último commit.
+                </p>
+              </div>
+              <Button onClick={loadReport} variant="outline" className="ml-auto">
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Atualizar
               </Button>
-            ) : (
-              <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl p-4">
-                <AlertOctagon className="w-6 h-6 text-red-500" />
-                <span className="text-red-700 font-medium">Confirmar faxina?</span>
+            </div>
+          ) : (
+            <>
+              <div className="flex flex-wrap items-center gap-4">
                 <Button 
-                  onClick={runFix}
-                  className="bg-red-600 hover:bg-red-700 text-white ml-2"
+                  onClick={runAudit}
+                  disabled={runningAudit || runningFix}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-6 text-lg rounded-xl shadow-lg"
                 >
-                  {runningFix ? (
-                    <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                  {runningAudit ? (
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                   ) : (
-                    <Play className="w-4 h-4 mr-1" />
+                    <Search className="w-5 h-5 mr-2" />
                   )}
-                  Sim, executar
+                  {runningAudit ? 'Analisando...' : '🔍 Rodar Auditoria Agora'}
                 </Button>
-                <Button 
-                  onClick={() => setShowConfirmFix(false)}
-                  variant="ghost"
-                >
-                  Cancelar
+
+                {!showConfirmFix ? (
+                  <Button 
+                    onClick={() => setShowConfirmFix(true)}
+                    disabled={runningAudit || runningFix || summary.total_errors === 0}
+                    variant="outline"
+                    className="border-red-300 text-red-600 hover:bg-red-50 px-6 py-6 text-lg rounded-xl"
+                  >
+                    <Wrench className="w-5 h-5 mr-2" />
+                    🧹 Executar Faxina Automática
+                  </Button>
+                ) : (
+                  <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl p-4">
+                    <AlertOctagon className="w-6 h-6 text-red-500" />
+                    <span className="text-red-700 font-medium">Confirmar faxina?</span>
+                    <Button 
+                      onClick={runFix}
+                      className="bg-red-600 hover:bg-red-700 text-white ml-2"
+                    >
+                      {runningFix ? (
+                        <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                      ) : (
+                        <Play className="w-4 h-4 mr-1" />
+                      )}
+                      Sim, executar
+                    </Button>
+                    <Button 
+                      onClick={() => setShowConfirmFix(false)}
+                      variant="ghost"
+                    >
+                      Cancelar
+                    </Button>
+                  </div>
+                )}
+
+                <Button onClick={loadReport} variant="outline" className="ml-auto">
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Atualizar
                 </Button>
               </div>
-            )}
 
-            <Button onClick={loadReport} variant="outline" className="ml-auto">
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Atualizar
-            </Button>
-          </div>
+              {/* Log de Ação */}
+              {actionLog && (
+                <div className={`mt-4 p-4 rounded-xl ${
+                  actionLog.startsWith('✅') ? 'bg-green-50 text-green-800 border border-green-200' :
+                  actionLog.startsWith('❌') ? 'bg-red-50 text-red-800 border border-red-200' :
+                  'bg-blue-50 text-blue-800 border border-blue-200'
+                }`}>
+                  <p className="font-medium">{actionLog}</p>
+                </div>
+              )}
 
-          {/* Log de Ação */}
-          {actionLog && (
-            <div className={`mt-4 p-4 rounded-xl ${
-              actionLog.startsWith('✅') ? 'bg-green-50 text-green-800 border border-green-200' :
-              actionLog.startsWith('❌') ? 'bg-red-50 text-red-800 border border-red-200' :
-              'bg-blue-50 text-blue-800 border border-blue-200'
-            }`}>
-              <p className="font-medium">{actionLog}</p>
-            </div>
+              {/* Aviso de Segurança */}
+              <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                <div className="text-sm text-amber-800">
+                  <p className="font-semibold">⚠️ Aviso de Segurança</p>
+                  <p>A faxina automática altera arquivos do projeto. Certifique-se de ter um backup ou commit antes de executar. Os arquivos originais são salvos em <code className="bg-amber-100 px-1 rounded">_BACKUP_BEFORE_FIX/</code></p>
+                </div>
+              </div>
+            </>
           )}
-
-          {/* Aviso de Segurança */}
-          <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3">
-            <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-amber-800">
-              <p className="font-semibold">⚠️ Aviso de Segurança</p>
-              <p>A faxina automática altera arquivos do projeto. Certifique-se de ter um backup ou commit antes de executar. Os arquivos originais são salvos em <code className="bg-amber-100 px-1 rounded">_BACKUP_BEFORE_FIX/</code></p>
-            </div>
-          </div>
         </div>
 
         {/* Stats Cards */}
