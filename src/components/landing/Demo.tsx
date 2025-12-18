@@ -43,7 +43,7 @@ export function Demo() {
                 <div className="flex-1 mx-8">
                   <div className="bg-gray-700/50 rounded-lg px-4 py-2 text-sm text-gray-400 text-center font-mono flex items-center justify-center gap-2">
                     <span className="text-emerald-400">🔒</span>
-                    pediu.food/acai-sabor-real
+                    pediu.food/demo/dashboard
                   </div>
                 </div>
               </div>
@@ -66,7 +66,7 @@ export function Demo() {
                 
                 {/* Play button */}
                 <Link
-                  href="/acai-sabor-real"
+                  href="/demo/dashboard"
                   className="relative z-10 group/btn flex flex-col items-center gap-4"
                 >
                   <div className="relative">

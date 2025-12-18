@@ -59,22 +59,30 @@ export async function updateSession(request: NextRequest) {
   // Rotas do dashboard requerem autenticação
   const dashboardMatch = path.match(/^\/([^\/]+)\/dashboard/)
   if (dashboardMatch) {
-    if (!user) {
-      return NextResponse.redirect(new URL('/login', request.url))
-    }
-
     const slug = dashboardMatch[1]
 
     // Buscar store pelo slug
     const { data: store, error: storeError } = await supabase
       .from('stores')
-      .select('id')
+      .select('id, settings')
       .eq('slug', slug)
       .single()
 
     if (storeError || !store) {
       console.log(`[Middleware] Store not found: ${slug}`)
       return NextResponse.redirect(new URL('/unauthorized', request.url))
+    }
+
+    // Modo DEMO: permite acesso sem login se a loja tem isDemo: true
+    const settings = store.settings as any
+    if (settings?.isDemo === true) {
+      console.log(`[Middleware] DEMO MODE: allowing access to ${slug}`)
+      return response
+    }
+
+    // Autenticação normal para lojas não-demo
+    if (!user) {
+      return NextResponse.redirect(new URL('/login', request.url))
     }
 
     // Verificar se usuário tem acesso à loja
