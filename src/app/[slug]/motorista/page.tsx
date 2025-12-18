@@ -333,7 +333,7 @@ export default function MotoristaPage() {
                     type="tel"
                     value={driverPhone}
                     onChange={(e) => setDriverPhone(e.target.value)}
-                    placeholder="(00) 00000-0000"
+                    placeholder="(31) 99914-0095"
                     className="w-full pl-12 pr-4 py-4 border-2 border-slate-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all text-lg"
                   />
                 </div>

@@ -1198,7 +1198,7 @@ export default function TablesPage() {
                 />
                 <input
                   type="tel"
-                  placeholder="Telefone"
+                  placeholder="(31) 99914-0095"
                   value={reservationForm.customer_phone}
                   onChange={e => setReservationForm(prev => ({ ...prev, customer_phone: e.target.value }))}
                   className="px-3 py-2 border rounded-lg text-sm"

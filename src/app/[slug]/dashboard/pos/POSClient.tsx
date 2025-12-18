@@ -196,7 +196,7 @@ function CartPanel(props: {
             />
             <input
               type="tel"
-              placeholder="Telefone"
+              placeholder="(31) 99914-0095"
               value={customerPhone}
               onChange={(e) => onCustomerPhoneChange(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"

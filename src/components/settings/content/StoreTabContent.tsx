@@ -46,7 +46,7 @@ export function StoreTabContent({ store, setStore, businessHours, setBusinessHou
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <ConfigField label="Nome da Loja" value={store.name} onChange={v => setStore(s => ({ ...s, name: v }))} placeholder="Ex: Açaí do João" />
-          <ConfigField label="Telefone / WhatsApp" value={store.phone} onChange={v => setStore(s => ({ ...s, phone: v }))} placeholder="(11) 99999-9999" />
+          <ConfigField label="Telefone / WhatsApp" value={store.phone} onChange={v => setStore(s => ({ ...s, phone: v }))} placeholder="(31) 99914-0095" />
           <div className="md:col-span-2">
             <label className="block text-xs font-medium text-slate-600 mb-1">Descrição</label>
             <textarea
@@ -73,7 +73,7 @@ export function StoreTabContent({ store, setStore, businessHours, setBusinessHou
           </div>
           <ConfigField label="Cidade" value={store.city} onChange={v => setStore(s => ({ ...s, city: v }))} placeholder="São Paulo" />
           <ConfigField label="Estado" value={store.state} onChange={v => setStore(s => ({ ...s, state: v }))} placeholder="SP" />
-          <ConfigField label="CEP" value={store.cep} onChange={v => setStore(s => ({ ...s, cep: v }))} placeholder="00000-000" />
+          <ConfigField label="CEP" value={store.cep} onChange={v => setStore(s => ({ ...s, cep: v }))} placeholder="32.010-370" />
         </div>
       </div>
 

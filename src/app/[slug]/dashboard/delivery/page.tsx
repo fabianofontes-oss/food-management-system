@@ -935,7 +935,7 @@ export default function DeliveryPage() {
                     type="tel"
                     value={newDriver.phone}
                     onChange={(e) => setNewDriver({ ...newDriver, phone: e.target.value })}
-                    placeholder="(00) 00000-0000"
+                    placeholder="(31) 99914-0095"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
@@ -1160,7 +1160,7 @@ export default function DeliveryPage() {
                     type="tel"
                     value={newDriver.phone}
                     onChange={(e) => setNewDriver({ ...newDriver, phone: e.target.value })}
-                    placeholder="(00) 00000-0000"
+                    placeholder="(31) 99914-0095"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>

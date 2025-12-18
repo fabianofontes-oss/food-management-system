@@ -141,7 +141,7 @@ export function StoreInfoCard({ settings, enabled, onUpdateSetting }: StoreInfoC
               type="tel"
               value={settings.store_phone || ''}
               onChange={e => handlePhoneChange(e.target.value)}
-              placeholder="(11) 3333-4444"
+              placeholder="(31) 99914-0095"
               maxLength={15}
               className="w-full px-3 py-2.5 border-2 border-slate-200 rounded-xl focus:border-violet-500 focus:outline-none bg-white"
             />
@@ -175,7 +175,7 @@ export function StoreInfoCard({ settings, enabled, onUpdateSetting }: StoreInfoC
                 type="text"
                 value={settings.store_cep || ''}
                 onChange={e => handleCepChange(e.target.value)}
-                placeholder="00000-000"
+                placeholder="32.010-370"
                 maxLength={9}
                 className="w-full px-3 py-2.5 border-2 border-slate-200 rounded-xl focus:border-violet-500 focus:outline-none pr-10"
               />
@@ -331,7 +331,7 @@ export function StoreInfoCard({ settings, enabled, onUpdateSetting }: StoreInfoC
               type="tel"
               value={settings.owner_phone || ''}
               onChange={e => onUpdateSetting('owner_phone', formatPhone(e.target.value))}
-              placeholder="(11) 99999-9999"
+              placeholder="(31) 99914-0095"
               maxLength={15}
               className="w-full px-3 py-2.5 border-2 border-slate-200 rounded-xl focus:border-violet-500 focus:outline-none text-sm bg-white"
             />

@@ -239,7 +239,7 @@ export default function StoreSettingsPage() {
                   type="text"
                   value={storePhone}
                   onChange={e => setStorePhone(e.target.value)}
-                  placeholder="(11) 99999-9999"
+                  placeholder="(31) 99914-0095"
                   className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-emerald-500 focus:outline-none"
                 />
               </div>
@@ -322,7 +322,7 @@ export default function StoreSettingsPage() {
                   type="text"
                   value={storeCep}
                   onChange={e => setStoreCep(e.target.value)}
-                  placeholder="00000-000"
+                  placeholder="32.010-370"
                   className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-emerald-500 focus:outline-none"
                 />
               </div>

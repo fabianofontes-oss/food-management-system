@@ -73,7 +73,7 @@ export const MODULES: Module[] = [
     isCore: true,
     settings: [
       { key: 'store_name', label: 'Nome da Loja', description: 'Nome exibido para clientes', type: 'text', icon: <Store className="w-4 h-4" />, placeholder: 'Minha Loja', defaultValue: '' },
-      { key: 'store_phone', label: 'Telefone', description: 'Contato principal', type: 'text', icon: <Phone className="w-4 h-4" />, placeholder: '(11) 99999-9999', defaultValue: '' },
+      { key: 'store_phone', label: 'Telefone', description: 'Contato principal', type: 'text', icon: <Phone className="w-4 h-4" />, placeholder: '(31) 99914-0095', defaultValue: '' },
       { key: 'store_email', label: 'E-mail', description: 'E-mail de contato', type: 'text', icon: <Mail className="w-4 h-4" />, placeholder: 'contato@loja.com', defaultValue: '' },
       { key: 'store_address', label: 'Endereço', description: 'Endereço completo', type: 'text', icon: <MapPin className="w-4 h-4" />, placeholder: 'Rua, número, bairro', defaultValue: '' }
     ]
