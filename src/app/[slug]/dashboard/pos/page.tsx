@@ -20,7 +20,7 @@ export default function PDVPage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [barcodeInput, setBarcodeInput] = useState('')
   const [darkMode, setDarkMode] = useState(false)
-  const [layoutType, setLayoutType] = useState<LayoutType>('large')
+  const [layoutType, setLayoutType] = useState<LayoutType>('photo-lg')
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [showAttendantModal, setShowAttendantModal] = useState(true)
   const [showReceipt, setShowReceipt] = useState(false)
