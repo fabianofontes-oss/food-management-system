@@ -44,11 +44,25 @@ const tools = [
         color: 'emerald'
       },
       {
+        title: 'Diagnóstico do Banco',
+        description: 'Verificar tabelas, registros e inconsistências no banco de dados',
+        icon: Database,
+        href: '/admin/health/database',
+        color: 'violet'
+      },
+      {
+        title: 'Mapa de Páginas',
+        description: 'Todas as 107 páginas do sistema organizadas por categoria',
+        icon: Globe,
+        href: '/admin/health/pages',
+        color: 'blue'
+      },
+      {
         title: 'Debug de Lojas',
         description: 'Lista todas as lojas com URL, nicho, layout, cor e produtos',
         icon: Database,
         href: '/admin/health/debug',
-        color: 'violet'
+        color: 'emerald'
       }
     ]
   },
