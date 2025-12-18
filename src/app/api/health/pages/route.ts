@@ -71,8 +71,7 @@ const SYSTEM_PAGES: PageInfo[] = [
   { path: '/{slug}/dashboard/orders', name: 'Pedidos', category: 'Dashboard Lojista', requiresAuth: true, requiresSlug: true },
   { path: '/{slug}/dashboard/kitchen', name: 'Cozinha', category: 'Dashboard Lojista', requiresAuth: true, requiresSlug: true },
   { path: '/{slug}/dashboard/pos', name: 'PDV', category: 'Dashboard Lojista', requiresAuth: true, requiresSlug: true },
-  { path: '/{slug}/dashboard/pdv-novo', name: 'PDV Novo', category: 'Dashboard Lojista', requiresAuth: true, requiresSlug: true },
-  { path: '/{slug}/dashboard/tables', name: 'Mesas', category: 'Dashboard Lojista', requiresAuth: true, requiresSlug: true },
+    { path: '/{slug}/dashboard/tables', name: 'Mesas', category: 'Dashboard Lojista', requiresAuth: true, requiresSlug: true },
   { path: '/{slug}/dashboard/waiters', name: 'Garçons', category: 'Dashboard Lojista', requiresAuth: true, requiresSlug: true },
   { path: '/{slug}/dashboard/reservations', name: 'Reservas', category: 'Dashboard Lojista', requiresAuth: true, requiresSlug: true },
   { path: '/{slug}/dashboard/delivery', name: 'Entregadores', category: 'Dashboard Lojista', requiresAuth: true, requiresSlug: true },
@@ -90,8 +89,7 @@ const SYSTEM_PAGES: PageInfo[] = [
   { path: '/{slug}/dashboard/kits', name: 'Kits/Combos', category: 'Dashboard Lojista', requiresAuth: true, requiresSlug: true },
   { path: '/{slug}/dashboard/appearance', name: 'Aparência', category: 'Dashboard Lojista', requiresAuth: true, requiresSlug: true },
   { path: '/{slug}/dashboard/onboarding', name: 'Onboarding', category: 'Dashboard Lojista', requiresAuth: true, requiresSlug: true },
-  { path: '/{slug}/dashboard/pdv-config', name: 'Config PDV', category: 'Dashboard Lojista', requiresAuth: true, requiresSlug: true },
-  
+    
   // ========== CONFIGURAÇÕES LOJISTA ==========
   { path: '/{slug}/dashboard/settings', name: 'Configurações', category: 'Configurações Loja', requiresAuth: true, requiresSlug: true },
   { path: '/{slug}/dashboard/settings/store', name: 'Dados da Loja', category: 'Configurações Loja', requiresAuth: true, requiresSlug: true },

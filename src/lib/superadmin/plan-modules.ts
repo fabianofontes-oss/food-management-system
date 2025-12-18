@@ -222,13 +222,6 @@ export const PLAN_MODULES: PlanModule[] = [
     description: 'Personalização visual do cardápio',
     category: 'advanced',
     icon: 'Palette'
-  },
-  {
-    id: 'pdv_config',
-    name: 'Configuração PDV',
-    description: 'Configurações avançadas do PDV',
-    category: 'advanced',
-    icon: 'Settings'
   }
 ]
 

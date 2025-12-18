@@ -126,7 +126,7 @@ export default function DashboardClient({
         { href: `${base}/settings/store`, label: 'Dados da Loja', icon: Store, gradient: 'from-emerald-500 to-green-600' },
         hasModule('appearance') && { href: `${base}/appearance`, label: 'Aparência', icon: Palette, gradient: 'from-purple-500 to-fuchsia-600' },
         hasModule('onboarding') && { href: `${base}/onboarding`, label: 'Onboarding', icon: Sparkles, gradient: 'from-violet-500 to-purple-600' },
-        hasModule('pdv_config') && { href: `${base}/pdv-config`, label: 'Config PDV', icon: Settings, gradient: 'from-blue-500 to-indigo-600' },
+        hasModule('pos') && { href: `${base}/settings/pdv`, label: 'Config PDV', icon: Settings, gradient: 'from-blue-500 to-indigo-600' },
         { href: `${base}/settings`, label: 'Avançado', icon: Settings, gradient: 'from-slate-500 to-slate-600' },
       ].filter(Boolean) as SidebarSection['items']
     },

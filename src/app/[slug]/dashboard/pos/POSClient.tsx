@@ -708,7 +708,7 @@ export default function POSClient({ slug, storeId }: POSClientProps) {
               </p>
             </div>
             <div className="flex gap-3">
-              <Link href={`/${slug}/dashboard/pdv-config`}>
+              <Link href={`/${slug}/dashboard/settings/pdv`}>
                 <button
                   className={`p-3 rounded-xl border shadow-sm hover:shadow-md transition-all ${
                     pdvConfig.theme === 'dark'
