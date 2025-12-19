@@ -87,6 +87,7 @@ export const ReferralRepository = {
     tenantId?: string
     partnerType: string
     displayName: string
+    recruitedByStoreId?: string // Loja que recrutou (para DRIVER)
   }): Promise<ReferralPartner> {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -121,6 +122,9 @@ export const ReferralRepository = {
       }
     }
 
+    // Configurar split para DRIVER: 80% driver / 20% recrutador
+    const isDriver = input.partnerType === 'DRIVER'
+    
     const { data, error } = await supabase
       .from('referral_partners')
       .insert({
@@ -131,6 +135,10 @@ export const ReferralRepository = {
         partner_type: input.partnerType,
         base_commission_percent: 20, // Default 20%
         is_active: true,
+        // Split 80/20 para DRIVER
+        recruited_by_store_id: isDriver ? (input.recruitedByStoreId || input.storeId) : null,
+        driver_share_percent: isDriver ? 80 : null,
+        recruiter_share_percent: isDriver ? 20 : null,
       })
       .select()
       .single()

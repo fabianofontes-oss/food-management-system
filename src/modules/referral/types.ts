@@ -32,6 +32,10 @@ export interface ReferralPartner {
   is_active: boolean
   staff_share_percent: number | null
   owner_share_percent: number | null
+  // Split 80/20 para DRIVER
+  recruited_by_store_id: string | null
+  driver_share_percent: number | null    // 80% para driver
+  recruiter_share_percent: number | null // 20% para lojista recrutador (crédito)
   created_at: string
 }
 
