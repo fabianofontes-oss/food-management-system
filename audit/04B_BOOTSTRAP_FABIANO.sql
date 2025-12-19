@@ -12,7 +12,7 @@
 
 INSERT INTO public.super_admins (user_id, email, notes)
 VALUES (
-  'COLE_SEU_USER_ID_AQUI', -- ← COLE O USER_ID QUE VOCÊ COPIOU
+  'e0913bb8-35ff-49db-a3b7-818d6018bba2', -- Fabiano Braga
   'fabianobraga@me.com',
   'bootstrap - Fabiano Braga - primeiro super admin do sistema'
 )
@@ -34,8 +34,7 @@ WHERE revoked_at IS NULL;
 -- TESTE: Verificar se a função is_super_admin funciona
 -- =====================================================
 
--- Substitua 'COLE_SEU_USER_ID_AQUI' pelo seu user_id
-SELECT public.is_super_admin('COLE_SEU_USER_ID_AQUI'); 
+SELECT public.is_super_admin('e0913bb8-35ff-49db-a3b7-818d6018bba2'); 
 -- Deve retornar TRUE
 
 -- =====================================================
