@@ -5,7 +5,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import type { MinisiteStore, MinisiteCategory, MinisiteTheme } from './types'
-import { DEFAULT_THEME, MinisiteThemeSchema } from './types'
+import { DEFAULT_THEME, parseTheme } from './types'
 
 export const MinisiteRepository = {
   /**
@@ -22,7 +22,7 @@ export const MinisiteRepository = {
 
     if (error || !data) return null
 
-    const theme = this.parseTheme(data.menu_theme)
+    const theme = parseTheme(data.menu_theme)
     
     return {
       store: {
@@ -45,22 +45,29 @@ export const MinisiteRepository = {
   async getCategoriesWithProducts(storeId: string): Promise<MinisiteCategory[]> {
     const supabase = await createClient()
 
+    console.log('[getCategoriesWithProducts] storeId:', storeId)
+
     const [categoriesRes, productsRes] = await Promise.all([
       supabase
         .from('categories')
         .select('id, name, color')
         .eq('store_id', storeId)
-        .order('sort_order'),
+        .order('name'),
       supabase
         .from('products')
         .select('id, name, description, base_price, image_url, is_active, category_id')
         .eq('store_id', storeId)
         .eq('is_active', true)
-        .order('sort_order'),
+        .order('name'),
     ])
+
+    console.log('[getCategoriesWithProducts] categoriesRes:', categoriesRes.error?.message, categoriesRes.data?.length)
+    console.log('[getCategoriesWithProducts] productsRes:', productsRes.error?.message, productsRes.data?.length)
 
     const categories = categoriesRes.data || []
     const products = productsRes.data || []
+
+    console.log('[getCategoriesWithProducts] categories:', categories.length, 'products:', products.length)
 
     return categories
       .map(cat => ({
@@ -87,12 +94,28 @@ export const MinisiteRepository = {
   async updateTheme(storeId: string, theme: MinisiteTheme): Promise<boolean> {
     const supabase = await createClient()
     
-    const { error } = await supabase
+    console.log('[MinisiteRepository.updateTheme] storeId:', storeId)
+    console.log('[MinisiteRepository.updateTheme] theme:', JSON.stringify(theme))
+    
+    const { data, error } = await supabase
       .from('stores')
       .update({ menu_theme: theme })
       .eq('id', storeId)
+      .select('id, menu_theme')
 
-    return !error
+    console.log('[MinisiteRepository.updateTheme] result:', data, error?.message)
+    
+    if (error) {
+      console.error('[MinisiteRepository.updateTheme] ERROR:', error)
+      return false
+    }
+    
+    if (!data || data.length === 0) {
+      console.error('[MinisiteRepository.updateTheme] Nenhuma linha atualizada - RLS ou storeId inválido')
+      return false
+    }
+
+    return true
   },
 
   /**
@@ -109,17 +132,4 @@ export const MinisiteRepository = {
     return !error
   },
 
-  /**
-   * Parse seguro do tema com fallback para default
-   */
-  parseTheme(raw: unknown): MinisiteTheme {
-    try {
-      if (!raw || typeof raw !== 'object') return DEFAULT_THEME
-      const result = MinisiteThemeSchema.safeParse(raw)
-      if (result.success) return result.data
-      return { ...DEFAULT_THEME, ...(raw as object) }
-    } catch {
-      return DEFAULT_THEME
-    }
-  },
-}
+  }

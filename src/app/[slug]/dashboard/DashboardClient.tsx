@@ -56,7 +56,7 @@ export default function DashboardClient({
   // Função para verificar se um módulo está disponível
   const hasModule = (moduleId: string) => {
     // Core modules sempre disponíveis
-    const coreModules = ['dashboard', 'products', 'orders', 'settings']
+    const coreModules = ['dashboard', 'products', 'orders', 'settings', 'appearance']
     if (coreModules.includes(moduleId)) return true
     return availableModules.includes(moduleId)
   }

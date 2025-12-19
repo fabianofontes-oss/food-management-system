@@ -1,9 +1,7 @@
 /**
  * Módulo Minisite - Types
- * Tipagem Zod + Types do Banco + Types de UI
+ * Tipagem TypeScript pura (sem Zod)
  */
-
-import { z } from 'zod'
 
 // ============================================================
 // ENUMS E CONSTANTES
@@ -20,37 +18,29 @@ export const LAYOUT_OPTIONS: { value: LayoutType; label: string; description: st
 ]
 
 // ============================================================
-// SCHEMAS ZOD
+// TYPES DO TEMA
 // ============================================================
 
-export const ThemeColorsSchema = z.object({
-  primary: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/).default('#ea1d2c'),
-  background: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/).default('#ffffff'),
-  header: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/).default('#ffffff'),
-})
+export interface ThemeColors {
+  primary: string
+  background: string
+  header: string
+}
 
-export const ThemeDisplaySchema = z.object({
-  showBanner: z.boolean().default(true),
-  showLogo: z.boolean().default(true),
-  showSearch: z.boolean().default(true),
-  showAddress: z.boolean().default(true),
-  showSocial: z.boolean().default(true),
-})
+export interface ThemeDisplay {
+  showBanner: boolean
+  showLogo: boolean
+  showSearch: boolean
+  showAddress: boolean
+  showSocial: boolean
+}
 
-export const MinisiteThemeSchema = z.object({
-  layout: z.enum(LAYOUTS).default('modern'),
-  colors: ThemeColorsSchema.default({}),
-  display: ThemeDisplaySchema.default({}),
-  bannerUrl: z.string().nullable().optional(),
-})
-
-// ============================================================
-// TYPES INFERIDOS
-// ============================================================
-
-export type ThemeColors = z.infer<typeof ThemeColorsSchema>
-export type ThemeDisplay = z.infer<typeof ThemeDisplaySchema>
-export type MinisiteTheme = z.infer<typeof MinisiteThemeSchema>
+export interface MinisiteTheme {
+  layout: LayoutType
+  colors: ThemeColors
+  display: ThemeDisplay
+  bannerUrl?: string | null
+}
 
 // ============================================================
 // DEFAULTS
@@ -108,4 +98,31 @@ export interface MinisiteData {
   store: MinisiteStore
   theme: MinisiteTheme
   categories: MinisiteCategory[]
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+
+export function parseTheme(raw: unknown): MinisiteTheme {
+  if (!raw || typeof raw !== 'object') return DEFAULT_THEME
+  
+  const obj = raw as Record<string, unknown>
+  
+  return {
+    layout: (LAYOUTS.includes(obj.layout as LayoutType) ? obj.layout : 'modern') as LayoutType,
+    colors: {
+      primary: typeof (obj.colors as any)?.primary === 'string' ? (obj.colors as any).primary : DEFAULT_THEME.colors.primary,
+      background: typeof (obj.colors as any)?.background === 'string' ? (obj.colors as any).background : DEFAULT_THEME.colors.background,
+      header: typeof (obj.colors as any)?.header === 'string' ? (obj.colors as any).header : DEFAULT_THEME.colors.header,
+    },
+    display: {
+      showBanner: typeof (obj.display as any)?.showBanner === 'boolean' ? (obj.display as any).showBanner : DEFAULT_THEME.display.showBanner,
+      showLogo: typeof (obj.display as any)?.showLogo === 'boolean' ? (obj.display as any).showLogo : DEFAULT_THEME.display.showLogo,
+      showSearch: typeof (obj.display as any)?.showSearch === 'boolean' ? (obj.display as any).showSearch : DEFAULT_THEME.display.showSearch,
+      showAddress: typeof (obj.display as any)?.showAddress === 'boolean' ? (obj.display as any).showAddress : DEFAULT_THEME.display.showAddress,
+      showSocial: typeof (obj.display as any)?.showSocial === 'boolean' ? (obj.display as any).showSocial : DEFAULT_THEME.display.showSocial,
+    },
+    bannerUrl: typeof obj.bannerUrl === 'string' ? obj.bannerUrl : null,
+  }
 }

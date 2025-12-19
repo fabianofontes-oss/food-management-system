@@ -18,6 +18,8 @@ export default function AppearancePage() {
   const params = useParams()
   const slug = params.slug as string
   const storeId = useDashboardStoreId()
+  
+  console.log('[AppearancePage] storeId:', storeId, 'slug:', slug)
 
   const [loading, setLoading] = useState(true)
   const [theme, setTheme] = useState<MinisiteTheme>(DEFAULT_THEME)

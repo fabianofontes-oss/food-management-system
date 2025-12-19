@@ -1,27 +1,32 @@
 /**
  * Módulo Minisite - Server Actions
- * Validação Zod + chamadas ao Repository
+ * Chamadas ao Repository
  */
 
 'use server'
 
 import { revalidatePath } from 'next/cache'
 import { MinisiteRepository } from './repository'
-import { MinisiteThemeSchema, type MinisiteTheme } from './types'
+import type { MinisiteTheme } from './types'
 
 export async function updateMinisiteThemeAction(
   storeId: string,
   theme: MinisiteTheme,
   slug?: string
 ): Promise<{ success: boolean; error?: string }> {
+  console.log('=== updateMinisiteThemeAction ===')
+  console.log('storeId:', storeId)
+  console.log('theme:', JSON.stringify(theme))
+  console.log('slug:', slug)
+  
   try {
-    // Validar tema
-    const validated = MinisiteThemeSchema.safeParse(theme)
-    if (!validated.success) {
+    // Validação simples
+    if (!theme || !theme.layout || !theme.colors || !theme.display) {
       return { success: false, error: 'Tema inválido' }
     }
 
-    const success = await MinisiteRepository.updateTheme(storeId, validated.data)
+    const success = await MinisiteRepository.updateTheme(storeId, theme)
+    console.log('repository result:', success)
     
     if (!success) {
       return { success: false, error: 'Erro ao salvar tema' }
