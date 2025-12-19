@@ -5,7 +5,7 @@ import {
   LayoutDashboard, ChefHat, Truck, ShoppingCart,
   Package, Settings, Users, ShoppingBag, UserCog, BarChart3, 
   Ticket, DollarSign, Warehouse, LayoutGrid, PieChart, Star, 
-  Megaphone, CalendarDays, LogOut, Coffee, Sparkles, Store
+  Megaphone, CalendarDays, LogOut, Coffee, Sparkles, Store, Palette
 } from 'lucide-react'
 import { AppShell } from '@/components/layout/AppShell'
 import { SidebarSection } from '@/components/layout/Sidebar'
@@ -122,6 +122,7 @@ export default function DashboardClient({
       defaultOpen: false,
       items: [
         { href: `${base}/settings/store`, label: 'Dados da Loja', icon: Store, gradient: 'from-emerald-500 to-green-600' },
+        hasModule('appearance') && { href: `${base}/appearance`, label: 'Aparência', icon: Palette, gradient: 'from-pink-500 to-rose-600' },
         hasModule('onboarding') && { href: `${base}/onboarding`, label: 'Onboarding', icon: Sparkles, gradient: 'from-violet-500 to-purple-600' },
         { href: `${base}/settings`, label: 'Avançado', icon: Settings, gradient: 'from-slate-500 to-slate-600' },
       ].filter(Boolean) as SidebarSection['items']
