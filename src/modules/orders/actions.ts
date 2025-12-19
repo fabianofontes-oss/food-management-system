@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { CartItem, OrderData } from '@/types/menu'
+import { getTenantIdFromStore, enforceBillingInAction } from '@/lib/billing/enforcement'
 
 export async function createOrderAction(
   storeId: string,
@@ -11,6 +12,18 @@ export async function createOrderAction(
   idempotencyKey: string
 ) {
   const supabase = await createClient()
+
+  // ETAPA 5B: Billing Enforcement
+  const tenantId = await getTenantIdFromStore(storeId)
+  if (tenantId) {
+    const billingCheck = await enforceBillingInAction(tenantId)
+    if (!billingCheck.allowed) {
+      return { 
+        success: false, 
+        error: billingCheck.message || 'Ação bloqueada: billing inválido' 
+      }
+    }
+  }
 
   try {
     // Monta o payload para a RPC create_order_atomic

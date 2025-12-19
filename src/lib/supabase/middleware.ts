@@ -1,6 +1,7 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { isSuperAdmin } from '../auth/super-admin'
+import { enforceBillingInMiddleware } from '../billing/enforcement'
 
 type CookieToSet = { name: string; value: string; options: CookieOptions }
 
@@ -102,6 +103,28 @@ export async function updateSession(request: NextRequest) {
     if (accessError || !storeUser) {
       console.log(`[Middleware] ACCESS DENIED: user=${user.id} store=${store.id}`)
       return NextResponse.redirect(new URL('/unauthorized', request.url))
+    }
+
+    // ETAPA 5B: Billing Enforcement
+    // Buscar tenant_id da store
+    const { data: storeWithTenant } = await supabase
+      .from('stores')
+      .select('tenant_id')
+      .eq('id', store.id)
+      .single()
+
+    if (storeWithTenant?.tenant_id) {
+      const billingCheck = await enforceBillingInMiddleware(storeWithTenant.tenant_id, request)
+      
+      if (!billingCheck.allowed && billingCheck.redirectTo) {
+        console.log(`[Middleware] BILLING BLOCKED: tenant=${storeWithTenant.tenant_id} status=${billingCheck.status}`)
+        return NextResponse.redirect(new URL(billingCheck.redirectTo, request.url))
+      }
+
+      // Se está em past_due, permitir acesso mas logar warning
+      if (billingCheck.status === 'past_due') {
+        console.warn(`[Middleware] BILLING WARNING: tenant=${storeWithTenant.tenant_id} em past_due (grace period: ${billingCheck.graceDaysRemaining} dias)`)
+      }
     }
   }
 
