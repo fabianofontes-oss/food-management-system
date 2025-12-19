@@ -31,6 +31,9 @@ export default function AppearancePage() {
   const slug = params.slug as string
   const storeId = useDashboardStoreId()
 
+  // DEBUG: Log para verificar storeId
+  console.log('[AppearancePage] storeId:', storeId, 'slug:', slug)
+
   const [loading, setLoading] = useState(true)
   const [store, setStore] = useState<StoreWithSettings | null>(null)
   const [initialTheme, setInitialTheme] = useState<MenuTheme>(DEFAULT_THEME)

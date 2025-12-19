@@ -59,10 +59,12 @@ export default async function StoreDashboardLayout({
     }
   }
 
-  const storeId = store?.id || 'demo'
+  // CRÍTICO: Sempre usar o ID real da loja, mesmo em modo demo
+  // Antes estava usando 'demo' como storeId, o que quebrava o salvamento
+  const storeId = store?.id || null
   
   // Buscar módulos disponíveis do plano (todos liberados para demo)
-  const availableModules = isDemoMode ? getAllModules() : await getStoreModules(storeId)
+  const availableModules = isDemoMode ? getAllModules() : await getStoreModules(storeId || '')
 
   // Validate and ensure type safety
   const validLocale: SupportedLocale = isValidLocale(language) ? language : 'pt-BR'

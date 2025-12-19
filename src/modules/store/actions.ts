@@ -146,15 +146,35 @@ export async function updateMenuThemeAction(
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = await createClient()
 
+  // DEBUG: Log para investigar salvamento
+  console.log('=== SALVANDO TEMA ===')
+  console.log('StoreId:', storeId)
+  console.log('Slug:', slug)
+  console.log('Theme:', JSON.stringify(theme))
+  console.log('=====================')
+
   try {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('stores')
       .update({ menu_theme: theme })
       .eq('id', storeId)
+      .select('id, menu_theme')
+
+    // DEBUG: Log resultado
+    console.log('=== RESULTADO SALVAMENTO ===')
+    console.log('Data:', JSON.stringify(data))
+    console.log('Error:', error?.message || 'none')
+    console.log('============================')
 
     if (error) {
       console.error('Erro ao atualizar tema do menu:', error)
       return { success: false, error: 'Erro ao salvar tema' }
+    }
+
+    // Verificar se realmente atualizou
+    if (!data || data.length === 0) {
+      console.error('AVISO: Nenhuma linha atualizada! Possível problema de RLS ou storeId inválido')
+      return { success: false, error: 'Nenhuma loja encontrada para atualizar' }
     }
 
     // Revalidar TUDO para garantir que o cache seja limpo
