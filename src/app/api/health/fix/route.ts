@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { requireInternalAuth } from '@/lib/security/internal-auth'
+import { requireInternalAuth, blockInProduction } from '@/lib/security/internal-auth'
+import { logAdminAction } from '@/lib/superadmin/audit'
 
 /**
  * API de Correção Automática do Sistema
@@ -15,8 +16,9 @@ interface FixResult {
 }
 
 export async function POST(request: NextRequest) {
-  // SECURITY: Proteger endpoint (modifica dados massivamente)
+  // P0.10: CRITICAL - Bloquear em produção + auth forte
   try {
+    blockInProduction()
     requireInternalAuth(request)
   } catch (error) {
     if (error instanceof Response) {
@@ -24,6 +26,16 @@ export async function POST(request: NextRequest) {
     }
     throw error
   }
+
+  // P0.2: Registrar audit log
+  await logAdminAction({
+    action: 'execute_health_fixes',
+    targetType: 'system',
+    targetId: 'health-fix',
+    metadata: { timestamp: new Date().toISOString() },
+    request
+  })
+
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!

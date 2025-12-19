@@ -5,21 +5,29 @@ import { writeFileSync } from 'fs'
 import { join } from 'path'
 
 export async function POST(request: NextRequest) {
+  // P0.4: CRITICAL - Bloquear em produção
   try {
     blockInProduction()
     verifyInternalToken(request)
+  } catch (error) {
+    if (error instanceof Response) {
+      return error
+    }
+    throw error
+  }
 
-    const supabase = createSupabaseClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
-        }
+  const supabase = createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
       }
-    )
+    }
+  )
 
+  try {
     const results = {
       tenantA: null as any,
       tenantB: null as any,

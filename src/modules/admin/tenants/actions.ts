@@ -5,17 +5,31 @@
  * 
  * SECURITY: Este arquivo usa 'use server' para garantir que as operações
  * privilegiadas nunca sejam executadas no cliente.
+ * 
+ * P0.1 HARDENING: Todas as actions agora verificam autenticação via requireSuperAdmin()
+ * e registram audit logs para rastreabilidade.
  */
 
 import { revalidatePath } from 'next/cache'
 import { getTenants, createTenant as createTenantQuery, updateTenant as updateTenantQuery, deleteTenant as deleteTenantQuery } from '@/lib/superadmin/queries'
 import { getAllPlans, getAllTenantsWithPlans, setTenantPlan as setTenantPlanQuery } from '@/lib/superadmin/plans'
+import { requireSuperAdmin } from '@/lib/superadmin/guard'
+import { logCreate, logUpdate, logDelete, logChangePlan } from '@/lib/superadmin/audit'
 import type { TenantFormData } from './types/tenant.types'
 
 /**
  * Carrega todos os tenants com contagem de lojas e informações de plano
  */
 export async function loadTenantsAction() {
+  // P0.1: Verificar autenticação
+  const authResult = await requireSuperAdmin()
+  if (!authResult.success) {
+    return {
+      success: false,
+      error: authResult.error || 'Acesso não autorizado'
+    }
+  }
+
   try {
     const [tenants, tenantsWithPlans, plans] = await Promise.all([
       getTenants(),
@@ -55,6 +69,15 @@ export async function loadTenantsAction() {
  * Cria um novo tenant
  */
 export async function createTenantAction(data: TenantFormData) {
+  // P0.1: Verificar autenticação
+  const authResult = await requireSuperAdmin()
+  if (!authResult.success) {
+    return {
+      success: false,
+      error: authResult.error || 'Acesso não autorizado'
+    }
+  }
+
   try {
     const tenantData = {
       name: data.name,
@@ -72,7 +95,15 @@ export async function createTenantAction(data: TenantFormData) {
       notes: data.notes || null
     }
 
-    await createTenantQuery(tenantData as any)
+    const newTenant = await createTenantQuery(tenantData as any)
+    
+    // P0.2: Registrar audit log
+    await logCreate('tenant', newTenant.id, data.name, {
+      email: data.email,
+      document: data.document,
+      status: data.status
+    })
+    
     revalidatePath('/admin/tenants')
 
     return { success: true }
@@ -89,6 +120,15 @@ export async function createTenantAction(data: TenantFormData) {
  * Atualiza um tenant existente
  */
 export async function updateTenantAction(id: string, data: TenantFormData) {
+  // P0.1: Verificar autenticação
+  const authResult = await requireSuperAdmin()
+  if (!authResult.success) {
+    return {
+      success: false,
+      error: authResult.error || 'Acesso não autorizado'
+    }
+  }
+
   try {
     const tenantData = {
       name: data.name,
@@ -107,6 +147,14 @@ export async function updateTenantAction(id: string, data: TenantFormData) {
     }
 
     await updateTenantQuery(id, tenantData as any)
+    
+    // P0.2: Registrar audit log
+    await logUpdate('tenant', id, data.name, {
+      status: data.status,
+      email: data.email,
+      billing_day: data.billing_day
+    })
+    
     revalidatePath('/admin/tenants')
 
     return { success: true }
@@ -123,8 +171,30 @@ export async function updateTenantAction(id: string, data: TenantFormData) {
  * Deleta um tenant
  */
 export async function deleteTenantAction(id: string) {
+  // P0.1: Verificar autenticação
+  const authResult = await requireSuperAdmin()
+  if (!authResult.success) {
+    return {
+      success: false,
+      error: authResult.error || 'Acesso não autorizado'
+    }
+  }
+
   try {
+    // Buscar nome do tenant antes de deletar (para audit log)
+    const { getTenants } = await import('@/lib/superadmin/queries')
+    const tenants = await getTenants()
+    const tenant = tenants.find((t: any) => t.id === id)
+    const tenantName = tenant?.name || 'Tenant desconhecido'
+    
     await deleteTenantQuery(id)
+    
+    // P0.2: Registrar audit log
+    await logDelete('tenant', id, tenantName, {
+      cascade: true,
+      warning: 'Deletou todas as stores e dados relacionados'
+    })
+    
     revalidatePath('/admin/tenants')
 
     return { success: true }
@@ -141,8 +211,32 @@ export async function deleteTenantAction(id: string) {
  * Altera o plano de um tenant
  */
 export async function changeTenantPlanAction(tenantId: string, planId: string) {
+  // P0.1: Verificar autenticação
+  const authResult = await requireSuperAdmin()
+  if (!authResult.success) {
+    return {
+      success: false,
+      error: authResult.error || 'Acesso não autorizado'
+    }
+  }
+
   try {
+    // Buscar dados para audit log
+    const { getTenants } = await import('@/lib/superadmin/queries')
+    const { getTenantCurrentPlan } = await import('@/lib/superadmin/plans')
+    
+    const tenants = await getTenants()
+    const tenant = tenants.find((t: any) => t.id === tenantId)
+    const tenantName = tenant?.name || 'Tenant desconhecido'
+    
+    const currentPlan = await getTenantCurrentPlan(tenantId)
+    const oldPlanId = currentPlan?.plan_id || null
+    
     await setTenantPlanQuery(tenantId, planId)
+    
+    // P0.2: Registrar audit log
+    await logChangePlan(tenantId, tenantName, oldPlanId, planId)
+    
     revalidatePath('/admin/tenants')
 
     return { success: true }

@@ -3,6 +3,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { isSuperAdmin } from '@/lib/auth/super-admin'
+import { requireSuperAdmin } from '@/lib/superadmin/guard'
+import { logDelete, logAdminAction } from '@/lib/superadmin/audit'
 
 /**
  * Vincula um usuário como OWNER de uma loja
@@ -116,13 +118,24 @@ export async function removeStoreUserAction(
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = await createClient()
 
-  // Verificar se o usuário atual é Super Admin
-  const { data: { user: currentUser } } = await supabase.auth.getUser()
-  if (!currentUser || !isSuperAdmin(currentUser.email)) {
-    return { success: false, error: 'Acesso não autorizado' }
+  // P0.1: Verificar autenticação via novo sistema
+  const authResult = await requireSuperAdmin()
+  if (!authResult.success) {
+    return { success: false, error: authResult.error || 'Acesso não autorizado' }
   }
 
   try {
+    // Buscar dados para audit log
+    const { data: storeUser } = await supabase
+      .from('store_users')
+      .select('store:stores(name), user:users(name, email)')
+      .eq('store_id', storeId)
+      .eq('user_id', userId)
+      .single()
+
+    const storeName = (storeUser as any)?.store?.name || 'Loja desconhecida'
+    const userName = (storeUser as any)?.user?.name || (storeUser as any)?.user?.email || 'Usuário desconhecido'
+
     const { error } = await supabase
       .from('store_users')
       .delete()
@@ -133,6 +146,15 @@ export async function removeStoreUserAction(
       console.error('Erro ao remover vínculo:', error)
       return { success: false, error: 'Erro ao remover vínculo' }
     }
+
+    // P0.2: Registrar audit log
+    await logAdminAction({
+      action: 'remove_store_user',
+      targetType: 'store_user',
+      targetId: storeId,
+      targetName: `${userName} @ ${storeName}`,
+      metadata: { store_id: storeId, user_id: userId }
+    })
 
     revalidatePath('/admin/stores')
     return { success: true }
@@ -145,19 +167,41 @@ export async function removeStoreUserAction(
 /**
  * Exclui uma loja e todos os dados relacionados
  * Apenas Super Admins podem executar esta ação
+ * 
+ * P0.3: Confirmação forte - requer que o nome da loja seja digitado corretamente
  */
 export async function deleteStoreAction(
-  storeId: string
+  storeId: string,
+  confirmationName?: string
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = await createClient()
 
-  // Verificar se o usuário atual é Super Admin
-  const { data: { user: currentUser } } = await supabase.auth.getUser()
-  if (!currentUser || !isSuperAdmin(currentUser.email)) {
-    return { success: false, error: 'Acesso não autorizado - apenas Super Admins' }
+  // P0.1: Verificar autenticação via novo sistema
+  const authResult = await requireSuperAdmin()
+  if (!authResult.success) {
+    return { success: false, error: authResult.error || 'Acesso não autorizado' }
   }
 
   try {
+    // Buscar dados da loja
+    const { data: store, error: fetchError } = await supabase
+      .from('stores')
+      .select('name, slug')
+      .eq('id', storeId)
+      .single()
+
+    if (fetchError || !store) {
+      return { success: false, error: 'Loja não encontrada' }
+    }
+
+    // P0.3: Validar confirmação forte (se fornecida)
+    if (confirmationName !== undefined && store.name !== confirmationName) {
+      return { 
+        success: false, 
+        error: 'Nome da loja não corresponde. Digite exatamente o nome para confirmar.' 
+      }
+    }
+
     // O banco tem ON DELETE CASCADE, então excluir a loja exclui tudo relacionado
     const { error } = await supabase
       .from('stores')
@@ -168,6 +212,13 @@ export async function deleteStoreAction(
       console.error('Erro ao excluir loja:', error)
       return { success: false, error: `Erro ao excluir loja: ${error.message}` }
     }
+
+    // P0.2: Registrar audit log
+    await logDelete('store', storeId, store.name, {
+      slug: store.slug,
+      cascade: true,
+      warning: 'Deletou 30+ tabelas relacionadas (produtos, pedidos, clientes, etc)'
+    })
 
     revalidatePath('/admin/stores')
     revalidatePath('/admin')
@@ -181,19 +232,41 @@ export async function deleteStoreAction(
 /**
  * Exclui um tenant e todas as lojas relacionadas
  * Apenas Super Admins podem executar esta ação
+ * 
+ * P0.3: Confirmação forte - requer que o nome do tenant seja digitado corretamente
  */
 export async function deleteTenantAction(
-  tenantId: string
+  tenantId: string,
+  confirmationName?: string
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = await createClient()
 
-  // Verificar se o usuário atual é Super Admin
-  const { data: { user: currentUser } } = await supabase.auth.getUser()
-  if (!currentUser || !isSuperAdmin(currentUser.email)) {
-    return { success: false, error: 'Acesso não autorizado - apenas Super Admins' }
+  // P0.1: Verificar autenticação via novo sistema
+  const authResult = await requireSuperAdmin()
+  if (!authResult.success) {
+    return { success: false, error: authResult.error || 'Acesso não autorizado' }
   }
 
   try {
+    // Buscar dados do tenant
+    const { data: tenant, error: fetchError } = await supabase
+      .from('tenants')
+      .select('name')
+      .eq('id', tenantId)
+      .single()
+
+    if (fetchError || !tenant) {
+      return { success: false, error: 'Tenant não encontrado' }
+    }
+
+    // P0.3: Validar confirmação forte (se fornecida)
+    if (confirmationName !== undefined && tenant.name !== confirmationName) {
+      return { 
+        success: false, 
+        error: 'Nome do tenant não corresponde. Digite exatamente o nome para confirmar.' 
+      }
+    }
+
     // O banco tem ON DELETE CASCADE, então excluir o tenant exclui todas as lojas
     const { error } = await supabase
       .from('tenants')
@@ -204,6 +277,12 @@ export async function deleteTenantAction(
       console.error('Erro ao excluir tenant:', error)
       return { success: false, error: `Erro ao excluir tenant: ${error.message}` }
     }
+
+    // P0.2: Registrar audit log
+    await logDelete('tenant', tenantId, tenant.name, {
+      cascade: true,
+      warning: 'Deletou TODAS as stores do tenant e TODOS os dados relacionados (CASCADE em cadeia)'
+    })
 
     revalidatePath('/admin/tenants')
     revalidatePath('/admin/stores')

@@ -1,6 +1,8 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { requireSuperAdmin } from '@/lib/superadmin/guard'
+import { logDelete } from '@/lib/superadmin/audit'
 
 export interface SystemUser {
   id: string
@@ -22,6 +24,12 @@ export interface SystemUser {
  * com suas associações a lojas
  */
 export async function getSystemUsers(): Promise<SystemUser[]> {
+  // P0.1: Verificar autenticação
+  const authResult = await requireSuperAdmin()
+  if (!authResult.success) {
+    throw new Error(authResult.error || 'Acesso não autorizado')
+  }
+
   const supabase = await createClient()
 
   // Buscar usuários
@@ -90,6 +98,12 @@ export async function getUserStats(): Promise<{
   usersWithStores: number
   roleDistribution: Record<string, number>
 }> {
+  // P0.1: Verificar autenticação
+  const authResult = await requireSuperAdmin()
+  if (!authResult.success) {
+    throw new Error(authResult.error || 'Acesso não autorizado')
+  }
+
   const supabase = await createClient()
 
   // Total de usuários
@@ -122,7 +136,22 @@ export async function getUserStats(): Promise<{
  * ATENÇÃO: Isso também remove da tabela auth.users via cascade
  */
 export async function deleteSystemUser(userId: string): Promise<{ success: boolean; error?: string }> {
+  // P0.1: Verificar autenticação
+  const authResult = await requireSuperAdmin()
+  if (!authResult.success) {
+    return { success: false, error: authResult.error || 'Acesso não autorizado' }
+  }
+
   const supabase = await createClient()
+
+  // Buscar dados do usuário antes de deletar (para audit log)
+  const { data: user } = await supabase
+    .from('users')
+    .select('name, email')
+    .eq('id', userId)
+    .single()
+
+  const userName = user?.name || user?.email || 'Usuário desconhecido'
 
   // Primeiro remove da tabela users (vai cascadear para store_users)
   const { error } = await supabase
@@ -134,6 +163,12 @@ export async function deleteSystemUser(userId: string): Promise<{ success: boole
     console.error('Erro ao deletar usuário:', error)
     return { success: false, error: 'Erro ao deletar usuário' }
   }
+
+  // P0.2: Registrar audit log
+  await logDelete('user', userId, userName, {
+    cascade: true,
+    warning: 'Deletou vínculos store_users e auth.users'
+  })
 
   return { success: true }
 }
