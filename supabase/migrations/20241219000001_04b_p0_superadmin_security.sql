@@ -15,6 +15,19 @@ CREATE TABLE IF NOT EXISTS public.super_admins (
   notes TEXT
 );
 
+-- Se a tabela já existe sem a coluna notes, adicionar
+DO $$ 
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_schema = 'public' 
+    AND table_name = 'super_admins' 
+    AND column_name = 'notes'
+  ) THEN
+    ALTER TABLE public.super_admins ADD COLUMN notes TEXT;
+  END IF;
+END $$;
+
 ALTER TABLE public.super_admins ENABLE ROW LEVEL SECURITY;
 
 -- Função para verificar se usuário é super admin
