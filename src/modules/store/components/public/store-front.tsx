@@ -9,6 +9,7 @@ import { ClassicLayout } from './layouts/classic-layout'
 import { ModernLayout } from './layouts/modern-layout'
 import { GridLayout } from './layouts/grid-layout'
 import { MinimalLayout } from './layouts/minimal-layout'
+import { AppLayout } from './layouts/app-layout'
 import { CartDrawer, useCartStore } from '@/modules/cart'
 
 interface Product {
@@ -123,6 +124,8 @@ export function StoreFront({ store, categories = [], onAddToCart, isOwner = fals
   // Seleciona o layout baseado no tema
   const renderLayout = () => {
     switch (theme.layout) {
+      case 'app':
+        return <AppLayout {...layoutProps} />
       case 'modern':
         return <ModernLayout {...layoutProps} />
       case 'grid':

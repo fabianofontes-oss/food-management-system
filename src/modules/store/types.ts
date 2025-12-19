@@ -208,7 +208,7 @@ export interface StoreSettings {
 // ============================================
 // CONFIGURAÇÕES DE TEMA DO MENU (SITE BUILDER)
 // ============================================
-export type MenuLayout = 'classic' | 'modern' | 'minimal' | 'grid'
+export type MenuLayout = 'classic' | 'modern' | 'minimal' | 'grid' | 'app'
 
 export interface MenuThemeColors {
   primary: string      // Cor principal (botões, destaques)

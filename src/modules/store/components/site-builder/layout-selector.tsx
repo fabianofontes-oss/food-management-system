@@ -1,6 +1,6 @@
 'use client'
 
-import { LayoutGrid, Rows3, Grid3X3, List } from 'lucide-react'
+import { LayoutGrid, Rows3, Grid3X3, List, Smartphone } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { MenuLayout } from '../../types'
 
@@ -10,6 +10,7 @@ interface LayoutSelectorProps {
 }
 
 const layouts: { id: MenuLayout; name: string; icon: React.ElementType; description: string }[] = [
+  { id: 'app', name: 'App Mobile', icon: Smartphone, description: 'Estilo aplicativo nativo' },
   { id: 'modern', name: 'Moderno', icon: LayoutGrid, description: 'Cards grandes com destaque' },
   { id: 'classic', name: 'Clássico', icon: Rows3, description: 'Lista tradicional com imagens' },
   { id: 'grid', name: 'Grade', icon: Grid3X3, description: 'Grade compacta de produtos' },

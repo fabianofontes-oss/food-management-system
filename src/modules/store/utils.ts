@@ -23,7 +23,7 @@ export const DEFAULT_THEME: MenuTheme = {
 /**
  * Lista de layouts válidos para validação
  */
-const VALID_LAYOUTS: MenuLayout[] = ['classic', 'modern', 'minimal', 'grid']
+const VALID_LAYOUTS: MenuLayout[] = ['classic', 'modern', 'minimal', 'grid', 'app']
 
 /**
  * Valida se uma string é um layout válido
