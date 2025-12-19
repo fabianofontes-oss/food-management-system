@@ -30,6 +30,10 @@ const tabs: { id: TabId; label: string; icon: React.ElementType }[] = [
 export function SiteBuilder({ storeId, store, initialTheme }: SiteBuilderProps) {
   const [activeTab, setActiveTab] = useState<TabId>('layout')
   const [showSuccess, setShowSuccess] = useState(false)
+  const [logoUrl, setLogoUrl] = useState<string | null>(store?.logo_url || null)
+
+  // DEBUG: Log para verificar storeId
+  console.log('[SiteBuilder] storeId:', storeId, 'store:', store?.name)
   
   const {
     theme,
@@ -151,8 +155,8 @@ export function SiteBuilder({ storeId, store, initialTheme }: SiteBuilderProps) 
               <ImageUploader
                 label="Logo da Loja"
                 description="Logo que aparece no cabeçalho (recomendado: 200x200px)"
-                value={store?.logo_url || null}
-                onChange={() => {}}
+                value={logoUrl}
+                onChange={(url) => setLogoUrl(url)}
                 storeId={storeId}
                 type="logo"
                 aspectRatio="square"
