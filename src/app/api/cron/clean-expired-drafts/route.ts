@@ -2,16 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { requireCronAuth } from '@/lib/security/internal-auth';
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  }
-);
+function getSupabaseAdmin() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    }
+  );
+}
 
 export async function POST(req: NextRequest) {
   // SECURITY: Verificar autenticação de cron
@@ -25,6 +27,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    const supabaseAdmin = getSupabaseAdmin();
 
     // Deletar drafts expirados
     const { data, error } = await supabaseAdmin

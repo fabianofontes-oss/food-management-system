@@ -3,15 +3,18 @@ import { createClient } from '@supabase/supabase-js'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { normalizeSlug, isValidSlug, isReservedSlug } from '@/lib/slugs/reserved'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-
-const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false,
-  },
-})
+function getSupabaseAdmin() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    }
+  );
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -54,6 +57,8 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
+
+    const supabaseAdmin = getSupabaseAdmin();
 
     // Verificar se usuário já tem uma loja
     const { data: existingStoreUser } = await supabaseAdmin
