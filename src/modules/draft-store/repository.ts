@@ -1,19 +1,22 @@
 import { createClient } from '@supabase/supabase-js';
-import type { Database } from '@/types/supabase';
 import type { DraftStore, CreateDraftStoreInput, UpdateDraftConfigInput, GetDraftStoreInput } from './types';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-
-const supabaseAdmin = createClient<Database>(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false,
-  },
-});
+function getSupabaseAdmin() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    }
+  );
+}
 
 export const draftStoreRepository = {
   async createDraft(input: CreateDraftStoreInput): Promise<DraftStore> {
+    const supabaseAdmin = getSupabaseAdmin();
     const { data, error } = await supabaseAdmin
       .from('draft_stores')
       .insert({
@@ -31,6 +34,7 @@ export const draftStoreRepository = {
   },
 
   async getDraftByToken(input: GetDraftStoreInput): Promise<DraftStore | null> {
+    const supabaseAdmin = getSupabaseAdmin();
     const { data, error } = await supabaseAdmin
       .from('draft_stores')
       .select('*')
@@ -56,6 +60,7 @@ export const draftStoreRepository = {
   },
 
   async getDraftBySlug(slug: string): Promise<DraftStore | null> {
+    const supabaseAdmin = getSupabaseAdmin();
     const { data, error } = await supabaseAdmin
       .from('draft_stores')
       .select('*')
@@ -84,6 +89,7 @@ export const draftStoreRepository = {
       ...input.config,
     };
 
+    const supabaseAdmin = getSupabaseAdmin();
     const { data, error } = await supabaseAdmin
       .from('draft_stores')
       .update({
@@ -102,6 +108,7 @@ export const draftStoreRepository = {
   },
 
   async deleteDraft(draftToken: string): Promise<void> {
+    const supabaseAdmin = getSupabaseAdmin();
     const { error } = await supabaseAdmin
       .from('draft_stores')
       .delete()
@@ -113,6 +120,7 @@ export const draftStoreRepository = {
   },
 
   async isSlugAvailable(slug: string): Promise<boolean> {
+    const supabaseAdmin = getSupabaseAdmin();
     const { data: existingStore } = await supabaseAdmin
       .from('stores')
       .select('id')
@@ -123,7 +131,7 @@ export const draftStoreRepository = {
       return false;
     }
 
-    const { data: existingDraft } = await supabaseAdmin
+    const { data: existingDraft } = await getSupabaseAdmin()
       .from('draft_stores')
       .select('id')
       .eq('slug', slug)
