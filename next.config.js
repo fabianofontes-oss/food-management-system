@@ -20,6 +20,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'viacep.com.br',
       },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
     ],
   },
 }
