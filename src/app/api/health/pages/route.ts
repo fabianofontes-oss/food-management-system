@@ -87,14 +87,12 @@ const SYSTEM_PAGES: PageInfo[] = [
   { path: '/{slug}/dashboard/custom-orders', name: 'Encomendas', category: 'Dashboard Lojista', requiresAuth: true, requiresSlug: true },
   { path: '/{slug}/dashboard/addons', name: 'Adicionais', category: 'Dashboard Lojista', requiresAuth: true, requiresSlug: true },
   { path: '/{slug}/dashboard/kits', name: 'Kits/Combos', category: 'Dashboard Lojista', requiresAuth: true, requiresSlug: true },
-  { path: '/{slug}/dashboard/appearance', name: 'Aparência', category: 'Dashboard Lojista', requiresAuth: true, requiresSlug: true },
-  { path: '/{slug}/dashboard/onboarding', name: 'Onboarding', category: 'Dashboard Lojista', requiresAuth: true, requiresSlug: true },
+    { path: '/{slug}/dashboard/onboarding', name: 'Onboarding', category: 'Dashboard Lojista', requiresAuth: true, requiresSlug: true },
     
   // ========== CONFIGURAÇÕES LOJISTA ==========
   { path: '/{slug}/dashboard/settings', name: 'Configurações', category: 'Configurações Loja', requiresAuth: true, requiresSlug: true },
   { path: '/{slug}/dashboard/settings/store', name: 'Dados da Loja', category: 'Configurações Loja', requiresAuth: true, requiresSlug: true },
-  { path: '/{slug}/dashboard/settings/appearance', name: 'Aparência', category: 'Configurações Loja', requiresAuth: true, requiresSlug: true },
-  { path: '/{slug}/dashboard/settings/scheduling', name: 'Agendamento', category: 'Configurações Loja', requiresAuth: true, requiresSlug: true },
+    { path: '/{slug}/dashboard/settings/scheduling', name: 'Agendamento', category: 'Configurações Loja', requiresAuth: true, requiresSlug: true },
   { path: '/{slug}/dashboard/settings/integrations', name: 'Integrações', category: 'Configurações Loja', requiresAuth: true, requiresSlug: true },
   { path: '/{slug}/dashboard/settings/pdv', name: 'PDV', category: 'Configurações Loja', requiresAuth: true, requiresSlug: true },
   { path: '/{slug}/dashboard/settings/modules', name: 'Módulos', category: 'Configurações Loja', requiresAuth: true, requiresSlug: true },

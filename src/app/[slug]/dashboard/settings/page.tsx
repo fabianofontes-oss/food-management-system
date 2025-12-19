@@ -3,7 +3,7 @@
 import { useParams, useRouter } from 'next/navigation'
 import { 
   Settings, Store, Puzzle, Link2, Gift, Calendar, Monitor, Sparkles,
-  ChevronRight, Palette
+  ChevronRight
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 
@@ -28,17 +28,7 @@ const SETTINGS_SECTIONS = [
     textColor: 'text-emerald-600',
     href: '/settings/store'
   },
-  {
-    id: 'appearance',
-    name: 'Aparência',
-    description: 'Cores, layout e visual do cardápio público',
-    icon: Palette,
-    color: 'from-pink-500 to-rose-600',
-    bgColor: 'bg-pink-50',
-    textColor: 'text-pink-600',
-    href: '/appearance'
-  },
-  {
+    {
     id: 'modules',
     name: 'Módulos',
     description: 'Ative funcionalidades: delivery, mesas, fidelidade',

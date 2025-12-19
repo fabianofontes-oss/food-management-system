@@ -208,13 +208,6 @@ export const PLAN_MODULES: PlanModule[] = [
     description: 'Montagem de kits e combos',
     category: 'advanced',
     icon: 'Gift'
-  },
-  {
-    id: 'appearance',
-    name: 'Aparência',
-    description: 'Personalização visual do cardápio',
-    category: 'advanced',
-    icon: 'Palette'
   }
 ]
 

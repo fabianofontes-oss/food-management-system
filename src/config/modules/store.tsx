@@ -68,7 +68,7 @@ export const STORE_MODULES: Module[] = [
     category: 'store',
     hasCustomCard: true,
     settings: [
-      { key: 'social_enabled', label: 'Exibir Redes Sociais', description: 'Mostra os links no cardápio/minisite', type: 'toggle', icon: <Globe className="w-4 h-4" />, defaultValue: true },
+      { key: 'social_enabled', label: 'Exibir Redes Sociais', description: 'Mostra os links para clientes', type: 'toggle', icon: <Globe className="w-4 h-4" />, defaultValue: true },
       { key: 'social_instagram', label: 'Instagram', description: '@usuario ou link completo', type: 'text', icon: <Instagram className="w-4 h-4" />, placeholder: '@minhaloja', defaultValue: '' },
       { key: 'social_facebook', label: 'Facebook', description: 'Link da página', type: 'text', icon: <Facebook className="w-4 h-4" />, placeholder: 'facebook.com/minhaloja', defaultValue: '' },
       { key: 'social_whatsapp', label: 'WhatsApp Business', description: 'Número com DDD', type: 'text', icon: <MessageSquare className="w-4 h-4" />, placeholder: '11999999999', defaultValue: '' },
