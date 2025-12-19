@@ -17,6 +17,45 @@ const PUBLIC_ROUTES = [
   '/unauthorized'
 ]
 
+function getSubdomainSlug(host: string | null): string | null {
+  if (!host) return null
+
+  const hostname = host.split(':')[0]
+  const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'pediu.food'
+
+  // Localhost puro: não tenta resolver subdomínio
+  if (hostname === 'localhost' || hostname === '127.0.0.1') return null
+
+  // Dev: permitir demo.localhost
+  if (hostname.endsWith('.localhost')) {
+    const sub = hostname.slice(0, -'.localhost'.length)
+    return sub || null
+  }
+
+  // Dev: permitir demo.127.0.0.1.nip.io (ou variações nip.io)
+  if (hostname.endsWith('.nip.io')) {
+    const parts = hostname.split('.')
+    // slug + 127 + 0 + 0 + 1 + nip + io
+    if (parts.length >= 7) {
+      const sub = parts[0]
+      return sub || null
+    }
+  }
+
+  // Ex: slug.pediu.food
+  if (hostname.endsWith(`.${baseDomain}`)) {
+    const sub = hostname.slice(0, -1 * (baseDomain.length + 1))
+    if (!sub) return null
+
+    // Evitar subdomínios reservados
+    const reserved = new Set(['www', 'admin', 'app'])
+    if (reserved.has(sub)) return null
+    return sub
+  }
+
+  return null
+}
+
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
     request: {
@@ -70,10 +109,28 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  const { data: { session } } = await supabase.auth.getSession()
-  const pathname = request.nextUrl.pathname
+  // Suporte a subdomínio: {slug}.pediu.food => /{slug}
+  // (Não reescreve /api, /_next, assets e nem /admin)
+  const host = request.headers.get('host')
+  const slugFromSubdomain = getSubdomainSlug(host)
 
-  // Check if route is public
+  let pathname = request.nextUrl.pathname
+  const isExcludedPath =
+    pathname.startsWith('/api') ||
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/admin') ||
+    pathname === '/favicon.ico'
+
+  // Se estiver na raiz do subdomínio (/) ou em rotas públicas do minisite,
+  // reescreve para /{slug}/...
+  if (slugFromSubdomain && !isExcludedPath) {
+    const url = request.nextUrl.clone()
+    url.pathname = `/${slugFromSubdomain}${pathname === '/' ? '' : pathname}`
+    response = NextResponse.rewrite(url)
+    pathname = url.pathname
+  }
+
+  const { data: { session } } = await supabase.auth.getSession()
   const isPublicRoute = PUBLIC_ROUTES.some(route => pathname === route || pathname.startsWith(route))
   
   // Check if it's a public store menu route (e.g., /store-slug, /store-slug/cart, /store-slug/checkout)
