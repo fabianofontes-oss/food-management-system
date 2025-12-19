@@ -12,10 +12,11 @@ interface TopbarProps {
 }
 
 export function Topbar({ slug, onMenuClick, breadcrumb, className }: TopbarProps) {
-  const baseUrl = process.env.NEXT_PUBLIC_PUBLIC_APP_URL
-  const origin = typeof window !== 'undefined' ? window.location.origin : ''
-  const normalizedBase = (baseUrl || origin).replace(/\/$/, '')
-  const publicMenuUrl = normalizedBase ? `${normalizedBase}/${slug}` : `/${slug}`
+  // Abrir cardápio público em nova aba
+  const openPublicMenu = () => {
+    const url = `/${slug}`
+    window.open(url, '_blank', 'noopener,noreferrer')
+  }
 
   return (
     <header className={cn(
@@ -44,15 +45,13 @@ export function Topbar({ slug, onMenuClick, breadcrumb, className }: TopbarProps
 
         {/* Actions */}
         <div className="flex items-center gap-2">
-          <a
-            href={publicMenuUrl}
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            onClick={openPublicMenu}
             className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium transition-colors"
           >
             <ExternalLink className="w-4 h-4" />
             Ver Cardápio
-          </a>
+          </button>
           <Button variant="ghost" size="icon" className="relative">
             <Bell className="w-5 h-5" />
             <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full"></span>
