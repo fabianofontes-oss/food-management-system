@@ -16,7 +16,9 @@ function createAdminClient() {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
 
     const formData = await request.formData()
     const file = formData.get('file') as File
@@ -29,17 +31,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { data: storeData } = await supabase
-      .from('stores')
-      .select('slug')
-      .eq('id', storeId)
-      .single()
+    const isDemoStore = await (async () => {
+      const { data } = await supabase.from('stores').select('slug').eq('id', storeId).single()
+      return data?.slug === 'demo'
+    })()
 
-    const isDemoStore = storeData?.slug === 'demo'
     const client = !user && isDemoStore ? createAdminClient() : supabase
 
     if (user) {
-      // Verificar permissão do usuário na loja
       const { data: userStore } = await supabase
         .from('store_users')
         .select('store_id')
@@ -60,7 +59,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validar tipo de arquivo
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
     if (!validTypes.includes(file.type)) {
       return NextResponse.json(
@@ -69,7 +67,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validar tamanho (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       return NextResponse.json(
         { success: false, error: 'Arquivo muito grande. Máximo 5MB' },
@@ -77,15 +74,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Upload para Supabase Storage
     const fileExt = file.name.split('.').pop()
     const fileName = `${storeId}-${Date.now()}.${fileExt}`
-    const filePath = `logos/${fileName}`
+    const filePath = `banners/${fileName}`
 
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
 
-    const { data: uploadData, error: uploadError } = await client.storage
+    const { error: uploadError } = await client.storage
       .from('store-assets')
       .upload(filePath, buffer, {
         contentType: file.type,
@@ -93,53 +89,34 @@ export async function POST(request: NextRequest) {
       })
 
     if (uploadError) {
-      console.error('Error uploading logo:', {
-        message: uploadError?.message,
-        name: uploadError?.name,
-        storeId,
-      })
       return NextResponse.json(
-        { success: false, error: 'Erro ao fazer upload da logo' },
+        { success: false, error: 'Erro ao fazer upload do banner' },
         { status: 500 }
       )
     }
 
-    // Obter URL pública
     const { data: publicUrlData } = client.storage
       .from('store-assets')
       .getPublicUrl(filePath)
 
-    const logoUrl = publicUrlData.publicUrl
+    const bannerUrl = publicUrlData.publicUrl
 
-    // Atualizar logo_url na tabela stores
     const { error: updateError } = await client
       .from('stores')
-      .update({ logo_url: logoUrl })
+      .update({ banner_url: bannerUrl })
       .eq('id', storeId)
 
     if (updateError) {
-      console.error('Error updating store logo_url:', {
-        message: updateError?.message,
-        code: updateError?.code,
-        storeId,
-      })
       return NextResponse.json(
-        { success: false, error: 'Erro ao atualizar logo da loja' },
+        { success: false, error: 'Erro ao atualizar banner da loja' },
         { status: 500 }
       )
     }
 
-    return NextResponse.json({
-      success: true,
-      url: logoUrl,
-    })
+    return NextResponse.json({ success: true, url: bannerUrl })
   } catch (error: any) {
-    console.error('Error in logo upload API:', {
-      message: error?.message,
-      stack: error?.stack,
-    })
     return NextResponse.json(
-      { success: false, error: 'Erro interno ao processar upload' },
+      { success: false, error: error?.message || 'Erro interno ao processar upload' },
       { status: 500 }
     )
   }
@@ -148,7 +125,9 @@ export async function POST(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
 
     const body = await request.json().catch(() => null)
     const storeId = body?.storeId as string | undefined
@@ -160,12 +139,7 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    const { data: storeData } = await supabase
-      .from('stores')
-      .select('slug')
-      .eq('id', storeId)
-      .single()
-
+    const { data: storeData } = await supabase.from('stores').select('slug').eq('id', storeId).single()
     const isDemoStore = storeData?.slug === 'demo'
     const client = !user && isDemoStore ? createAdminClient() : supabase
 
@@ -192,7 +166,7 @@ export async function DELETE(request: NextRequest) {
 
     const { error } = await client
       .from('stores')
-      .update({ logo_url: null })
+      .update({ banner_url: null })
       .eq('id', storeId)
 
     if (error) {
@@ -205,7 +179,7 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ success: true, url: null })
   } catch (error: any) {
     return NextResponse.json(
-      { success: false, error: error?.message || 'Erro interno ao remover logo' },
+      { success: false, error: error?.message || 'Erro interno ao remover banner' },
       { status: 500 }
     )
   }

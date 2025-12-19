@@ -16,6 +16,7 @@ export {
   LayoutPicker, 
   ColorPicker, 
   DisplayToggles, 
+  ImageUploader,
   ThemeEditor, 
   StoreFront 
 } from './components'

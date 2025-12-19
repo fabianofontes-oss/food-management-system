@@ -3,6 +3,8 @@
  * Página compacta que usa o módulo minisite
  */
 
+export const dynamic = 'force-dynamic'
+
 import { notFound } from 'next/navigation'
 import { MinisiteRepository } from '@/modules/minisite/repository'
 import { StoreFront, type MinisiteData } from '@/modules/minisite'

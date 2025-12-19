@@ -23,6 +23,8 @@ export default function AppearancePage() {
 
   const [loading, setLoading] = useState(true)
   const [theme, setTheme] = useState<MinisiteTheme>(DEFAULT_THEME)
+  const [logoUrl, setLogoUrl] = useState<string | null>(null)
+  const [bannerUrl, setBannerUrl] = useState<string | null>(null)
 
   const publicUrl = typeof window !== 'undefined' 
     ? `${window.location.origin}/${slug}` 
@@ -37,13 +39,16 @@ export default function AppearancePage() {
         const supabase = createClient()
         const { data } = await supabase
           .from('stores')
-          .select('menu_theme')
+          .select('menu_theme, logo_url, banner_url')
           .eq('id', storeId)
           .single()
 
         if (data?.menu_theme) {
           setTheme({ ...DEFAULT_THEME, ...data.menu_theme })
         }
+
+        setLogoUrl((data as any)?.logo_url || null)
+        setBannerUrl((data as any)?.banner_url || null)
       } catch (error) {
         console.error('Erro ao carregar tema:', error)
       } finally {
@@ -92,7 +97,7 @@ export default function AppearancePage() {
       </div>
 
       {/* Editor */}
-      <ThemeEditor storeId={storeId} initialTheme={theme} />
+      <ThemeEditor storeId={storeId} initialTheme={theme} logoUrl={logoUrl} bannerUrl={bannerUrl} />
 
       {/* Dica */}
       <div className="bg-violet-50 border border-violet-100 rounded-lg p-4">

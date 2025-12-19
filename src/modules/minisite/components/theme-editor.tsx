@@ -14,17 +14,22 @@ import { toast } from 'sonner'
 import { LayoutPicker } from './layout-picker'
 import { ColorPicker } from './color-picker'
 import { DisplayToggles } from './display-toggles'
+import { ImageUploader } from './image-uploader'
 import { useMinisiteTheme } from '../hooks/use-minisite-theme'
 import type { MinisiteTheme } from '../types'
 
 interface ThemeEditorProps {
   storeId: string
   initialTheme?: MinisiteTheme
+  logoUrl?: string | null
+  bannerUrl?: string | null
 }
 
-export function ThemeEditor({ storeId, initialTheme }: ThemeEditorProps) {
+export function ThemeEditor({ storeId, initialTheme, logoUrl, bannerUrl }: ThemeEditorProps) {
   const [showSuccess, setShowSuccess] = useState(false)
-  
+  const [logoUrlState, setLogoUrlState] = useState<string | null>(logoUrl ?? null)
+  const [bannerUrlState, setBannerUrlState] = useState<string | null>(bannerUrl ?? null)
+
   const {
     theme,
     updateLayout,
@@ -79,10 +84,11 @@ export function ThemeEditor({ storeId, initialTheme }: ThemeEditorProps) {
 
       {/* Tabs */}
       <Tabs defaultValue="layout" className="p-4">
-        <TabsList className="grid grid-cols-3 mb-4">
+        <TabsList className="grid grid-cols-4 mb-4">
           <TabsTrigger value="layout">Layout</TabsTrigger>
           <TabsTrigger value="colors">Cores</TabsTrigger>
           <TabsTrigger value="display">Elementos</TabsTrigger>
+          <TabsTrigger value="images">Imagens</TabsTrigger>
         </TabsList>
 
         <TabsContent value="layout">
@@ -95,6 +101,29 @@ export function ThemeEditor({ storeId, initialTheme }: ThemeEditorProps) {
 
         <TabsContent value="display">
           <DisplayToggles display={theme.display} onChange={updateDisplay} />
+        </TabsContent>
+
+        <TabsContent value="images">
+          <div className="space-y-6">
+            <ImageUploader
+              storeId={storeId}
+              type="banner"
+              label="Banner do Cardápio"
+              description="Imagem de capa (recomendado: 1200x400)"
+              value={bannerUrlState}
+              aspectRatio="banner"
+              onChange={(url) => setBannerUrlState(url)}
+            />
+            <ImageUploader
+              storeId={storeId}
+              type="logo"
+              label="Logo da Loja"
+              description="Logo (recomendado: 200x200)"
+              value={logoUrlState}
+              aspectRatio="square"
+              onChange={(url) => setLogoUrlState(url)}
+            />
+          </div>
         </TabsContent>
       </Tabs>
 
