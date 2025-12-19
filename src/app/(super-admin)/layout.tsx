@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Building2, Store, ChevronLeft, ChevronRight, Menu, LayoutDashboard, Users, Settings, CreditCard, BarChart3, FileText, Ticket, Flag, Zap, FileSpreadsheet, LogOut, Gauge, ToggleRight, Activity } from 'lucide-react'
+import { Building2, Store, ChevronLeft, ChevronRight, Menu, LayoutDashboard, Users, Settings, CreditCard, BarChart3, FileText, Ticket, Flag, Zap, FileSpreadsheet, LogOut, Gauge, ToggleRight, Activity, Link2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { LanguageProvider } from '@/lib/LanguageContext'
 
@@ -37,6 +37,12 @@ const menuItems = [
     label: 'Billing', 
     icon: CreditCard,
     description: 'Faturas e Pagamentos'
+  },
+  { 
+    href: '/admin/affiliates', 
+    label: 'Afiliados', 
+    icon: Link2,
+    description: 'Programa de Afiliados'
   },
   { 
     href: '/admin/users', 
