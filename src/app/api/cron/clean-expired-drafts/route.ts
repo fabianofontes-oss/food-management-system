@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { requireCronAuth } from '@/lib/security/internal-auth';
 
+function envReady() {
+  return !!(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
+}
+
 function getSupabaseAdmin() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -16,6 +20,14 @@ function getSupabaseAdmin() {
 }
 
 export async function POST(req: NextRequest) {
+  // Verificar se env está configurado (não crashar build)
+  if (!envReady()) {
+    return NextResponse.json(
+      { success: false, error: 'env_not_configured' },
+      { status: 503 }
+    );
+  }
+
   // SECURITY: Verificar autenticação de cron
   try {
     requireCronAuth(req)
