@@ -1,35 +1,57 @@
 /**
  * Módulo Minisite - Server Actions
- * Chamadas ao Repository
+ * Chamadas diretas ao Supabase
  */
 
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { MinisiteRepository } from './repository'
+import { createClient as createSupabaseAdminClient } from '@supabase/supabase-js'
+import { createClient } from '@/lib/supabase/server'
 import type { MinisiteTheme } from './types'
+
+function createAdminClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error('Variáveis NEXT_PUBLIC_SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY são obrigatórias para modo demo')
+  }
+
+  return createSupabaseAdminClient(supabaseUrl, serviceRoleKey)
+}
 
 export async function updateMinisiteThemeAction(
   storeId: string,
   theme: MinisiteTheme,
   slug?: string
 ): Promise<{ success: boolean; error?: string }> {
-  console.log('=== updateMinisiteThemeAction ===')
-  console.log('storeId:', storeId)
-  console.log('theme:', JSON.stringify(theme))
-  console.log('slug:', slug)
-  
   try {
     // Validação simples
     if (!theme || !theme.layout || !theme.colors || !theme.display) {
       return { success: false, error: 'Tema inválido' }
     }
 
-    const success = await MinisiteRepository.updateTheme(storeId, theme)
-    console.log('repository result:', success)
-    
-    if (!success) {
-      return { success: false, error: 'Erro ao salvar tema' }
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    const isDemoSlug = slug === 'demo'
+    const client = !user && isDemoSlug ? createAdminClient() : supabase
+
+    const { data, error } = await client
+      .from('stores')
+      .update({ menu_theme: theme })
+      .eq('id', storeId)
+      .select('id')
+
+    if (error) {
+      return { success: false, error: error.message }
+    }
+
+    if (!data || data.length === 0) {
+      return { success: false, error: 'Loja não encontrada' }
     }
 
     // Revalidar cache
@@ -52,13 +74,24 @@ export async function updateMinisiteBannerAction(
   slug?: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const success = await MinisiteRepository.updateBannerUrl(storeId, bannerUrl)
-    
-    if (!success) {
-      return { success: false, error: 'Erro ao salvar banner' }
+    const supabase = await createClient()
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    const isDemoSlug = slug === 'demo'
+    const client = !user && isDemoSlug ? createAdminClient() : supabase
+
+    const { error } = await client
+      .from('stores')
+      .update({ banner_url: bannerUrl })
+      .eq('id', storeId)
+
+    if (error) {
+      return { success: false, error: error.message }
     }
 
-    // Revalidar cache
     if (slug) {
       revalidatePath(`/${slug}`)
     }
