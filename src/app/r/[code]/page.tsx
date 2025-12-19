@@ -1,9 +1,6 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { createClient } from '@supabase/supabase-js'
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+import { createClient } from '@/lib/supabase/server'
 
 interface PageProps {
   params: { code: string }
@@ -13,8 +10,8 @@ export default async function ReferralCapturePage({ params }: PageProps) {
   const { code } = params
   const upperCode = code.toUpperCase()
 
-  // Criar cliente anon para validar código
-  const supabase = createClient(supabaseUrl, supabaseAnonKey)
+  // Criar cliente server para validar código
+  const supabase = await createClient()
 
   // Verificar se código existe e está ativo
   const { data: codeData, error } = await supabase
@@ -35,7 +32,7 @@ export default async function ReferralCapturePage({ params }: PageProps) {
     path: '/',
     maxAge: 60 * 60 * 24 * 30, // 30 dias
     sameSite: 'lax',
-    httpOnly: false, // Precisa ser acessível no client para leitura
+    httpOnly: false,
   })
 
   // Redirecionar para onboarding
