@@ -48,12 +48,15 @@ export async function updateSession(request: NextRequest) {
   const publicRoutes = ['/', '/login', '/signup', '/reset-password', '/update-password', '/unauthorized', '/landing']
   const isPublicRoute = publicRoutes.some(route => path === route)
   
+  // Rotas de billing (evitar loop de redirect)
+  const isBillingRoute = path.startsWith('/billing/')
+  
   // Rotas de cardápio público (/{slug}, /{slug}/cart, /{slug}/checkout, /{slug}/order)
   const isPublicStoreRoute = path.match(/^\/[^\/]+\/(cart|checkout|order)/) || 
                              (path.match(/^\/[^\/]+$/) && !path.includes('/dashboard'))
 
-  // Permitir rotas públicas
-  if (isPublicRoute || isPublicStoreRoute) {
+  // Permitir rotas públicas e rotas de billing (evitar loop)
+  if (isPublicRoute || isPublicStoreRoute || isBillingRoute) {
     return response
   }
 
@@ -105,7 +108,7 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(new URL('/unauthorized', request.url))
     }
 
-    // ETAPA 5B: Billing Enforcement
+    // ETAPA 5 P0: Billing Enforcement (tempo real)
     // Buscar tenant_id da store
     const { data: storeWithTenant } = await supabase
       .from('stores')
@@ -116,14 +119,18 @@ export async function updateSession(request: NextRequest) {
     if (storeWithTenant?.tenant_id) {
       const billingCheck = await enforceBillingInMiddleware(storeWithTenant.tenant_id, request)
       
-      if (!billingCheck.allowed && billingCheck.redirectTo) {
-        console.log(`[Middleware] BILLING BLOCKED: tenant=${storeWithTenant.tenant_id} status=${billingCheck.status}`)
+      // BLOCK: redirecionar para página de billing
+      if (billingCheck.mode === 'BLOCK' && billingCheck.redirectTo) {
+        const reason = billingCheck.decision?.mode === 'BLOCK' ? billingCheck.decision.reason : 'UNKNOWN'
+        console.log(`[Middleware] BILLING BLOCKED: tenant=${storeWithTenant.tenant_id} reason=${reason}`)
         return NextResponse.redirect(new URL(billingCheck.redirectTo, request.url))
       }
 
-      // Se está em past_due, permitir acesso mas logar warning
-      if (billingCheck.status === 'past_due') {
-        console.warn(`[Middleware] BILLING WARNING: tenant=${storeWithTenant.tenant_id} em past_due (grace period: ${billingCheck.graceDaysRemaining} dias)`)
+      // READ_ONLY: permitir acesso mas marcar header para UI mostrar banner
+      if (billingCheck.mode === 'READ_ONLY') {
+        console.warn(`[Middleware] BILLING READ_ONLY: tenant=${storeWithTenant.tenant_id} (grace period: ${billingCheck.graceDaysRemaining} dias)`)
+        response.headers.set('x-billing-mode', 'read-only')
+        response.headers.set('x-billing-grace-days', String(billingCheck.graceDaysRemaining || 0))
       }
     }
   }

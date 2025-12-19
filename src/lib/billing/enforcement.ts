@@ -1,22 +1,85 @@
-'use server'
-
+import 'server-only'
 import { createClient } from '@/lib/supabase/server'
 
 /**
- * ETAPA 5B - Billing Enforcement P0
+ * ETAPA 5 - P0 Billing Enforcement
  * 
- * Sistema de enforcement que bloqueia tenants com billing inválido
+ * Sistema de enforcement em tempo real que bloqueia tenants com billing inválido
  * de acessar o dashboard e fazer mutações.
  */
 
+export type BillingDecision =
+  | { mode: 'ALLOW' }
+  | { mode: 'READ_ONLY'; reason: 'PAST_DUE_GRACE'; banner: true }
+  | { mode: 'BLOCK'; reason: 'TRIAL_EXPIRED' | 'SUSPENDED' | 'UNPAID'; redirectTo: string }
+
+export type TenantBillingRow = {
+  status: string | null
+  trial_ends_at: string | null
+  past_due_since: string | null
+}
+
+// Grace period para past_due (em dias)
+const GRACE_DAYS = 3
+
+function daysSince(iso: string): number {
+  const ms = Date.now() - new Date(iso).getTime()
+  return Math.floor(ms / (1000 * 60 * 60 * 24))
+}
+
+/**
+ * Decide o modo de billing baseado no status do tenant
+ * 
+ * Regras:
+ * - active: ALLOW
+ * - trialing (dentro do período): ALLOW
+ * - trialing (expirado): BLOCK → /billing/trial-expired
+ * - past_due (dentro do grace period): READ_ONLY (com banner)
+ * - past_due (após grace period): BLOCK → /billing/overdue
+ * - unpaid: BLOCK → /billing/overdue
+ * - suspended: BLOCK → /billing/suspended
+ * - default: BLOCK → /billing/overdue (seguro)
+ */
+export function decideBilling(t: TenantBillingRow): BillingDecision {
+  const status = (t.status ?? '').toLowerCase()
+
+  if (status === 'active') return { mode: 'ALLOW' }
+
+  if (status === 'trialing' || status === 'trial') {
+    if (!t.trial_ends_at) return { mode: 'BLOCK', reason: 'TRIAL_EXPIRED', redirectTo: '/billing/trial-expired' }
+    const ends = new Date(t.trial_ends_at).getTime()
+    if (Date.now() <= ends) return { mode: 'ALLOW' }
+    return { mode: 'BLOCK', reason: 'TRIAL_EXPIRED', redirectTo: '/billing/trial-expired' }
+  }
+
+  if (status === 'past_due') {
+    // Grace period: deixa entrar mas bloqueia mutações
+    if (t.past_due_since) {
+      const d = daysSince(t.past_due_since)
+      if (d <= GRACE_DAYS) return { mode: 'READ_ONLY', reason: 'PAST_DUE_GRACE', banner: true }
+    }
+    return { mode: 'BLOCK', reason: 'UNPAID', redirectTo: '/billing/overdue' }
+  }
+
+  if (status === 'unpaid') return { mode: 'BLOCK', reason: 'UNPAID', redirectTo: '/billing/overdue' }
+  if (status === 'suspended') return { mode: 'BLOCK', reason: 'SUSPENDED', redirectTo: '/billing/suspended' }
+
+  // Default seguro: bloqueia
+  return { mode: 'BLOCK', reason: 'UNPAID', redirectTo: '/billing/overdue' }
+}
+
+// ============================================================================
+// COMPATIBILIDADE COM CÓDIGO EXISTENTE (ETAPA 5B)
+// ============================================================================
+
 export type BillingStatus = 
-  | 'active'           // Tudo OK, pode usar
-  | 'trial'            // Em trial válido
-  | 'trial_expired'    // Trial expirou
-  | 'past_due'         // Pagamento atrasado (0-3 dias grace period)
-  | 'suspended'        // Suspenso por falta de pagamento
-  | 'cancelled'        // Cancelado pelo cliente
-  | 'unknown'          // Sem informação de billing
+  | 'active'
+  | 'trial'
+  | 'trial_expired'
+  | 'past_due'
+  | 'suspended'
+  | 'cancelled'
+  | 'unknown'
 
 export interface BillingCheckResult {
   allowed: boolean
@@ -27,10 +90,12 @@ export interface BillingCheckResult {
   graceDaysRemaining?: number
   redirectTo?: string
   message?: string
+  mode?: 'ALLOW' | 'READ_ONLY' | 'BLOCK'
+  decision?: BillingDecision
 }
 
 /**
- * Verifica o status de billing de um tenant
+ * Busca dados de billing do tenant e aplica decideBilling()
  * 
  * @param tenantId - ID do tenant a verificar
  * @returns Resultado da verificação com status e se está permitido
@@ -39,10 +104,10 @@ export async function checkBillingStatus(tenantId: string): Promise<BillingCheck
   const supabase = await createClient()
 
   try {
-    // Buscar tenant
+    // Buscar tenant com campos necessários para decideBilling()
     const { data: tenant, error: tenantError } = await supabase
       .from('tenants')
-      .select('id, name, status, trial_ends_at')
+      .select('id, name, status, trial_ends_at, past_due_since')
       .eq('id', tenantId)
       .single()
 
@@ -52,149 +117,63 @@ export async function checkBillingStatus(tenantId: string): Promise<BillingCheck
         status: 'unknown',
         tenantId,
         message: 'Tenant não encontrado',
-        redirectTo: '/unauthorized'
+        redirectTo: '/unauthorized',
+        mode: 'BLOCK'
       }
     }
 
-    const now = new Date()
-    const trialEndsAt = tenant.trial_ends_at ? new Date(tenant.trial_ends_at) : null
+    // Aplicar decideBilling()
+    const decision = decideBilling({
+      status: tenant.status,
+      trial_ends_at: tenant.trial_ends_at,
+      past_due_since: tenant.past_due_since
+    })
 
-    // 1. Verificar se está cancelado
-    if (tenant.status === 'cancelled') {
-      return {
-        allowed: false,
-        status: 'cancelled',
-        tenantId,
-        tenantName: tenant.name,
-        message: 'Conta cancelada',
-        redirectTo: '/billing/cancelled'
-      }
-    }
-
-    // 2. Verificar se está suspenso
-    if (tenant.status === 'suspended') {
-      return {
-        allowed: false,
-        status: 'suspended',
-        tenantId,
-        tenantName: tenant.name,
-        message: 'Conta suspensa por falta de pagamento',
-        redirectTo: '/billing/suspended'
-      }
-    }
-
-    // 3. Verificar trial
-    if (tenant.status === 'trial') {
-      if (!trialEndsAt) {
-        // Trial sem data de expiração (erro de dados)
-        return {
-          allowed: true,
-          status: 'trial',
-          tenantId,
-          tenantName: tenant.name,
-          message: 'Trial ativo (sem data de expiração)'
-        }
-      }
-
-      if (now > trialEndsAt) {
-        // Trial expirado
-        return {
-          allowed: false,
-          status: 'trial_expired',
-          tenantId,
-          tenantName: tenant.name,
-          trialEndsAt: tenant.trial_ends_at,
-          message: 'Trial expirado',
-          redirectTo: '/billing/trial-expired'
-        }
-      }
-
-      // Trial válido
-      const daysRemaining = Math.ceil((trialEndsAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+    // Converter decision para BillingCheckResult (compatibilidade)
+    if (decision.mode === 'ALLOW') {
       return {
         allowed: true,
-        status: 'trial',
+        status: tenant.status === 'trial' || tenant.status === 'trialing' ? 'trial' : 'active',
         tenantId,
         tenantName: tenant.name,
         trialEndsAt: tenant.trial_ends_at,
-        graceDaysRemaining: daysRemaining,
-        message: `Trial válido (${daysRemaining} dias restantes)`
+        message: 'Conta ativa',
+        mode: 'ALLOW',
+        decision
       }
     }
 
-    // 4. Verificar se está ativo
-    if (tenant.status === 'active') {
-      // Buscar subscription para verificar se está em dia
-      const { data: subscription } = await supabase
-        .from('tenant_subscriptions')
-        .select('status, current_period_end')
-        .eq('tenant_id', tenantId)
-        .single()
-
-      if (subscription) {
-        const periodEnd = subscription.current_period_end ? new Date(subscription.current_period_end) : null
-
-        // Verificar se está past_due
-        if (subscription.status === 'past_due') {
-          const gracePeriodDays = 3
-          const gracePeriodEnd = periodEnd ? new Date(periodEnd.getTime() + gracePeriodDays * 24 * 60 * 60 * 1000) : null
-
-          if (gracePeriodEnd && now > gracePeriodEnd) {
-            // Grace period expirado, deve estar suspenso
-            return {
-              allowed: false,
-              status: 'suspended',
-              tenantId,
-              tenantName: tenant.name,
-              message: 'Pagamento atrasado - grace period expirado',
-              redirectTo: '/billing/overdue'
-            }
-          }
-
-          // Ainda em grace period
-          const daysRemaining = gracePeriodEnd 
-            ? Math.ceil((gracePeriodEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
-            : 0
-
-          return {
-            allowed: true,
-            status: 'past_due',
-            tenantId,
-            tenantName: tenant.name,
-            graceDaysRemaining: daysRemaining,
-            message: `Pagamento atrasado - ${daysRemaining} dias de grace period restantes`,
-            redirectTo: undefined // Permite acesso mas pode mostrar banner
-          }
-        }
-
-        // Subscription ativa
-        return {
-          allowed: true,
-          status: 'active',
-          tenantId,
-          tenantName: tenant.name,
-          message: 'Conta ativa'
-        }
-      }
-
-      // Ativo mas sem subscription (pode ser plano gratuito)
+    if (decision.mode === 'READ_ONLY') {
+      const graceDays = tenant.past_due_since ? GRACE_DAYS - daysSince(tenant.past_due_since) : 0
       return {
-        allowed: true,
-        status: 'active',
+        allowed: true, // Permite acesso mas bloqueia mutações
+        status: 'past_due',
         tenantId,
         tenantName: tenant.name,
-        message: 'Conta ativa (sem subscription)'
+        graceDaysRemaining: Math.max(0, graceDays),
+        message: `Pagamento atrasado - ${Math.max(0, graceDays)} dias de grace period restantes`,
+        mode: 'READ_ONLY',
+        decision
       }
     }
 
-    // Status desconhecido
+    // BLOCK
+    const statusMap: Record<string, BillingStatus> = {
+      'TRIAL_EXPIRED': 'trial_expired',
+      'SUSPENDED': 'suspended',
+      'UNPAID': 'past_due'
+    }
+
     return {
       allowed: false,
-      status: 'unknown',
+      status: statusMap[decision.reason] || 'unknown',
       tenantId,
       tenantName: tenant.name,
-      message: `Status desconhecido: ${tenant.status}`,
-      redirectTo: '/unauthorized'
+      trialEndsAt: tenant.trial_ends_at,
+      message: `Acesso bloqueado: ${decision.reason}`,
+      redirectTo: decision.redirectTo,
+      mode: 'BLOCK',
+      decision
     }
   } catch (error) {
     console.error('Erro ao verificar billing status:', error)
@@ -203,7 +182,8 @@ export async function checkBillingStatus(tenantId: string): Promise<BillingCheck
       status: 'unknown',
       tenantId,
       message: 'Erro ao verificar status de billing',
-      redirectTo: '/error'
+      redirectTo: '/error',
+      mode: 'BLOCK'
     }
   }
 }
@@ -236,6 +216,11 @@ export async function enforceBillingInMiddleware(
  * Enforcement para Server Actions
  * Bloqueia mutações (create/update/delete) se billing não estiver OK
  * 
+ * REGRAS:
+ * - ALLOW: permite mutações
+ * - READ_ONLY: BLOQUEIA mutações (grace period)
+ * - BLOCK: BLOQUEIA mutações
+ * 
  * @param tenantId - ID do tenant
  * @returns Resultado com allowed e message
  */
@@ -244,20 +229,26 @@ export async function enforceBillingInAction(
 ): Promise<BillingCheckResult> {
   const result = await checkBillingStatus(tenantId)
 
-  // Bloquear qualquer mutação se não estiver allowed
-  if (!result.allowed) {
+  // BLOCK: bloquear totalmente
+  if (result.mode === 'BLOCK') {
     return {
       ...result,
+      allowed: false,
       message: result.message || 'Ação bloqueada: billing inválido'
     }
   }
 
-  // Se está em past_due, PERMITIR mutações (grace period)
-  // mas pode logar warning
-  if (result.status === 'past_due') {
-    console.warn(`[BILLING] Tenant ${tenantId} em past_due executando mutação (grace period: ${result.graceDaysRemaining} dias)`)
+  // READ_ONLY: bloquear mutações (grace period)
+  if (result.mode === 'READ_ONLY') {
+    console.warn(`[BILLING] Tenant ${tenantId} em READ_ONLY (past_due grace period: ${result.graceDaysRemaining} dias) - BLOQUEANDO mutação`)
+    return {
+      ...result,
+      allowed: false,
+      message: `Ação bloqueada: pagamento atrasado (${result.graceDaysRemaining} dias de grace period restantes)`
+    }
   }
 
+  // ALLOW: permitir mutações
   return result
 }
 
