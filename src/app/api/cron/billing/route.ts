@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireCronAuth } from '@/lib/security/internal-auth'
 
 /**
  * Cron Job para Billing Automatizado
@@ -10,16 +11,18 @@ import { createClient } from '@supabase/supabase-js'
  * - Supabase Edge Functions
  * - Qualquer serviço de cron externo
  * 
- * Segurança: Verificar CRON_SECRET no header
+ * Segurança: Protegido por CRON_SECRET
  */
 
-const CRON_SECRET = process.env.CRON_SECRET
-
-export async function GET(request: NextRequest) {
-  // Verificar autenticação do cron
-  const authHeader = request.headers.get('authorization')
-  if (CRON_SECRET && authHeader !== `Bearer ${CRON_SECRET}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+export async function POST(request: NextRequest) {
+  // SECURITY: Verificar autenticação de cron
+  try {
+    requireCronAuth(request)
+  } catch (error) {
+    if (error instanceof Response) {
+      return error
+    }
+    throw error
   }
 
   try {

@@ -12,11 +12,11 @@ export const landingContent = {
     subheadline: 'Cardápio online, pedidos, PDV, delivery e gestão completa. Tudo em um só lugar, sem complicação.',
     primaryCTA: {
       text: 'Criar minha loja grátis',
-      href: '/signup',
+      href: '/choose-url',
     },
     secondaryCTA: {
-      text: 'Ver demonstração',
-      href: '/demo/dashboard',
+      text: 'Já tenho conta',
+      href: '/login',
     },
     stats: [
       { value: '10k+', label: 'Pedidos processados' },

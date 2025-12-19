@@ -1,0 +1,22 @@
+========================================
+AÇÃO NECESSÁRIA: Reiniciar Servidor Dev
+========================================
+
+O Playwright ainda está usando as variáveis antigas do .env.local
+
+SOLUÇÃO:
+
+1. Encontre o terminal onde está rodando "npm run dev"
+2. Pressione Ctrl+C para parar
+3. Execute novamente: npm run dev
+4. Aguarde o servidor iniciar (mensagem "Ready in...")
+5. Me avise que reiniciou
+
+OU
+
+Execute em um novo terminal:
+npm run test:e2e
+
+(O Playwright vai iniciar o servidor automaticamente com as novas variáveis)
+
+========================================

@@ -1,0 +1,170 @@
+ETAPA 3 - PASSO 0A: Inventário de Tabelas do Schema Public
+Data: 2024-12-19
+Query: SELECT schemaname AS schema, tablename AS table FROM pg_tables WHERE schemaname = 'public' ORDER BY 1,2
+
+========================================
+RESULTADO (100 tabelas encontradas)
+========================================
+
+schema | table
+-------|-----------------------------
+public | addon_groups
+public | addons
+public | admin_audit_log
+public | billing_config
+public | blocked_slots
+public | cash_flow
+public | cash_movements
+public | cash_register_sessions
+public | cash_registers
+public | categories
+public | combo_items
+public | coupon_uses
+public | coupons
+public | custom_order_items
+public | custom_orders
+public | customer_addresses
+public | customer_engagement_log
+public | customer_engagement_rules
+public | customer_loyalty
+public | customer_metrics
+public | customers
+public | customization_groups
+public | customization_options
+public | daily_metrics
+public | daily_summary
+public | deliveries
+public | draft_stores
+public | drivers
+public | expenses
+public | external_reviews
+public | financial_categories
+public | fish_preparations
+public | happy_hours
+public | hardware_devices
+public | hourly_metrics
+public | internal_messages
+public | inventory_batches
+public | inventory_count_items
+public | inventory_counts
+public | inventory_items
+public | inventory_movements
+public | invoices
+public | kds_config
+public | kds_order_log
+public | kds_stations
+public | kitchen_chefs
+public | loyalty_programs
+public | loyalty_tiers
+public | loyalty_transactions
+public | marketing_campaigns
+public | marketing_posts
+public | marketing_templates
+public | measurement_units
+public | meat_cuts
+public | meat_seasonings
+public | modifier_groups
+public | modifier_options
+public | notifications
+public | order_events
+public | order_item_flavors
+public | order_item_modifiers
+public | order_items
+public | orders
+public | payment_history
+public | plans
+public | printers
+public | produce_promotions
+public | product_addon_groups
+public | product_categories
+public | product_combos
+public | product_customization_groups
+public | product_fish_preparations
+public | product_ingredients
+public | product_kit_items
+public | product_kits
+public | product_meat_cuts
+public | product_metrics
+public | product_modifier_groups
+public | product_seasonings
+public | product_variations
+public | production_calendar
+public | products
+public | purchase_order_items
+public | purchase_orders
+public | receivables
+public | reservation_history
+public | reservation_settings
+public | reservations
+public | restaurant_tables
+public | review_integrations
+public | review_requests
+public | review_settings
+public | review_stats
+public | review_sync_logs
+public | review_templates
+public | reviews
+public | rodizio_configs
+public | rodizio_items
+public | rodizio_sessions
+public | sales_forecasts
+public | slug_reservations
+public | special_events
+public | staff_metrics
+public | store_settings
+public | store_users
+public | stores
+public | subscriptions
+public | system_settings
+public | table_stats
+public | tenant_subscriptions
+public | tenants
+public | users
+public | waitlist
+
+========================================
+ANÁLISE
+========================================
+
+Total de tabelas no schema public: 100
+
+Tabelas críticas identificadas (multi-tenant core):
+- tenants
+- stores
+- store_users
+- users
+- orders
+- order_items
+- customers
+- products
+- categories
+- invoices
+- payment_history
+- tenant_subscriptions
+- subscriptions
+- draft_stores
+- coupons
+- reviews
+
+Tabelas de features avançadas:
+- Reservas: reservations, reservation_settings, reservation_history, restaurant_tables, blocked_slots, waitlist
+- Rodízio: rodizio_configs, rodizio_items, rodizio_sessions
+- Inventário: inventory_items, inventory_movements, inventory_batches, inventory_counts
+- Caixa: cash_registers, cash_register_sessions, cash_movements, cash_flow
+- Marketing: marketing_campaigns, marketing_posts, marketing_templates
+- Reviews: reviews, review_integrations, review_requests, review_settings, review_stats
+- Loyalty: loyalty_programs, loyalty_tiers, loyalty_transactions, customer_loyalty
+- KDS: kds_config, kds_stations, kds_order_log
+- Delivery: deliveries, drivers
+- Customização: customization_groups, customization_options, product_customization_groups
+- Modifiers: modifier_groups, modifier_options, product_modifier_groups
+- Addons: addon_groups, addons, product_addon_groups
+- Métricas: daily_metrics, hourly_metrics, customer_metrics, product_metrics, staff_metrics, table_stats
+
+Tabelas administrativas:
+- admin_audit_log
+- billing_config
+- system_settings
+- internal_messages
+- hardware_devices
+- printers

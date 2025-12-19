@@ -1,0 +1,24 @@
+========================================
+ADICIONAR AO .env.local
+========================================
+
+Você precisa adicionar estas variáveis ao arquivo .env.local:
+
+NEXT_PUBLIC_SUPABASE_URL=sua_url_do_supabase_aqui
+NEXT_PUBLIC_SUPABASE_ANON_KEY=sua_anon_key_do_supabase_aqui
+SUPABASE_SERVICE_ROLE_KEY=sua_service_role_key_aqui
+
+Onde encontrar essas informações:
+1. Acesse seu projeto no Supabase Dashboard
+2. Vá em Settings > API
+3. Copie:
+   - Project URL → NEXT_PUBLIC_SUPABASE_URL
+   - anon/public key → NEXT_PUBLIC_SUPABASE_ANON_KEY
+   - service_role key → SUPABASE_SERVICE_ROLE_KEY
+
+Depois de adicionar, reinicie o servidor dev:
+1. Pare o dev (Ctrl+C)
+2. npm run dev
+3. npm run test:e2e
+
+========================================

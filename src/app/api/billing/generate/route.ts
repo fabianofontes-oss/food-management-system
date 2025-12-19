@@ -1,11 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireCronAuth } from '@/lib/security/internal-auth'
 
 /**
  * API para gerar faturas mensais para todos os tenants
  * URL: /api/billing/generate
+ * SECURITY: Protegido por CRON_SECRET (deve ser chamado apenas por cron job)
  */
 export async function POST(request: NextRequest) {
+  // SECURITY: Verificar autenticação de cron
+  try {
+    requireCronAuth(request)
+  } catch (error) {
+    if (error instanceof Response) {
+      return error
+    }
+    throw error
+  }
   try {
     // Criar cliente com service role para bypass RLS
     const supabase = createClient(

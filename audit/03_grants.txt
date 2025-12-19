@@ -1,0 +1,59 @@
+ETAPA 3 - Grants para anon/authenticated
+Data: 2024-12-19
+Query: SELECT grantee, table_schema, table_name, privilege_type FROM information_schema.role_table_grants WHERE table_schema = 'public' AND grantee IN ('anon','authenticated')
+
+========================================
+RESULTADO DA QUERY 3.3 (RESUMIDO)
+========================================
+
+Total de grants: 210 (anon: 105, authenticated: 105)
+
+🔴 CRÍTICO - Grants para 'anon' em TODAS as tabelas:
+
+Tabela                  | Privileges para anon
+------------------------|---------------------
+categories              | SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
+customers               | SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
+draft_stores            | SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
+invoices                | SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER  🔴 CRÍTICO
+order_items             | SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
+orders                  | SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
+payment_history         | SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER  🔴 CRÍTICO
+plans                   | SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
+products                | SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
+slug_reservations       | SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
+store_users             | SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER  🔴 CRÍTICO
+stores                  | SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
+tenant_subscriptions    | SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER  🔴 CRÍTICO
+tenants                 | SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER  🔴 CRÍTICO
+users                   | SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER  🔴 CRÍTICO
+
+========================================
+ANÁLISE DE GRANTS
+========================================
+
+🔴 CRÍTICO - Tabelas sensíveis com grants para 'anon':
+1. tenants - ALL privileges (SELECT, INSERT, UPDATE, DELETE)
+2. invoices - ALL privileges
+3. payment_history - ALL privileges
+4. tenant_subscriptions - ALL privileges
+5. users - ALL privileges
+6. store_users - ALL privileges
+7. stores - ALL privileges
+8. orders - ALL privileges
+9. order_items - ALL privileges
+10. products - ALL privileges
+11. categories - ALL privileges
+12. customers - ALL privileges
+
+🟡 JUSTIFICÁVEL - Tabelas de onboarding com grants para 'anon':
+1. draft_stores - Necessário para onboarding público
+2. plans - Necessário para visualização de planos
+3. slug_reservations - Necessário para reserva de slugs
+
+✅ OK - Grants para 'authenticated':
+- Todas as tabelas têm grants apropriados para authenticated
+- Protegidos por policies de RLS
+
+IMPACTO:
+Embora as policies de RLS estejam protegendo os dados, os grants excessivos para 'anon' violam o princípio do menor privilégio e ampliam a superfície de ataque. Se houver qualquer falha nas policies ou bypass de RLS, 'anon' terá acesso total ao banco.

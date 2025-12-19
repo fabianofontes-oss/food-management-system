@@ -1,0 +1,150 @@
+ETAPA 3A - Code Boundary / Imports Suspeitos
+Data: 2024-12-19
+Commit: d410642
+
+===================================================================
+IMPORTS SUSPEITOS EM CLIENT COMPONENTS
+===================================================================
+
+🔴 CRÍTICO - Client Component importando queries privilegiadas diretamente:
+
+1. src/modules/admin/tenants/hooks/useTenantsController.ts:1
+   'use client'
+   -> LINHA 4: import { getTenants, createTenant, updateTenant, deleteTenant, type Tenant, createClient } from '@/lib/superadmin/queries'
+   -> LINHA 5: import { getAllPlans, getAllTenantsWithPlans, setTenantPlan, type Plan } from '@/lib/superadmin/plans'
+   
+   RISCO: Hook client executando queries de admin diretamente
+   OPERAÇÕES: getTenants(), createTenant(), updateTenant(), deleteTenant()
+   IMPACTO: 🔴 CRÍTICO - Mutações privilegiadas no client
+   AÇÃO: Mover para Server Actions
+
+---
+
+🟡 MÉDIO - Client Components importando types de módulos admin:
+
+2. src/modules/admin/tenants/types/tenant.types.ts:1-2
+   -> import { type Tenant } from '@/lib/superadmin/queries'
+   -> import { type Plan } from '@/lib/superadmin/plans'
+   
+   RISCO: Apenas types (não executa código)
+   IMPACTO: 🟢 BAIXO - Types são seguros
+   AÇÃO: Nenhuma (types são stripped no build)
+
+---
+
+🟢 SEGURO - Server Components importando módulos admin:
+
+3. app/(super-admin)/admin/billing/page.tsx:11
+   (SEM 'use client')
+   -> import { createClient } from '@/lib/superadmin/queries'
+   
+   RISCO: Nenhum (Server Component)
+   IMPACTO: ✅ SEGURO
+   AÇÃO: Nenhuma
+
+4. app/(super-admin)/admin/page.tsx:13
+   (SEM 'use client')
+   -> import { getTenantsCount, getStoresCount, getRecentStores, type StoreWithTenant, createClient } from '@/lib/superadmin/queries'
+   
+   RISCO: Nenhum (Server Component)
+   IMPACTO: ✅ SEGURO
+   AÇÃO: Nenhuma
+
+5. app/(super-admin)/admin/stores/page.tsx:7-8
+   (SEM 'use client')
+   -> import { getStores, createStore, updateStore, getTenants, type StoreWithTenant, type Tenant } from '@/lib/superadmin/queries'
+   -> import { deleteStoreAction } from '@/lib/superadmin/actions'
+   
+   RISCO: Nenhum (Server Component)
+   IMPACTO: ✅ SEGURO
+   AÇÃO: Nenhuma
+
+6. app/(super-admin)/admin/plans/page.tsx:8
+   (SEM 'use client')
+   -> import { getAllPlans, formatPrice, type Plan } from '@/lib/superadmin/plans'
+   
+   RISCO: Nenhum (Server Component)
+   IMPACTO: ✅ SEGURO
+   AÇÃO: Nenhuma
+
+7. app/(super-admin)/admin/plans/[planId]/page.tsx:9
+   (SEM 'use client')
+   -> import { getPlanById, updatePlan, getTenantsByPlan, type Plan } from '@/lib/superadmin/plans'
+   
+   RISCO: Nenhum (Server Component)
+   IMPACTO: ✅ SEGURO
+   AÇÃO: Nenhuma
+
+8. app/(super-admin)/admin/plans/new/page.tsx:9
+   (SEM 'use client')
+   -> import { createPlan } from '@/lib/superadmin/plans'
+   
+   RISCO: Nenhum (Server Component)
+   IMPACTO: ✅ SEGURO
+   AÇÃO: Nenhuma
+
+---
+
+✅ SEGURO - Server Components/Actions importando repositories:
+
+9. app/[slug]/page.tsx:9
+   (SEM 'use client')
+   -> import { MinisiteRepository } from '@/modules/minisite/repository'
+   
+   RISCO: Nenhum (Server Component)
+   IMPACTO: ✅ SEGURO
+   AÇÃO: Nenhuma
+
+10. app/api/onboarding/publish-draft/route.ts:3
+    (API Route Handler - server-only)
+    -> import { draftStoreRepository } from '@/modules/draft-store'
+    
+    RISCO: Nenhum (API Route)
+    IMPACTO: ✅ SEGURO
+    AÇÃO: Nenhuma
+
+---
+
+⚠️ ATENÇÃO - Menções em texto (não código executável):
+
+11. app/[slug]/dashboard/team/page.tsx:202
+    (Texto em JSX)
+    -> <li>Adicione SUPABASE_SERVICE_ROLE_KEY nas variáveis de ambiente do Vercel</li>
+    
+    RISCO: Nenhum (apenas string)
+    IMPACTO: ✅ SEGURO
+    AÇÃO: Nenhuma
+
+12. app/[slug]/dashboard/team/actions.ts:72
+    (Server Action - 'use server')
+    -> return { error: 'Convite por email não está disponível. Configure SUPABASE_SERVICE_ROLE_KEY para habilitar.' }
+    
+    RISCO: Nenhum (apenas string)
+    IMPACTO: ✅ SEGURO
+    AÇÃO: Nenhuma
+
+===================================================================
+RESUMO DE FINDINGS
+===================================================================
+
+Total de arquivos analisados: ~150 client components
+Imports suspeitos encontrados: 12 ocorrências
+
+CLASSIFICAÇÃO:
+- 🔴 CRÍTICO (requer correção imediata): 1
+  - useTenantsController.ts importando queries privilegiadas
+
+- 🟡 MÉDIO (atenção mas seguro): 1
+  - tenant.types.ts importando types (stripped no build)
+
+- 🟢 SEGURO (server components/routes): 10
+  - Todos os outros imports estão em server components ou API routes
+
+AÇÃO REQUERIDA:
+1. Corrigir useTenantsController.ts movendo operações para Server Actions
+2. Adicionar 'server-only' em módulos privilegiados (defesa em profundidade)
+3. Rodar build scan para confirmar que nada vazou para o bundle do cliente
+
+===================================================================
+FIM DO RELATÓRIO DE FINDINGS
+===================================================================

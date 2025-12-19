@@ -27,7 +27,7 @@ export default function ChooseUrlPage() {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch('/api/onboarding/reserve-slug', {
+      const res = await fetch('/api/draft-store/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ slug: normalized }),
@@ -38,9 +38,9 @@ export default function ChooseUrlPage() {
         throw new Error(json?.error || 'Slug indisponível')
       }
 
-      router.push(`/signup?reservation=${encodeURIComponent(json.token)}&slug=${encodeURIComponent(json.slug)}`)
+      router.push(`/setup/${json.draftToken}`)
     } catch (e: any) {
-      setError(e?.message || 'Erro ao reservar slug')
+      setError(e?.message || 'Erro ao criar draft store')
     } finally {
       setLoading(false)
     }

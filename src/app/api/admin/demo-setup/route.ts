@@ -1,11 +1,21 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireInternalAuth } from '@/lib/security/internal-auth'
 
 /**
  * Cria ou atualiza a loja demo com isDemo: true
  * Permite acesso ao dashboard sem login
  */
-export async function POST() {
+export async function POST(request: Request) {
+  // SECURITY: Proteger endpoint (cria recursos sem autenticação)
+  try {
+    requireInternalAuth(request)
+  } catch (error) {
+    if (error instanceof Response) {
+      return error
+    }
+    throw error
+  }
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -98,7 +108,16 @@ export async function POST() {
   })
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  // SECURITY: Proteger endpoint
+  try {
+    requireInternalAuth(request)
+  } catch (error) {
+    if (error instanceof Response) {
+      return error
+    }
+    throw error
+  }
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!

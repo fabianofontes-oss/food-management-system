@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireInternalAuth } from '@/lib/security/internal-auth'
 
 /**
  * API para listar todas as páginas do sistema
@@ -102,6 +103,16 @@ const SYSTEM_PAGES: PageInfo[] = [
 ]
 
 export async function GET(request: NextRequest) {
+  // SECURITY: Proteger endpoint (expõe estrutura de páginas)
+  try {
+    requireInternalAuth(request)
+  } catch (error) {
+    if (error instanceof Response) {
+      return error
+    }
+    throw error
+  }
+
   // Agrupar por categoria
   const categories = [...new Set(SYSTEM_PAGES.map(p => p.category))]
   const byCategory = categories.map(cat => ({

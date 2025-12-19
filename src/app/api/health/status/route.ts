@@ -187,18 +187,22 @@ function checkEnvironment(): HealthCheck {
   const optional = [
     'SUPABASE_SERVICE_ROLE_KEY',
     'MP_ACCESS_TOKEN',
-    'CRON_SECRET'
+    'CRON_SECRET',
+    'INTERNAL_API_TOKEN'
   ]
 
   const missing = required.filter(key => !process.env[key])
   const missingOptional = optional.filter(key => !process.env[key])
 
+  // SECURITY: Não expor nomes de variáveis em produção
+  const isProduction = process.env.NODE_ENV === 'production'
+
   if (missing.length > 0) {
     return {
       name: 'Environment',
       status: 'down',
-      message: `Faltando: ${missing.join(', ')}`,
-      details: { missing, missingOptional }
+      message: isProduction ? 'Configuração incompleta' : `Faltando: ${missing.join(', ')}`,
+      details: isProduction ? { count: missing.length } : { missing, missingOptional }
     }
   }
 
@@ -206,8 +210,8 @@ function checkEnvironment(): HealthCheck {
     return {
       name: 'Environment',
       status: 'degraded',
-      message: `Opcionais faltando: ${missingOptional.join(', ')}`,
-      details: { missingOptional }
+      message: isProduction ? 'Configurações opcionais ausentes' : `Opcionais faltando: ${missingOptional.join(', ')}`,
+      details: isProduction ? { count: missingOptional.length } : { missingOptional }
     }
   }
 

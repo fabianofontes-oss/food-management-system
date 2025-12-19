@@ -10,10 +10,12 @@ export default function SignupClient() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const reservationToken = searchParams.get('reservation')
+  const draftToken = searchParams.get('draft')
   const reservedSlug = searchParams.get('slug')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const [draftSlug, setDraftSlug] = useState('')
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -27,7 +29,7 @@ export default function SignupClient() {
     setLoading(true)
     setError('')
 
-    if (!reservationToken) {
+    if (!reservationToken && !draftToken) {
       setError('Você precisa escolher sua URL antes de criar a conta.')
       setLoading(false)
       return
@@ -66,16 +68,30 @@ export default function SignupClient() {
       }
 
       if (data.user) {
-        const res = await fetch('/api/onboarding/complete-signup', {
+        const endpoint = draftToken 
+          ? '/api/onboarding/publish-draft' 
+          : '/api/onboarding/complete-signup'
+        
+        const payload = draftToken
+          ? {
+              draftToken,
+              userId: data.user.id,
+              email: formData.email,
+              name: formData.name,
+              phone: formData.phone,
+            }
+          : {
+              token: reservationToken,
+              userId: data.user.id,
+              email: formData.email,
+              name: formData.name,
+              phone: formData.phone,
+            }
+
+        const res = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            token: reservationToken,
-            userId: data.user.id,
-            email: formData.email,
-            name: formData.name,
-            phone: formData.phone,
-          }),
+          body: JSON.stringify(payload),
         })
 
         const json = await res.json().catch(() => null)
@@ -83,6 +99,10 @@ export default function SignupClient() {
           setError(json?.error || 'Conta criada, mas falhou ao provisionar sua loja. Tente novamente.')
           setLoading(false)
           return
+        }
+
+        if (draftToken && json.slug) {
+          setDraftSlug(json.slug)
         }
 
         setSuccess(true)
@@ -106,9 +126,9 @@ export default function SignupClient() {
               Enviamos um email de confirmação para <strong>{formData.email}</strong>. Por favor, verifique sua caixa de
               entrada e clique no link para ativar sua conta.
             </p>
-            {reservedSlug && (
+            {(reservedSlug || draftSlug) && (
               <p className="text-gray-600 mb-6">
-                Sua URL ficará em: <strong>pediu.food/{reservedSlug}</strong>
+                Sua URL ficará em: <strong>pediu.food/{reservedSlug || draftSlug}</strong>
               </p>
             )}
             <Link
@@ -123,7 +143,7 @@ export default function SignupClient() {
     )
   }
 
-  if (!reservationToken) {
+  if (!reservationToken && !draftToken) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 to-white flex items-center justify-center p-4">
         <div className="w-full max-w-md">

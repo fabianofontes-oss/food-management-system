@@ -1,0 +1,160 @@
+============================================================================
+ETAPA 3B - RESULTADOS DA AUDITORIA RLS/POLICIES/GRANTS/FUNCTIONS
+Data: 2024-12-19
+Projeto: Food Management System
+============================================================================
+
+INSTRUÇÕES:
+1. Execute cada query no Supabase SQL Editor
+2. Cole os resultados abaixo de cada seção
+3. Adicione observações sobre itens críticos encontrados
+
+============================================================================
+QUERY 3.1 - RLS HABILITADO/FORÇADO POR TABELA
+============================================================================
+Executado em: [DATA/HORA]
+
+[COLAR RESULTADOS DA QUERY 3.1 AQUI]
+
+Observações:
+- Tabelas SEM RLS encontradas: 
+- Tabelas SEM policies encontradas:
+- Ação requerida:
+
+============================================================================
+QUERY 3.2 - POLICIES POR TABELA (PERMISSÕES)
+============================================================================
+Executado em: [DATA/HORA]
+
+[COLAR RESULTADOS DA QUERY 3.2 AQUI]
+
+Observações:
+- Policies permissivas (TRUE) encontradas:
+- Policies sem filtro tenant encontradas:
+- Ação requerida:
+
+============================================================================
+QUERY 3.3 - GRANTS E PERMISSÕES DE ROLES
+============================================================================
+Executado em: [DATA/HORA]
+
+[COLAR RESULTADOS DA QUERY 3.3 AQUI]
+
+Observações:
+- Grants críticos para role anon:
+- Grants suspeitos para role authenticated:
+- Ação requerida:
+
+============================================================================
+QUERY 3.4 - FUNCTIONS COM SECURITY DEFINER
+============================================================================
+Executado em: [DATA/HORA]
+
+[COLAR RESULTADOS DA QUERY 3.4 AQUI]
+
+Observações:
+- Functions DEFINER sem auth check:
+- Functions DEFINER sem search_path:
+- Ação requerida:
+
+============================================================================
+QUERY 3.5 - VERIFICAÇÃO DE SEARCH_PATH EM FUNCTIONS
+============================================================================
+Executado em: [DATA/HORA]
+
+[COLAR RESULTADOS DA QUERY 3.5 AQUI]
+
+Observações:
+- Functions sem search_path seguro:
+- Risco de SQL injection:
+- Ação requerida:
+
+============================================================================
+QUERY 3.6 - TABELAS CRÍTICAS SEM RLS (MULTI-TENANT CORE)
+============================================================================
+Executado em: [DATA/HORA]
+
+[COLAR RESULTADOS DA QUERY 3.6 AQUI]
+
+Observações:
+- Tabelas core sem RLS:
+- Impacto no isolamento multi-tenant:
+- Ação requerida:
+
+============================================================================
+QUERY 3.7 - POLICIES PERMISSIVAS (TRUE OU SEM FILTRO TENANT)
+============================================================================
+Executado em: [DATA/HORA]
+
+[COLAR RESULTADOS DA QUERY 3.7 AQUI]
+
+Observações:
+- Policies com TRUE:
+- Policies sem isolamento tenant:
+- Ação requerida:
+
+============================================================================
+QUERY 3.8 - VERIFICAÇÃO DE COLUNAS TENANT_ID/STORE_ID
+============================================================================
+Executado em: [DATA/HORA]
+
+[COLAR RESULTADOS DA QUERY 3.8 AQUI]
+
+Observações:
+- Tabelas sem colunas de isolamento:
+- Impacto na capacidade de RLS:
+- Ação requerida:
+
+============================================================================
+QUERY 3.9 - RESUMO DE SEGURANÇA MULTI-TENANT
+============================================================================
+Executado em: [DATA/HORA]
+
+[COLAR RESULTADOS DA QUERY 3.9 AQUI]
+
+Métricas:
+- Total de tabelas: 
+- Tabelas com RLS: 
+- Tabelas SEM RLS: 
+- Total de policies: 
+- Functions SECURITY DEFINER: 
+- Policies permissivas: 
+
+============================================================================
+ANÁLISE GERAL
+============================================================================
+
+VULNERABILIDADES CRÍTICAS (🔴):
+1. [Listar aqui]
+2. 
+3. 
+
+ATENÇÕES (🟡):
+1. [Listar aqui]
+2. 
+3. 
+
+ITENS OK (✅):
+1. [Listar aqui]
+2. 
+3. 
+
+============================================================================
+PRIORIZAÇÃO DE CORREÇÕES
+============================================================================
+
+PRIORIDADE 1 (Imediato):
+- [ ] [Ação 1]
+- [ ] [Ação 2]
+
+PRIORIDADE 2 (Curto prazo):
+- [ ] [Ação 1]
+- [ ] [Ação 2]
+
+PRIORIDADE 3 (Médio prazo):
+- [ ] [Ação 1]
+- [ ] [Ação 2]
+
+============================================================================
+FIM DOS RESULTADOS
+============================================================================

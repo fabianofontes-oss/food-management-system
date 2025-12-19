@@ -1,8 +1,16 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { getTenants, createTenant, updateTenant, deleteTenant, type Tenant, createClient } from '@/lib/superadmin/queries'
-import { getAllPlans, getAllTenantsWithPlans, setTenantPlan, type Plan } from '@/lib/superadmin/plans'
+import { createClient } from '@/lib/supabase/client'
+import { 
+  loadTenantsAction,
+  createTenantAction,
+  updateTenantAction,
+  deleteTenantAction,
+  changeTenantPlanAction
+} from '../actions'
+import type { Tenant } from '@/lib/superadmin/queries'
+import type { Plan } from '@/lib/superadmin/plans'
 import { 
   type TenantWithStoreCount, 
   type TenantFormData, 
@@ -34,33 +42,29 @@ export function useTenantsController() {
   const loadTenants = useCallback(async () => {
     try {
       setLoading(true)
-      const [data, tenantsWithPlansData, plansData] = await Promise.all([
-        getTenants(),
-        getAllTenantsWithPlans(),
-        getAllPlans()
-      ])
       
-      setPlans(plansData.filter(p => p.is_active))
+      // Chamar Server Action para carregar dados privilegiados
+      const result = await loadTenantsAction()
       
-      const plansMap = new Map(
-        tenantsWithPlansData.map((t: any) => [t.tenant_id, { plan_name: t.plan_name, plan_slug: t.plan_slug }])
-      )
+      if (!result.success) {
+        alert(result.error || 'Erro ao carregar tenants')
+        return
+      }
       
+      setPlans(result.plans || [])
+      
+      // Buscar contagem de stores usando client Supabase (protegido por RLS)
       const supabase = createClient()
       const tenantsWithCount = await Promise.all(
-        data.map(async (tenant: any) => {
+        result.tenants.map(async (tenant: any) => {
           const { count } = await supabase
             .from('stores')
             .select('*', { count: 'exact', head: true })
             .eq('tenant_id', tenant.id)
           
-          const planInfo = plansMap.get(tenant.id)
-          
           return {
             ...tenant,
-            stores_count: count || 0,
-            plan_name: planInfo?.plan_name || null,
-            plan_slug: planInfo?.plan_slug || null
+            stores_count: count || 0
           }
         })
       )
@@ -89,26 +93,16 @@ export function useTenantsController() {
     try {
       setSubmitting(true)
       
-      const tenantData = {
-        name: formData.name,
-        email: formData.email || null,
-        phone: formData.phone || null,
-        document: formData.document || null,
-        document_type: formData.document_type,
-        responsible_name: formData.responsible_name || null,
-        address: formData.address || null,
-        city: formData.city || null,
-        state: formData.state || null,
-        cep: formData.cep || null,
-        status: formData.status,
-        billing_day: formData.billing_day,
-        notes: formData.notes || null
+      let result
+      if (editingTenant) {
+        result = await updateTenantAction(editingTenant.id, formData)
+      } else {
+        result = await createTenantAction(formData)
       }
       
-      if (editingTenant) {
-        await updateTenant(editingTenant.id, tenantData as any)
-      } else {
-        await createTenant(tenantData as any)
+      if (!result.success) {
+        alert(result.error || 'Erro ao salvar tenant')
+        return
       }
       
       await loadTenants()
@@ -148,11 +142,17 @@ export function useTenantsController() {
     if (!confirm('Tem certeza que deseja excluir este tenant?')) return
     
     try {
-      await deleteTenant(id)
+      const result = await deleteTenantAction(id)
+      
+      if (!result.success) {
+        alert(result.error || 'Erro ao excluir tenant')
+        return
+      }
+      
       await loadTenants()
     } catch (err) {
       console.error('Erro ao excluir tenant:', err)
-      alert('Erro ao excluir tenant. Verifique se não há lojas vinculadas.')
+      alert('Erro ao excluir tenant')
     }
   }, [loadTenants])
 
@@ -187,7 +187,14 @@ export function useTenantsController() {
     
     try {
       setChangingPlan(true)
-      await setTenantPlan(selectedTenantForPlan, selectedPlanId)
+      
+      const result = await changeTenantPlanAction(selectedTenantForPlan, selectedPlanId)
+      
+      if (!result.success) {
+        alert(result.error || 'Erro ao alterar plano')
+        return
+      }
+      
       await loadTenants()
       handleClosePlanModal()
     } catch (err) {

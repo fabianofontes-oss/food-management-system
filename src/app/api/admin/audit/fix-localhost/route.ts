@@ -1,17 +1,20 @@
 import { NextResponse } from 'next/server'
 import { exec } from 'child_process'
 import { promisify } from 'util'
+import { requireInternalAuth, blockInProduction } from '@/lib/security/internal-auth'
 
 const execAsync = promisify(exec)
 
-export async function POST() {
-  // Verifica se está em produção (Vercel não tem Python)
-  if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
-    return NextResponse.json({
-      success: false,
-      message: 'Correção de código só funciona em ambiente de desenvolvimento local.',
-      isProduction: true
-    }, { status: 400 })
+export async function POST(request: Request) {
+  // SECURITY: Bloquear em produção (modifica código-fonte)
+  try {
+    blockInProduction()
+    requireInternalAuth(request)
+  } catch (error) {
+    if (error instanceof Response) {
+      return error
+    }
+    throw error
   }
 
   try {
@@ -39,8 +42,19 @@ export async function POST() {
   }
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  // SECURITY: Proteger endpoint
+  try {
+    requireInternalAuth(request)
+  } catch (error) {
+    if (error instanceof Response) {
+      return error
+    }
+    throw error
+  }
+
   return NextResponse.json({
-    message: 'Use POST para executar a correção de URLs localhost'
+    message: 'Use POST para executar a correção de URLs localhost',
+    note: 'Endpoint disponível apenas em desenvolvimento'
   })
 }

@@ -1,0 +1,97 @@
+ETAPA 3 - PASSO 5: Funções SECURITY DEFINER
+Data: 2024-12-19
+Query: SELECT n.nspname AS schema, p.proname AS function_name, pg_get_function_identity_arguments(p.oid) AS args, p.prosecdef AS security_definer, pg_get_userbyid(p.proowner) AS owner, l.lanname AS language FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace JOIN pg_language l ON l.oid = p.prolang WHERE n.nspname = 'public' ORDER BY 1,2,3
+
+========================================
+RESULTADO (43 functions encontradas)
+========================================
+
+schema | function_name                      | args                                                                                                                                                                                          | security_definer | owner    | language
+-------|------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |------------------|----------|----------
+public | calculate_customer_ltv             | p_store_id uuid, p_customer_phone text                                                                                                                                                        | false            | postgres | plpgsql
+public | calculate_daily_metrics            | p_store_id uuid, p_date date                                                                                                                                                                  | false            | postgres | plpgsql
+public | calculate_loyalty_points           | p_store_id uuid, p_order_total numeric                                                                                                                                                        | true             | postgres | plpgsql
+public | calculate_reservation_stats        | p_store_id uuid, p_date date                                                                                                                                                                  | false            | postgres | plpgsql
+public | calculate_review_stats             | p_store_id uuid                                                                                                                                                                               | false            | postgres | plpgsql
+public | check_expired_trials               |                                                                                                                                                                                               | false            | postgres | plpgsql
+public | check_overdue_invoices             |                                                                                                                                                                                               | false            | postgres | plpgsql
+public | check_table_availability           | p_store_id uuid, p_table_id uuid, p_date date, p_time time without time zone, p_duration integer                                                                                              | false            | postgres | plpgsql
+public | clean_expired_drafts               |                                                                                                                                                                                               | true             | postgres | plpgsql
+public | create_default_review_templates    | p_store_id uuid                                                                                                                                                                               | false            | postgres | plpgsql
+public | create_order_atomic                | p_payload jsonb                                                                                                                                                                               | true             | postgres | plpgsql
+public | create_review_request              |                                                                                                                                                                                               | false            | postgres | plpgsql
+public | credit_loyalty_points              | p_customer_id uuid, p_store_id uuid, p_order_id uuid, p_order_total numeric                                                                                                                   | true             | postgres | plpgsql
+public | expire_mimo_orders                 |                                                                                                                                                                                               | true             | postgres | plpgsql
+public | generate_coupon_link               | coupon_id uuid                                                                                                                                                                                | false            | postgres | plpgsql
+public | generate_order_code                | p_prefix text                                                                                                                                                                                 | false            | postgres | plpgsql
+public | generate_sales_forecast            | p_store_id uuid, p_days_ahead integer                                                                                                                                                         | false            | postgres | plpgsql
+public | get_pending_reviews                | p_store_id uuid, p_days integer                                                                                                                                                               | false            | postgres | plpgsql
+public | get_product_modifiers              | p_product_id uuid                                                                                                                                                                             | true             | postgres | plpgsql
+public | get_unified_review_stats           | p_store_id uuid                                                                                                                                                                               | false            | postgres | plpgsql
+public | get_user_stores                    |                                                                                                                                                                                               | true             | postgres | plpgsql
+public | get_waitlist_position              | p_store_id uuid, p_date date                                                                                                                                                                  | false            | postgres | plpgsql
+public | has_active_subscription            | tenant_uuid uuid                                                                                                                                                                              | true             | postgres | plpgsql
+public | import_external_review             | p_store_id uuid, p_integration_id uuid, p_platform text, p_external_id text, p_customer_name text, p_rating integer, p_comment text, p_review_date timestamp with time zone, p_raw_data jsonb | false            | postgres | plpgsql
+public | increment_coupon_usage             | p_store_id uuid, p_code text                                                                                                                                                                  | true             | postgres | plpgsql
+public | is_trial_active                    | tenant_uuid uuid                                                                                                                                                                              | true             | postgres | plpgsql
+public | log_reservation_change             |                                                                                                                                                                                               | false            | postgres | plpgsql
+public | segment_customer                   | p_orders integer, p_days_since_last integer, p_total_spent numeric                                                                                                                            | false            | postgres | plpgsql
+public | suggest_available_table            | p_store_id uuid, p_date date, p_time time without time zone, p_party_size integer, p_area text                                                                                                | false            | postgres | plpgsql
+public | update_cash_session_on_order       |                                                                                                                                                                                               | true             | postgres | plpgsql
+public | update_cash_session_timestamp      |                                                                                                                                                                                               | false            | postgres | plpgsql
+public | update_coupons_updated_at          |                                                                                                                                                                                               | false            | postgres | plpgsql
+public | update_integration_stats           | p_integration_id uuid                                                                                                                                                                         | false            | postgres | plpgsql
+public | update_modifier_groups_updated_at  |                                                                                                                                                                                               | false            | postgres | plpgsql
+public | update_modifier_options_updated_at |                                                                                                                                                                                               | false            | postgres | plpgsql
+public | update_reservation_timestamp       |                                                                                                                                                                                               | false            | postgres | plpgsql
+public | update_review_stats                |                                                                                                                                                                                               | false            | postgres | plpgsql
+public | update_updated_at_column           |                                                                                                                                                                                               | false            | postgres | plpgsql
+public | use_coupon                         | p_coupon_id uuid, p_customer_email text, p_order_id uuid, p_discount_amount numeric                                                                                                           | false            | postgres | plpgsql
+public | user_has_store_access              | p_store_id uuid                                                                                                                                                                               | true             | postgres | plpgsql
+public | user_is_store_owner                | p_store_id uuid                                                                                                                                                                               | true             | postgres | plpgsql
+public | validate_coupon                    | p_store_id uuid, p_code text, p_subtotal numeric                                                                                                                                              | true             | postgres | plpgsql
+public | validate_coupon_advanced           | p_store_id uuid, p_code text, p_subtotal numeric, p_customer_email text, p_category_ids uuid[], p_is_first_purchase boolean                                                                   | false            | postgres | plpgsql
+public | validate_mimo_token                | p_order_id uuid, p_token character varying                                                                                                                                                    | true             | postgres | plpgsql
+
+========================================
+ANÁLISE DE SEGURANÇA
+========================================
+
+Total de functions: 43
+Functions SECURITY DEFINER: 14 (32.6%)
+Functions SECURITY INVOKER: 29 (67.4%)
+
+🟡 ATENÇÃO: 14 Functions SECURITY DEFINER Encontradas
+
+Functions com security_definer=true:
+1. calculate_loyalty_points - Calcula pontos de fidelidade
+2. clean_expired_drafts - Limpa draft stores expirados
+3. create_order_atomic - Cria pedido com itens (transação atômica)
+4. credit_loyalty_points - Credita pontos de fidelidade
+5. expire_mimo_orders - Expira pedidos mimo
+6. get_product_modifiers - Busca modifiers de produto
+7. get_user_stores - Busca lojas do usuário
+8. has_active_subscription - Verifica assinatura ativa
+9. increment_coupon_usage - Incrementa uso de cupom
+10. is_trial_active - Verifica se trial está ativo
+11. update_cash_session_on_order - Atualiza sessão de caixa
+12. user_has_store_access - Verifica acesso do usuário à loja
+13. user_is_store_owner - Verifica se usuário é dono da loja
+14. validate_coupon - Valida cupom
+15. validate_mimo_token - Valida token mimo
+
+RISCOS POTENCIAIS:
+- Functions SECURITY DEFINER executam com privilégios do owner (postgres)
+- Bypassam RLS policies
+- Se não validarem auth.uid() ou ownership, podem permitir privilege escalation
+- Se não filtrarem por tenant_id/store_id, podem vazar dados cross-tenant
+
+ANÁLISE REQUERIDA (PASSO 6):
+Para cada function SECURITY DEFINER, coletar DDL e verificar:
+1. Valida auth.uid()?
+2. Filtra por tenant_id ou store_id?
+3. Tem validação de ownership?
+4. É realmente necessário ser SECURITY DEFINER?
+5. Poderia ser SECURITY INVOKER com RLS?
+
+SEVERIDADE: 🟡 ALTA - Requer análise detalhada do DDL de cada function

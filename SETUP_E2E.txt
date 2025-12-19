@@ -1,0 +1,38 @@
+========================================
+CONFIGURAÇÃO E2E - COPIE ESTE CONTEÚDO
+========================================
+
+Token gerado: vMxk+Oqdkea2ivJ3/kJtkiLPhjOFKNNQ6mHXw5Lvdog=
+
+PASSO 1: Criar arquivo .env.local
+----------------------------------
+Na raiz do projeto, crie um arquivo chamado: .env.local
+
+PASSO 2: Cole este conteúdo no .env.local
+------------------------------------------
+E2E_BASE_URL=http://localhost:3000
+E2E_INTERNAL_TOKEN=vMxk+Oqdkea2ivJ3/kJtkiLPhjOFKNNQ6mHXw5Lvdog=
+E2E_USER_A_EMAIL=e2e-user-a@test.local
+E2E_USER_A_PASSWORD=Test123456!
+E2E_USER_B_EMAIL=e2e-user-b@test.local
+E2E_USER_B_PASSWORD=Test123456!
+
+PASSO 3: Iniciar servidor dev
+------------------------------
+Em um terminal, rode:
+npm run dev
+
+(Deixe esse terminal aberto rodando)
+
+PASSO 4: Executar testes E2E
+-----------------------------
+Em OUTRO terminal, rode:
+npm run e2e
+
+PASSO 5: Ver resultados
+-----------------------
+Abra o arquivo: audit/06_e2e_results.md
+
+========================================
+PRONTO! Siga os passos acima.
+========================================

@@ -1,0 +1,18 @@
+schemaname,tablename,policyname,cmd,permissive,roles,qual,with_check
+public,categories,categories_policy,ALL,PERMISSIVE,{authenticated},"(EXISTS ( SELECT 1 FROM stores WHERE ((stores.id = categories.store_id) AND (EXISTS ( SELECT 1 FROM store_users WHERE ((store_users.store_id = stores.id) AND (store_users.user_id = auth.uid())))))))",
+public,customers,customers_policy,ALL,PERMISSIVE,{authenticated},"(EXISTS ( SELECT 1 FROM stores WHERE ((stores.id = customers.store_id) AND (EXISTS ( SELECT 1 FROM store_users WHERE ((store_users.store_id = stores.id) AND (store_users.user_id = auth.uid())))))))",
+public,draft_stores,draft_stores_select,SELECT,PERMISSIVE,{anon,authenticated},true,
+public,draft_stores,draft_stores_insert,INSERT,PERMISSIVE,{anon,authenticated},true,"(expires_at > now())"
+public,draft_stores,draft_stores_update,UPDATE,PERMISSIVE,{anon,authenticated},"((token IS NOT NULL) AND (expires_at > now()))",
+public,invoices,invoices_policy,ALL,PERMISSIVE,{authenticated},"(tenant_id IN ( SELECT tenants.id FROM tenants WHERE (tenants.owner_id = auth.uid())))",
+public,order_items,order_items_policy,ALL,PERMISSIVE,{authenticated},"(EXISTS ( SELECT 1 FROM (orders JOIN stores ON ((stores.id = orders.store_id))) WHERE ((orders.id = order_items.order_id) AND (EXISTS ( SELECT 1 FROM store_users WHERE ((store_users.store_id = stores.id) AND (store_users.user_id = auth.uid())))))))",
+public,orders,orders_policy,ALL,PERMISSIVE,{authenticated},"(EXISTS ( SELECT 1 FROM stores WHERE ((stores.id = orders.store_id) AND (EXISTS ( SELECT 1 FROM store_users WHERE ((store_users.store_id = stores.id) AND (store_users.user_id = auth.uid())))))))",
+public,payment_history,payment_history_policy,ALL,PERMISSIVE,{authenticated},"(tenant_id IN ( SELECT tenants.id FROM tenants WHERE (tenants.owner_id = auth.uid())))",
+public,plans,plans_select,SELECT,PERMISSIVE,{authenticated,anon},true,
+public,products,products_policy,ALL,PERMISSIVE,{authenticated},"(EXISTS ( SELECT 1 FROM stores WHERE ((stores.id = products.store_id) AND (EXISTS ( SELECT 1 FROM store_users WHERE ((store_users.store_id = stores.id) AND (store_users.user_id = auth.uid())))))))",
+public,slug_reservations,slug_reservations_policy,ALL,PERMISSIVE,{anon,authenticated},true,
+public,store_users,store_users_policy,ALL,PERMISSIVE,{authenticated},"(EXISTS ( SELECT 1 FROM stores WHERE ((stores.id = store_users.store_id) AND (EXISTS ( SELECT 1 FROM store_users su WHERE ((su.store_id = stores.id) AND (su.user_id = auth.uid())))))))",
+public,stores,stores_policy,ALL,PERMISSIVE,{authenticated},"(EXISTS ( SELECT 1 FROM store_users WHERE ((store_users.store_id = stores.id) AND (store_users.user_id = auth.uid()))))",
+public,tenant_subscriptions,tenant_subscriptions_policy,ALL,PERMISSIVE,{authenticated},"(tenant_id IN ( SELECT tenants.id FROM tenants WHERE (tenants.owner_id = auth.uid())))",
+public,tenants,tenants_policy,ALL,PERMISSIVE,{authenticated},"((owner_id = auth.uid()) OR (id IN ( SELECT stores.tenant_id FROM (stores JOIN store_users ON ((store_users.store_id = stores.id))) WHERE (store_users.user_id = auth.uid()))))",
+public,users,users_policy,ALL,PERMISSIVE,{authenticated},"(id = auth.uid())",

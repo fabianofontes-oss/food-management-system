@@ -39,3 +39,7 @@ next-env.d.ts
 *.swp
 *.swo
 *~
+
+# E2E Testing
+audit/fixtures/e2e_seed.json
+audit/06_e2e_results.md

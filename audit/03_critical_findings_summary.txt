@@ -1,0 +1,212 @@
+ETAPA 3 - ACHADOS CRÍTICOS (Baseado em Evidências Reais)
+Data: 2024-12-19
+Fonte: Dados coletados do Supabase via SQL queries
+
+========================================
+RESUMO EXECUTIVO
+========================================
+
+Total de tabelas analisadas: 100
+Tabelas com RLS habilitado: 89 (89%)
+Tabelas SEM RLS: 11 (11%)
+Total de policies: 60+
+Functions SECURITY DEFINER: 14 de 43 functions
+
+🔴 VULNERABILIDADES CRÍTICAS: 11 tabelas sem RLS
+🔴 VULNERABILIDADES ALTAS: 50+ tabelas com RLS mas sem policies
+🟡 ATENÇÃO: 14 functions SECURITY DEFINER requerem análise
+
+========================================
+🔴 CRÍTICO 1: Tabelas SEM RLS (11 tabelas)
+========================================
+
+Evidência: audit/03_rls_status.txt linhas 13, 14, 21, 46, 50, 52, 63, 69-71, 74-76, 79-80, 120
+
+1. admin_audit_log - rls_enabled=false, policy_count=0
+2. billing_config - rls_enabled=false, policy_count=0
+3. combo_items - rls_enabled=false, policy_count=0
+4. internal_messages - rls_enabled=false, policy_count=0
+5. inventory_items - rls_enabled=false, policy_count=0
+6. invoices - rls_enabled=false, policy_count=0 ⚠️ DADOS FINANCEIROS
+7. measurement_units - rls_enabled=false, policy_count=0
+8. order_events - rls_enabled=false, policy_count=0
+9. order_item_flavors - rls_enabled=false, policy_count=0
+10. order_item_modifiers - rls_enabled=false, policy_count=0
+11. payment_history - rls_enabled=false, policy_count=0 ⚠️ DADOS FINANCEIROS
+12. plans - rls_enabled=false, policy_count=0
+13. printers - rls_enabled=false, policy_count=0
+14. product_categories - rls_enabled=false, policy_count=0
+15. product_combos - rls_enabled=false, policy_count=0
+16. tenant_subscriptions - rls_enabled=false, policy_count=0 ⚠️ DADOS DE ASSINATURA
+
+IMPACTO: Dados totalmente expostos - qualquer usuário autenticado pode acessar TODOS os registros dessas tabelas sem filtro por tenant/store.
+
+SEVERIDADE: 🔴 CRÍTICA para invoices, payment_history, tenant_subscriptions
+SEVERIDADE: 🟡 ALTA para demais tabelas
+
+========================================
+🔴 CRÍTICO 2: Tabelas COM RLS mas SEM Policies (50+ tabelas)
+========================================
+
+Evidência: audit/03_rls_status.txt - tabelas com rls_enabled=true mas policy_count=0
+
+Tabelas Core Críticas:
+1. customers - rls_enabled=true, policy_count=0
+2. orders - rls_enabled=true, policy_count=0
+3. order_items - rls_enabled=true, policy_count=0
+4. users - rls_enabled=true, policy_count=0
+
+Outras Tabelas (parcial):
+5. cash_flow
+6. cash_registers
+7. custom_order_items
+8. custom_orders
+9. customer_addresses
+10. customer_engagement_log
+11. customer_engagement_rules
+12. customer_loyalty
+13. customization_groups
+14. customization_options
+15. daily_summary
+16. deliveries
+17. expenses
+18. financial_categories
+19. fish_preparations
+20. happy_hours
+21. hardware_devices
+22. inventory_batches
+23. inventory_count_items
+24. inventory_counts
+25. inventory_movements
+26. kds_config
+27. kds_order_log
+28. kds_stations
+29. kitchen_chefs
+30. loyalty_programs
+31. loyalty_tiers
+32. loyalty_transactions
+33. marketing_posts
+34. marketing_templates
+35. meat_cuts
+36. meat_seasonings
+37. notifications
+38. produce_promotions
+39. product_customization_groups
+40. product_fish_preparations
+41. product_ingredients
+42. product_kit_items
+43. product_kits
+44. product_meat_cuts
+45. product_seasonings
+46. product_variations
+47. production_calendar
+48. purchase_order_items
+49. purchase_orders
+50. receivables
+51. rodizio_configs
+52. rodizio_items
+53. rodizio_sessions
+
+IMPACTO: RLS habilitado mas SEM policies = BLOQUEIO TOTAL. Nenhum usuário consegue acessar dados (nem seus próprios).
+
+SEVERIDADE: 🔴 CRÍTICA para customers, orders, order_items, users (tabelas core)
+SEVERIDADE: 🟡 ALTA para demais tabelas (features podem estar quebradas)
+
+========================================
+🔴 CRÍTICO 3: Policies Permissivas em Tabelas Core
+========================================
+
+Evidência: audit/03b_policies.txt
+
+1. tenants - policy "Authenticated users can manage tenants"
+   - cmd: ALL
+   - qual: (auth.uid() IS NOT NULL)
+   - ⚠️ PROBLEMA: Qualquer usuário autenticado pode gerenciar TODOS os tenants
+
+2. tenants - policy "Authenticated users can view tenants"
+   - cmd: SELECT
+   - qual: (auth.uid() IS NOT NULL)
+   - ⚠️ PROBLEMA: Qualquer usuário autenticado pode ver TODOS os tenants
+
+IMPACTO: Vazamento cross-tenant - usuário de um tenant pode acessar dados de outros tenants.
+
+SEVERIDADE: 🔴 CRÍTICA
+
+========================================
+🟡 ATENÇÃO: Functions SECURITY DEFINER (14 functions)
+========================================
+
+Evidência: audit/03d_security_definer_functions.txt
+
+Functions com security_definer=true:
+1. calculate_loyalty_points
+2. clean_expired_drafts
+3. create_order_atomic
+4. credit_loyalty_points
+5. expire_mimo_orders
+6. get_product_modifiers
+7. get_user_stores
+8. has_active_subscription
+9. increment_coupon_usage
+10. is_trial_active
+11. update_cash_session_on_order
+12. user_has_store_access
+13. user_is_store_owner
+14. validate_coupon
+15. validate_mimo_token
+
+ANÁLISE REQUERIDA: Cada function precisa ser analisada para verificar se:
+- Valida auth.uid()
+- Filtra por tenant_id/store_id
+- Tem validação de ownership
+
+SEVERIDADE: 🟡 ALTA (requer análise detalhada do DDL de cada function)
+
+========================================
+✅ PONTOS POSITIVOS
+========================================
+
+1. Apenas 2 tabelas com rls_forced=true (stores, tenants)
+2. Role service_role tem rolbypassrls=true (esperado)
+3. Roles anon e authenticated têm rolbypassrls=false (correto)
+4. 60+ policies implementadas em tabelas com policies
+5. Maioria das policies usa filtros adequados por store_users
+
+========================================
+PRIORIZAÇÃO DE CORREÇÕES
+========================================
+
+PRIORIDADE 1 - CRÍTICO (Aplicar HOJE):
+1. Habilitar RLS em: invoices, payment_history, tenant_subscriptions
+2. Criar policies para: customers, orders, order_items, users
+3. Corrigir policies permissivas em: tenants (remover acesso cross-tenant)
+
+PRIORIDADE 2 - ALTO (Aplicar esta semana):
+1. Habilitar RLS nas 11 tabelas restantes sem RLS
+2. Criar policies para 50+ tabelas com RLS mas sem policies
+3. Analisar DDL das 14 functions SECURITY DEFINER
+
+PRIORIDADE 3 - MÉDIO (Aplicar este mês):
+1. Forçar RLS (rls_forced=true) em tabelas críticas
+2. Separar policies ALL em comandos específicos
+3. Implementar audit logging
+
+========================================
+IMPACTO NO NEGÓCIO
+========================================
+
+🔴 CRÍTICO:
+- Dados financeiros (invoices, payment_history) totalmente expostos
+- Dados de assinaturas (tenant_subscriptions) totalmente expostos
+- Tabelas core (customers, orders, order_items) inacessíveis (bloqueadas)
+- Vazamento cross-tenant em tenants
+
+RESULTADO:
+- Sistema NÃO está pronto para produção
+- Requer correções CRÍTICAS antes de deploy
+- Risco de vazamento de dados financeiros e cross-tenant
+- Features core podem estar quebradas (orders, customers inacessíveis)
+
+========================================
+FIM DO RESUMO
+========================================

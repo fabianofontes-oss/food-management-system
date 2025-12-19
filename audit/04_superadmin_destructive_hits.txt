@@ -1,0 +1,162 @@
+SuperAdmin Destructive Operations:
+
+=== HARD DELETE OPERATIONS ===
+
+1. src\lib\superadmin\actions.ts:128-130
+   Function: removeStoreOwnerAction
+   Operation: DELETE from store_users
+   Code:
+     .delete()
+     .eq('store_id', storeId)
+     .eq('user_id', userId)
+   Auth: ✅ isSuperAdmin check (line 121)
+   Guard Rails: ❌ No confirmation, no cooldown
+
+2. src\lib\superadmin\actions.ts:162-165
+   Function: deleteStoreAction
+   Operation: DELETE from stores (CASCADE to all related data)
+   Code:
+     .delete()
+     .eq('id', storeId)
+   Auth: ✅ isSuperAdmin check (line 156)
+   Guard Rails: ❌ No confirmation, no cooldown, no soft delete
+   Impact: 🔴 CRITICAL - Deletes products, orders, customers, etc.
+
+3. src\lib\superadmin\actions.ts:198-201
+   Function: deleteTenantAction
+   Operation: DELETE from tenants (CASCADE to all stores and data)
+   Code:
+     .delete()
+     .eq('id', tenantId)
+   Auth: ✅ isSuperAdmin check (line 192)
+   Guard Rails: ❌ No confirmation, no cooldown, no soft delete
+   Impact: 🔴 CRITICAL - Deletes entire tenant with all stores
+
+4. src\lib\superadmin\users.ts:128-131
+   Function: deleteUser
+   Operation: DELETE from users (CASCADE to store_users)
+   Code:
+     .delete()
+     .eq('id', userId)
+   Auth: ⚠️ NOT VERIFIED in this function (caller must check)
+   Guard Rails: ❌ No confirmation
+
+5. src\lib\superadmin\queries.ts:114-117
+   Function: deleteTenant
+   Operation: DELETE from tenants
+   Code:
+     .delete()
+     .eq('id', id)
+   Auth: ⚠️ NOT VERIFIED in this function
+   Guard Rails: ❌ None
+
+6. src\lib\superadmin\queries.ts:175-178
+   Function: deleteStore
+   Operation: DELETE from stores
+   Code:
+     .delete()
+     .eq('id', id)
+   Auth: ⚠️ NOT VERIFIED in this function
+   Guard Rails: ❌ None
+
+7. src\lib\superadmin\plans.ts:103-106
+   Function: deletePlan
+   Operation: DELETE from plans
+   Code:
+     .delete()
+     .eq('id', id)
+   Auth: ⚠️ NOT VERIFIED in this function
+   Guard Rails: ❌ None
+
+=== SUSPENSION OPERATIONS ===
+
+8. src\app\api\cron\billing\route.ts:73-82
+   Function: Cron Job - Suspend overdue tenants
+   Operation: UPDATE tenants SET status='suspended'
+   Code:
+     .update({
+       status: 'suspended',
+       suspended_at: new Date().toISOString(),
+       suspended_reason: 'Fatura vencida - suspensão automática'
+     })
+   Auth: ✅ CRON_SECRET check (line 21)
+   Guard Rails: ✅ Grace period (configurable)
+   Impact: 🟡 MEDIUM - Automated suspension
+
+9. src\app\api\cron\billing\route.ts:92-101
+   Function: Cron Job - Expire trials
+   Operation: UPDATE tenants SET status='suspended'
+   Code:
+     .update({
+       status: 'suspended',
+       suspended_at: new Date().toISOString(),
+       suspended_reason: 'Trial expirado'
+     })
+   Auth: ✅ CRON_SECRET check
+   Guard Rails: ✅ Automated based on trial_ends_at
+   Impact: 🟡 MEDIUM - Automated trial expiration
+
+=== CLIENT-SIDE DELETE HANDLERS ===
+
+10. src\app\(super-admin)\admin\stores\page.tsx:157-159
+    Function: handleDelete (client component)
+    Code:
+      if (!confirm(`Tem certeza que deseja excluir a loja "${name}"? Esta ação não pode ser desfeita.`)) return
+    Guard Rails: ⚠️ Only browser confirm() - easily bypassed
+    Calls: deleteStoreAction (server action)
+
+11. src\app\(super-admin)\admin\users\page.tsx:222
+    Function: handleDelete (client component)
+    Guard Rails: ⚠️ Likely browser confirm() only
+    Calls: deleteUser function
+
+=== BULK DELETE OPERATIONS (Health/Builder) ===
+
+12. src\app\(super-admin)\admin\health\builder\page.tsx:89-91
+    Function: Clear store data before applying template
+    Operations:
+      - DELETE from products WHERE store_id
+      - DELETE from categories WHERE store_id
+    Auth: ⚠️ Client-side only (no server-side check visible)
+    Guard Rails: ❌ No confirmation in code shown
+
+13. src\app\(super-admin)\admin\health\builder\page.tsx:187-190
+    Function: Clean store (delete all data)
+    Operations:
+      - DELETE from order_items
+      - DELETE from orders
+      - DELETE from products
+      - DELETE from categories
+    Auth: ⚠️ Client-side only
+    Guard Rails: ⚠️ deleteConfirm state (must type confirmation?)
+
+=== DRAFT CLEANUP (AUTOMATED) ===
+
+14. src\app\api\cron\clean-expired-drafts\route.ts:27-31
+    Function: Clean expired drafts
+    Operation: DELETE from draft_stores WHERE expires_at < NOW()
+    Auth: ✅ CRON_SECRET check (line 19)
+    Guard Rails: ✅ Automated, only deletes expired
+    Impact: 🟢 LOW - Cleanup of temporary data
+
+=== SUMMARY ===
+
+CRITICAL OPERATIONS (No Guard Rails):
+- deleteTenantAction: Deletes entire tenant + all stores + all data
+- deleteStoreAction: Deletes store + products + orders + customers
+- removeStoreOwnerAction: Removes ownership (can lock out users)
+
+MISSING PROTECTIONS:
+❌ No confirmation beyond browser confirm()
+❌ No cooldown period
+❌ No "type name to confirm"
+❌ No soft delete (deleted_at column)
+❌ No audit log of deletions
+❌ No two-person rule
+❌ No step-up authentication
+❌ No backup/export before delete
+
+AUTHORIZATION GAPS:
+⚠️ Some functions (queries.ts, plans.ts, users.ts) don't verify isSuperAdmin
+⚠️ Rely on caller to check authorization
+⚠️ Client components can call server actions directly

@@ -1,0 +1,39 @@
+RLS Status por Tabela (Template - Preencher com resultados do SQL)
+=======================================================================
+
+INSTRUÇÕES:
+1. Execute a query 3.1 do arquivo audit/03_sql_queries.sql no Supabase SQL Editor
+2. Cole os resultados aqui
+3. Formato esperado:
+   schema | table | rls_enabled | rls_forced
+
+TABELAS CRÍTICAS A VERIFICAR:
+- tenants
+- stores
+- store_users
+- orders
+- order_items
+- customers
+- products
+- categories
+- subscriptions
+- tenant_subscriptions
+- invoices
+- draft_stores
+- users
+- payment_history
+- coupons
+- reviews
+
+EXEMPLO DE RESULTADO:
+public | tenants | t | t
+public | stores | t | t
+public | orders | t | f
+public | draft_stores | f | f  ⚠️ VULNERABILIDADE
+
+LEGENDA:
+t = true (habilitado)
+f = false (desabilitado)
+
+⚠️ ATENÇÃO: Tabelas com rls_enabled=false são acessíveis sem restrição!
+⚠️ ATENÇÃO: Tabelas com rls_forced=false podem ser bypassadas por service_role!

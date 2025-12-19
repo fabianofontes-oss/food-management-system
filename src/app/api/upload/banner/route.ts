@@ -36,6 +36,14 @@ export async function POST(request: NextRequest) {
       return data?.slug === 'demo'
     })()
 
+    // SECURITY: Em produção, exigir autenticação (exceto para demo)
+    if (!user && !isDemoStore && process.env.NODE_ENV === 'production') {
+      return NextResponse.json(
+        { success: false, error: 'Autenticação necessária' },
+        { status: 401 }
+      )
+    }
+
     const client = !user && isDemoStore ? createAdminClient() : supabase
 
     if (user) {

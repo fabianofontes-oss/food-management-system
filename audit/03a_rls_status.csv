@@ -1,0 +1,16 @@
+schema,table,rls_enabled,rls_forced
+public,categories,true,true
+public,customers,true,true
+public,draft_stores,true,true
+public,invoices,true,true
+public,order_items,true,true
+public,orders,true,true
+public,payment_history,true,true
+public,plans,true,true
+public,products,true,true
+public,slug_reservations,true,true
+public,store_users,true,true
+public,stores,true,true
+public,tenant_subscriptions,true,true
+public,tenants,true,true
+public,users,true,true

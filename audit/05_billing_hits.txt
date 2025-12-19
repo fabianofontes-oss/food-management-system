@@ -1,0 +1,61 @@
+Billing, Subscriptions, Trial and Checkout References:
+
+=== SUBSCRIPTION/TRIAL DATABASE TYPES ===
+src\types\database.ts:85:      tenant_subscriptions: {
+src\types\database.ts:94:          trial_ends_at: string | null
+src\types\database.ts:107:          trial_ends_at?: string | null
+src\types\database.ts:120:          trial_ends_at?: string | null
+
+=== BILLING MODULE ===
+src\modules\billing\index.ts:2: * Módulo de Billing e Planos MVP
+src\modules\billing\types.ts:2: * Tipos para o módulo de billing e planos
+
+=== CHECKOUT VALIDATION ===
+src\modules\orders\validations\validateCheckout.ts:2: * Validação centralizada do checkout.
+src\modules\orders\validations\validateCheckout.ts:26:export interface CheckoutItem {
+src\modules\orders\validations\validateCheckout.ts:36:export interface CheckoutAddress {
+src\modules\orders\validations\validateCheckout.ts:48:export interface CheckoutPayload {
+src\modules\orders\validations\validateCheckout.ts:103:export const CheckoutErrorCodes = {
+src\modules\orders\validations\validateCheckout.ts:119:export async function validateCheckout(payload: CheckoutPayload)
+
+=== CHECKOUT COMPONENTS ===
+src\modules\pos\hooks\use-pdv.ts:143:  const checkout = useCallback(async () => {
+src\modules\pos\components\CartPanel.tsx:44:  onCheckout: () => void
+src\modules\cart\components\cart-drawer.tsx:36:  const handleCheckout = () => {
+src\modules\cart\components\cart-sticky-footer.tsx:8:  onCheckout?: () => void
+
+=== BILLING CRON JOB ===
+src\app\api\cron\billing\route.ts:5: * Cron Job para Billing Automatizado
+src\app\api\cron\billing\route.ts:6: * URL: /api/cron/billing
+src\app\api\cron\billing\route.ts:13: * Segurança: Verificar CRON_SECRET no header
+src\app\api\cron\billing\route.ts:16:const CRON_SECRET = process.env.CRON_SECRET
+src\app\api\cron\billing\route.ts:21:  if (CRON_SECRET && authHeader !== `Bearer ${CRON_SECRET}`) {
+src\app\api\cron\billing\route.ts:35:      expiredTrials: 0
+src\app\api\cron\billing\route.ts:92:    const { data: expiredTrials } = await supabase
+src\app\api\cron\billing\route.ts:100:      .lt('trial_ends_at', new Date().toISOString())
+src\app\api\cron\billing\route.ts:103:    results.expiredTrials = expiredTrials?.length || 0
+
+=== BILLING INVOICE GENERATION ===
+src\app\api\billing\generate\route.ts:5: * API para gerar faturas mensais para todos os tenants
+
+=== MERCADOPAGO INTEGRATION ===
+src\lib\billing\mercadopago.ts (5 matches - payment processing)
+
+=== ADMIN BILLING PAGES ===
+src\app\(super-admin)\admin\page.tsx (7 matches - dashboard stats)
+src\app\(super-admin)\admin\billing\page.tsx (1 match)
+
+=== TENANT STATUS CHECKS ===
+src\app\api\cron\billing\route.ts:75:        status: 'suspended',
+src\app\api\cron\billing\route.ts:94:        status: 'suspended',
+src\modules\admin\tenants\types\tenant.types.ts (3 matches - tenant status types)
+
+TOTAL: ~56 matches across 21 files
+
+KEY FINDINGS:
+✅ Cron job exists: /api/cron/billing
+✅ Trial expiration logic exists (suspends tenants)
+✅ Checkout validation exists
+❌ NO middleware enforcement of subscription status
+❌ NO server action checks for trial/subscription
+❌ NO blocking of mutations for suspended tenants

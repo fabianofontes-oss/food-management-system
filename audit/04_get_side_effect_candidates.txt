@@ -1,0 +1,115 @@
+GET Endpoints with Potential Side Effects:
+
+=== ANALYSIS: GET methods that might perform mutations ===
+
+SAFE GET ENDPOINTS (Read-only):
+✅ src\app\api\webhooks\mercadopago\route.ts:43
+   export async function GET()
+   Returns: { status: 'ok', service: 'mercadopago-webhook' }
+   Side Effects: None
+
+✅ src\app\api\integrations\google\callback\route.ts:8
+   export async function GET(request: NextRequest)
+   Operations: .update(), .insert() on review_integrations
+   Analysis: OAuth callback - mutations are expected and necessary
+   CSRF Risk: 🟡 MEDIUM - state param should be validated
+
+✅ src\app\api\health\database\route.ts:24
+   export async function GET(request: NextRequest)
+   Side Effects: None (read-only queries)
+
+✅ src\app\api\health\status\route.ts:31
+   export async function GET(request: NextRequest)
+   Side Effects: None (health checks)
+
+✅ src\app\api\health\pages\route.ts:104
+   export async function GET(request: NextRequest)
+   Side Effects: None (returns page list)
+
+✅ src\app\api\health\files\route.ts:226
+   export async function GET(request: NextRequest)
+   Side Effects: None (returns file metadata)
+
+✅ src\app\api\health\diagnostic\route.ts:37
+   export async function GET(request: NextRequest)
+   Side Effects: None (diagnostic queries)
+
+✅ src\app\api\health\audit\route.ts:18
+   export async function GET(request: NextRequest)
+   Side Effects: None (audit queries)
+
+✅ src\app\api\draft-store\get\route.ts:4
+   export async function GET(req: NextRequest)
+   Side Effects: None (reads draft by token)
+
+⚠️ src\app\api\cron\billing\route.ts:18
+   export async function GET(request: NextRequest)
+   Operations: .update() on invoices, .update() on tenants (suspension)
+   Side Effects: 🔴 YES - Marks invoices overdue, suspends tenants
+   Auth: ✅ CRON_SECRET required
+   CSRF Risk: 🟢 LOW - Protected by secret
+   REST Violation: 🔴 YES - GET should not have side effects
+   Recommendation: Change to POST
+
+⚠️ src\app\api\cron\clean-expired-drafts\route.ts:15
+   export async function GET(req: NextRequest)
+   Operations: .delete() on draft_stores
+   Side Effects: 🔴 YES - Deletes expired drafts
+   Auth: ✅ CRON_SECRET required
+   CSRF Risk: 🟢 LOW - Protected by secret
+   REST Violation: 🔴 YES - GET should not delete
+   Recommendation: Change to POST
+
+✅ src\app\api\admin\demo-setup\route.ts:101
+   export async function GET()
+   Side Effects: None (checks if demo exists)
+
+✅ src\app\api\admin\audit\run\route.ts:42
+   export async function GET()
+   Returns: { message: 'Use POST para executar a auditoria' }
+   Side Effects: None (informational only)
+
+✅ src\app\api\admin\audit\fix-localhost\route.ts:42
+   export async function GET()
+   Returns: { message: 'Use POST para executar a correção de URLs localhost' }
+   Side Effects: None (informational only)
+
+✅ src\app\api\admin\audit\fix\route.ts:47
+   export async function GET()
+   Returns: { message: 'Use POST para executar a faxina automática' }
+   Side Effects: None (informational only)
+
+=== SUMMARY ===
+
+TOTAL GET ENDPOINTS: 17
+
+SAFE (Read-only): 15
+- Health endpoints: 5
+- Admin info endpoints: 3
+- OAuth callback: 1 (mutations expected)
+- Draft read: 1
+- Webhook status: 1
+- Demo check: 1
+- Audit info: 3
+
+UNSAFE (Side Effects): 2
+⚠️ /api/cron/billing (GET) - Updates invoices, suspends tenants
+⚠️ /api/cron/clean-expired-drafts (GET) - Deletes drafts
+
+REST VIOLATIONS:
+🔴 2 endpoints use GET for mutations (cron jobs)
+   - Should be POST for idempotency and semantic correctness
+   - Protected by CRON_SECRET, so CSRF risk is low
+   - But violates HTTP semantics
+
+CSRF RISK ASSESSMENT:
+🟢 LOW - All mutation endpoints are protected:
+  - Cron jobs: CRON_SECRET required
+  - OAuth callback: Expected flow, but state should be validated
+  - No unprotected GET mutations found
+
+RECOMMENDATIONS:
+1. Change cron jobs to POST
+2. Add state validation to OAuth callback
+3. Add rate limiting to all GET endpoints
+4. Consider adding CSRF tokens for OAuth flows

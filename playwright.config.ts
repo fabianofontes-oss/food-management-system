@@ -1,4 +1,7 @@
 import { defineConfig, devices } from '@playwright/test'
+import { config } from 'dotenv'
+
+config({ path: '.env.local' })
 
 /**
  * Configuração do Playwright para testes E2E

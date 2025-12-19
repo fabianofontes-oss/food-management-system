@@ -1,0 +1,58 @@
+Middleware Billing/Subscription Enforcement Analysis:
+
+=== CURRENT MIDDLEWARE ===
+File: src\middleware.ts (18 lines total)
+File: src\lib\supabase\middleware.ts (110 lines total)
+
+=== MIDDLEWARE CHECKS IMPLEMENTED ===
+✅ Authentication check (user logged in)
+✅ Store access check (user belongs to store via store_users)
+✅ Demo mode bypass (slug === 'demo' or settings.isDemo)
+✅ Public routes allowed
+
+=== MIDDLEWARE CHECKS MISSING ===
+❌ NO tenant status check (active/suspended/trial_expired)
+❌ NO subscription status check
+❌ NO trial_ends_at validation
+❌ NO billing status check (past_due/unpaid)
+❌ NO grace period logic
+
+=== EVIDENCE: src\lib\supabase\middleware.ts ===
+
+Lines 59-106: Dashboard access control
+- Checks if user is authenticated (line 90-92)
+- Checks if user has access to store (line 95-105)
+- DOES NOT check tenant.status
+- DOES NOT check tenant.trial_ends_at
+- DOES NOT check subscription status
+
+Example of missing check:
+```typescript
+// Line 71-80: Busca store mas não busca tenant
+const { data: store, error: storeError } = await supabase
+  .from('stores')
+  .select('id, settings')  // ⚠️ Não busca tenant_id ou tenant.status
+  .eq('slug', slug)
+  .single()
+
+// MISSING: Check tenant status
+// const { data: tenant } = await supabase
+//   .from('tenants')
+//   .select('status, trial_ends_at')
+//   .eq('id', store.tenant_id)
+//   .single()
+//
+// if (tenant.status === 'suspended' || tenant.status === 'cancelled') {
+//   return NextResponse.redirect(new URL('/billing/suspended', request.url))
+// }
+```
+
+=== CONCLUSION ===
+🔴 CRITICAL: Middleware does NOT enforce billing/subscription status
+🔴 CRITICAL: Trial expiration is only enforced by cron job (not real-time)
+🔴 CRITICAL: Suspended tenants can still access dashboard until next cron run
+
+VULNERABILITY: "Trial Infinito"
+- User can access dashboard even after trial expires
+- Only blocked when cron job runs (may be hours/days later)
+- No real-time enforcement at request time

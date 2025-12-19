@@ -1,0 +1,62 @@
+Supabase Client Creation Patterns:
+
+=== BROWSER CLIENT (Client Components) ===
+src\services\store.service.ts:30:  private supabase = createClient()
+src\services\settings.service.ts:22:  private supabase = createClient()
+src\modules\store\repository.ts:5:const supabase = createClient()
+src\modules\orders\repository.ts:4:const supabase = createClient()
+src\modules\orders\hooks\use-orders.ts:30:    const supabase = createClient()
+src\modules\notifications\hooks\useNotifications.ts:18:  const supabase = createClient()
+src\modules\menu\repository.ts:13:const supabase = createClient()
+src\modules\admin\tenants\hooks\useTenantsController.ts:49:      const supabase = createClient()
+src\hooks\useSystemSettings.ts:25:  const supabase = useMemo(() => createClient(), [])
+src\modules\pos\hooks\use-pdv.ts:3:import { supabase } from '@/lib/supabase'
+
+=== SERVER CLIENT (Server Actions / Route Handlers) ===
+src\modules\reports\repository.ts:9:  const supabase = await createClient()
+src\modules\reports\repository.ts:93:  const supabase = await createClient()
+src\modules\store\actions.ts:17:  const supabase = await createClient()
+src\modules\store\actions.ts:65:  const supabase = await createClient()
+src\modules\store\actions.ts:119:  const supabase = await createClient()
+src\modules\store\actions.ts:147:  const supabase = await createClient()
+src\modules\store\actions.ts:214:  const supabase = await createClient()
+src\modules\orders\validations\validateCheckout.ts:120:  const supabase = await createClient()
+src\modules\orders\actions.ts:13:  const supabase = await createClient()
+src\modules\minisite\repository.ts:15:    const supabase = await createClient()
+src\modules\minisite\repository.ts:46:    const supabase = await createClient()
+src\modules\minisite\repository.ts:95:    const supabase = await createClient()
+src\modules\minisite\repository.ts:125:    const supabase = await createClient()
+src\modules\minisite\actions.ts:35:    const supabase = await createClient()
+src\modules\minisite\actions.ts:77:    const supabase = await createClient()
+src\modules\menu\actions.ts:20:  const supabase = await createClient()
+src\modules\menu\actions.ts:46:  const supabase = await createClient()
+src\modules\menu\actions.ts:71:  const supabase = await createClient()
+src\modules\menu\actions.ts:95:  const supabase = await createClient()
+src\modules\menu\actions.ts:123:  const supabase = await createClient()
+src\modules\menu\actions.ts:149:  const supabase = await createClient()
+src\modules\menu\actions.ts:173:  const supabase = await createClient()
+src\modules\menu\actions.ts:197:  const supabase = await createClient()
+
+=== ADMIN CLIENT (Service Role) ===
+src\modules\onboarding\repository.ts:17:  return createSupabaseAdminClient<Database>(supabaseUrl, serviceRoleKey)
+src\modules\minisite\actions.ts:21:  return createSupabaseAdminClient(supabaseUrl, serviceRoleKey)
+src\modules\draft-store\repository.ts:8:const supabaseAdmin = createClient<Database>(supabaseUrl, supabaseServiceKey, {...})
+src\app\api\onboarding\publish-draft\route.ts:8:const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {...})
+src\app\api\integrations\google\callback\route.ts:33:    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+src\app\api\integrations\google\sync\route.ts:22:    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+src\app\api\billing\generate\route.ts:11:    const supabase = createClient(..., SUPABASE_SERVICE_ROLE_KEY || ...)
+src\app\api\upload\banner\route.ts:13:  return createSupabaseAdminClient(supabaseUrl, serviceRoleKey)
+src\app\api\upload\logo\route.ts:13:  return createSupabaseAdminClient(supabaseUrl, serviceRoleKey)
+src\app\api\health\audit\route.ts:19:  const supabase = createClient(..., SUPABASE_SERVICE_ROLE_KEY || ...)
+src\app\api\health\diagnostic\route.ts:38:  const supabase = createClient(..., SUPABASE_SERVICE_ROLE_KEY || ...)
+src\app\api\health\database\route.ts:26:  const supabase = createClient(..., SUPABASE_SERVICE_ROLE_KEY || ...)
+src\app\api\health\status\route.ts:84:    const supabase = createClient(..., SUPABASE_SERVICE_ROLE_KEY || ...)
+src\app\api\health\fix\route.ts:17:  const supabase = createClient(..., SUPABASE_SERVICE_ROLE_KEY || ...)
+src\app\api\cron\clean-expired-drafts\route.ts:4:const supabaseAdmin = createClient(..., SUPABASE_SERVICE_ROLE_KEY!, {...})
+src\app\api\admin\demo-setup\route.ts:9:  const supabase = createClient(..., SUPABASE_SERVICE_ROLE_KEY || ...)
+src\app\api\cron\billing\route.ts:27:    const supabase = createClient(..., SUPABASE_SERVICE_ROLE_KEY!)
+
+=== IMPORTS ===
+src\modules\onboarding\repository.ts:1:import { createClient as createSupabaseAdminClient } from '@supabase/supabase-js'
+src\modules\minisite\actions.ts:9:import { createClient as createSupabaseAdminClient } from '@supabase/supabase-js'
+src\modules\draft-store\repository.ts:1:import { createClient } from '@supabase/supabase-js';

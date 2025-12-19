@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireInternalAuth } from '@/lib/security/internal-auth'
 
 /**
  * API de Diagnóstico do Banco de Dados
@@ -22,6 +23,15 @@ interface DatabaseHealth {
 }
 
 export async function GET(request: NextRequest) {
+  // SECURITY: Proteger endpoint (expõe estrutura do banco)
+  try {
+    requireInternalAuth(request)
+  } catch (error) {
+    if (error instanceof Response) {
+      return error
+    }
+    throw error
+  }
   try {
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,

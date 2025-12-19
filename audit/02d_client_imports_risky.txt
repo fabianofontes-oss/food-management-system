@@ -1,0 +1,121 @@
+src\components\LanguageProviderWrapper.tsx :: @/lib/LanguageContext, @/lib/i18n
+src\hooks\useStore.ts :: @/lib/supabase/client
+src\modules\pos\components\AddonsModal.tsx :: @/lib/utils, @/lib/supabase
+src\modules\pos\components\CartPanel.tsx :: @/lib/utils
+src\modules\pos\components\CashRegister.tsx :: @/lib/utils, @/lib/supabase
+src\modules\pos\components\ProductGrid.tsx :: @/lib/utils
+src\modules\pos\components\ReceiptPrinter.tsx :: @/lib/utils
+src\modules\pos\hooks\use-pdv.ts :: @/lib/supabase
+src\modules\orders\components\order-card.tsx :: @/lib/utils
+src\modules\orders\components\order-kanban.tsx :: @/lib/utils
+src\modules\notifications\hooks\useNotifications.ts :: @/lib/supabase/client
+src\modules\minisite\components\color-picker.tsx :: @/lib/utils
+src\modules\minisite\components\image-uploader.tsx :: @/lib/utils
+src\modules\minisite\components\layout-picker.tsx :: @/lib/utils
+src\modules\minisite\components\storefront.tsx :: @/lib/utils
+src\modules\menu\components\category-list.tsx :: @/lib/utils
+src\modules\menu\components\product-card.tsx :: @/lib/utils
+src\modules\admin\tenants\hooks\useTenantsController.ts :: @/lib/superadmin/queries, @/lib/superadmin/plans
+src\components\checkout\LoyaltyRedeemCard.tsx :: @/lib/utils
+src\components\dashboard\ProductImporter.tsx :: @/lib/utils, @/lib/supabase/client
+src\components\layout\AppShell.tsx :: @/lib/utils
+src\components\layout\ResponsiveTable.tsx :: @/lib/utils
+src\components\layout\Sidebar.tsx :: @/lib/utils
+src\components\layout\Topbar.tsx :: @/lib/utils
+src\components\menu\CartButton.tsx :: @/lib/utils
+src\components\menu\ProductCard.tsx :: @/lib/utils
+src\components\menu\ProductModal.tsx :: @/lib/utils, @/lib/actions/menu
+src\components\printing\thermal-receipt.tsx :: @/lib/utils
+src\components\reports\MetricsCards.tsx :: @/lib/utils
+src\components\reports\PaymentTable.tsx :: @/lib/utils
+src\components\reports\PeakHoursSection.tsx :: @/lib/utils
+src\components\reports\TopProductsTable.tsx :: @/lib/utils
+src\components\scheduling\SchedulingPicker.tsx :: @/lib/supabase/client
+src\components\system\network-status.tsx :: @/lib/supabase/client
+src\components\ui\checkbox.tsx :: @/lib/utils
+src\components\ui\dialog.tsx :: @/lib/utils
+src\components\ui\form.tsx :: @/lib/utils
+src\components\ui\label.tsx :: @/lib/utils
+src\components\ui\scroll-area.tsx :: @/lib/utils
+src\components\ui\select.tsx :: @/lib/utils
+src\components\ui\sheet.tsx :: @/lib/utils
+src\components\ui\switch.tsx :: @/lib/utils
+src\components\ui\tabs.tsx :: @/lib/utils
+src\app\(super-admin)\layout.tsx :: @/lib/utils, @/lib/LanguageContext
+src\app\select-store\page.tsx :: @/lib/supabase/client
+src\app\[slug]\cart\page.tsx :: @/lib/utils
+src\app\[slug]\checkout\CheckoutClient.tsx :: @/lib/utils, @/modules/store/utils/storeHours, @/modules/store/types, @/lib/coupons/actions, @/lib/supabase
+src\app\[slug]\dashboard\page.tsx :: @/lib/utils, @/modules/store, @/lib/supabase, @/lib/supabase/client
+src\app\[slug]\encomenda\page.tsx :: @/lib/supabase/client, @/lib/utils
+src\app\[slug]\garcom\page.tsx :: @/lib/supabase/client, @/lib/utils
+src\app\[slug]\minha-conta\page.tsx :: @/lib/supabase/client, @/lib/utils
+src\app\[slug]\motorista\page.tsx :: @/lib/supabase/client, @/lib/utils
+src\app\[slug]\waiter\page.tsx :: @/lib/supabase/client, @/lib/utils
+src\app\[slug]\tv\[code]\page.tsx :: @/lib/supabase/client, @/lib/utils
+src\app\[slug]\rastreio\[id]\page.tsx :: @/lib/supabase/client, @/lib/utils
+src\app\[slug]\pedido\[code]\OrderStatusClient.tsx :: @/lib/supabase/client
+src\app\[slug]\order\[orderId]\page.tsx :: @/lib/supabase/client, @/lib/utils
+src\app\[slug]\minha-conta\fidelidade\page.tsx :: @/lib/supabase/client, @/lib/utils
+src\app\[slug]\mimo\[token]\page.tsx :: @/lib/supabase/client, @/lib/utils
+src\app\[slug]\mesa\[numero]\page.tsx :: @/lib/supabase/client, @/lib/utils
+src\app\[slug]\dashboard\addons\page.tsx :: @/lib/supabase/client
+src\app\[slug]\dashboard\analytics\page.tsx :: @/lib/supabase/client, @/lib/utils
+src\app\[slug]\dashboard\appearance\page.tsx :: @/lib/supabase/client, @/modules/minisite
+src\app\[slug]\dashboard\coupons\page.tsx :: @/lib/supabase/client, @/lib/coupons/actions, @/lib/coupons/utils
+src\app\[slug]\dashboard\crm\page.tsx :: @/lib/utils, @/lib/supabase/client
+src\app\[slug]\dashboard\custom-orders\page.tsx :: @/lib/supabase/client, @/lib/utils
+src\app\[slug]\dashboard\delivery\page.tsx :: @/lib/supabase/client, @/lib/utils
+src\app\[slug]\dashboard\financial\page.tsx :: @/lib/supabase/client, @/lib/utils
+src\app\[slug]\dashboard\inventory\page.tsx :: @/lib/supabase/client, @/lib/utils
+src\app\[slug]\dashboard\kitchen\page.tsx :: @/lib/utils, @/lib/LanguageContext, @/lib/supabase
+src\app\[slug]\dashboard\kits\page.tsx :: @/lib/supabase/client, @/lib/utils
+src\app\[slug]\dashboard\marketing\page.tsx :: @/lib/supabase/client
+src\app\[slug]\dashboard\onboarding\page.tsx :: @/lib/supabase/client
+src\app\[slug]\dashboard\pos\page.tsx :: @/lib/utils, @/modules/pos
+src\app\[slug]\dashboard\products\page.tsx :: @/modules/store, @/modules/menu/components/menu-manager
+src\app\[slug]\dashboard\reports\page.tsx :: @/lib/supabase/client, @/lib/utils
+src\app\[slug]\dashboard\reservations\page.tsx :: @/lib/supabase/client
+src\app\[slug]\dashboard\reviews\page.tsx :: @/lib/supabase/client
+src\app\[slug]\dashboard\tables\page.tsx :: @/lib/supabase/client, @/lib/utils
+src\app\[slug]\dashboard\team\page.tsx :: @/lib/supabase/client
+src\app\[slug]\dashboard\waiters\page.tsx :: @/lib/supabase/client, @/lib/utils
+src\app\[slug]\dashboard\settings\complete\page.tsx :: @/lib/supabase/client
+src\app\[slug]\dashboard\settings\loyalty\page.tsx :: @/lib/supabase/client, @/lib/utils
+src\app\[slug]\dashboard\settings\modules\page.tsx :: @/lib/supabase/client
+src\app\[slug]\dashboard\settings\niche\page.tsx :: @/lib/supabase/client, @/lib/templates/niche-data, @/modules/store/actions
+src\app\[slug]\dashboard\settings\platforms\page.tsx :: @/lib/supabase/client
+src\app\[slug]\dashboard\settings\scheduling\page.tsx :: @/lib/supabase/client
+src\app\[slug]\dashboard\settings\store\page.tsx :: @/lib/supabase/client
+src\app\[slug]\dashboard\reviews\integrations\page.tsx :: @/lib/supabase/client
+src\app\[slug]\dashboard\products\components\ProductRecipe.tsx :: @/lib/supabase/client, @/lib/utils
+src\app\[slug]\dashboard\inventory\components\StockAlerts.tsx :: @/lib/supabase/client, @/lib/utils
+src\app\[slug]\dashboard\financial\components\CashControlTab.tsx :: @/lib/supabase/client, @/lib/utils
+src\app\[slug]\dashboard\financial\components\DRETab.tsx :: @/lib/supabase/client, @/lib/utils
+src\app\[slug]\dashboard\financial\components\ExpensesTab.tsx :: @/lib/supabase/client, @/lib/utils
+src\app\[slug]\dashboard\financial\components\ReceivablesTab.tsx :: @/lib/supabase/client, @/lib/utils
+src\app\[slug]\checkout\components\SchedulingSelector.tsx :: @/modules/store/utils/storeHours, @/modules/store/types
+src\app\[slug]\avaliar\[deliveryId]\page.tsx :: @/lib/supabase/client
+src\app\setup\[token]\page.tsx :: @/modules/draft-store
+src\app\(super-admin)\admin\page.tsx :: @/lib/superadmin/queries, @/lib/demo/actions
+src\app\(super-admin)\admin\automations\page.tsx :: @/lib/LanguageContext
+src\app\(super-admin)\admin\billing\page.tsx :: @/lib/superadmin/queries
+src\app\(super-admin)\admin\demanda\page.tsx :: @/lib/supabase/client, @/lib/utils
+src\app\(super-admin)\admin\features\page.tsx :: @/lib/LanguageContext
+src\app\(super-admin)\admin\logs\page.tsx :: @/lib/LanguageContext
+src\app\(super-admin)\admin\plans\page.tsx :: @/lib/superadmin/plans
+src\app\(super-admin)\admin\reports\page.tsx :: @/lib/LanguageContext
+src\app\(super-admin)\admin\settings\page.tsx :: @/lib/supabase/client, @/lib/auth/super-admin
+src\app\(super-admin)\admin\stores\page.tsx :: @/lib/superadmin/queries, @/lib/superadmin/actions
+src\app\(super-admin)\admin\tenants\page.tsx :: @/modules/admin/tenants
+src\app\(super-admin)\admin\tickets\page.tsx :: @/lib/LanguageContext
+src\app\(super-admin)\admin\users\page.tsx :: @/lib/superadmin/users, @/lib/auth/super-admin
+src\app\(super-admin)\admin\plans\new\page.tsx :: @/lib/superadmin/plans, @/lib/superadmin/plan-modules
+src\app\(super-admin)\admin\plans\[planId]\page.tsx :: @/lib/superadmin/plans, @/lib/superadmin/plan-modules
+src\app\(super-admin)\admin\health\builder\page.tsx :: @/lib/supabase/client, @/lib/templates/niche-data
+src\app\(super-admin)\admin\health\images\page.tsx :: @/lib/supabase/client
+src\app\(super-admin)\admin\health\slugs\page.tsx :: @/lib/supabase/client
+src\app\(public)\profile\page.tsx :: @/lib/utils
+src\app\(auth)\login\page.tsx :: @/lib/supabase/client
+src\app\(auth)\reset-password\page.tsx :: @/lib/supabase/client
+src\app\(auth)\signup\SignupClient.tsx :: @/lib/supabase/client
+src\app\(auth)\update-password\page.tsx :: @/lib/supabase/client

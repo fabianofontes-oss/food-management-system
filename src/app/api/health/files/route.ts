@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { promises as fs } from 'fs'
 import path from 'path'
+import { requireInternalAuth } from '@/lib/security/internal-auth'
 
 /**
  * API para analisar tamanho de arquivos do sistema
@@ -224,6 +225,16 @@ const KNOWN_LARGE_FILES: FileInfo[] = [
 ]
 
 export async function GET(request: NextRequest) {
+  // SECURITY: Proteger endpoint (expõe estrutura de arquivos)
+  try {
+    requireInternalAuth(request)
+  } catch (error) {
+    if (error instanceof Response) {
+      return error
+    }
+    throw error
+  }
+
   // Ordenar por número de linhas (decrescente)
   const sortedFiles = [...KNOWN_LARGE_FILES].sort((a, b) => b.lines - a.lines)
 

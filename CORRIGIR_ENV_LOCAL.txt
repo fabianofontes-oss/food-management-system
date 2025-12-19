@@ -1,0 +1,23 @@
+========================================
+PROBLEMA: Credenciais E2E Inválidas
+========================================
+
+O teste está falhando com "Invalid login credentials"
+
+CAUSA:
+As senhas no .env.local não correspondem às senhas que o seed cria.
+
+SOLUÇÃO:
+Abra o arquivo .env.local e CONFIRME que estas linhas estão EXATAMENTE assim:
+
+E2E_USER_A_PASSWORD=Test123456!
+E2E_USER_B_PASSWORD=Test123456!
+
+(Com T maiúsculo, sem espaços, exatamente "Test123456!")
+
+Se estiver diferente, corrija e:
+1. Pare o dev (Ctrl+C)
+2. npm run dev
+3. npm run e2e
+
+========================================

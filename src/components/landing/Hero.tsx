@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight, Play, Check, Sparkles } from 'lucide-react'
+import { ArrowRight, LogIn, Check, Sparkles } from 'lucide-react'
 import { AnimatedSection } from './AnimatedSection'
 
 interface HeroProps {
@@ -90,7 +90,7 @@ export function Hero({ headline, subheadline, primaryCTA, secondaryCTA, stats }:
                 href={secondaryCTA.href}
                 className="group inline-flex items-center justify-center gap-2 px-10 py-5 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:bg-white dark:hover:bg-gray-800 text-gray-900 dark:text-white font-bold text-lg rounded-2xl border-2 border-gray-200 dark:border-gray-700 hover:border-violet-300 dark:hover:border-violet-700 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-violet-500/10 active:scale-100"
               >
-                <Play className="w-5 h-5 fill-violet-500 text-violet-500 group-hover:scale-110 transition-transform" />
+                <LogIn className="w-5 h-5 text-violet-500 group-hover:scale-110 transition-transform" />
                 {secondaryCTA.text}
               </Link>
             </div>

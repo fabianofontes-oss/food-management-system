@@ -1,0 +1,57 @@
+SuperAdmin Authorization Checks (SUPER_ADMIN|super admin|superadmin|NEXT_PUBLIC_SUPER_ADMIN_EMAILS):
+
+=== AUTHORIZATION FUNCTION ===
+src\lib\auth\super-admin.ts:44:export function isSuperAdmin(email: string | null | undefined): boolean {
+src\lib\auth\super-admin.ts:60:export async function checkIsSuperAdmin(supabase: any): Promise<boolean> {
+src\lib\auth\super-admin.ts:81:export async function getSuperAdminUser(supabase: any): Promise<{
+
+=== HARDCODED EMAILS (FALLBACK) ===
+src\lib\auth\super-admin.ts:15:const HARDCODED_SUPER_ADMINS = [
+src\lib\auth\super-admin.ts:16:  'admin@sistema.com',
+src\lib\auth\super-admin.ts:17:  'fabiano@exemplo.com',
+src\lib\auth\super-admin.ts:18:  'fabianofontes@me.com',
+
+=== ENV VARIABLE USAGE ===
+src\lib\auth\super-admin.ts:26:  const envEmails = process.env.SUPER_ADMIN_EMAILS
+
+=== AUTHORIZATION CHECKS IN ACTIONS ===
+src\lib\superadmin\actions.ts:5:import { isSuperAdmin } from '@/lib/auth/super-admin'
+src\lib\superadmin\actions.ts:9: * Apenas Super Admins podem executar esta ação
+src\lib\superadmin\actions.ts:17:  // Verificar se o usuário atual é Super Admin
+src\lib\superadmin\actions.ts:24:  if (!isSuperAdmin(currentUser.email)) {
+src\lib\superadmin\actions.ts:25:    return { success: false, error: 'Acesso não autorizado - apenas Super Admins' }
+src\lib\superadmin\actions.ts:46:          name: currentUser.user_metadata?.name || currentUser.email?.split('@')[0] || 'Super Admin'
+src\lib\superadmin\actions.ts:119:  // Verificar se o usuário atual é Super Admin
+src\lib\superadmin\actions.ts:121:  if (!currentUser || !isSuperAdmin(currentUser.email)) {
+src\lib\superadmin\actions.ts:147: * Apenas Super Admins podem executar esta ação
+src\lib\superadmin\actions.ts:154:  // Verificar se o usuário atual é Super Admin
+src\lib\superadmin\actions.ts:156:  if (!currentUser || !isSuperAdmin(currentUser.email)) {
+src\lib\superadmin\actions.ts:157:    return { success: false, error: 'Acesso não autorizado - apenas Super Admins' }
+src\lib\superadmin\actions.ts:183: * Apenas Super Admins podem executar esta ação
+src\lib\superadmin\actions.ts:190:  // Verificar se o usuário atual é Super Admin
+src\lib\superadmin\actions.ts:192:  if (!currentUser || !isSuperAdmin(currentUser.email)) {
+src\lib\superadmin\actions.ts:193:    return { success: false, error: 'Acesso não autorizado - apenas Super Admins' }
+
+src\lib\demo\actions.ts:5:import { isSuperAdmin } from '@/lib/auth/super-admin'
+src\lib\demo\actions.ts:42: * Apenas Super Admins podem executar
+src\lib\demo\actions.ts:51:  // Verificar se é Super Admin
+src\lib\demo\actions.ts:53:  if (!user || !isSuperAdmin(user.email)) {
+
+=== MIDDLEWARE CHECK ===
+src\lib\supabase\middleware.ts:3:import { isSuperAdmin } from '../auth/super-admin'
+
+=== I18N REFERENCES ===
+src\lib\i18n.ts:14:  superadmin: { [key: string]: string }
+src\lib\i18n.ts:26:      superadmin_dashboard: 'Dashboard',
+src\lib\i18n.ts:27:      superadmin_tenants: 'Tenants',
+src\lib\i18n.ts:28:      superadmin_stores: 'Lojas',
+[... more i18n entries]
+
+=== PLAN MODULES REFERENCE ===
+src\lib\superadmin\plan-modules.ts:8: * você DEVE adicionar o módulo aqui para que o Super Admin possa
+
+TOTAL: ~50+ referências a SuperAdmin
+- Função de autorização: isSuperAdmin(email)
+- Baseada em: SUPER_ADMIN_EMAILS (env) ou HARDCODED_SUPER_ADMINS (fallback)
+- Verificações em: Server Actions (src/lib/superadmin/actions.ts)
+- Middleware: src/lib/supabase/middleware.ts

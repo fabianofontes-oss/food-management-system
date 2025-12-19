@@ -21,7 +21,16 @@ function getSubdomainSlug(host: string | null): string | null {
   if (!host) return null
 
   const hostname = host.split(':')[0]
-  const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'pediu.food'
+  
+  // Domínios suportados em produção
+  // pediu.food = URLs curtas para lojas (slug.pediu.food)
+  // pediufood.com = Site principal (inglês)
+  // pediufood.com.br = Site em português
+  const baseDomains = [
+    'pediu.food',           // Lojas dos clientes
+    'pediufood.com',        // Principal
+    'pediufood.com.br'      // PT-BR
+  ]
 
   // Localhost puro: não tenta resolver subdomínio
   if (hostname === 'localhost' || hostname === '127.0.0.1') return null
@@ -42,15 +51,19 @@ function getSubdomainSlug(host: string | null): string | null {
     }
   }
 
-  // Ex: slug.pediu.food
-  if (hostname.endsWith(`.${baseDomain}`)) {
-    const sub = hostname.slice(0, -1 * (baseDomain.length + 1))
-    if (!sub) return null
+  // Verificar todos os domínios base
+  for (const baseDomain of baseDomains) {
+    // Ex: slug.pediu.food, slug.pediufood.com.br, slug.pediufood.com
+    if (hostname.endsWith(`.${baseDomain}`)) {
+      const sub = hostname.slice(0, -1 * (baseDomain.length + 1))
+      if (!sub) continue
 
-    // Evitar subdomínios reservados
-    const reserved = new Set(['www', 'admin', 'app'])
-    if (reserved.has(sub)) return null
-    return sub
+      // Evitar subdomínios reservados
+      const reserved = new Set(['www', 'admin', 'app', 'api'])
+      if (reserved.has(sub)) continue
+      
+      return sub
+    }
   }
 
   return null

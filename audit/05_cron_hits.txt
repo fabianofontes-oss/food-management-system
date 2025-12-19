@@ -1,0 +1,120 @@
+Cron Jobs and Scheduled Tasks:
+
+=== CRON JOBS IDENTIFIED ===
+
+1. /api/cron/billing
+   File: src\app\api\cron\billing\route.ts
+   Method: GET (⚠️ should be POST)
+   Auth: CRON_SECRET via Bearer token
+   Schedule: Daily (recommended)
+   Functions:
+   - Mark overdue invoices
+   - Suspend tenants with overdue invoices (after grace period)
+   - Suspend tenants with expired trials
+   
+   Evidence:
+   Line 16: const CRON_SECRET = process.env.CRON_SECRET
+   Line 21: if (CRON_SECRET && authHeader !== `Bearer ${CRON_SECRET}`)
+   Line 38-44: Mark invoices as 'overdue'
+   Line 58-88: Suspend tenants with overdue invoices
+   Line 92-103: Suspend tenants with expired trials
+
+2. /api/cron/clean-expired-drafts
+   File: src\app\api\cron\clean-expired-drafts\route.ts
+   Method: GET (⚠️ should be POST)
+   Auth: CRON_SECRET via Bearer token
+   Schedule: Every 6 hours (recommended)
+   Functions:
+   - Delete expired draft_stores
+   
+   Evidence:
+   Line 19: if (authHeader !== `Bearer ${process.env.CRON_SECRET}`)
+   Line 27-31: DELETE from draft_stores WHERE expires_at < NOW()
+
+=== CRON SECRET REFERENCES ===
+src\app\api\health\status\route.ts:190:    'CRON_SECRET'
+src\app\api\health\diagnostic\route.ts:377:    status: process.env.CRON_SECRET ? 'working' : 'not_configured'
+
+=== TRIAL EXPIRATION LOGIC ===
+src\app\api\cron\billing\route.ts:92-103
+```typescript
+// 4. Verificar trials expirados
+const { data: expiredTrials } = await supabase
+  .from('tenants')
+  .update({
+    status: 'suspended',
+    suspended_at: new Date().toISOString(),
+    suspended_reason: 'Trial expirado'
+  })
+  .eq('status', 'trial')
+  .lt('trial_ends_at', new Date().toISOString())
+  .select()
+
+results.expiredTrials = expiredTrials?.length || 0
+```
+
+=== GRACE PERIOD LOGIC ===
+src\app\api\cron\billing\route.ts:48-88
+```typescript
+// 2. Buscar configuração de billing
+const { data: config } = await supabase
+  .from('billing_config')
+  .select('grace_period_days, auto_suspend_enabled')
+  .single()
+
+const graceDays = config?.grace_period_days || 3
+const autoSuspend = config?.auto_suspend_enabled !== false
+
+// 3. Suspender tenants com faturas muito vencidas
+if (autoSuspend) {
+  const graceDate = new Date()
+  graceDate.setDate(graceDate.getDate() - graceDays)
+  
+  // Buscar faturas vencidas além do período de carência
+  const { data: overdueInvoices } = await supabase
+    .from('invoices')
+    .select('tenant_id')
+    .eq('status', 'overdue')
+    .lt('due_date', graceDate.toISOString().slice(0, 10))
+  
+  // Suspender tenants
+  for (const tenantId of tenantIds) {
+    await supabase
+      .from('tenants')
+      .update({
+        status: 'suspended',
+        suspended_at: new Date().toISOString(),
+        suspended_reason: 'Fatura vencida - suspensão automática'
+      })
+      .eq('id', tenantId)
+      .neq('status', 'suspended')
+  }
+}
+```
+
+=== ISSUES IDENTIFIED ===
+
+🔴 CRITICAL: Cron-based enforcement only
+- Trials can continue working for hours/days after expiration
+- Depends on cron schedule (not real-time)
+- User can exploit by using system before cron runs
+
+🟡 MEDIUM: GET methods with side effects
+- Both cron endpoints use GET (should be POST)
+- Violates REST principles
+
+🟢 GOOD: Grace period implemented
+- Configurable grace_period_days (default 3)
+- Auto-suspend can be disabled
+
+🟢 GOOD: CRON_SECRET protection
+- All cron endpoints require Bearer token
+- Protected from unauthorized access
+
+=== RECOMMENDATIONS ===
+
+1. Add real-time enforcement in middleware
+2. Add enforcement in server actions
+3. Change cron endpoints to POST
+4. Add idempotency keys to prevent double-processing
+5. Add monitoring/alerting for failed cron jobs

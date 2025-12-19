@@ -1,0 +1,63 @@
+ETAPA 3 - Grants para anon/authenticated (Arquivo Consolidado)
+Data: 2024-12-19
+Query: SELECT grantee, table_schema, table_name, privilege_type FROM information_schema.role_table_grants WHERE table_schema = 'public' AND grantee IN ('anon','authenticated')
+
+========================================
+GRANTS PARA ROLE 'anon' (105 grants)
+========================================
+
+categories: SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
+customers: SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
+draft_stores: SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
+invoices: SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
+order_items: SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
+orders: SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
+payment_history: SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
+plans: SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
+products: SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
+slug_reservations: SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
+store_users: SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
+stores: SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
+tenant_subscriptions: SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
+tenants: SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
+users: SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
+
+========================================
+GRANTS PARA ROLE 'authenticated' (105 grants)
+========================================
+
+categories: SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
+customers: SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
+draft_stores: SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
+invoices: SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
+order_items: SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
+orders: SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
+payment_history: SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
+plans: SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
+products: SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
+slug_reservations: SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
+store_users: SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
+stores: SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
+tenant_subscriptions: SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
+tenants: SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
+users: SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
+
+========================================
+ANÁLISE CRÍTICA
+========================================
+
+🔴 CRÍTICO: Role 'anon' tem ALL privileges em TODAS as 15 tabelas
+- Inclui tabelas sensíveis: tenants, invoices, payment_history, users, store_users
+- Inclui operações destrutivas: DELETE, TRUNCATE
+- Viola princípio do menor privilégio
+
+IMPACTO REAL:
+- Policies de RLS estão protegendo os dados (mitigação)
+- Mas se houver bypass de RLS ou bug nas policies, 'anon' tem acesso total
+- Superfície de ataque ampliada desnecessariamente
+
+RECOMENDAÇÃO:
+Revogar grants de 'anon' em tabelas sensíveis, manter apenas:
+- draft_stores: SELECT, INSERT, UPDATE (onboarding)
+- plans: SELECT (visualização pública)
+- slug_reservations: SELECT, INSERT (reserva de slugs)

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireInternalAuth } from '@/lib/security/internal-auth'
 
 /**
  * API de Auditoria Completa do Sistema
@@ -16,6 +17,15 @@ interface AuditItem {
 }
 
 export async function GET(request: NextRequest) {
+  // SECURITY: Proteger endpoint (expõe dados sensíveis)
+  try {
+    requireInternalAuth(request)
+  } catch (error) {
+    if (error instanceof Response) {
+      return error
+    }
+    throw error
+  }
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
