@@ -22,18 +22,33 @@ export const revalidate = 0
 export default async function MenuPage({ params }: { params: { slug: string } }) {
   const supabase = await createClient()
   
-  // 1. Buscar loja pelo slug (incluindo dados de agendamento)
+  // 1. Buscar loja pelo slug
   const { data: storeData, error: storeError } = await supabase
     .from('stores')
-    .select(`
-      *,
-      tenants!inner(timezone)
-    `)
+    .select('*')
     .eq('slug', params.slug)
     .single()
 
+  // DEBUG: Log para investigar 404
+  console.log('=== CARDÁPIO DEBUG ===')
+  console.log('Slug:', params.slug)
+  console.log('Store found:', !!storeData)
+  console.log('Error:', storeError?.message)
+  console.log('======================')
+
   if (storeError || !storeData) {
     notFound()
+  }
+  
+  // Buscar timezone do tenant separadamente (opcional)
+  let timezone = 'America/Sao_Paulo'
+  if (storeData.tenant_id) {
+    const { data: tenant } = await supabase
+      .from('tenants')
+      .select('timezone')
+      .eq('id', storeData.tenant_id)
+      .single()
+    if (tenant?.timezone) timezone = tenant.timezone
   }
 
   // 2. Buscar categorias e produtos (SEM filtro is_active para garantir que apareçam)
@@ -82,7 +97,6 @@ export default async function MenuPage({ params }: { params: { slug: string } })
 
   // 5. Calcular status da loja (aberta/fechada)
   const businessHours: BusinessHour[] = parsedSettings.businessHours || []
-  const timezone = ((storeData as any).tenants as any)?.timezone || 'America/Sao_Paulo'
   const schedulingEnabled = (storeData as any).scheduling_enabled || false
   
   let storeStatus = undefined
