@@ -215,6 +215,13 @@ export const PLAN_MODULES: PlanModule[] = [
     description: 'Personalização visual do cardápio',
     category: 'advanced',
     icon: 'Palette'
+  },
+  {
+    id: 'affiliates',
+    name: 'Afiliados',
+    description: 'Programa de indicação e comissões',
+    category: 'marketing',
+    icon: 'Users'
   }
 ]
 

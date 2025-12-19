@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
 import { createClient } from '@supabase/supabase-js'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 
@@ -122,11 +123,71 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // CAPTURA DE REFERRAL: ler cookie e gravar tenant_referral
+    let referralCaptured = false
+    try {
+      const cookieStore = await cookies()
+      const referralCode = cookieStore.get('referral_code')?.value
+
+      if (referralCode) {
+        // Buscar tenant_id da store
+        const { data: storeWithTenant } = await supabaseAdmin
+          .from('stores')
+          .select('tenant_id')
+          .eq('id', storeId)
+          .single()
+
+        if (storeWithTenant?.tenant_id) {
+          // Validar código e obter partner_id
+          const { data: codeData } = await supabaseAdmin
+            .from('referral_codes')
+            .select('code, partner_id')
+            .eq('code', referralCode.toUpperCase())
+            .eq('is_active', true)
+            .maybeSingle()
+
+          if (codeData) {
+            // Verificar se já existe referral para este tenant
+            const { data: existingReferral } = await supabaseAdmin
+              .from('tenant_referrals')
+              .select('referred_tenant_id')
+              .eq('referred_tenant_id', storeWithTenant.tenant_id)
+              .maybeSingle()
+
+            if (!existingReferral) {
+              // Inserir tenant_referral
+              const { error: referralError } = await supabaseAdmin
+                .from('tenant_referrals')
+                .insert({
+                  referred_tenant_id: storeWithTenant.tenant_id,
+                  referral_code: codeData.code,
+                  partner_id: codeData.partner_id,
+                  captured_by_user_id: user.id,
+                })
+
+              if (!referralError) {
+                referralCaptured = true
+                console.log('[Publish] Referral capturado:', { 
+                  tenantId: storeWithTenant.tenant_id, 
+                  code: codeData.code 
+                })
+              } else {
+                console.error('[Publish] Erro ao capturar referral:', referralError)
+              }
+            }
+          }
+        }
+      }
+    } catch (refError) {
+      console.error('[Publish] Erro ao processar referral:', refError)
+    }
+
     return NextResponse.json({
       ok: true,
       storeId: store.id,
       slug: store.slug,
       publishedAt,
+      referralCaptured,
     })
   } catch (error: any) {
     console.error('Erro ao publicar:', error)

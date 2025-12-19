@@ -5,7 +5,7 @@ import {
   LayoutDashboard, ChefHat, Truck, ShoppingCart,
   Package, Settings, Users, ShoppingBag, UserCog, BarChart3, 
   Ticket, DollarSign, Warehouse, LayoutGrid, PieChart, Star, 
-  Megaphone, CalendarDays, LogOut, Coffee, Sparkles, Store, Palette
+  Megaphone, CalendarDays, LogOut, Coffee, Sparkles, Store, Palette, Link2
 } from 'lucide-react'
 import { AppShell } from '@/components/layout/AppShell'
 import { SidebarSection } from '@/components/layout/Sidebar'
@@ -32,12 +32,13 @@ const ROUTE_TO_MODULE: Record<string, string> = {
   'coupons': 'coupons',
   'analytics': 'analytics',
   'reports': 'reports',
-    'marketing': 'marketing',
+  'marketing': 'marketing',
   'reviews': 'reviews',
   'team': 'team',
   'waiters': 'waiters',
   'kits': 'kits',
   'custom-orders': 'custom_orders',
+  'afiliados': 'affiliates',
 }
 
 export default function DashboardClient({
@@ -105,6 +106,7 @@ export default function DashboardClient({
         hasModule('coupons') && { href: `${base}/coupons`, label: 'Cupons', icon: Ticket, gradient: 'from-fuchsia-500 to-pink-600' },
         hasModule('marketing') && { href: `${base}/marketing`, label: 'Campanhas', icon: Megaphone, gradient: 'from-orange-500 to-red-600' },
         hasModule('reviews') && { href: `${base}/reviews`, label: 'Avaliações', icon: Star, gradient: 'from-yellow-500 to-amber-600' },
+        hasModule('affiliates') && { href: `${base}/afiliados`, label: 'Afiliados', icon: Link2, gradient: 'from-violet-500 to-indigo-600' },
       ].filter(Boolean) as SidebarSection['items']
     },
     {
