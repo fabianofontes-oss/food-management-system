@@ -45,6 +45,7 @@ with check (
 
 -- 2) referral_codes: permitir SELECT público para validar existência do código
 drop policy if exists referral_codes_select on public.referral_codes;
+drop policy if exists referral_codes_select_auth on public.referral_codes;
 
 -- Select para authenticated (admin ou dono do partner)
 create policy referral_codes_select_auth
