@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Save, RotateCcw, Loader2, Check, Palette, Layout, Eye } from 'lucide-react'
+import { Save, RotateCcw, Loader2, Check, Palette, Layout, Eye, ImageIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useMenuTheme } from '../../hooks/use-menu-theme'
@@ -9,6 +9,7 @@ import { LayoutSelector } from './layout-selector'
 import { ColorPicker } from './color-picker'
 import { DisplayToggles } from './display-toggles'
 import { LivePreview } from './live-preview'
+import { ImageUploader } from './image-uploader'
 import type { MenuTheme, StoreWithSettings } from '../../types'
 
 interface SiteBuilderProps {
@@ -17,11 +18,12 @@ interface SiteBuilderProps {
   initialTheme: MenuTheme
 }
 
-type TabId = 'layout' | 'colors' | 'display'
+type TabId = 'layout' | 'colors' | 'images' | 'display'
 
 const tabs: { id: TabId; label: string; icon: React.ElementType }[] = [
   { id: 'layout', label: 'Layout', icon: Layout },
   { id: 'colors', label: 'Cores', icon: Palette },
+  { id: 'images', label: 'Imagens', icon: ImageIcon },
   { id: 'display', label: 'Elementos', icon: Eye },
 ]
 
@@ -34,6 +36,7 @@ export function SiteBuilder({ storeId, store, initialTheme }: SiteBuilderProps) 
     updateLayout,
     updateColor,
     updateDisplay,
+    updateBanner,
     save,
     reset,
     isSaving,
@@ -131,6 +134,32 @@ export function SiteBuilder({ storeId, store, initialTheme }: SiteBuilderProps) 
                 value={theme.colors.header}
                 onChange={(color) => updateColor('header', color)}
               />
+            </div>
+          )}
+
+          {activeTab === 'images' && (
+            <div className="space-y-6">
+              <ImageUploader
+                label="Banner da Loja"
+                description="Imagem de capa que aparece no topo do cardápio (recomendado: 1200x400px)"
+                value={theme.bannerUrl || store?.banner_url || null}
+                onChange={(url) => updateBanner(url)}
+                storeId={storeId}
+                type="banner"
+                aspectRatio="banner"
+              />
+              <ImageUploader
+                label="Logo da Loja"
+                description="Logo que aparece no cabeçalho (recomendado: 200x200px)"
+                value={store?.logo_url || null}
+                onChange={() => {}}
+                storeId={storeId}
+                type="logo"
+                aspectRatio="square"
+              />
+              <p className="text-xs text-slate-500 bg-slate-50 p-3 rounded-lg">
+                <strong>Dica:</strong> O banner é salvo no tema do cardápio. O logo é compartilhado em toda a loja e pode ser alterado em Configurações → Dados da Loja.
+              </p>
             </div>
           )}
 
