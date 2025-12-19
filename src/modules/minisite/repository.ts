@@ -16,11 +16,14 @@ export const MinisiteRepository = {
     
     const { data, error } = await supabase
       .from('stores')
-      .select('id, name, slug, logo_url, banner_url, address, phone, whatsapp, menu_theme')
+      .select('id, name, slug, logo_url, banner_url, address, phone, whatsapp, menu_theme, status')
       .eq('slug', slug)
       .single()
 
     if (error || !data) return null
+    
+    // Bloquear lojas em DRAFT - só mostrar lojas publicadas
+    if (data.status === 'draft') return null
 
     const theme = parseTheme(data.menu_theme)
     

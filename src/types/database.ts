@@ -147,6 +147,8 @@ export type Database = {
           loyalty_order_value_per_stamp: number | null
           loyalty_stamps_to_reward: number | null
           loyalty_reward_value: number | null
+          status: 'draft' | 'active'
+          published_at: string | null
           created_at: string
           updated_at: string
         }
@@ -173,6 +175,8 @@ export type Database = {
           loyalty_order_value_per_stamp?: number | null
           loyalty_stamps_to_reward?: number | null
           loyalty_reward_value?: number | null
+          status?: 'draft' | 'active'
+          published_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -199,6 +203,8 @@ export type Database = {
           loyalty_order_value_per_stamp?: number | null
           loyalty_stamps_to_reward?: number | null
           loyalty_reward_value?: number | null
+          status?: 'draft' | 'active'
+          published_at?: string | null
           created_at?: string
           updated_at?: string
         }
