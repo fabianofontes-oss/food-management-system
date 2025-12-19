@@ -32,6 +32,9 @@ export default function PDVPage() {
   const [scaleConnected, setScaleConnected] = useState(false)
   const [scaleLayout, setScaleLayout] = useState<ScaleLayout>('compact')
   const [weightProduct, setWeightProduct] = useState<any>(null)
+  
+  // Estado do input de atendente
+  const [attendantInput, setAttendantInput] = useState('')
 
   // Atalhos de teclado
   useEffect(() => {
@@ -113,35 +116,68 @@ export default function PDVPage() {
   const mutedText = darkMode ? 'text-gray-400' : 'text-gray-500'
   const borderColor = darkMode ? 'border-gray-700' : 'border-gray-200'
 
+  // Lista de atendentes comuns (pode vir do banco futuramente)
+  const commonAttendants = ['João', 'Maria', 'Pedro', 'Ana', 'Carlos', 'Julia']
+  const filteredAttendants = commonAttendants.filter(a => 
+    a.toLowerCase().includes(attendantInput.toLowerCase())
+  )
+
+  const selectAttendant = (name: string) => {
+    pdv.setAttendant(name)
+    setShowAttendantModal(false)
+  }
+
   // Modal Atendente
   if (showAttendantModal && !pdv.attendant) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${bg}`}>
-        <div className={`${cardBg} rounded-2xl p-8 w-full max-w-md shadow-2xl`}>
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-3 bg-blue-100 rounded-xl">
-              <Users className="w-6 h-6 text-blue-600" />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700">
+        <div className="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl">
+          <div className="text-center mb-6">
+            <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+              <Users className="w-10 h-10 text-white" />
             </div>
-            <div>
-              <h2 className={`text-xl font-bold ${textColor}`}>Identificação</h2>
-              <p className={mutedText}>Quem está no caixa?</p>
-            </div>
+            <h2 className="text-2xl font-bold text-gray-900">Bem-vindo ao PDV</h2>
+            <p className="text-gray-500 mt-1">Digite seu nome ou selecione abaixo</p>
           </div>
+          
           <input
             type="text"
-            placeholder="Seu nome"
-            onChange={(e) => pdv.setAttendant(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && pdv.attendant && setShowAttendantModal(false)}
-            className={`w-full p-4 rounded-xl border ${borderColor} ${cardBg} ${textColor} mb-4`}
+            placeholder="Seu nome..."
+            value={attendantInput}
+            onChange={(e) => setAttendantInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && attendantInput.trim()) {
+                selectAttendant(attendantInput.trim())
+              }
+            }}
+            className="w-full p-4 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 outline-none text-lg mb-4 transition-all"
             autoFocus
           />
-          <Button
-            onClick={() => pdv.attendant && setShowAttendantModal(false)}
-            disabled={!pdv.attendant}
-            className="w-full h-12 bg-blue-600 hover:bg-blue-700"
-          >
-            Entrar no PDV
-          </Button>
+          
+          {/* Lista de atendentes sugeridos */}
+          <div className="space-y-2 max-h-48 overflow-y-auto">
+            {(attendantInput ? filteredAttendants : commonAttendants).map(name => (
+              <button
+                key={name}
+                onClick={() => selectAttendant(name)}
+                className="w-full p-3 rounded-xl border-2 border-gray-100 hover:border-blue-500 hover:bg-blue-50 text-left flex items-center gap-3 transition-all group"
+              >
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-bold text-lg">
+                  {name[0]}
+                </div>
+                <span className="font-medium text-gray-700 group-hover:text-blue-600">{name}</span>
+              </button>
+            ))}
+          </div>
+          
+          {attendantInput.trim() && !filteredAttendants.includes(attendantInput.trim()) && (
+            <button
+              onClick={() => selectAttendant(attendantInput.trim())}
+              className="w-full mt-4 p-4 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold text-lg hover:from-blue-600 hover:to-indigo-700 transition-all shadow-lg"
+            >
+              Entrar como "{attendantInput.trim()}"
+            </button>
+          )}
         </div>
       </div>
     )
