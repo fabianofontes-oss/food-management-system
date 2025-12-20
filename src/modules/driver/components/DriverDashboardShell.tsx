@@ -188,6 +188,7 @@ export function DriverDashboardShell({
               <DeliveriesTab
                 deliveries={pendingDeliveries}
                 commissionPercent={commissionPercent}
+                storeId={storeId}
                 onUpdateStatus={handleUpdateStatus}
               />
             )}

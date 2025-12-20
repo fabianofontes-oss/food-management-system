@@ -6,6 +6,9 @@ export * from './types'
 // Repository
 export * from './repository'
 
+// Utils
+export * from './utils/whatsapp'
+
 // Hooks
 export { useDriverDeliveries } from './hooks/useDriverDeliveries'
 export { useDriverStats } from './hooks/useDriverStats'
@@ -17,3 +20,4 @@ export { DeliveriesTab } from './components/tabs/DeliveriesTab'
 export { HistoryTab } from './components/tabs/HistoryTab'
 export { EarningsTab } from './components/tabs/EarningsTab'
 export { AffiliatesTab } from './components/tabs/AffiliatesTab'
+export { DeliveryProofCapture } from './components/DeliveryProofCapture'

@@ -1,19 +1,33 @@
 'use client'
 
-import { Truck, MapPin, Package, DollarSign, Play, CheckCheck, Navigation } from 'lucide-react'
+import { useState } from 'react'
+import { Truck, MapPin, Package, DollarSign, Play, CheckCheck, Navigation, Camera } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { formatCurrency } from '@/lib/utils'
 import type { Delivery } from '../../types'
 import { STATUS_LABELS, STATUS_COLORS } from '../../types'
 import { getGoogleMapsLink } from '../../repository'
+import { DeliveryProofCapture } from '../DeliveryProofCapture'
 
 interface DeliveriesTabProps {
   deliveries: Delivery[]
   commissionPercent: number
+  storeId: string
   onUpdateStatus: (deliveryId: string, newStatus: string) => Promise<void>
 }
 
-export function DeliveriesTab({ deliveries, commissionPercent, onUpdateStatus }: DeliveriesTabProps) {
+export function DeliveriesTab({ deliveries, commissionPercent, storeId, onUpdateStatus }: DeliveriesTabProps) {
+  const [showProofCapture, setShowProofCapture] = useState<string | null>(null)
+
+  const handleDeliverWithPhoto = (deliveryId: string) => {
+    setShowProofCapture(deliveryId)
+  }
+
+  const handleProofComplete = async (deliveryId: string) => {
+    await onUpdateStatus(deliveryId, 'delivered')
+    setShowProofCapture(null)
+  }
+
   if (deliveries.length === 0) {
     return (
       <div className="bg-white rounded-2xl p-8 text-center shadow-md">
@@ -71,14 +85,24 @@ export function DeliveriesTab({ deliveries, commissionPercent, onUpdateStatus }:
                 </Button>
               )}
               {delivery.status === 'in_transit' && (
-                <Button
-                  onClick={() => onUpdateStatus(delivery.id, 'delivered')}
-                  size="sm"
-                  className="bg-emerald-600 hover:bg-emerald-700"
-                >
-                  <CheckCheck className="w-4 h-4 mr-1" />
-                  Entreguei
-                </Button>
+                <>
+                  <Button
+                    onClick={() => handleDeliverWithPhoto(delivery.id)}
+                    size="sm"
+                    className="bg-emerald-600 hover:bg-emerald-700"
+                  >
+                    <Camera className="w-4 h-4 mr-1" />
+                    Entregar
+                  </Button>
+                  <Button
+                    onClick={() => onUpdateStatus(delivery.id, 'delivered')}
+                    size="sm"
+                    variant="outline"
+                    className="text-emerald-600 border-emerald-300"
+                  >
+                    <CheckCheck className="w-4 h-4" />
+                  </Button>
+                </>
               )}
               <a
                 href={getGoogleMapsLink(delivery.address)}
@@ -93,6 +117,16 @@ export function DeliveriesTab({ deliveries, commissionPercent, onUpdateStatus }:
           </div>
         </div>
       ))}
+
+      {/* Modal de Captura de Foto */}
+      {showProofCapture && (
+        <DeliveryProofCapture
+          deliveryId={showProofCapture}
+          storeId={storeId}
+          onComplete={() => handleProofComplete(showProofCapture)}
+          onCancel={() => setShowProofCapture(null)}
+        />
+      )}
     </div>
   )
 }

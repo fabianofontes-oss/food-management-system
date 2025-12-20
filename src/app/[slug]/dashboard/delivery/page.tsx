@@ -871,6 +871,20 @@ export default function DeliveryPage() {
                       <Link2 className="w-4 h-4" />
                       Link Rastreio
                     </Button>
+                    <a
+                      href={`/${slug}/rastreio/${delivery.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="flex items-center gap-1 text-blue-600 border-blue-300 hover:bg-blue-50"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        Ver Rastreio
+                      </Button>
+                    </a>
                   </div>
                   <div className="text-xs text-gray-500 flex items-center gap-4">
                     <span>Criado em {new Date(delivery.created_at).toLocaleString('pt-BR')}</span>
