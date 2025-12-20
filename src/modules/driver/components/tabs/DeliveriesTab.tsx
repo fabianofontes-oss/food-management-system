@@ -1,13 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { Truck, MapPin, Package, DollarSign, Play, Navigation, Camera, QrCode } from 'lucide-react'
+import { Truck, MapPin, Package, DollarSign, Play, Camera, QrCode } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { formatCurrency } from '@/lib/utils'
 import type { Delivery } from '../../types'
 import { STATUS_LABELS, STATUS_COLORS } from '../../types'
-import { getGoogleMapsLink } from '../../repository'
 import { DeliveryProofCapture } from '../DeliveryProofCapture'
+import { NavigationButton } from '../NavigationChooser'
 
 interface DeliveriesTabProps {
   deliveries: Delivery[]
@@ -108,15 +108,7 @@ export function DeliveriesTab({ deliveries, commissionPercent, storeId, storeSlu
                   )}
                 </>
               )}
-              <a
-                href={getGoogleMapsLink(delivery.address)}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Button size="sm" variant="outline">
-                  <Navigation className="w-4 h-4" />
-                </Button>
-              </a>
+              <NavigationButton address={delivery.address} />
             </div>
           </div>
 

@@ -26,3 +26,10 @@ export { HistoryTab } from './components/tabs/HistoryTab'
 export { EarningsTab } from './components/tabs/EarningsTab'
 export { AffiliatesTab } from './components/tabs/AffiliatesTab'
 export { DeliveryProofCapture } from './components/DeliveryProofCapture'
+export { GPSToggle } from './components/GPSToggle'
+export { NavigationChooser, NavigationButton, getNavigationLinks } from './components/NavigationChooser'
+export { SignatureCapture } from './components/SignatureCapture'
+export { DriverPhotoUpload } from './components/DriverPhotoUpload'
+
+// Integrations
+export * from './integrations/marketplace'
