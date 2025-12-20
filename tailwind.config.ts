@@ -51,6 +51,20 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // Driver App Theme (LogiMoto)
+        driver: {
+          primary: "#ee7c2b",
+          "primary-hover": "#d96b1f",
+          background: "#221810",
+          surface: "#332419",
+          "surface-lighter": "#483323",
+          "text-secondary": "#c9a992",
+          "text-muted": "#9a8577",
+        },
+      },
+      fontFamily: {
+        display: ["Plus Jakarta Sans", "sans-serif"],
+        body: ["Noto Sans", "sans-serif"],
       },
       borderRadius: {
         lg: "var(--radius)",
