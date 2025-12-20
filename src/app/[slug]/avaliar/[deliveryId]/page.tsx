@@ -50,14 +50,8 @@ export default function AvaliarEntregaPage() {
           if (deliveryData) {
             setDelivery(deliveryData)
 
-            // Verificar se já foi avaliado
-            const { data: existingRating } = await supabase
-              .from('driver_ratings')
-              .select('id')
-              .eq('delivery_id', deliveryId)
-              .single()
-
-            if (existingRating) {
+            // Verificar se já foi avaliado (usa coluna rated_at da tabela deliveries)
+            if (deliveryData.rated_at) {
               setSubmitted(true)
             }
           } else {
@@ -83,38 +77,39 @@ export default function AvaliarEntregaPage() {
 
     setSubmitting(true)
     try {
-      // Salvar avaliação
-      const { error: insertError } = await supabase
-        .from('driver_ratings')
-        .insert({
-          driver_id: delivery.driver_id,
-          store_id: delivery.store_id,
-          delivery_id: delivery.id,
-          order_id: delivery.order_id,
-          rating,
-          comment: comment || null,
-          rated_by: 'customer'
+      // Salvar avaliação diretamente na tabela deliveries
+      const { error: updateError } = await supabase
+        .from('deliveries')
+        .update({
+          driver_rating: rating,
+          rating_comment: comment || null,
+          rated_at: new Date().toISOString()
         })
+        .eq('id', delivery.id)
 
-      if (insertError) throw insertError
+      if (updateError) throw updateError
 
-      // Atualizar média do motorista na tabela drivers (se existir)
-      if (delivery.driver_id) {
-        const { data: ratings } = await supabase
-          .from('driver_ratings')
-          .select('rating')
-          .eq('driver_id', delivery.driver_id)
+      // Atualizar média do motorista na tabela drivers
+      if (delivery.driver_name && delivery.store_id) {
+        const { data: allRatings } = await supabase
+          .from('deliveries')
+          .select('driver_rating')
+          .eq('store_id', delivery.store_id)
+          .eq('driver_name', delivery.driver_name)
+          .not('driver_rating', 'is', null)
 
-        if (ratings && ratings.length > 0) {
-          const avgRating = ratings.reduce((acc: number, r: { rating: number }) => acc + r.rating, 0) / ratings.length
+        if (allRatings && allRatings.length > 0) {
+          const avgRating = allRatings.reduce((sum: number, d: { driver_rating: number | null }) => 
+            sum + (d.driver_rating || 0), 0) / allRatings.length
 
           await supabase
             .from('drivers')
             .update({ 
-              rating: avgRating,
+              rating: Math.round(avgRating * 10) / 10,
               updated_at: new Date().toISOString()
             })
-            .eq('id', delivery.driver_id)
+            .eq('store_id', delivery.store_id)
+            .eq('name', delivery.driver_name)
         }
       }
 
