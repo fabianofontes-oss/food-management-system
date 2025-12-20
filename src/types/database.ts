@@ -740,6 +740,44 @@ export type Database = {
           updated_at?: string
         }
       }
+      slug_reservations: {
+        Row: {
+          id: string
+          slug: string
+          token: string
+          reserved_by: string | null
+          store_id: string | null
+          tenant_id: string | null
+          status: string
+          expires_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          slug: string
+          token?: string
+          reserved_by?: string | null
+          store_id?: string | null
+          tenant_id?: string | null
+          status?: string
+          expires_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          slug?: string
+          token?: string
+          reserved_by?: string | null
+          store_id?: string | null
+          tenant_id?: string | null
+          status?: string
+          expires_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never

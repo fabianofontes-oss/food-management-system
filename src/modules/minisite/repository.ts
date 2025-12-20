@@ -72,14 +72,17 @@ export const MinisiteRepository = {
 
     console.log('[getCategoriesWithProducts] categories:', categories.length, 'products:', products.length)
 
-    return categories
-      .map(cat => ({
+    type CategoryRow = { id: string; name: string; color: string | null }
+    type ProductRow = { id: string; name: string; description: string | null; base_price: number; image_url: string | null; is_active: boolean; category_id: string }
+
+    return (categories as CategoryRow[])
+      .map((cat: CategoryRow) => ({
         id: cat.id,
         name: cat.name,
         color: cat.color,
-        products: products
-          .filter(p => p.category_id === cat.id)
-          .map(p => ({
+        products: (products as ProductRow[])
+          .filter((p: ProductRow) => p.category_id === cat.id)
+          .map((p: ProductRow) => ({
             id: p.id,
             name: p.name,
             description: p.description,
@@ -88,7 +91,7 @@ export const MinisiteRepository = {
             is_available: p.is_active,
           })),
       }))
-      .filter(cat => cat.products.length > 0)
+      .filter((cat: { products: unknown[] }) => cat.products.length > 0)
   },
 
   /**

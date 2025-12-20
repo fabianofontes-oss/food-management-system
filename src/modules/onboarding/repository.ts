@@ -1,10 +1,25 @@
 import { createClient as createSupabaseAdminClient } from '@supabase/supabase-js'
-import type { Database } from '@/types/database'
 import type {
   ReserveSlugResult,
   CompleteSignupInput,
   CompleteSignupResult,
 } from './types'
+
+// Tipos inline para evitar problemas de inferência do supabase-js
+interface SlugReservation {
+  id: string
+  slug: string
+  token: string
+  expires_at: string | null
+}
+
+interface TenantData {
+  id: string
+}
+
+interface StoreData {
+  id: string
+}
 
 function createAdminClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -14,7 +29,7 @@ function createAdminClient() {
     throw new Error('Variáveis NEXT_PUBLIC_SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY são obrigatórias')
   }
 
-  return createSupabaseAdminClient<Database>(supabaseUrl, serviceRoleKey)
+  return createSupabaseAdminClient(supabaseUrl, serviceRoleKey)
 }
 
 export const OnboardingRepository = {
@@ -31,7 +46,7 @@ export const OnboardingRepository = {
       .eq('slug', slug)
       .maybeSingle()
 
-    if (existingStore?.id) {
+    if ((existingStore as StoreData | null)?.id) {
       throw new Error('Slug indisponível')
     }
 
@@ -43,19 +58,20 @@ export const OnboardingRepository = {
       .select('slug, token, expires_at')
       .single()
 
-    if (error) {
-      // Provável violação de UNIQUE(slug)
+    if (error || !data) {
       throw new Error('Slug indisponível')
     }
 
+    const reservation = data as SlugReservation
+
     return {
-      slug: data.slug,
-      token: String(data.token),
-      expiresAt: data.expires_at,
+      slug: reservation.slug,
+      token: String(reservation.token),
+      expiresAt: reservation.expires_at || '',
     }
   },
 
-  async getReservationByToken(token: string) {
+  async getReservationByToken(token: string): Promise<SlugReservation | null> {
     const supabase = createAdminClient()
     const { data, error } = await supabase
       .from('slug_reservations')
@@ -64,7 +80,7 @@ export const OnboardingRepository = {
       .single()
 
     if (error || !data) return null
-    return data
+    return data as SlugReservation
   },
 
   async completeSignup(input: CompleteSignupInput): Promise<CompleteSignupResult> {
@@ -75,8 +91,7 @@ export const OnboardingRepository = {
       throw new Error('Reserva inválida ou expirada')
     }
 
-    if (new Date(reservation.expires_at).getTime() < Date.now()) {
-      // Expirada
+    if (reservation.expires_at && new Date(reservation.expires_at).getTime() < Date.now()) {
       await supabase.from('slug_reservations').delete().eq('id', reservation.id)
       throw new Error('Reserva expirada')
     }
@@ -85,19 +100,21 @@ export const OnboardingRepository = {
 
     // Criar tenant
     const tenantName = input.name?.trim() ? input.name.trim() : slug
-    const { data: tenant, error: tenantError } = await supabase
+    const { data: tenantData, error: tenantError } = await supabase
       .from('tenants')
       .insert({ name: tenantName })
       .select('id')
       .single()
 
-    if (tenantError || !tenant) {
+    if (tenantError || !tenantData) {
       throw new Error(tenantError?.message || 'Erro ao criar tenant')
     }
 
-    // Criar store (defaults coerentes com os enums)
+    const tenant = tenantData as TenantData
+
+    // Criar store
     const storeName = input.name?.trim() ? input.name.trim() : slug
-    const { data: store, error: storeError } = await supabase
+    const { data: storeData, error: storeError } = await supabase
       .from('stores')
       .insert({
         tenant_id: tenant.id,
@@ -107,15 +124,16 @@ export const OnboardingRepository = {
         mode: 'store',
         is_active: true,
         phone: input.phone || null,
-      } as any)
+      })
       .select('id')
       .single()
 
-    if (storeError || !store) {
-      // rollback tenant
+    if (storeError || !storeData) {
       await supabase.from('tenants').delete().eq('id', tenant.id)
       throw new Error(storeError?.message || 'Erro ao criar loja')
     }
+
+    const store = storeData as StoreData
 
     // Garantir user row
     await supabase.from('users').upsert(
@@ -126,10 +144,9 @@ export const OnboardingRepository = {
     // Vincular store_user OWNER
     const { error: linkError } = await supabase
       .from('store_users')
-      .insert({ store_id: store.id, user_id: input.userId, role: 'OWNER' } as any)
+      .insert({ store_id: store.id, user_id: input.userId, role: 'OWNER' })
 
     if (linkError) {
-      // rollback store + tenant
       await supabase.from('stores').delete().eq('id', store.id)
       await supabase.from('tenants').delete().eq('id', tenant.id)
       throw new Error(linkError.message || 'Erro ao vincular usuário à loja')

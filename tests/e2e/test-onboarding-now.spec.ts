@@ -165,7 +165,7 @@ test.describe('Teste Completo de Onboarding Anônimo', () => {
     }
     
     // Verificar no console do navegador
-    const logs = [];
+    const logs: string[] = [];
     page.on('console', msg => logs.push(msg.text()));
     
     if (logs.length > 0) {
