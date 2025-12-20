@@ -1,109 +1,29 @@
-import { createClient } from '@/lib/supabase/client'
-import type { StoreSettings, DEFAULT_STORE_SETTINGS } from '@/types/settings'
+import { StoreRepository, type StoreRow } from '@/modules/store'
 
-export interface Store {
-  id: string
-  tenant_id: string
-  name: string
-  slug: string
-  niche: string
-  mode: string
-  is_active: boolean
-  logo_url: string | null
-  banner_url: string | null
-  phone: string | null
-  whatsapp: string | null
-  address: string | null
-  city?: string
-  state?: string
-  cep?: string
-  email?: string
-  description?: string
-  latitude: number | null
-  longitude: number | null
-  settings: any
-  created_at: string
-  updated_at: string
-}
+export type Store = StoreRow
 
 class StoreService {
-  private supabase = createClient()
-
   async getBySlug(slug: string): Promise<Store | null> {
-    const { data, error } = await this.supabase
-      .from('stores')
-      .select('*')
-      .eq('slug', slug)
-      .single()
-
-    if (error) {
-      console.error('Erro ao buscar loja por slug:', {
-        message: error?.message,
-        code: error?.code,
-        details: error?.details,
-        hint: error?.hint,
-        slug
-      })
-      return null
-    }
-
-    return data
+    const store = await StoreRepository.getBySlug(slug)
+    return store as unknown as Store | null
   }
 
   async getById(id: string): Promise<Store | null> {
-    const { data, error } = await this.supabase
-      .from('stores')
-      .select('*')
-      .eq('id', id)
-      .single()
-
-    if (error) {
-      console.error('Erro ao buscar loja por ID:', {
-        message: error?.message,
-        code: error?.code,
-        details: error?.details,
-        hint: error?.hint,
-        id
-      })
-      return null
-    }
-
-    return data
+    const store = await StoreRepository.getById(id)
+    return store as unknown as Store | null
   }
 
   async update(id: string, data: Partial<Store>): Promise<boolean> {
-    const { error } = await this.supabase
-      .from('stores')
-      .update(data)
-      .eq('id', id)
-
-    if (error) {
-      console.error('Erro ao atualizar loja:', {
-        message: error?.message,
-        code: error?.code,
-        details: error?.details,
-        hint: error?.hint,
-        id
-      })
-      return false
-    }
-
-    return true
+    return StoreRepository.update(id, data as unknown as Partial<StoreRow>)
   }
 
-  async updateSettings(id: string, settings: Partial<StoreSettings>): Promise<boolean> {
-    const store = await this.getById(id)
-    if (!store) return false
-
-    const currentSettings = store.settings || {}
-    const newSettings = { ...currentSettings, ...settings }
-
-    return this.update(id, { settings: newSettings })
+  async updateSettings(id: string, settings: Record<string, unknown>): Promise<boolean> {
+    return StoreRepository.updateSettings(id, settings)
   }
 
-  async getSettings(id: string): Promise<any | null> {
-    const store = await this.getById(id)
-    return store?.settings || null
+  async getSettings(id: string): Promise<Record<string, unknown> | null> {
+    const settings = await StoreRepository.getSettings(id)
+    return settings as unknown as Record<string, unknown> | null
   }
 }
 
