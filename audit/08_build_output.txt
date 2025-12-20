@@ -1,0 +1,175 @@
+﻿
+> food-management-system@1.0.0 build
+> next build
+
+  Ôû▓ Next.js 14.2.18
+  - Environments: .env.local
+
+   Creating an optimized production build ...
+ Ô£ô Compiled successfully
+   Skipping validation of types
+   Skipping linting
+   Collecting page data ...
+node.exe :  ÔÜá Using edge runtime on a page currently disables static generation for that page
+No linha:1 caractere:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ( ÔÜá Using edge...n for that page:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+   Generating static pages (0/79) ...
+   Generating static pages (19/79) 
+   Generating static pages (39/79) 
+   Generating static pages (59/79) 
+ Ô£ô Generating static pages (79/79)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                  Size     First Load JS
+Ôöî Ôùï /                                        6.92 kB         111 kB
+Ôö£ Ôùï /_not-found                              148 B          87.5 kB
+Ôö£ ãÆ /[slug]                                  233 B           115 kB
+Ôö£ ãÆ /[slug]/avaliar/[deliveryId]             5.06 kB         167 kB
+Ôö£ ãÆ /[slug]/cart                             3.32 kB         107 kB
+Ôö£ ãÆ /[slug]/checkout                         17.5 kB         172 kB
+Ôö£ ãÆ /[slug]/dashboard                        4.52 kB         162 kB
+Ôö£ ãÆ /[slug]/dashboard/addons                 8.3 kB          163 kB
+Ôö£ ãÆ /[slug]/dashboard/afiliados              4.51 kB        91.9 kB
+Ôö£ ãÆ /[slug]/dashboard/analytics              11.1 kB         274 kB
+Ôö£ ãÆ /[slug]/dashboard/appearance             1.39 kB         201 kB
+Ôö£ ãÆ /[slug]/dashboard/coupons                7.53 kB         162 kB
+Ôö£ ãÆ /[slug]/dashboard/crm                    6.05 kB         165 kB
+Ôö£ ãÆ /[slug]/dashboard/custom-orders          7.41 kB         162 kB
+Ôö£ ãÆ /[slug]/dashboard/delivery               11.9 kB         167 kB
+Ôö£ ãÆ /[slug]/dashboard/financial              11.4 kB         166 kB
+Ôö£ ãÆ /[slug]/dashboard/inventory              9.96 kB         165 kB
+Ôö£ ãÆ /[slug]/dashboard/kitchen                12.7 kB         168 kB
+Ôö£ ãÆ /[slug]/dashboard/kits                   6.46 kB         161 kB
+Ôö£ ãÆ /[slug]/dashboard/marketing              7.72 kB         163 kB
+Ôö£ ãÆ /[slug]/dashboard/onboarding             7.11 kB         162 kB
+Ôö£ ãÆ /[slug]/dashboard/orders                 2.08 kB        96.7 kB
+Ôö£ ãÆ /[slug]/dashboard/pos                    16.2 kB         199 kB
+Ôö£ ãÆ /[slug]/dashboard/products               55.3 kB         239 kB
+Ôö£ ãÆ /[slug]/dashboard/reports                13.2 kB         276 kB
+Ôö£ ãÆ /[slug]/dashboard/reservations           7.06 kB         162 kB
+Ôö£ ãÆ /[slug]/dashboard/reviews                6.73 kB         168 kB
+Ôö£ ãÆ /[slug]/dashboard/reviews/integrations   9.59 kB         171 kB
+Ôö£ ãÆ /[slug]/dashboard/settings               3.6 kB         98.2 kB
+Ôö£ ãÆ /[slug]/dashboard/settings/complete      8.13 kB         167 kB
+Ôö£ ãÆ /[slug]/dashboard/settings/index         3.56 kB        97.8 kB
+Ôö£ ãÆ /[slug]/dashboard/settings/integrations  5.56 kB         111 kB
+Ôö£ ãÆ /[slug]/dashboard/settings/loyalty       5.3 kB          165 kB
+Ôö£ ãÆ /[slug]/dashboard/settings/modules       31.6 kB         197 kB
+Ôö£ ãÆ /[slug]/dashboard/settings/niche         3.99 kB         160 kB
+Ôö£ ãÆ /[slug]/dashboard/settings/platforms     8.11 kB         170 kB
+Ôö£ ãÆ /[slug]/dashboard/settings/scheduling    5.95 kB         161 kB
+Ôö£ ãÆ /[slug]/dashboard/settings/store         6.44 kB         161 kB
+Ôö£ ãÆ /[slug]/dashboard/tables                 12.5 kB         167 kB
+Ôö£ ãÆ /[slug]/dashboard/team                   3.12 kB         151 kB
+Ôö£ ãÆ /[slug]/dashboard/waiters                7.05 kB         162 kB
+Ôö£ ãÆ /[slug]/encomenda                        8.19 kB         163 kB
+Ôö£ ãÆ /[slug]/garcom                           7.24 kB         162 kB
+Ôö£ ãÆ /[slug]/mesa/[numero]                    6.1 kB          168 kB
+Ôö£ ãÆ /[slug]/mimo/[token]                     6.41 kB         161 kB
+Ôö£ ãÆ /[slug]/minha-conta                      7.16 kB         169 kB
+Ôö£ ãÆ /[slug]/minha-conta/fidelidade           4.53 kB         166 kB
+Ôö£ ãÆ /[slug]/motorista                        8.16 kB         170 kB
+Ôö£ ãÆ /[slug]/order/[orderId]                  5.16 kB         160 kB
+Ôö£ ãÆ /[slug]/pedido/[code]                    3.43 kB         165 kB
+Ôö£ ãÆ /[slug]/rastreio/[id]                    4.43 kB         166 kB
+Ôö£ ãÆ /[slug]/tv/[code]                        9.46 kB         170 kB
+Ôö£ ãÆ /[slug]/waiter                           7.24 kB         162 kB
+Ôö£ Ôùï /admin                                   8.13 kB         174 kB
+Ôö£ Ôùï /admin/affiliates                        6.09 kB         168 kB
+Ôö£ Ôùï /admin/affiliates/payouts                4.65 kB         166 kB
+Ôö£ Ôùï /admin/affiliates/sales                  4.84 kB         167 kB
+Ôö£ Ôùï /admin/affiliates/settings               4.67 kB         110 kB
+Ôö£ ãÆ /admin/analytics                         205 B          94.4 kB
+Ôö£ Ôùï /admin/audit                             7.49 kB         102 kB
+Ôö£ Ôùï /admin/automations                       3.86 kB        98.5 kB
+Ôö£ Ôùï /admin/billing                           6.69 kB         166 kB
+Ôö£ Ôùï /admin/demanda                           7.06 kB         162 kB
+Ôö£ Ôùï /admin/features                          3.86 kB        98.5 kB
+Ôö£ Ôùï /admin/health                            8.89 kB         110 kB
+Ôö£ Ôùï /admin/health/audit                      6.27 kB         108 kB
+Ôö£ Ôùï /admin/health/builder                    4.81 kB         168 kB
+Ôö£ Ôùï /admin/health/database                   5.1 kB          107 kB
+Ôö£ Ôùï /admin/health/files                      5.23 kB         107 kB
+Ôö£ Ôùï /admin/health/images                     3.07 kB         162 kB
+Ôö£ ãÆ /admin/health/monitor                    205 B          94.4 kB
+Ôö£ Ôùï /admin/health/pages                      5.6 kB          107 kB
+Ôö£ Ôùï /admin/health/printing                   3.27 kB        97.5 kB
+Ôö£ Ôùï /admin/health/slugs                      3.3 kB          162 kB
+Ôö£ Ôùï /admin/integrations                      7.85 kB         102 kB
+Ôö£ Ôùï /admin/logs                              3.88 kB        98.5 kB
+Ôö£ Ôùï /admin/partners                          8.14 kB         103 kB
+Ôö£ Ôùï /admin/plans                             1.9 kB          167 kB
+Ôö£ ãÆ /admin/plans/[planId]                    4.41 kB         169 kB
+Ôö£ Ôùï /admin/plans/new                         3.91 kB         169 kB
+Ôö£ Ôùï /admin/reports                           1.08 kB        98.7 kB
+Ôö£ Ôùï /admin/settings                          6.21 kB         166 kB
+Ôö£ Ôùï /admin/stores                            7.36 kB         173 kB
+Ôö£ Ôùï /admin/tenants                           8.62 kB         164 kB
+Ôö£ Ôùï /admin/tickets                           3.88 kB        98.5 kB
+Ôö£ Ôùï /admin/users                             6.51 kB         106 kB
+Ôö£ ãÆ /api/admin/audit/fix                     0 B                0 B
+Ôö£ ãÆ /api/admin/audit/fix-localhost           0 B                0 B
+Ôö£ ãÆ /api/admin/audit/run                     0 B                0 B
+Ôö£ ãÆ /api/admin/demo-setup                    0 B                0 B
+Ôö£ ãÆ /api/billing/generate                    0 B                0 B
+Ôö£ ãÆ /api/cron/billing                        0 B                0 B
+Ôö£ ãÆ /api/cron/clean-expired-drafts           0 B                0 B
+Ôö£ ãÆ /api/draft-store/create                  0 B                0 B
+Ôö£ ãÆ /api/draft-store/get                     0 B                0 B
+Ôö£ ãÆ /api/draft-store/update                  0 B                0 B
+Ôö£ Ôùï /api/health/audit                        0 B                0 B
+Ôö£ Ôùï /api/health/database                     0 B                0 B
+Ôö£ Ôùï /api/health/diagnostic                   0 B                0 B
+Ôö£ Ôùï /api/health/files                        0 B                0 B
+Ôö£ ãÆ /api/health/fix                          0 B                0 B
+Ôö£ Ôùï /api/health/pages                        0 B                0 B
+Ôö£ Ôùï /api/health/status                       0 B                0 B
+Ôö£ ãÆ /api/integrations/google/callback        0 B                0 B
+Ôö£ ãÆ /api/integrations/google/sync            0 B                0 B
+Ôö£ ãÆ /api/internal/e2e/seed                   0 B                0 B
+Ôö£ ãÆ /api/onboarding/complete-signup          0 B                0 B
+Ôö£ ãÆ /api/onboarding/publish-draft            0 B                0 B
+Ôö£ ãÆ /api/onboarding/reserve-slug             0 B                0 B
+Ôö£ ãÆ /api/onboarding/store/prepare            0 B                0 B
+Ôö£ ãÆ /api/onboarding/store/publish            0 B                0 B
+Ôö£ ãÆ /api/ping                                0 B                0 B
+Ôö£ ãÆ /api/public/slug/check                   0 B                0 B
+Ôö£ ãÆ /api/upload/banner                       0 B                0 B
+Ôö£ ãÆ /api/upload/logo                         0 B                0 B
+Ôö£ ãÆ /api/webhooks/mercadopago                0 B                0 B
+Ôö£ Ôùï /billing/overdue                         205 B          94.4 kB
+Ôö£ Ôùï /billing/suspended                       205 B          94.4 kB
+Ôö£ Ôùï /billing/trial-expired                   205 B          94.4 kB
+Ôö£ Ôùï /choose-url                              2.13 kB        89.5 kB
+Ôö£ Ôùï /driver/dashboard                        6.44 kB         168 kB
+Ôö£ Ôùï /landing                                 236 B           105 kB
+Ôö£ Ôùï /login                                   2.76 kB         157 kB
+Ôö£ ãÆ /logout                                  0 B                0 B
+Ôö£ Ôùï /mapa-do-site                            205 B          94.4 kB
+Ôö£ Ôùï /onboarding                              4.66 kB         152 kB
+Ôö£ Ôùï /profile                                 2.96 kB        97.6 kB
+Ôö£ Ôùï /qa                                      1.37 kB        88.7 kB
+Ôö£ ãÆ /r/[code]                                148 B          87.5 kB
+Ôö£ Ôùï /reset-password                          2.27 kB         157 kB
+Ôö£ ãÆ /s/[slug]                                233 B           115 kB
+Ôö£ Ôùï /select-store                            2.6 kB          150 kB
+Ôö£ ãÆ /setup/[token]                           3.85 kB        91.2 kB
+Ôö£ ãÆ /signup                                  3.38 kB         158 kB
+Ôö£ Ôùï /unauthorized                            205 B          94.4 kB
+Ôöö Ôùï /update-password                         2.33 kB         157 kB
++ First Load JS shared by all                87.4 kB
+  Ôö£ chunks/2117-af88f8b013373eb0.js          31.8 kB
+  Ôö£ chunks/fd9d1056-5b9bb17823986364.js      53.6 kB
+  Ôöö other shared chunks (total)              1.98 kB
+
+
+ãÆ Middleware                                 82.3 kB
+
+Ôùï  (Static)   prerendered as static content
+ãÆ  (Dynamic)  server-rendered on demand
+

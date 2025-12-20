@@ -1,0 +1,75 @@
+# MAPA DE ROTAS - AUDITORIA 07
+# Gerado em: 2024-12-19 23:23:36
+
+## SUPERADMIN (/admin/**)
+- /admin                          → Dashboard principal
+- /admin/affiliates               → Afiliados (listagem)
+- /admin/affiliates/sales         → Vendas afiliados
+- /admin/affiliates/payouts       → Pagamentos afiliados
+- /admin/affiliates/settings      → Configurações afiliados
+- /admin/analytics                → Analytics
+- /admin/audit                    → Auditoria
+- /admin/automations              → Automações
+- /admin/billing                  → Billing
+- /admin/demanda                  → Demanda
+- /admin/features                 → Features
+- /admin/health/*                 → Health checks (audit, builder, database, files, images, monitor, pages, printing, slugs)
+- /admin/integrations             → Integrações
+- /admin/logs                     → Logs
+- /admin/partners                 → Parceiros
+- /admin/plans/*                  → Planos
+- /admin/reports                  → Relatórios
+- /admin/settings                 → Configurações
+- /admin/stores                   → Lojas
+- /admin/tenants                  → Tenants
+- /admin/tickets                  → Tickets
+- /admin/users                    → Usuários
+
+## LOJISTA DASHBOARD (/[slug]/dashboard/**)
+- /[slug]/dashboard               → Dashboard principal da loja
+- /[slug]/dashboard/afiliados     → Afiliados da loja
+- /[slug]/dashboard/cardapio      → Cardápio
+- /[slug]/dashboard/categorias    → Categorias
+- /[slug]/dashboard/clientes      → Clientes
+- /[slug]/dashboard/configuracoes → Configurações
+- /[slug]/dashboard/entregas      → Entregas
+- /[slug]/dashboard/estoque       → Estoque
+- /[slug]/dashboard/financeiro    → Financeiro
+- /[slug]/dashboard/integracoes   → Integrações
+- /[slug]/dashboard/mesas         → Mesas
+- /[slug]/dashboard/pedidos       → Pedidos
+- /[slug]/dashboard/produtos      → Produtos
+- /[slug]/dashboard/relatorios    → Relatórios
+
+## DRIVER (/driver/**)
+- /driver/dashboard               → Dashboard do entregador (com aba afiliados)
+
+## BILLING (/billing/**)
+- /billing/overdue                → Página de pagamento atrasado
+- /billing/suspended              → Página de conta suspensa
+- /billing/trial-expired          → Página de trial expirado
+
+## ONBOARDING (SLUG-FIRST)
+- /onboarding                     → Página de onboarding
+- /choose-url                     → Escolher URL
+- /setup/[token]                  → Setup com token
+- /api/public/slug/check          → Verificar disponibilidade de slug
+- /api/onboarding/store/prepare   → Preparar loja
+- /api/onboarding/store/publish   → Publicar loja
+
+## CRON (/api/cron/**)
+- /api/cron/clean-expired-drafts  → Limpar drafts expirados
+
+## PÚBLICO
+- /[slug]                         → Cardápio público (minisite)
+- /s/[slug]                       → Rewrite para subdomínios
+- /r/[code]                       → Código de referral
+
+## ROTEAMENTO POR HOST (MIDDLEWARE)
+✅ {slug}.pediu.food      → /s/{slug}
+✅ admin.pediu.food       → /admin
+✅ app.pediu.food         → passthrough
+✅ driver.entregou.food   → /driver/dashboard
+✅ entregou.food          → passthrough
+✅ pensou.food            → passthrough
+✅ pediu.food             → passthrough

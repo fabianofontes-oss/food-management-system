@@ -1,0 +1,28 @@
+# STATUS AFILIADOS - AUDITORIA 07
+# Gerado em: 2024-12-19 23:23:36
+
+## UI (PÁGINAS)
+✅ SuperAdmin: /admin/affiliates           → EXISTE
+✅ SuperAdmin: /admin/affiliates/sales     → EXISTE
+✅ SuperAdmin: /admin/affiliates/payouts   → EXISTE
+✅ SuperAdmin: /admin/affiliates/settings  → EXISTE
+✅ Lojista:    /[slug]/dashboard/afiliados → EXISTE
+✅ Driver:     /driver/dashboard (aba)     → EXISTE
+
+## MENU/NAVEGAÇÃO
+✅ SuperAdmin sidebar: Link "Afiliados" adicionado em layout.tsx
+✅ Lojista dashboard: Link "Afiliados" no menu
+
+## BACKEND (TABELAS SUPABASE)
+Migrations preparadas em supabase/migrations/:
+- 20251219000004_referral_affiliates.sql    → Tabelas base (referral_partners, referral_codes, tenant_referrals, referral_sales)
+- 20251219000005_referral_rls_selfservice.sql → RLS policies
+- 20251219000006_referral_driver_split.sql  → Split driver/recruiter
+
+⚠️ STATUS: Migrations PREPARADAS mas precisam ser EXECUTADAS no Supabase
+   - Executar via: Supabase Dashboard → SQL Editor
+   - Ou via CLI: npx supabase db push
+
+## CONCLUSÃO
+- UI: ✅ PRONTA
+- Backend: ⚠️ MIGRATIONS PENDENTES DE EXECUÇÃO
