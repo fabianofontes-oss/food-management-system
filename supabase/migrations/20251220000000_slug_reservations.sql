@@ -3,9 +3,9 @@ create table if not exists public.slug_reservations (
   id uuid primary key default gen_random_uuid(),
   slug text not null unique,
   token text not null unique default gen_random_uuid()::text,
-  reserved_by uuid references auth.users(id) on delete set null,
-  store_id uuid references public.stores(id) on delete set null,
-  tenant_id uuid references public.tenants(id) on delete set null,
+  reserved_by uuid null, -- user_id sem FK para evitar problemas com auth.users
+  store_id uuid null,
+  tenant_id uuid null,
   status text not null default 'reserved', -- reserved | published | released
   expires_at timestamptz null,
   created_at timestamptz not null default now(),
