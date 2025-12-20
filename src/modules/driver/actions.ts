@@ -12,6 +12,7 @@ interface NotifyCustomerParams {
 
 interface DeliveryData {
   id: string
+  access_token: string | null
   driver_name: string | null
   driver_phone: string | null
   estimated_time: number
@@ -33,6 +34,11 @@ function generateRatingUrl(storeSlug: string, deliveryId: string): string {
   return `${baseUrl}/${storeSlug}/avaliar/${deliveryId}`
 }
 
+function generateRatingUrlWithToken(storeSlug: string, deliveryId: string, token: string): string {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://pediu.food'
+  return `${baseUrl}/${storeSlug}/avaliar/${deliveryId}?token=${token}`
+}
+
 /**
  * Busca dados da entrega para notificação
  */
@@ -43,6 +49,7 @@ async function getDeliveryData(deliveryId: string): Promise<DeliveryData | null>
     .from('deliveries')
     .select(`
       id,
+      access_token,
       driver_name,
       driver_phone,
       estimated_time,
@@ -65,7 +72,9 @@ export async function getCustomerNotificationMessage(
   if (!delivery || !delivery.order?.customer_phone) return null
 
   const trackingLink = generateTrackingUrl(params.storeSlug, params.deliveryId)
-  const ratingLink = generateRatingUrl(params.storeSlug, params.deliveryId)
+  const ratingLink = delivery.access_token
+    ? generateRatingUrlWithToken(params.storeSlug, params.deliveryId, delivery.access_token)
+    : generateRatingUrl(params.storeSlug, params.deliveryId)
   const orderCode = delivery.order.order_code
 
   let message = ''

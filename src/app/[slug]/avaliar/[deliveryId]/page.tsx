@@ -1,18 +1,21 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import { Star, Loader2, CheckCircle, MessageSquare, ArrowLeft, Truck } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import { validateDeliveryToken, submitDeliveryRating } from '@/modules/delivery'
 
 export default function AvaliarEntregaPage() {
   const params = useParams()
-  const router = useRouter()
+  const searchParams = useSearchParams()
   const slug = params.slug as string
   const deliveryId = params.deliveryId as string
   const supabase = useMemo(() => createClient(), [])
+  const token = searchParams.get('token')
+  const [storeId, setStoreId] = useState<string | null>(null)
 
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
@@ -27,6 +30,10 @@ export default function AvaliarEntregaPage() {
   useEffect(() => {
     async function fetchData() {
       try {
+        if (!token) {
+          setError('Link inválido ou expirado')
+          return
+        }
         // Buscar loja
         const { data: storeData } = await supabase
           .from('stores')
@@ -36,26 +43,18 @@ export default function AvaliarEntregaPage() {
 
         if (storeData) {
           setStoreName(storeData.name)
+          setStoreId(storeData.id)
 
-          // Buscar entrega
-          const { data: deliveryData } = await supabase
-            .from('deliveries')
-            .select(`
-              *,
-              order:orders(order_code, customer_name)
-            `)
-            .eq('id', deliveryId)
-            .single()
+          const validation = await validateDeliveryToken(storeData.id, deliveryId, token)
+          if (!validation.valid || !validation.delivery) {
+            setError(validation.error || 'Link inválido ou expirado')
+            return
+          }
 
-          if (deliveryData) {
-            setDelivery(deliveryData)
+          setDelivery(validation.delivery)
 
-            // Verificar se já foi avaliado (usa coluna rated_at da tabela deliveries)
-            if (deliveryData.rated_at) {
-              setSubmitted(true)
-            }
-          } else {
-            setError('Entrega não encontrada')
+          if (validation.delivery.rated_at) {
+            setSubmitted(true)
           }
         }
       } catch (err) {
@@ -67,7 +66,7 @@ export default function AvaliarEntregaPage() {
     }
 
     if (slug && deliveryId) fetchData()
-  }, [slug, deliveryId, supabase])
+  }, [slug, deliveryId, supabase, token])
 
   const handleSubmit = async () => {
     if (rating === 0) {
@@ -77,40 +76,15 @@ export default function AvaliarEntregaPage() {
 
     setSubmitting(true)
     try {
-      // Salvar avaliação diretamente na tabela deliveries
-      const { error: updateError } = await supabase
-        .from('deliveries')
-        .update({
-          driver_rating: rating,
-          rating_comment: comment || null,
-          rated_at: new Date().toISOString()
-        })
-        .eq('id', delivery.id)
+      if (!storeId || !token) {
+        setError('Link inválido ou expirado')
+        return
+      }
 
-      if (updateError) throw updateError
-
-      // Atualizar média do motorista na tabela drivers
-      if (delivery.driver_name && delivery.store_id) {
-        const { data: allRatings } = await supabase
-          .from('deliveries')
-          .select('driver_rating')
-          .eq('store_id', delivery.store_id)
-          .eq('driver_name', delivery.driver_name)
-          .not('driver_rating', 'is', null)
-
-        if (allRatings && allRatings.length > 0) {
-          const avgRating = allRatings.reduce((sum: number, d: { driver_rating: number | null }) => 
-            sum + (d.driver_rating || 0), 0) / allRatings.length
-
-          await supabase
-            .from('drivers')
-            .update({ 
-              rating: Math.round(avgRating * 10) / 10,
-              updated_at: new Date().toISOString()
-            })
-            .eq('store_id', delivery.store_id)
-            .eq('name', delivery.driver_name)
-        }
+      const result = await submitDeliveryRating(storeId, deliveryId, token, rating, comment || null)
+      if (!result.success) {
+        alert(result.error || 'Erro ao enviar avaliação')
+        return
       }
 
       setSubmitted(true)

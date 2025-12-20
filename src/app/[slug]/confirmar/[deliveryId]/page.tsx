@@ -1,14 +1,16 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import { CheckCircle, Loader2, Package, AlertCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import { validateDeliveryToken, confirmDeliveryReceipt } from '@/modules/delivery'
 
 export default function ConfirmarEntregaPage() {
   const params = useParams()
+  const searchParams = useSearchParams()
   const slug = params.slug as string
   const deliveryId = params.deliveryId as string
   const supabase = useMemo(() => createClient(), [])
@@ -17,19 +19,22 @@ export default function ConfirmarEntregaPage() {
   const [confirming, setConfirming] = useState(false)
   const [confirmed, setConfirmed] = useState(false)
   const [error, setError] = useState('')
-  const [delivery, setDelivery] = useState<{
-    id: string
-    status: string
-    order?: { order_code: string; customer_name: string }
-  } | null>(null)
+  const [delivery, setDelivery] = useState<{ id: string; status: string; order?: { order_code: string; customer_name: string } } | null>(null)
   const [storeName, setStoreName] = useState('')
+  const [storeId, setStoreId] = useState<string | null>(null)
+  const token = searchParams.get('token')
 
   useEffect(() => {
     fetchDelivery()
-  }, [deliveryId])
+  }, [deliveryId, token])
 
   async function fetchDelivery() {
     try {
+      if (!token) {
+        setError('Link inválido ou expirado')
+        return
+      }
+
       // Buscar loja
       const { data: storeData } = await supabase
         .from('stores')
@@ -39,26 +44,18 @@ export default function ConfirmarEntregaPage() {
 
       if (storeData) {
         setStoreName(storeData.name)
+        setStoreId(storeData.id)
 
-        // Buscar entrega
-        const { data } = await supabase
-          .from('deliveries')
-          .select(`
-            id, status,
-            order:orders(order_code, customer_name)
-          `)
-          .eq('id', deliveryId)
-          .single()
+        const validation = await validateDeliveryToken(storeData.id, deliveryId, token)
+        if (!validation.valid || !validation.delivery) {
+          setError(validation.error || 'Link inválido ou expirado')
+          return
+        }
 
-        if (data) {
-          setDelivery(data as typeof delivery)
-          
-          // Já foi confirmada pelo cliente?
-          if (data.status === 'delivered') {
-            setConfirmed(true)
-          }
-        } else {
-          setError('Entrega não encontrada')
+        setDelivery(validation.delivery)
+
+        if (validation.delivery.status === 'delivered') {
+          setConfirmed(true)
         }
       }
     } catch (err) {
@@ -72,17 +69,16 @@ export default function ConfirmarEntregaPage() {
   async function handleConfirm() {
     setConfirming(true)
     try {
-      // Atualizar status para entregue e marcar confirmação do cliente
-      const { error: updateError } = await supabase
-        .from('deliveries')
-        .update({
-          status: 'delivered',
-          customer_confirmed_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', deliveryId)
+      if (!storeId || !token) {
+        setError('Link inválido ou expirado')
+        return
+      }
 
-      if (updateError) throw updateError
+      const result = await confirmDeliveryReceipt(storeId, deliveryId, token)
+      if (!result.success) {
+        setError(result.error || 'Erro ao confirmar. Tente novamente.')
+        return
+      }
 
       setConfirmed(true)
     } catch (err) {
@@ -134,7 +130,7 @@ export default function ConfirmarEntregaPage() {
           </p>
           
           <div className="space-y-3">
-            <Link href={`/${slug}/avaliar/${deliveryId}`}>
+            <Link href={`/${slug}/avaliar/${deliveryId}?token=${token || ''}`}>
               <Button className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600">
                 Avaliar entrega
               </Button>

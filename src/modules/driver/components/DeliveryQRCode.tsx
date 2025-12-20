@@ -8,6 +8,7 @@ interface DeliveryQRCodeProps {
   deliveryId: string
   orderCode: string
   storeSlug: string
+  token?: string | null
   size?: number
 }
 
@@ -19,13 +20,14 @@ export function DeliveryQRCode({
   deliveryId, 
   orderCode, 
   storeSlug,
+  token = null,
   size = 200 
 }: DeliveryQRCodeProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [copied, setCopied] = useState(false)
 
   // URL de confirmação
-  const confirmUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/${storeSlug}/confirmar/${deliveryId}`
+  const confirmUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/${storeSlug}/confirmar/${deliveryId}${token ? `?token=${token}` : ''}`
 
   useEffect(() => {
     generateQRCode()

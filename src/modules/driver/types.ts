@@ -3,6 +3,7 @@
 
 export interface Delivery {
   id: string
+  access_token?: string | null
   status: 'pending' | 'assigned' | 'picked_up' | 'in_transit' | 'delivered' | 'cancelled'
   driver_id: string | null
   driver_name: string | null

@@ -8,6 +8,7 @@ import type { Delivery } from '../../types'
 import { STATUS_LABELS, STATUS_COLORS } from '../../types'
 import { DeliveryProofCapture } from '../DeliveryProofCapture'
 import { NavigationButton } from '../NavigationChooser'
+import { DeliveryQRCode } from '../DeliveryQRCode'
 
 interface DeliveriesTabProps {
   deliveries: Delivery[]
@@ -129,8 +130,18 @@ export function DeliveriesTab({ deliveries, commissionPercent, storeId, storeSlu
                   Peça ao cliente acessar:
                 </p>
                 <p className="text-xs text-indigo-500 mt-1 break-all">
-                  /{storeSlug}/confirmar/{delivery.id}
+                  /{storeSlug}/confirmar/{delivery.id}{delivery.access_token ? `?token=${delivery.access_token}` : ''}
                 </p>
+
+                <div className="mt-4">
+                  <DeliveryQRCode
+                    deliveryId={delivery.id}
+                    orderCode={delivery.order?.order_code || ''}
+                    storeSlug={storeSlug}
+                    token={delivery.access_token}
+                    size={200}
+                  />
+                </div>
               </div>
             </div>
           )}
