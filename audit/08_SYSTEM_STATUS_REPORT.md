@@ -1,5 +1,5 @@
 # RELATÓRIO DE STATUS DO SISTEMA - AUDITORIA 08
-**Data:** 2024-12-19 23:27  
+**Data:** 2024-12-19 23:34 (atualizado)  
 **Branch:** main  
 **Projeto:** food-management-system
 
@@ -7,7 +7,13 @@
 
 ## 📋 RESUMO EXECUTIVO
 
-O sistema está **~85% pronto para produção**. Build passa, lint OK, rotas funcionam. Os principais gaps são: (1) migrations de afiliados não executadas no Supabase, (2) teste manual de billing enforcement pendente, (3) integração com gateway de pagamento não implementada. Risco P0 principal: billing enforcement não testado em produção.
+O sistema está **~85% pronto para produção**. Build passa, lint OK, rotas funcionam. 
+
+**ATUALIZAÇÃO:** Scripts de aplicação e verificação de afiliados prontos (`audit/08A_*.sql`). Script de verificação de billing pronto (`scripts/verify-billing.mjs`) - retornou AUTH_BLOCKED (esperado, precisa login manual).
+
+**Para GO final:**
+1. Executar `audit/08A_APPLY_AFFILIATES.sql` no Supabase
+2. Testar billing manualmente no navegador (logado)
 
 ---
 

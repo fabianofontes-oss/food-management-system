@@ -1,0 +1,98 @@
+﻿========================================
+BILLING ENFORCEMENT VERIFIER
+Data: 2025-12-20T02:34:28.733Z
+========================================
+
+
+--- BASE: https://app.pediu.food ---
+
+[test-active]
+  URL: https://app.pediu.food/test-active/dashboard
+  Status: 307
+  Location: /unauthorized
+  x-billing-mode: -
+  x-billing-reason: -
+  x-billing-grace-days: -
+  VERDICT: AUTH_BLOCKED
+
+[test-trial-expired]
+  URL: https://app.pediu.food/test-trial-expired/dashboard
+  Status: 307
+  Location: /unauthorized
+  x-billing-mode: -
+  x-billing-reason: -
+  x-billing-grace-days: -
+  VERDICT: AUTH_BLOCKED
+
+[test-past-due]
+  URL: https://app.pediu.food/test-past-due/dashboard
+  Status: 307
+  Location: /unauthorized
+  x-billing-mode: -
+  x-billing-reason: -
+  x-billing-grace-days: -
+  VERDICT: AUTH_BLOCKED
+
+[test-suspended]
+  URL: https://app.pediu.food/test-suspended/dashboard
+  Status: 307
+  Location: /unauthorized
+  x-billing-mode: -
+  x-billing-reason: -
+  x-billing-grace-days: -
+  VERDICT: AUTH_BLOCKED
+
+
+--- BASE: https://www.pediu.food ---
+
+[test-active]
+  URL: https://www.pediu.food/test-active/dashboard
+  Status: 307
+  Location: /unauthorized
+  x-billing-mode: -
+  x-billing-reason: -
+  x-billing-grace-days: -
+  VERDICT: AUTH_BLOCKED
+
+[test-trial-expired]
+  URL: https://www.pediu.food/test-trial-expired/dashboard
+  Status: 307
+  Location: /unauthorized
+  x-billing-mode: -
+  x-billing-reason: -
+  x-billing-grace-days: -
+  VERDICT: AUTH_BLOCKED
+
+[test-past-due]
+  URL: https://www.pediu.food/test-past-due/dashboard
+  Status: 307
+  Location: /unauthorized
+  x-billing-mode: -
+  x-billing-reason: -
+  x-billing-grace-days: -
+  VERDICT: AUTH_BLOCKED
+
+[test-suspended]
+  URL: https://www.pediu.food/test-suspended/dashboard
+  Status: 307
+  Location: /unauthorized
+  x-billing-mode: -
+  x-billing-reason: -
+  x-billing-grace-days: -
+  VERDICT: AUTH_BLOCKED
+
+
+========================================
+RESUMO
+========================================
+
+Total testes: 8
+OK: 0
+AUTH_BLOCKED (precisa login): 8
+FAILED: 0
+
+ÔÜá´©Å  Alguns testes retornaram AUTH_BLOCKED.
+    Isso significa que o usu├írio precisa estar logado.
+    Para validar completamente, fa├ºa login no navegador e teste manualmente.
+
+Ô£à Verifica├º├úo conclu├¡da.

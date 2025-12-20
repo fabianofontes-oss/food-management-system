@@ -1,5 +1,5 @@
 # GO / NO-GO CHECKLIST - AUDITORIA 08
-**Data:** 2024-12-19 23:27  
+**Data:** 2024-12-19 23:34 (atualizado)  
 **Projeto:** food-management-system  
 **Objetivo:** Validar se o sistema está pronto para produção
 
@@ -8,9 +8,11 @@
 ## 🚦 DECISÃO FINAL: **CONDITIONAL GO**
 
 O sistema pode ir para produção com as seguintes condições:
-1. Executar migrations de afiliados no Supabase
-2. Testar billing enforcement manualmente (4 URLs)
-3. Documentar que gateway de pagamento será adicionado em fase posterior
+1. ✅ Scripts de migrations de afiliados prontos → `audit/08A_APPLY_AFFILIATES.sql`
+2. ✅ Script de verificação de afiliados pronto → `audit/08A_VERIFY_AFFILIATES.sql`
+3. ✅ Script de verificação de billing pronto → `scripts/verify-billing.mjs`
+4. ⬜ **AÇÃO:** Executar SQL no Supabase
+5. ⬜ **AÇÃO:** Testar billing no navegador (logado)
 
 ---
 
