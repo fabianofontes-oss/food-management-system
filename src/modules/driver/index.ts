@@ -11,11 +11,13 @@ export * from './actions'
 
 // Utils
 export * from './utils/whatsapp'
+export * from './utils/delivery-fee'
 
 // Hooks
 export { useDriverDeliveries } from './hooks/useDriverDeliveries'
 export { useDriverStats } from './hooks/useDriverStats'
 export { useDriverRealtime } from './hooks/useDriverRealtime'
+export { useDriverLocation, useWatchDriverLocation } from './hooks/useDriverLocation'
 
 // Components
 export { DriverDashboardShell } from './components/DriverDashboardShell'

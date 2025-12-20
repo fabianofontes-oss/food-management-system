@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Truck, MapPin, Package, DollarSign, Play, CheckCheck, Navigation, Camera } from 'lucide-react'
+import { Truck, MapPin, Package, DollarSign, Play, Navigation, Camera, QrCode } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { formatCurrency } from '@/lib/utils'
 import type { Delivery } from '../../types'
@@ -13,11 +13,13 @@ interface DeliveriesTabProps {
   deliveries: Delivery[]
   commissionPercent: number
   storeId: string
+  storeSlug?: string
   onUpdateStatus: (deliveryId: string, newStatus: string) => Promise<void>
 }
 
-export function DeliveriesTab({ deliveries, commissionPercent, storeId, onUpdateStatus }: DeliveriesTabProps) {
+export function DeliveriesTab({ deliveries, commissionPercent, storeId, storeSlug, onUpdateStatus }: DeliveriesTabProps) {
   const [showProofCapture, setShowProofCapture] = useState<string | null>(null)
+  const [showQRCode, setShowQRCode] = useState<string | null>(null)
 
   const handleDeliverWithPhoto = (deliveryId: string) => {
     setShowProofCapture(deliveryId)
@@ -94,14 +96,16 @@ export function DeliveriesTab({ deliveries, commissionPercent, storeId, onUpdate
                     <Camera className="w-4 h-4 mr-1" />
                     Entregar
                   </Button>
-                  <Button
-                    onClick={() => onUpdateStatus(delivery.id, 'delivered')}
-                    size="sm"
-                    variant="outline"
-                    className="text-emerald-600 border-emerald-300"
-                  >
-                    <CheckCheck className="w-4 h-4" />
-                  </Button>
+                  {storeSlug && (
+                    <Button
+                      onClick={() => setShowQRCode(showQRCode === delivery.id ? null : delivery.id)}
+                      size="sm"
+                      variant="outline"
+                      className={showQRCode === delivery.id ? 'bg-indigo-50 text-indigo-600 border-indigo-300' : 'text-indigo-600 border-indigo-300'}
+                    >
+                      <QrCode className="w-4 h-4" />
+                    </Button>
+                  )}
                 </>
               )}
               <a
@@ -115,6 +119,29 @@ export function DeliveriesTab({ deliveries, commissionPercent, storeId, onUpdate
               </a>
             </div>
           </div>
+
+          {/* QR Code inline */}
+          {showQRCode === delivery.id && storeSlug && (
+            <div className="mt-4 pt-4 border-t border-slate-100">
+              <div className="bg-indigo-50 rounded-xl p-4 text-center">
+                <div className="flex items-center justify-center gap-2 mb-3">
+                  <QrCode className="w-5 h-5 text-indigo-600" />
+                  <span className="font-medium text-indigo-800">Código de Confirmação</span>
+                </div>
+                <div className="bg-white rounded-lg p-4 inline-block mb-3">
+                  <div className="font-mono text-2xl tracking-widest font-bold text-slate-800">
+                    {delivery.id.slice(0, 8).toUpperCase()}
+                  </div>
+                </div>
+                <p className="text-sm text-indigo-600">
+                  Peça ao cliente acessar:
+                </p>
+                <p className="text-xs text-indigo-500 mt-1 break-all">
+                  /{storeSlug}/confirmar/{delivery.id}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       ))}
 

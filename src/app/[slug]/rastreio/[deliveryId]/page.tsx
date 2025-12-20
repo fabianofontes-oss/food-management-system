@@ -23,6 +23,9 @@ interface DeliveryData {
   notes: string | null
   created_at: string
   updated_at: string
+  driver_latitude?: number | null
+  driver_longitude?: number | null
+  driver_location_updated_at?: string | null
   order?: {
     order_code: string
     customer_name: string
@@ -275,6 +278,39 @@ export default function RastreioPage() {
               Ver no mapa
             </a>
           </div>
+
+          {/* Localização em Tempo Real do Motorista */}
+          {delivery.driver_latitude && delivery.driver_longitude && delivery.status === 'in_transit' && (
+            <>
+              <div className="border-t border-slate-100" />
+              <div className="p-6">
+                <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
+                  <Truck className="w-5 h-5 text-orange-500" />
+                  Localização do Motorista
+                  <span className="ml-auto flex items-center gap-1 text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                    Ao vivo
+                  </span>
+                </h3>
+                <div className="bg-slate-100 rounded-xl overflow-hidden h-48">
+                  <iframe
+                    src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY || ''}&q=${delivery.driver_latitude},${delivery.driver_longitude}&zoom=15`}
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0 }}
+                    allowFullScreen
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                  />
+                </div>
+                {delivery.driver_location_updated_at && (
+                  <p className="text-xs text-slate-400 mt-2 text-center">
+                    Atualizado às {formatTime(delivery.driver_location_updated_at)}
+                  </p>
+                )}
+              </div>
+            </>
+          )}
 
           {/* Motorista */}
           {delivery.driver_name && (
