@@ -11,6 +11,7 @@ export { createOrderAction } from './actions'
 
 // Hooks
 export { useOrders } from './hooks/use-orders'
+export { useOrders as useOrdersDashboard } from './hooks/use-orders-dashboard'
 
 // Components
 export { OrderCard } from './components/order-card'

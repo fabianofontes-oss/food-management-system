@@ -8,6 +8,7 @@ import type {
   CreateCategoryInput,
   UpdateCategoryInput
 } from './types'
+import type { Store, Category, Product, ProductWithModifiers } from '@/types/menu'
 
 // ============================================
 // PRODUCT ACTIONS
@@ -32,10 +33,122 @@ export async function createProductAction(
     revalidatePath(`/${storeSlug}`) // Cardápio público
 
     return { success: true, data: product }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Erro ao criar produto:', error)
-    return { success: false, error: error.message }
+    const message = error instanceof Error ? error.message : 'Erro desconhecido'
+    return { success: false, error: message }
   }
+}
+
+export async function getStoreBySlug(slug: string): Promise<Store | null> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('stores')
+    .select('*')
+    .eq('slug', slug)
+    .eq('is_active', true)
+    .single()
+
+  if (error || !data) {
+    if (error) {
+      console.error('getStoreBySlug error', { slug, error })
+    }
+    return null
+  }
+  return data as Store
+}
+
+export async function getStoreCategories(storeId: string): Promise<Category[]> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('categories')
+    .select('*')
+    .eq('store_id', storeId)
+    .eq('is_active', true)
+    .order('sort_order', { ascending: true })
+
+  if (error || !data) return []
+  return data as Category[]
+}
+
+export async function getStoreProducts(storeId: string): Promise<Product[]> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('products')
+    .select(
+      `
+      *,
+      category:categories(*)
+    `
+    )
+    .eq('store_id', storeId)
+    .eq('is_active', true)
+
+  if (error || !data) return []
+  return data as Product[]
+}
+
+export async function getProductWithModifiers(productId: string): Promise<ProductWithModifiers | null> {
+  const supabase = await createClient()
+
+  const { data: product, error: productError } = await supabase
+    .from('products')
+    .select('*')
+    .eq('id', productId)
+    .single()
+
+  if (productError || !product) return null
+
+  const { data: productModifierGroups } = await supabase
+    .from('product_modifier_groups')
+    .select('group_id')
+    .eq('product_id', productId)
+
+  const groupIds =
+    (productModifierGroups as Array<{ group_id: string }> | null)?.map((pmg) => pmg.group_id) || []
+
+  if (groupIds.length === 0) {
+    return { ...product, modifier_groups: [] } as ProductWithModifiers
+  }
+
+  const { data: modifierGroups } = await supabase
+    .from('modifier_groups')
+    .select(
+      `
+      *,
+      options:modifier_options(*)
+    `
+    )
+    .in('id', groupIds)
+    .order('sort_order', { ascending: true })
+
+  const groups = (modifierGroups || []).map((group: unknown) => {
+    const record = group && typeof group === 'object' ? (group as Record<string, unknown>) : {}
+    const optionsRaw = record.options
+    const optionsArray = Array.isArray(optionsRaw) ? optionsRaw : []
+
+    const options = optionsArray
+      .filter((opt): opt is Record<string, unknown> => typeof opt === 'object' && opt !== null)
+      .filter((opt) => opt.is_active === true)
+      .sort((a, b) => {
+        const aOrder = typeof a.sort_order === 'number' ? a.sort_order : 0
+        const bOrder = typeof b.sort_order === 'number' ? b.sort_order : 0
+        return aOrder - bOrder
+      })
+
+    return {
+      ...record,
+      options,
+    }
+  })
+
+  return {
+    ...product,
+    modifier_groups: groups,
+  } as ProductWithModifiers
 }
 
 export async function updateProductAction(
@@ -57,9 +170,10 @@ export async function updateProductAction(
     revalidatePath(`/${storeSlug}`)
 
     return { success: true }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Erro ao atualizar produto:', error)
-    return { success: false, error: error.message }
+    const message = error instanceof Error ? error.message : 'Erro desconhecido'
+    return { success: false, error: message }
   }
 }
 
@@ -82,9 +196,10 @@ export async function toggleProductStatusAction(
     revalidatePath(`/${storeSlug}`)
 
     return { success: true }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Erro ao alternar status do produto:', error)
-    return { success: false, error: error.message }
+    const message = error instanceof Error ? error.message : 'Erro desconhecido'
+    return { success: false, error: message }
   }
 }
 
@@ -106,9 +221,10 @@ export async function deleteProductAction(
     revalidatePath(`/${storeSlug}`)
 
     return { success: true }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Erro ao deletar produto:', error)
-    return { success: false, error: error.message }
+    const message = error instanceof Error ? error.message : 'Erro desconhecido'
+    return { success: false, error: message }
   }
 }
 
@@ -135,9 +251,10 @@ export async function createCategoryAction(
     revalidatePath(`/${storeSlug}`)
 
     return { success: true, data: category }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Erro ao criar categoria:', error)
-    return { success: false, error: error.message }
+    const message = error instanceof Error ? error.message : 'Erro desconhecido'
+    return { success: false, error: message }
   }
 }
 
@@ -160,9 +277,10 @@ export async function updateCategoryAction(
     revalidatePath(`/${storeSlug}`)
 
     return { success: true }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Erro ao atualizar categoria:', error)
-    return { success: false, error: error.message }
+    const message = error instanceof Error ? error.message : 'Erro desconhecido'
+    return { success: false, error: message }
   }
 }
 
@@ -184,9 +302,10 @@ export async function deleteCategoryAction(
     revalidatePath(`/${storeSlug}`)
 
     return { success: true }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Erro ao deletar categoria:', error)
-    return { success: false, error: error.message }
+    const message = error instanceof Error ? error.message : 'Erro desconhecido'
+    return { success: false, error: message }
   }
 }
 
@@ -215,8 +334,9 @@ export async function reorderCategoriesAction(
     revalidatePath(`/${storeSlug}`)
 
     return { success: true }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Erro ao reordenar categorias:', error)
-    return { success: false, error: error.message }
+    const message = error instanceof Error ? error.message : 'Erro desconhecido'
+    return { success: false, error: message }
   }
 }

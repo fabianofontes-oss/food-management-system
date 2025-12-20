@@ -1,4 +1,4 @@
-import { getStoreBySlug } from '@/lib/actions/menu'
+import { getStoreBySlug } from '@/modules/menu'
 import type { CheckoutMode, PaymentMethod } from '../types'
 
 export interface StoreSettings {

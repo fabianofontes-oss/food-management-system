@@ -1,5 +1,5 @@
-import { getStoreBySlug } from '@/lib/actions/menu'
-import { createOrder } from '@/lib/actions/orders'
+import { getStoreBySlug } from '@/modules/menu'
+import { createOrder } from '@/modules/orders/actions'
 import type { OrderData } from '@/types/menu'
 import type { CheckoutFormData, CheckoutMode } from '../types'
 import type { CartItem } from '@/types/menu'

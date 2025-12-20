@@ -15,11 +15,16 @@ export {
   createCategoryAction,
   updateCategoryAction,
   deleteCategoryAction,
-  reorderCategoriesAction
+  reorderCategoriesAction,
+  getStoreBySlug,
+  getStoreCategories,
+  getStoreProducts,
+  getProductWithModifiers
 } from './actions'
 
 // Hooks
 export { useMenu } from './hooks/use-menu'
+export { useProducts } from './hooks/use-products-dashboard'
 
 // Components
 export { ProductCard } from './components/product-card'

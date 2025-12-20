@@ -8,8 +8,18 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/client'
-import { getCoupons, createCoupon, updateCoupon, deleteCoupon, toggleCouponStatus, type Coupon, type CouponType } from '@/lib/coupons/actions'
-import { formatCouponValue, isCouponDateValid, hasUsesRemaining } from '@/lib/coupons/utils'
+import {
+  getCoupons,
+  createCoupon,
+  updateCoupon,
+  deleteCoupon,
+  toggleCouponStatus,
+  type Coupon,
+  type CouponType,
+  formatCouponValue,
+  isCouponDateValid,
+  hasUsesRemaining,
+} from '@/modules/coupons'
 
 export default function CouponsPage() {
   const params = useParams()
