@@ -1,0 +1,123 @@
+{
+  "generated_at": "2024-12-19T23:50:00Z",
+  "total_routes": 77,
+  "routes": {
+    "auth": [
+      { "path": "/login", "type": "public", "layout": "(auth)", "guard": "none", "mobile_first": true },
+      { "path": "/signup", "type": "public", "layout": "(auth)", "guard": "none", "mobile_first": true },
+      { "path": "/reset-password", "type": "public", "layout": "(auth)", "guard": "none", "mobile_first": true },
+      { "path": "/update-password", "type": "public", "layout": "(auth)", "guard": "none", "mobile_first": true }
+    ],
+    "public": [
+      { "path": "/", "type": "public", "layout": "root", "guard": "none", "mobile_first": true },
+      { "path": "/landing", "type": "public", "layout": "(public)", "guard": "none", "mobile_first": true },
+      { "path": "/profile", "type": "public", "layout": "(public)", "guard": "requireAuth", "mobile_first": true },
+      { "path": "/onboarding", "type": "public", "layout": "(public)", "guard": "none", "mobile_first": true },
+      { "path": "/choose-url", "type": "public", "layout": "root", "guard": "none", "mobile_first": true },
+      { "path": "/setup/[token]", "type": "public", "layout": "root", "guard": "token_validation", "mobile_first": true }
+    ],
+    "menu_publico": [
+      { "path": "/[slug]", "type": "public", "layout": "[slug]", "guard": "none", "mobile_first": true, "note": "Cardápio público da loja" },
+      { "path": "/s/[slug]", "type": "public", "layout": "root", "guard": "middleware_rewrite", "mobile_first": true, "note": "Rewrite de subdomínio" },
+      { "path": "/[slug]/cart", "type": "public", "layout": "[slug]", "guard": "none", "mobile_first": true },
+      { "path": "/[slug]/avaliar/[deliveryId]", "type": "public", "layout": "[slug]", "guard": "none", "mobile_first": true }
+    ],
+    "merchant_dashboard": [
+      { "path": "/[slug]/dashboard", "type": "merchant", "layout": "[slug]/dashboard", "guard": "requireStoreAccess", "mobile_first": true },
+      { "path": "/[slug]/dashboard/orders", "type": "merchant", "layout": "[slug]/dashboard", "guard": "requireStoreAccess", "mobile_first": true },
+      { "path": "/[slug]/dashboard/products", "type": "merchant", "layout": "[slug]/dashboard", "guard": "requireStoreAccess", "mobile_first": true },
+      { "path": "/[slug]/dashboard/addons", "type": "merchant", "layout": "[slug]/dashboard", "guard": "requireStoreAccess+module", "mobile_first": true },
+      { "path": "/[slug]/dashboard/pos", "type": "merchant", "layout": "[slug]/dashboard", "guard": "requireStoreAccess+module", "mobile_first": true },
+      { "path": "/[slug]/dashboard/kitchen", "type": "merchant", "layout": "[slug]/dashboard", "guard": "requireStoreAccess+module", "mobile_first": true },
+      { "path": "/[slug]/dashboard/inventory", "type": "merchant", "layout": "[slug]/dashboard", "guard": "requireStoreAccess+module", "mobile_first": true },
+      { "path": "/[slug]/dashboard/financial", "type": "merchant", "layout": "[slug]/dashboard", "guard": "requireStoreAccess+module", "mobile_first": true },
+      { "path": "/[slug]/dashboard/crm", "type": "merchant", "layout": "[slug]/dashboard", "guard": "requireStoreAccess+module", "mobile_first": true },
+      { "path": "/[slug]/dashboard/delivery", "type": "merchant", "layout": "[slug]/dashboard", "guard": "requireStoreAccess+module", "mobile_first": true },
+      { "path": "/[slug]/dashboard/tables", "type": "merchant", "layout": "[slug]/dashboard", "guard": "requireStoreAccess+module", "mobile_first": true },
+      { "path": "/[slug]/dashboard/waiters", "type": "merchant", "layout": "[slug]/dashboard", "guard": "requireStoreAccess+module", "mobile_first": true },
+      { "path": "/[slug]/dashboard/reservations", "type": "merchant", "layout": "[slug]/dashboard", "guard": "requireStoreAccess+module", "mobile_first": true },
+      { "path": "/[slug]/dashboard/team", "type": "merchant", "layout": "[slug]/dashboard", "guard": "requireStoreAccess+module", "mobile_first": true },
+      { "path": "/[slug]/dashboard/coupons", "type": "merchant", "layout": "[slug]/dashboard", "guard": "requireStoreAccess+module", "mobile_first": true },
+      { "path": "/[slug]/dashboard/marketing", "type": "merchant", "layout": "[slug]/dashboard", "guard": "requireStoreAccess+module", "mobile_first": true },
+      { "path": "/[slug]/dashboard/reviews", "type": "merchant", "layout": "[slug]/dashboard", "guard": "requireStoreAccess+module", "mobile_first": true },
+      { "path": "/[slug]/dashboard/reviews/integrations", "type": "merchant", "layout": "[slug]/dashboard", "guard": "requireStoreAccess+module", "mobile_first": true },
+      { "path": "/[slug]/dashboard/analytics", "type": "merchant", "layout": "[slug]/dashboard", "guard": "requireStoreAccess+module", "mobile_first": true },
+      { "path": "/[slug]/dashboard/reports", "type": "merchant", "layout": "[slug]/dashboard", "guard": "requireStoreAccess+module", "mobile_first": true },
+      { "path": "/[slug]/dashboard/afiliados", "type": "merchant", "layout": "[slug]/dashboard", "guard": "requireStoreAccess+module", "mobile_first": true },
+      { "path": "/[slug]/dashboard/kits", "type": "merchant", "layout": "[slug]/dashboard", "guard": "requireStoreAccess+module", "mobile_first": true },
+      { "path": "/[slug]/dashboard/custom-orders", "type": "merchant", "layout": "[slug]/dashboard", "guard": "requireStoreAccess+module", "mobile_first": true },
+      { "path": "/[slug]/dashboard/appearance", "type": "merchant", "layout": "[slug]/dashboard", "guard": "requireStoreAccess", "mobile_first": true },
+      { "path": "/[slug]/dashboard/onboarding", "type": "merchant", "layout": "[slug]/dashboard", "guard": "requireStoreAccess", "mobile_first": true },
+      { "path": "/[slug]/dashboard/settings", "type": "merchant", "layout": "[slug]/dashboard/settings", "guard": "requireStoreAccess", "mobile_first": true },
+      { "path": "/[slug]/dashboard/settings/store", "type": "merchant", "layout": "[slug]/dashboard/settings", "guard": "requireStoreAccess", "mobile_first": true },
+      { "path": "/[slug]/dashboard/settings/integrations", "type": "merchant", "layout": "[slug]/dashboard/settings", "guard": "requireStoreAccess", "mobile_first": true },
+      { "path": "/[slug]/dashboard/settings/loyalty", "type": "merchant", "layout": "[slug]/dashboard/settings", "guard": "requireStoreAccess", "mobile_first": true },
+      { "path": "/[slug]/dashboard/settings/modules", "type": "merchant", "layout": "[slug]/dashboard/settings", "guard": "requireStoreAccess", "mobile_first": true },
+      { "path": "/[slug]/dashboard/settings/niche", "type": "merchant", "layout": "[slug]/dashboard/settings", "guard": "requireStoreAccess", "mobile_first": true },
+      { "path": "/[slug]/dashboard/settings/platforms", "type": "merchant", "layout": "[slug]/dashboard/settings", "guard": "requireStoreAccess", "mobile_first": true },
+      { "path": "/[slug]/dashboard/settings/scheduling", "type": "merchant", "layout": "[slug]/dashboard/settings", "guard": "requireStoreAccess", "mobile_first": true },
+      { "path": "/[slug]/dashboard/settings/complete", "type": "merchant", "layout": "[slug]/dashboard/settings", "guard": "requireStoreAccess", "mobile_first": true },
+      { "path": "/[slug]/dashboard/settings/index", "type": "merchant", "layout": "[slug]/dashboard/settings", "guard": "requireStoreAccess", "mobile_first": true }
+    ],
+    "driver": [
+      { "path": "/driver/dashboard", "type": "driver", "layout": "root", "guard": "requireAuth+driverRole", "mobile_first": true, "note": "Tabs: entregas, afiliados" }
+    ],
+    "super_admin": [
+      { "path": "/admin", "type": "admin", "layout": "(super-admin)", "guard": "requireSuperAdmin", "mobile_first": false },
+      { "path": "/admin/tenants", "type": "admin", "layout": "(super-admin)", "guard": "requireSuperAdmin", "mobile_first": false },
+      { "path": "/admin/stores", "type": "admin", "layout": "(super-admin)", "guard": "requireSuperAdmin", "mobile_first": false },
+      { "path": "/admin/users", "type": "admin", "layout": "(super-admin)", "guard": "requireSuperAdmin", "mobile_first": false },
+      { "path": "/admin/plans", "type": "admin", "layout": "(super-admin)", "guard": "requireSuperAdmin", "mobile_first": false },
+      { "path": "/admin/plans/new", "type": "admin", "layout": "(super-admin)", "guard": "requireSuperAdmin", "mobile_first": false },
+      { "path": "/admin/plans/[planId]", "type": "admin", "layout": "(super-admin)", "guard": "requireSuperAdmin", "mobile_first": false },
+      { "path": "/admin/billing", "type": "admin", "layout": "(super-admin)", "guard": "requireSuperAdmin", "mobile_first": false },
+      { "path": "/admin/affiliates", "type": "admin", "layout": "(super-admin)", "guard": "requireSuperAdmin", "mobile_first": false },
+      { "path": "/admin/affiliates/payouts", "type": "admin", "layout": "(super-admin)", "guard": "requireSuperAdmin", "mobile_first": false },
+      { "path": "/admin/affiliates/sales", "type": "admin", "layout": "(super-admin)", "guard": "requireSuperAdmin", "mobile_first": false },
+      { "path": "/admin/affiliates/settings", "type": "admin", "layout": "(super-admin)", "guard": "requireSuperAdmin", "mobile_first": false },
+      { "path": "/admin/analytics", "type": "admin", "layout": "(super-admin)", "guard": "requireSuperAdmin", "mobile_first": false },
+      { "path": "/admin/logs", "type": "admin", "layout": "(super-admin)", "guard": "requireSuperAdmin", "mobile_first": false },
+      { "path": "/admin/tickets", "type": "admin", "layout": "(super-admin)", "guard": "requireSuperAdmin", "mobile_first": false },
+      { "path": "/admin/features", "type": "admin", "layout": "(super-admin)", "guard": "requireSuperAdmin", "mobile_first": false },
+      { "path": "/admin/automations", "type": "admin", "layout": "(super-admin)", "guard": "requireSuperAdmin", "mobile_first": false },
+      { "path": "/admin/reports", "type": "admin", "layout": "(super-admin)", "guard": "requireSuperAdmin", "mobile_first": false },
+      { "path": "/admin/settings", "type": "admin", "layout": "(super-admin)", "guard": "requireSuperAdmin", "mobile_first": false },
+      { "path": "/admin/partners", "type": "admin", "layout": "(super-admin)", "guard": "requireSuperAdmin", "mobile_first": false },
+      { "path": "/admin/integrations", "type": "admin", "layout": "(super-admin)", "guard": "requireSuperAdmin", "mobile_first": false },
+      { "path": "/admin/audit", "type": "admin", "layout": "(super-admin)", "guard": "requireSuperAdmin", "mobile_first": false },
+      { "path": "/admin/demanda", "type": "admin", "layout": "(super-admin)", "guard": "requireSuperAdmin", "mobile_first": false },
+      { "path": "/admin/health", "type": "admin", "layout": "(super-admin)", "guard": "requireSuperAdmin", "mobile_first": false },
+      { "path": "/admin/health/audit", "type": "admin", "layout": "(super-admin)", "guard": "requireSuperAdmin", "mobile_first": false },
+      { "path": "/admin/health/builder", "type": "admin", "layout": "(super-admin)", "guard": "requireSuperAdmin", "mobile_first": false },
+      { "path": "/admin/health/database", "type": "admin", "layout": "(super-admin)", "guard": "requireSuperAdmin", "mobile_first": false },
+      { "path": "/admin/health/files", "type": "admin", "layout": "(super-admin)", "guard": "requireSuperAdmin", "mobile_first": false },
+      { "path": "/admin/health/images", "type": "admin", "layout": "(super-admin)", "guard": "requireSuperAdmin", "mobile_first": false },
+      { "path": "/admin/health/monitor", "type": "admin", "layout": "(super-admin)", "guard": "requireSuperAdmin", "mobile_first": false },
+      { "path": "/admin/health/pages", "type": "admin", "layout": "(super-admin)", "guard": "requireSuperAdmin", "mobile_first": false },
+      { "path": "/admin/health/printing", "type": "admin", "layout": "(super-admin)", "guard": "requireSuperAdmin", "mobile_first": false },
+      { "path": "/admin/health/slugs", "type": "admin", "layout": "(super-admin)", "guard": "requireSuperAdmin", "mobile_first": false }
+    ],
+    "billing_pages": [
+      { "path": "/billing/trial-expired", "type": "public", "layout": "root", "guard": "none", "mobile_first": true },
+      { "path": "/billing/suspended", "type": "public", "layout": "root", "guard": "none", "mobile_first": true },
+      { "path": "/billing/overdue", "type": "public", "layout": "root", "guard": "none", "mobile_first": true }
+    ],
+    "api_routes": [
+      { "path": "/api/ping", "type": "api", "guard": "none", "note": "Health check" },
+      { "path": "/api/cron/clean-expired-drafts", "type": "api", "guard": "cron_secret", "note": "Limpa drafts expirados" },
+      { "path": "/api/draft-store/*", "type": "api", "guard": "auth", "note": "CRUD de draft stores" },
+      { "path": "/api/onboarding/*", "type": "api", "guard": "varies", "note": "Onboarding flows" },
+      { "path": "/api/public/*", "type": "api", "guard": "none", "note": "Endpoints públicos" },
+      { "path": "/api/webhooks/*", "type": "api", "guard": "webhook_secret", "note": "Webhooks externos" }
+    ]
+  },
+  "middleware_host_routing": {
+    "{slug}.pediu.food": "/s/{slug}",
+    "admin.pediu.food": "/admin",
+    "app.pediu.food": "passthrough",
+    "driver.entregou.food": "/driver/dashboard",
+    "pediu.food": "passthrough",
+    "entregou.food": "passthrough",
+    "pensou.food": "passthrough"
+  }
+}
