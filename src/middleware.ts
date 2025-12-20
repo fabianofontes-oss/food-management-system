@@ -27,6 +27,11 @@ function getSubdomain(host: string, root: string): string | null {
 }
 
 export async function middleware(request: NextRequest) {
+  // Endpoint de ping público (não bloquear)
+  if (request.nextUrl.pathname.startsWith('/api/ping')) {
+    return NextResponse.next()
+  }
+
   const url = request.nextUrl.clone()
   const host = stripPort(request.headers.get('host') || '')
 

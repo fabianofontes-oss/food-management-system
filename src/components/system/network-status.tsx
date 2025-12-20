@@ -2,11 +2,10 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { WifiOff, AlertTriangle, RefreshCw } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 
 interface NetworkState {
   isOnline: boolean
-  isSupabaseOk: boolean
+  isServerOk: boolean
   lastCheck: Date | null
   checking: boolean
 }
@@ -14,34 +13,30 @@ interface NetworkState {
 export function NetworkStatus() {
   const [state, setState] = useState<NetworkState>({
     isOnline: true,
-    isSupabaseOk: true,
+    isServerOk: true,
     lastCheck: null,
     checking: false
   })
 
-  const checkSupabase = useCallback(async () => {
+  const checkServer = useCallback(async () => {
     if (!navigator.onLine) return false
     
     setState(prev => ({ ...prev, checking: true }))
     
     try {
-      const supabase = createClient()
       const start = Date.now()
       
-      // Query leve para verificar conexão
-      const { error } = await supabase
-        .from('stores')
-        .select('id', { count: 'exact', head: true })
-        .limit(1)
+      // Ping leve para verificar conexão com o servidor
+      const response = await fetch('/api/ping', { cache: 'no-store' })
       
       const latency = Date.now() - start
       
-      // Se demorar mais de 10s, consideramos problemático
-      const isOk = !error && latency < 10000
+      // Se demorar mais de 10s ou não for OK, consideramos problemático
+      const isOk = response.ok && latency < 10000
       
       setState(prev => ({
         ...prev,
-        isSupabaseOk: isOk,
+        isServerOk: isOk,
         lastCheck: new Date(),
         checking: false
       }))
@@ -50,7 +45,7 @@ export function NetworkStatus() {
     } catch (err) {
       setState(prev => ({
         ...prev,
-        isSupabaseOk: false,
+        isServerOk: false,
         lastCheck: new Date(),
         checking: false
       }))
@@ -59,18 +54,18 @@ export function NetworkStatus() {
   }, [])
 
   const handleRetry = useCallback(() => {
-    checkSupabase()
-  }, [checkSupabase])
+    checkServer()
+  }, [checkServer])
 
   // Monitorar status de rede do navegador
   useEffect(() => {
     const handleOnline = () => {
       setState(prev => ({ ...prev, isOnline: true }))
-      checkSupabase()
+      checkServer()
     }
     
     const handleOffline = () => {
-      setState(prev => ({ ...prev, isOnline: false, isSupabaseOk: false }))
+      setState(prev => ({ ...prev, isOnline: false, isServerOk: false }))
     }
 
     // Estado inicial
@@ -83,25 +78,25 @@ export function NetworkStatus() {
       window.removeEventListener('online', handleOnline)
       window.removeEventListener('offline', handleOffline)
     }
-  }, [checkSupabase])
+  }, [checkServer])
 
-  // Ping periódico no Supabase (a cada 30s)
+  // Ping periódico no servidor (a cada 30s)
   useEffect(() => {
     // Check inicial
-    checkSupabase()
+    checkServer()
 
     // Intervalo de 30 segundos
     const interval = setInterval(() => {
       if (navigator.onLine) {
-        checkSupabase()
+        checkServer()
       }
     }, 30000)
 
     return () => clearInterval(interval)
-  }, [checkSupabase])
+  }, [checkServer])
 
   // Se tudo OK, não mostra nada
-  if (state.isOnline && state.isSupabaseOk) {
+  if (state.isOnline && state.isServerOk) {
     return null
   }
 
@@ -112,7 +107,7 @@ export function NetworkStatus() {
   if (!state.isOnline) {
     message = '⚠️ Sem conexão com a internet. Verifique sua rede.'
     Icon = WifiOff
-  } else if (!state.isSupabaseOk) {
+  } else if (!state.isServerOk) {
     message = '⚠️ Problema na conexão com o servidor. Tentando reconectar...'
     Icon = AlertTriangle
   }
