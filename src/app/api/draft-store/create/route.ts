@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createDraftStore } from '@/modules/draft-store';
 import { checkRateLimit, rateLimitConfigs, getClientIdentifier } from '@/lib/rate-limit';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: NextRequest) {
   try {
     // Rate limiting
