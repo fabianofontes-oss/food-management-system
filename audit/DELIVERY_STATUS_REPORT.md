@@ -1,7 +1,21 @@
 # AUDITORIA ZERO TRUST - MÓDULO DELIVERY + DRIVER
-**Data:** 2024-12-20 00:15  
+**Data:** 2024-12-20 01:10  
 **Branch:** main  
+**Commit:** 831fdb6  
 **Build:** ✅ PASS (79 páginas estáticas)
+
+## 🆕 ATUALIZAÇÕES RECENTES
+
+### Commit 76bdb19 - Complete Delivery Module
+- ✅ Página de rastreio ao vivo `/[slug]/rastreio/[deliveryId]`
+- ✅ Foto de comprovação de entrega (DeliveryProofCapture)
+- ✅ Utils WhatsApp com mensagens pré-definidas
+- ✅ Migration `delivery_proof_photo.sql`
+
+### Commit 831fdb6 - Driver Actions + Rating
+- ✅ Server Actions para notificações (`actions.ts`)
+- ✅ Sistema de avaliação direto na tabela `deliveries`
+- ✅ Cálculo automático de rating médio do motorista
 
 ---
 
