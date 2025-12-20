@@ -1,0 +1,46 @@
+﻿
+> food-management-system@1.0.0 type-check
+> tsc --noEmit
+
+_BACKUP_ZUMBIS/src/app/[slug]/checkout/schemas/checkoutValidation.ts(1,53): error TS2307: Cannot find module '../types' or its corresponding type declarations.
+_BACKUP_ZUMBIS/src/app/[slug]/dashboard/financial/page_new.tsx(12,29): error TS2307: Cannot find module './components/ExpensesTab' or its corresponding type declarations.
+_BACKUP_ZUMBIS/src/app/[slug]/dashboard/financial/page_new.tsx(13,32): error TS2307: Cannot find module './components/ReceivablesTab' or its corresponding type declarations.
+_BACKUP_ZUMBIS/src/app/[slug]/dashboard/financial/page_new.tsx(14,24): error TS2307: Cannot find module './components/DRETab' or its corresponding type declarations.
+src/modules/minisite/repository.ts(76,12): error TS7006: Parameter 'cat' implicitly has an 'any' type.
+src/modules/minisite/repository.ts(81,19): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/modules/minisite/repository.ts(82,16): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/modules/minisite/repository.ts(91,15): error TS7006: Parameter 'cat' implicitly has an 'any' type.
+src/modules/onboarding/repository.ts(34,24): error TS2339: Property 'id' does not exist on type 'never'.
+src/modules/onboarding/repository.ts(42,8): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { count?: "exact" | "planned" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "slug_reservations", never, "POST">', gave the following error.
+    Argument of type '{ slug: string; expires_at: string; }' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { count?: "exact" | "planned" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "slug_reservations", never, "POST">', gave the following error.
+    Object literal may only specify known properties, and 'slug' does not exist in type 'never[]'.
+src/modules/onboarding/repository.ts(52,18): error TS2339: Property 'slug' does not exist on type 'never'.
+src/modules/onboarding/repository.ts(53,26): error TS2339: Property 'token' does not exist on type 'never'.
+src/modules/onboarding/repository.ts(54,23): error TS2339: Property 'expires_at' does not exist on type 'never'.
+src/modules/onboarding/repository.ts(78,30): error TS2339: Property 'expires_at' does not exist on type 'never'.
+src/modules/onboarding/repository.ts(80,78): error TS2339: Property 'id' does not exist on type 'never'.
+src/modules/onboarding/repository.ts(84,30): error TS2339: Property 'slug' does not exist on type 'never'.
+src/modules/onboarding/repository.ts(90,8): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { count?: "exact" | "planned" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "tenants", never, "POST">', gave the following error.
+    Argument of type '{ name: any; }' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { count?: "exact" | "planned" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "tenants", never, "POST">', gave the following error.
+    Object literal may only specify known properties, and 'name' does not exist in type 'never[]'.
+src/modules/onboarding/repository.ts(103,27): error TS2339: Property 'id' does not exist on type 'never'.
+src/modules/onboarding/repository.ts(116,63): error TS2339: Property 'id' does not exist on type 'never'.
+src/modules/onboarding/repository.ts(121,34): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { onConflict?: string | undefined; ignoreDuplicates?: boolean | undefined; count?: "exact" | "planned" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ ...; }, ... 5 more ..., "POST">', gave the following error.
+    Argument of type '{ id: string; name: string; email: string; }' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { onConflict?: string | undefined; ignoreDuplicates?: boolean | undefined; count?: "exact" | "planned" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<...>', gave the following error.
+    Object literal may only specify known properties, and 'id' does not exist in type 'never[]'.
+src/modules/onboarding/repository.ts(129,33): error TS2339: Property 'id' does not exist on type 'never'.
+src/modules/onboarding/repository.ts(133,61): error TS2339: Property 'id' does not exist on type 'never'.
+src/modules/onboarding/repository.ts(134,63): error TS2339: Property 'id' does not exist on type 'never'.
+src/modules/onboarding/repository.ts(139,76): error TS2339: Property 'id' does not exist on type 'never'.
+src/modules/onboarding/repository.ts(142,24): error TS2339: Property 'id' does not exist on type 'never'.
+src/modules/onboarding/repository.ts(143,22): error TS2339: Property 'id' does not exist on type 'never'.
+src/modules/onboarding/types.ts(3,63): error TS2339: Property 'slug_reservations' does not exist on type '{ tenants: { Row: { id: string; name: string; country: string; language: string; currency: string; timezone: string; created_at: string; updated_at: string; }; Insert: { id?: string | undefined; name: string; ... 5 more ...; updated_at?: string | undefined; }; Update: { ...; }; }; ... 17 more ...; customer_addresses...'.
+src/modules/onboarding/types.ts(4,66): error TS2339: Property 'slug_reservations' does not exist on type '{ tenants: { Row: { id: string; name: string; country: string; language: string; currency: string; timezone: string; created_at: string; updated_at: string; }; Insert: { id?: string | undefined; name: string; ... 5 more ...; updated_at?: string | undefined; }; Update: { ...; }; }; ... 17 more ...; customer_addresses...'.
+tests/e2e/test-onboarding-now.spec.ts(168,11): error TS7034: Variable 'logs' implicitly has type 'any[]' in some locations where its type cannot be determined.
+tests/e2e/test-onboarding-now.spec.ts(173,7): error TS7005: Variable 'logs' implicitly has an 'any[]' type.
