@@ -7,6 +7,7 @@
 
 import 'server-only'
 import Stripe from 'stripe'
+import { logger } from '@/lib/logger'
 import { isStripeConfigured } from './config'
 
 // Cliente Stripe (lazy initialization)
@@ -19,20 +20,19 @@ export function getStripeClient(): Stripe | null {
   if (stripeClient) return stripeClient
 
   if (!isStripeConfigured()) {
-    console.warn('⚠️ [Stripe] Não configurado - usando modo MOCK')
+    logger.warn('[Stripe] Não configurado - usando modo MOCK')
     return null
   }
 
   try {
     stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-      apiVersion: '2025-12-15.clover',
       typescript: true,
     })
     
-    console.log('✅ [Stripe] Cliente inicializado')
+    logger.info('[Stripe] Cliente inicializado')
     return stripeClient
   } catch (error) {
-    console.error('❌ [Stripe] Erro ao inicializar:', error)
+    logger.error('[Stripe] Erro ao inicializar', error)
     return null
   }
 }
@@ -51,8 +51,11 @@ export async function createOrGetCustomer(params: {
 
   // MOCK
   if (!stripe) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('Stripe não configurado em produção')
+    }
     const mockId = `cus_mock_${params.tenantId.slice(0, 8)}`
-    console.log(`[Stripe MOCK] createCustomer → ${mockId}`)
+    logger.debug('[Stripe MOCK] createCustomer', { mockId, tenantId: params.tenantId })
     return { customerId: mockId, isMock: true }
   }
 
@@ -78,7 +81,7 @@ export async function createOrGetCustomer(params: {
 
     return { customerId: customer.id, isMock: false }
   } catch (error) {
-    console.error('[Stripe] Erro ao criar customer:', error)
+    logger.error('[Stripe] Erro ao criar customer', error)
     throw error
   }
 }
@@ -99,9 +102,12 @@ export async function createCheckoutSession(params: {
 
   // MOCK
   if (!stripe) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('Stripe não configurado em produção')
+    }
     const mockSessionId = `cs_mock_${Date.now()}`
     const mockUrl = `${params.successUrl}?session_id=${mockSessionId}&mock=true`
-    console.log(`[Stripe MOCK] createCheckoutSession → ${mockUrl}`)
+    logger.debug('[Stripe MOCK] createCheckoutSession', { mockSessionId })
     return { url: mockUrl, sessionId: mockSessionId, isMock: true }
   }
 
@@ -130,7 +136,7 @@ export async function createCheckoutSession(params: {
 
     return { url: session.url!, sessionId: session.id, isMock: false }
   } catch (error) {
-    console.error('[Stripe] Erro ao criar checkout session:', error)
+    logger.error('[Stripe] Erro ao criar checkout session', error)
     throw error
   }
 }
@@ -148,8 +154,11 @@ export async function createPortalSession(params: {
 
   // MOCK
   if (!stripe) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('Stripe não configurado em produção')
+    }
     const mockUrl = `${params.returnUrl}?portal=mock`
-    console.log(`[Stripe MOCK] createPortalSession → ${mockUrl}`)
+    logger.debug('[Stripe MOCK] createPortalSession', { customerId: params.customerId })
     return { url: mockUrl, isMock: true }
   }
 
@@ -161,7 +170,7 @@ export async function createPortalSession(params: {
 
     return { url: session.url, isMock: false }
   } catch (error) {
-    console.error('[Stripe] Erro ao criar portal session:', error)
+    logger.error('[Stripe] Erro ao criar portal session', error)
     throw error
   }
 }
@@ -176,7 +185,10 @@ export async function getSubscription(subscriptionId: string): Promise<Stripe.Su
 
   // MOCK
   if (!stripe) {
-    console.log(`[Stripe MOCK] getSubscription → mock data`)
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('Stripe não configurado em produção')
+    }
+    logger.debug('[Stripe MOCK] getSubscription', { subscriptionId })
     return {
       id: subscriptionId,
       status: 'active',
@@ -189,7 +201,7 @@ export async function getSubscription(subscriptionId: string): Promise<Stripe.Su
     const subscription = await stripe.subscriptions.retrieve(subscriptionId)
     return subscription
   } catch (error) {
-    console.error('[Stripe] Erro ao buscar subscription:', error)
+    logger.error('[Stripe] Erro ao buscar subscription', error)
     return null
   }
 }
@@ -207,7 +219,13 @@ export async function cancelSubscription(
 
   // MOCK
   if (!stripe) {
-    console.log(`[Stripe MOCK] cancelSubscription → ${immediately ? 'immediately' : 'at_period_end'}`)
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('Stripe não configurado em produção')
+    }
+    logger.debug('[Stripe MOCK] cancelSubscription', {
+      subscriptionId,
+      immediately,
+    })
     return true
   }
 
@@ -221,7 +239,7 @@ export async function cancelSubscription(
     }
     return true
   } catch (error) {
-    console.error('[Stripe] Erro ao cancelar subscription:', error)
+    logger.error('[Stripe] Erro ao cancelar subscription', error)
     return false
   }
 }

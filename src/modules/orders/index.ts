@@ -4,7 +4,6 @@
 export * from './types'
 
 // Repository
-export { OrderRepository } from './repository'
 
 // Server Actions
 export { createOrderAction } from './actions'

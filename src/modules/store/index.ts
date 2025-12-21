@@ -5,7 +5,6 @@
 export * from './types'
 
 // Repository
-export { StoreRepository } from './repository'
 
 // Server Actions
 export {

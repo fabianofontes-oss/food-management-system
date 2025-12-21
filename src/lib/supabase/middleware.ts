@@ -1,7 +1,7 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-import { isSuperAdmin } from '../auth/super-admin'
 import { enforceBillingInMiddleware } from '../billing/enforcement'
+import { logger } from '@/lib/logger'
 
 type CookieToSet = { name: string; value: string; options: CookieOptions }
 
@@ -67,7 +67,7 @@ export async function updateSession(request: NextRequest) {
 
     // DEMO MODE: slug "demo" sempre liberado sem autenticação
     if (slug === 'demo') {
-      console.log(`[Middleware] DEMO MODE: allowing public access to /demo/dashboard`)
+      logger.debug('[Middleware] DEMO MODE: allowing public access to /demo/dashboard', { slug })
       return response
     }
 
@@ -79,14 +79,14 @@ export async function updateSession(request: NextRequest) {
       .single()
 
     if (storeError || !store) {
-      console.log(`[Middleware] Store not found: ${slug}`)
+      logger.warn('[Middleware] Store not found', { slug })
       return NextResponse.redirect(new URL('/unauthorized', request.url))
     }
 
     // Modo DEMO via settings: permite acesso sem login se a loja tem isDemo: true
     const settings = store.settings as any
     if (settings?.isDemo === true) {
-      console.log(`[Middleware] DEMO MODE (settings): allowing access to ${slug}`)
+      logger.debug('[Middleware] DEMO MODE (settings): allowing access', { slug })
       return response
     }
 
@@ -104,7 +104,7 @@ export async function updateSession(request: NextRequest) {
       .single()
 
     if (accessError || !storeUser) {
-      console.log(`[Middleware] ACCESS DENIED: user=${user.id} store=${store.id}`)
+      logger.warn('[Middleware] ACCESS DENIED', { userId: user.id, storeId: store.id })
       return NextResponse.redirect(new URL('/unauthorized', request.url))
     }
 
@@ -122,13 +122,16 @@ export async function updateSession(request: NextRequest) {
       // BLOCK: redirecionar para página de billing
       if (billingCheck.mode === 'BLOCK' && billingCheck.redirectTo) {
         const reason = billingCheck.decision?.mode === 'BLOCK' ? billingCheck.decision.reason : 'UNKNOWN'
-        console.log(`[Middleware] BILLING BLOCKED: tenant=${storeWithTenant.tenant_id} reason=${reason}`)
+        logger.warn('[Middleware] BILLING BLOCKED', { tenantId: storeWithTenant.tenant_id, reason })
         return NextResponse.redirect(new URL(billingCheck.redirectTo, request.url))
       }
 
       // READ_ONLY: permitir acesso mas marcar header para UI mostrar banner
       if (billingCheck.mode === 'READ_ONLY') {
-        console.warn(`[Middleware] BILLING READ_ONLY: tenant=${storeWithTenant.tenant_id} (grace period: ${billingCheck.graceDaysRemaining} dias)`)
+        logger.warn('[Middleware] BILLING READ_ONLY', {
+          tenantId: storeWithTenant.tenant_id,
+          graceDaysRemaining: billingCheck.graceDaysRemaining,
+        })
         response.headers.set('x-billing-mode', 'read-only')
         response.headers.set('x-billing-grace-days', String(billingCheck.graceDaysRemaining || 0))
       }

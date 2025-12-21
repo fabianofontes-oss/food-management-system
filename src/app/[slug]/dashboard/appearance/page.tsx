@@ -10,6 +10,7 @@ import { useParams } from 'next/navigation'
 import { ExternalLink, Loader2, Palette } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/client'
+import { logger } from '@/lib/logger'
 import { useDashboardStoreId } from '../DashboardClient'
 
 import { ThemeEditor, DEFAULT_THEME, type MinisiteTheme } from '@/modules/minisite'
@@ -19,7 +20,7 @@ export default function AppearancePage() {
   const slug = params.slug as string
   const storeId = useDashboardStoreId()
   
-  console.log('[AppearancePage] storeId:', storeId, 'slug:', slug)
+  logger.debug('[AppearancePage] storeId', { storeId, slug })
 
   const [loading, setLoading] = useState(true)
   const [theme, setTheme] = useState<MinisiteTheme>(DEFAULT_THEME)
@@ -50,7 +51,7 @@ export default function AppearancePage() {
         setLogoUrl((data as any)?.logo_url || null)
         setBannerUrl((data as any)?.banner_url || null)
       } catch (error) {
-        console.error('Erro ao carregar tema:', error)
+        logger.error('Erro ao carregar tema', error)
       } finally {
         setLoading(false)
       }

@@ -4,7 +4,6 @@
 export * from './types'
 
 // Repository
-export { MenuRepository } from './repository'
 
 // Server Actions
 export {

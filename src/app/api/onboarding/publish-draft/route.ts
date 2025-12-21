@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { draftStoreRepository } from '@/modules/draft-store';
+import { draftStoreRepository } from '@/modules/draft-store/repository';
 
 function getSupabaseAdmin() {
   return createClient(

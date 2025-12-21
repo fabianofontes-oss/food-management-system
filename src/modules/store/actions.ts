@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { logger } from '@/lib/logger'
 import { mergeWithDefaults, DEFAULT_MENU_THEME } from './types'
 import type { StoreWithSettings, StoreSettings, MenuTheme } from './types'
 import { NICHE_TEMPLATES, getNicheTemplate } from '@/lib/templates/niche-data'
@@ -25,7 +26,7 @@ export async function getStoreAction(slug: string): Promise<{
       .single()
 
     if (error) {
-      console.error('Erro ao buscar loja:', error)
+      logger.error('Erro ao buscar loja:', error)
       return { success: false, error: 'Loja não encontrada' }
     }
 
@@ -50,7 +51,7 @@ export async function getStoreAction(slug: string): Promise<{
 
     return { success: true, data: storeWithSettings }
   } catch (error: any) {
-    console.error('Erro na getStoreAction:', error)
+    logger.error('Erro na getStoreAction:', error)
     return { success: false, error: error.message || 'Erro desconhecido' }
   }
 }
@@ -87,13 +88,13 @@ export async function updateStoreSettingsAction(
       .eq('id', storeId)
 
     if (updateError) {
-      console.error('Erro ao atualizar settings:', updateError)
+      logger.error('Erro ao atualizar settings:', updateError)
       return { success: false, error: 'Erro ao salvar configurações' }
     }
 
     return { success: true }
   } catch (error: any) {
-    console.error('Erro na updateStoreSettingsAction:', error)
+    logger.error('Erro na updateStoreSettingsAction:', error)
     return { success: false, error: error.message || 'Erro desconhecido' }
   }
 }
@@ -125,13 +126,13 @@ export async function updateStoreAction(
       .eq('id', storeId)
 
     if (error) {
-      console.error('Erro ao atualizar loja:', error)
+      logger.error('Erro ao atualizar loja:', error)
       return { success: false, error: 'Erro ao salvar dados' }
     }
 
     return { success: true }
   } catch (error: any) {
-    console.error('Erro na updateStoreAction:', error)
+    logger.error('Erro na updateStoreAction:', error)
     return { success: false, error: error.message || 'Erro desconhecido' }
   }
 }
@@ -147,11 +148,11 @@ export async function updateMenuThemeAction(
   const supabase = await createClient()
 
   // DEBUG: Log para investigar salvamento
-  console.log('=== SALVANDO TEMA ===')
-  console.log('StoreId:', storeId)
-  console.log('Slug:', slug)
-  console.log('Theme:', JSON.stringify(theme))
-  console.log('=====================')
+  logger.debug('=== SALVANDO TEMA ===')
+  logger.debug('StoreId:', { storeId })
+  logger.debug('Slug:', { slug })
+  logger.debug('Theme:', { theme })
+  logger.debug('=====================')
 
   try {
     const { data, error } = await supabase
@@ -161,19 +162,19 @@ export async function updateMenuThemeAction(
       .select('id, menu_theme')
 
     // DEBUG: Log resultado
-    console.log('=== RESULTADO SALVAMENTO ===')
-    console.log('Data:', JSON.stringify(data))
-    console.log('Error:', error?.message || 'none')
-    console.log('============================')
+    logger.debug('=== RESULTADO SALVAMENTO ===')
+    logger.debug('Data:', { data })
+    logger.debug('Error:', { message: error?.message || 'none' })
+    logger.debug('============================')
 
     if (error) {
-      console.error('Erro ao atualizar tema do menu:', error)
+      logger.error('Erro ao atualizar tema do menu:', error)
       return { success: false, error: 'Erro ao salvar tema' }
     }
 
     // Verificar se realmente atualizou
     if (!data || data.length === 0) {
-      console.error('AVISO: Nenhuma linha atualizada! Possível problema de RLS ou storeId inválido')
+      logger.error('AVISO: Nenhuma linha atualizada! Possível problema de RLS ou storeId inválido')
       return { success: false, error: 'Nenhuma loja encontrada para atualizar' }
     }
 
@@ -188,7 +189,7 @@ export async function updateMenuThemeAction(
 
     return { success: true }
   } catch (error: any) {
-    console.error('Erro na updateMenuThemeAction:', error)
+    logger.error('Erro na updateMenuThemeAction:', error)
     return { success: false, error: error.message || 'Erro desconhecido' }
   }
 }

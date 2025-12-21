@@ -1,4 +1,5 @@
-import { StoreRepository, type StoreRow } from '@/modules/store'
+import { type StoreRow } from '@/modules/store'
+import { StoreRepository } from '@/modules/store/repository'
 
 export type Store = StoreRow
 

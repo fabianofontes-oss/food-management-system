@@ -6,7 +6,8 @@ import { Loader2, Truck, ChevronDown, Store } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/client'
-import { DriverDashboardShell, getDriverStores, getDriverByPhone, getReferralData } from '@/modules/driver'
+import { DriverDashboardShell } from '@/modules/driver'
+import { getDriverStores, getDriverByPhone, getReferralData } from '@/modules/driver/repository'
 import type { ReferralData, StoreInfo, DriverProfile } from '@/modules/driver'
 
 export default function DriverDashboardPage() {

@@ -3,6 +3,8 @@
  * iFood, Rappi, Uber Eats
  */
 
+import { logger } from '@/lib/logger'
+
 export type MarketplaceProvider = 'ifood' | 'rappi' | 'uber_eats'
 
 export interface MarketplaceConfig {
@@ -146,7 +148,7 @@ export class IFoodIntegration extends MarketplaceIntegration {
     }
 
     // Em produção, fazer chamada OAuth real
-    console.log('[iFood] Autenticando...')
+    logger.debug('[iFood] Autenticando...')
     this.accessToken = 'mock_token'
     this.tokenExpiry = new Date(Date.now() + 3600000) // 1 hora
   }
@@ -154,37 +156,37 @@ export class IFoodIntegration extends MarketplaceIntegration {
   async getOrders(): Promise<MarketplaceOrder[]> {
     await this.ensureAuthenticated()
     // Em produção, fazer chamada real à API
-    console.log('[iFood] Buscando pedidos...')
+    logger.debug('[iFood] Buscando pedidos...')
     return []
   }
 
   async acceptOrder(orderId: string): Promise<boolean> {
     await this.ensureAuthenticated()
-    console.log(`[iFood] Aceitando pedido ${orderId}...`)
+    logger.debug(`[iFood] Aceitando pedido ${orderId}...`)
     return true
   }
 
   async rejectOrder(orderId: string, reason: string): Promise<boolean> {
     await this.ensureAuthenticated()
-    console.log(`[iFood] Rejeitando pedido ${orderId}: ${reason}`)
+    logger.debug(`[iFood] Rejeitando pedido ${orderId}: ${reason}`)
     return true
   }
 
   async updateOrderStatus(orderId: string, status: string): Promise<boolean> {
     await this.ensureAuthenticated()
-    console.log(`[iFood] Atualizando status ${orderId} -> ${status}`)
+    logger.debug(`[iFood] Atualizando status ${orderId} -> ${status}`)
     return true
   }
 
   async requestDelivery(orderId: string): Promise<MarketplaceDelivery | null> {
     await this.ensureAuthenticated()
-    console.log(`[iFood] Solicitando entregador para ${orderId}`)
+    logger.debug(`[iFood] Solicitando entregador para ${orderId}`)
     return null
   }
 
   async getDeliveryStatus(deliveryId: string): Promise<MarketplaceDelivery | null> {
     await this.ensureAuthenticated()
-    console.log(`[iFood] Verificando status entrega ${deliveryId}`)
+    logger.debug(`[iFood] Verificando status entrega ${deliveryId}`)
     return null
   }
 

@@ -4,8 +4,9 @@
  */
 
 import { createClient } from '@/lib/supabase/server'
+import { logger } from '@/lib/logger'
 import type { MinisiteStore, MinisiteCategory, MinisiteTheme } from './types'
-import { DEFAULT_THEME, parseTheme } from './types'
+import { parseTheme } from './types'
 
 export const MinisiteRepository = {
   /**
@@ -48,7 +49,7 @@ export const MinisiteRepository = {
   async getCategoriesWithProducts(storeId: string): Promise<MinisiteCategory[]> {
     const supabase = await createClient()
 
-    console.log('[getCategoriesWithProducts] storeId:', storeId)
+    logger.debug('[MinisiteRepository.getCategoriesWithProducts] started', { storeId })
 
     const [categoriesRes, productsRes] = await Promise.all([
       supabase
@@ -64,13 +65,22 @@ export const MinisiteRepository = {
         .order('name'),
     ])
 
-    console.log('[getCategoriesWithProducts] categoriesRes:', categoriesRes.error?.message, categoriesRes.data?.length)
-    console.log('[getCategoriesWithProducts] productsRes:', productsRes.error?.message, productsRes.data?.length)
+    logger.debug('[MinisiteRepository.getCategoriesWithProducts] queries finished', {
+      storeId,
+      categoriesError: categoriesRes.error?.message,
+      categoriesCount: categoriesRes.data?.length,
+      productsError: productsRes.error?.message,
+      productsCount: productsRes.data?.length,
+    })
 
     const categories = categoriesRes.data || []
     const products = productsRes.data || []
 
-    console.log('[getCategoriesWithProducts] categories:', categories.length, 'products:', products.length)
+    logger.debug('[MinisiteRepository.getCategoriesWithProducts] mapping', {
+      storeId,
+      categoriesCount: categories.length,
+      productsCount: products.length,
+    })
 
     type CategoryRow = { id: string; name: string; color: string | null }
     type ProductRow = { id: string; name: string; description: string | null; base_price: number; image_url: string | null; is_active: boolean; category_id: string }
@@ -99,9 +109,11 @@ export const MinisiteRepository = {
    */
   async updateTheme(storeId: string, theme: MinisiteTheme): Promise<boolean> {
     const supabase = await createClient()
-    
-    console.log('[MinisiteRepository.updateTheme] storeId:', storeId)
-    console.log('[MinisiteRepository.updateTheme] theme:', JSON.stringify(theme))
+
+    logger.debug('[MinisiteRepository.updateTheme] started', {
+      storeId,
+      theme,
+    })
     
     const { data, error } = await supabase
       .from('stores')
@@ -109,15 +121,22 @@ export const MinisiteRepository = {
       .eq('id', storeId)
       .select('id, menu_theme')
 
-    console.log('[MinisiteRepository.updateTheme] result:', data, error?.message)
+    logger.debug('[MinisiteRepository.updateTheme] finished', {
+      storeId,
+      ok: !error,
+      rows: data?.length,
+      errorMessage: error?.message,
+    })
     
     if (error) {
-      console.error('[MinisiteRepository.updateTheme] ERROR:', error)
+      logger.error('[MinisiteRepository.updateTheme] ERROR', error, { storeId })
       return false
     }
     
     if (!data || data.length === 0) {
-      console.error('[MinisiteRepository.updateTheme] Nenhuma linha atualizada - RLS ou storeId inválido')
+      logger.error('[MinisiteRepository.updateTheme] Nenhuma linha atualizada - RLS ou storeId inválido', undefined, {
+        storeId,
+      })
       return false
     }
 
@@ -138,4 +157,4 @@ export const MinisiteRepository = {
     return !error
   },
 
-  }
+}
