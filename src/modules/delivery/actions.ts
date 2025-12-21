@@ -112,7 +112,17 @@ export async function submitDeliveryRating(
   }
 
   try {
-    const delivery = await getDeliveryByIdWithToken(storeId, deliveryId, token)
+    const supabase = await createClient()
+
+    // Verificar se delivery existe e não foi avaliada
+    const { data: delivery } = await supabase
+      .from('deliveries')
+      .select('rated_at')
+      .eq('store_id', storeId)
+      .eq('id', deliveryId)
+      .eq('access_token', token)
+      .maybeSingle()
+
     if (!delivery) {
       return { success: false, error: 'Link inválido ou expirado' }
     }
@@ -121,15 +131,21 @@ export async function submitDeliveryRating(
       return { success: false, error: 'Entrega já foi avaliada' }
     }
 
-    const ok = await saveDeliveryRatingByToken({
-      storeId,
-      deliveryId,
-      token,
-      rating,
-      comment,
-    })
+    // Salvar avaliação
+    const { error } = await supabase
+      .from('deliveries')
+      .update({
+        driver_rating: rating,
+        rating_comment: comment,
+        rated_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('store_id', storeId)
+      .eq('id', deliveryId)
+      .eq('access_token', token)
 
-    if (!ok) {
+    if (error) {
+      console.error('submitDeliveryRating error', error)
       return { success: false, error: 'Falha ao salvar avaliação' }
     }
 
@@ -241,13 +257,31 @@ export async function validateDeliveryToken(
   }
 
   try {
-    const delivery = await getDeliveryByIdWithToken(storeId, deliveryId, token)
-    
-    if (!delivery) {
+    const supabase = await createClient()
+
+    const { data, error } = await supabase
+      .from('deliveries')
+      .select(`
+        store_id,
+        id,
+        access_token,
+        status,
+        driver_name,
+        driver_rating,
+        rated_at,
+        customer_confirmed_at,
+        order:orders(order_code, customer_name)
+      `)
+      .eq('store_id', storeId)
+      .eq('id', deliveryId)
+      .eq('access_token', token)
+      .maybeSingle()
+
+    if (error || !data) {
       return { valid: false, error: 'Link inválido ou expirado' }
     }
 
-    return { valid: true, delivery }
+    return { valid: true, delivery: data as unknown as DeliveryWithToken }
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Erro ao validar token'
     return { valid: false, error: message }

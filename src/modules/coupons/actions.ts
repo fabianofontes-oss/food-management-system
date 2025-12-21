@@ -1,5 +1,6 @@
 'use server'
 
+import { createClient } from '@/lib/supabase/server'
 import type { Coupon, CouponType, CouponValidationResult } from './types'
 import {
   createCouponRepository,
@@ -7,7 +8,6 @@ import {
   getCouponsRepository,
   incrementCouponUsageRepository,
   updateCouponRepository,
-  validateCouponRepository,
 } from './repository'
 
 export async function validateCoupon(
@@ -16,7 +16,24 @@ export async function validateCoupon(
   subtotal: number
 ): Promise<CouponValidationResult> {
   try {
-    return await validateCouponRepository(storeId, code, subtotal)
+    const supabase = await createClient()
+
+    // Call the database function for validation
+    const { data, error } = await supabase.rpc('validate_coupon', {
+      p_store_id: storeId,
+      p_code: code.toUpperCase(),
+      p_subtotal: subtotal,
+    })
+
+    if (error) {
+      console.error('Error validating coupon:', error)
+      return {
+        valid: false,
+        reason: 'Erro ao validar cupom',
+      }
+    }
+
+    return data as CouponValidationResult
   } catch (err) {
     console.error('Exception validating coupon:', err)
     return {

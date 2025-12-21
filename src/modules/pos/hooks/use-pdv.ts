@@ -175,16 +175,17 @@ export function usePDV({ storeId }: UsePDVProps) {
 
       if (error) throw error
 
-      for (const item of cart) {
-        await supabase.from('order_items').insert({
-          order_id: order.id,
-          product_id: item.id,
-          quantity: item.quantity,
-          unit_price: item.price,
-          total_price: item.price * item.quantity,
-          notes: item.obs || null
-        })
-      }
+      // Batch insert de itens do pedido
+      const orderItems = cart.map(item => ({
+        order_id: order.id,
+        product_id: item.id,
+        quantity: item.quantity,
+        unit_price: item.price,
+        total_price: item.price * item.quantity,
+        notes: item.obs || null
+      }))
+      
+      await supabase.from('order_items').insert(orderItems)
 
       setLastOrderId(order.id)
       setSuccess(true)

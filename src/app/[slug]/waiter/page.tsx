@@ -685,25 +685,28 @@ export default function WaiterAppPage() {
         .eq('status', 'open')
         .single()
 
-      // Atualizar status dos pedidos para completed
-      for (const order of tableOrders) {
-        await supabase.from('orders').update({ 
-          status: 'completed',
-          payment_method: selectedPayment,
-          payment_status: 'paid'
-        }).eq('id', order.id)
+      // Atualizar status dos pedidos para completed (batch)
+      const orderIds = tableOrders.map(o => o.id)
+      await supabase.from('orders').update({ 
+        status: 'completed',
+        payment_method: selectedPayment,
+        payment_status: 'paid'
+      }).in('id', orderIds)
 
-        // Registrar no caixa (cash_movements)
-        await supabase.from('cash_movements').insert({
-          store_id: storeId,
-          register_id: openRegister?.id || null,
-          type: 'sale',
-          amount: order.total_amount,
-          description: `Mesa ${selectedTable.number} - Pedido #${order.order_number || order.id.slice(0,6)}`,
-          payment_method: selectedPayment,
-          order_id: order.id,
-          created_by_name: waiterName
-        })
+      // Registrar no caixa (cash_movements) - batch insert
+      const cashMovements = tableOrders.map(order => ({
+        store_id: storeId,
+        register_id: openRegister?.id || null,
+        type: 'sale',
+        amount: order.total_amount,
+        description: `Mesa ${selectedTable.number} - Pedido #${order.order_number || order.id.slice(0,6)}`,
+        payment_method: selectedPayment,
+        order_id: order.id,
+        created_by_name: waiterName
+      }))
+      
+      if (cashMovements.length > 0) {
+        await supabase.from('cash_movements').insert(cashMovements)
       }
 
       // Liberar mesa

@@ -1,11 +1,9 @@
 // Módulo Delivery (Logística Interna)
-// Vertical Slice: types, repository, actions
+// Vertical Slice: types, actions
+// Repository não é exportado para evitar importação de código server-side em client components
 
 // Types
 export * from './types'
 
-// Repository (Data Layer)
-export * from './repository'
-
-// Actions (Server Actions)
+// Actions (Server Actions) - Apenas estas devem ser importadas em client components
 export * from './actions'
