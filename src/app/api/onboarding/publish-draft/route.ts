@@ -1,3 +1,8 @@
+/**
+ * @deprecated Esta API é legada. Use /api/onboarding/store/publish em vez disso.
+ * TODO: Remover em v2.0 após migração completa
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { draftStoreRepository } from '@/modules/draft-store/repository';
