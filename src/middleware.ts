@@ -6,7 +6,7 @@ const RESERVED_SLUGS = new Set([
   'app', 'admin', 'api', 'www', 'meu', 'conta', 'login', 'signin', 'signup', 'register',
   'checkout', 'cart', 'pagamento', 'payment', 'billing', 'static', 'assets', 'cdn',
   'docs', 'blog', 'suporte', 'help', 'robots', 'sitemap', 'status', 'store', 'shop', 'loja',
-  'driver', 'entregou', 'pensou', 'test', 'demo', 'staging', 'dev', 'preview'
+  'driver', 'entregou', 'pensou', 'test', 'demo', 'staging', 'dev', 'preview', 'marketplace'
 ])
 
 function stripPort(host: string): string {
@@ -36,10 +36,38 @@ export async function middleware(request: NextRequest) {
   const host = stripPort(request.headers.get('host') || '')
 
   // =====================================================
+  // REDIRECTS PERMANENTES
+  // =====================================================
+
+  // pediufood.com.br → pediufood.com (domínio canônico)
+  if (host === 'pediufood.com.br' || host === 'www.pediufood.com.br') {
+    return NextResponse.redirect(
+      new URL(request.nextUrl.pathname + request.nextUrl.search, 'https://pediufood.com'),
+      308 // Permanent redirect
+    )
+  }
+
+  // pensou.food → pediufood.com/marketplace
+  if (host === 'pensou.food' || host === 'www.pensou.food') {
+    return NextResponse.redirect(
+      new URL('/marketplace', 'https://pediufood.com'),
+      308
+    )
+  }
+
+  // =====================================================
   // ROTEAMENTO POR HOST
   // =====================================================
 
-  // admin.pediu.food → /admin
+  // pediufood.com → Landing + Marketplace + Blog
+  if (host === 'pediufood.com' || host === 'www.pediufood.com') {
+    // Rotas públicas do marketplace
+    // /marketplace, /blog, /sobre, etc → passthrough
+    // /[slug] → cardápio público (URL alternativa)
+    return await updateSession(request)
+  }
+
+  // admin.pediu.food → /admin (Super Admin)
   if (host === 'admin.pediu.food') {
     if (url.pathname === '/') {
       url.pathname = '/admin'
@@ -52,22 +80,34 @@ export async function middleware(request: NextRequest) {
     return await updateSession(request)
   }
 
-  // app.pediu.food → passthrough (dashboard principal)
+  // app.pediu.food → Dashboard principal (multi-loja)
   if (host === 'app.pediu.food') {
     return await updateSession(request)
   }
 
-  // *.pediu.food → /s/{slug} (cardápio público da loja)
+  // *.pediu.food → Cardápio white-label da loja
   if (isSubdomain(host, 'pediu.food')) {
     const sub = getSubdomain(host, 'pediu.food')
     if (sub && !RESERVED_SLUGS.has(sub)) {
+      // Rewrite para /s/{slug} internamente
       url.pathname = `/s/${sub}${url.pathname}`
       return NextResponse.rewrite(url)
     }
     return await updateSession(request)
   }
 
-  // driver.entregou.food → /driver
+  // *.entregou.food → Perfil público do entregador
+  if (isSubdomain(host, 'entregou.food')) {
+    const driverSlug = getSubdomain(host, 'entregou.food')
+    if (driverSlug && !RESERVED_SLUGS.has(driverSlug)) {
+      // Rewrite para /motorista-publico/{slug}
+      url.pathname = `/motorista-publico/${driverSlug}${url.pathname}`
+      return NextResponse.rewrite(url)
+    }
+    return await updateSession(request)
+  }
+
+  // driver.entregou.food → Dashboard global de motoristas
   if (host === 'driver.entregou.food') {
     if (url.pathname === '/') {
       url.pathname = '/driver/dashboard'
@@ -80,24 +120,18 @@ export async function middleware(request: NextRequest) {
     return await updateSession(request)
   }
 
-  // entregou.food → passthrough
-  if (host === 'entregou.food') {
+  // entregou.food (root) → Landing de entregadores
+  if (host === 'entregou.food' || host === 'www.entregou.food') {
+    // Landing para motoristas se cadastrarem
     return await updateSession(request)
   }
 
-  // pensou.food → passthrough (futuro: /discover)
-  if (host === 'pensou.food') {
-    // Opcional: rewrite para /discover quando existir
-    // if (url.pathname === '/') {
-    //   url.pathname = '/discover'
-    //   return NextResponse.rewrite(url)
-    // }
-    return await updateSession(request)
-  }
-
-  // pediu.food (root) → passthrough
-  if (host === 'pediu.food') {
-    return await updateSession(request)
+  // pediu.food (root) → Redirect para pediufood.com
+  if (host === 'pediu.food' || host === 'www.pediu.food') {
+    return NextResponse.redirect(
+      new URL(request.nextUrl.pathname + request.nextUrl.search, 'https://pediufood.com'),
+      308
+    )
   }
 
   // =====================================================
