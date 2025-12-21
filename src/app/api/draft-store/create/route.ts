@@ -1,27 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createDraftStore } from '@/modules/draft-store';
-import { checkRateLimit, rateLimitConfigs, getClientIdentifier } from '@/lib/rate-limit';
+import { rateLimit } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
   try {
     // Rate limiting
-    const clientId = getClientIdentifier(req);
-    const rateLimitResult = checkRateLimit(
-      `draft-store:${clientId}`,
-      rateLimitConfigs.draftStore
-    );
-
+    const rateLimitResult = await rateLimit(req, 'auth');
     if (!rateLimitResult.success) {
-      return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Muitas tentativas. Tente novamente em 1 hora.',
-          resetAt: rateLimitResult.resetAt,
-        },
-        { status: 429 }
-      );
+      return rateLimitResult.response;
     }
 
     const body = await req.json();

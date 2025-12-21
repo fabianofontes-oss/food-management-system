@@ -25,7 +25,7 @@ export function getStripeClient(): Stripe | null {
 
   try {
     stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-      apiVersion: '2024-11-20.acacia',
+      apiVersion: '2025-12-15.clover',
       typescript: true,
     })
     
@@ -182,7 +182,7 @@ export async function getSubscription(subscriptionId: string): Promise<Stripe.Su
       status: 'active',
       current_period_end: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60,
       cancel_at_period_end: false,
-    } as Stripe.Subscription
+    } as unknown as Stripe.Subscription
   }
 
   try {
