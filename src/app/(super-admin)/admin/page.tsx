@@ -10,9 +10,19 @@ import {
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { getTenantsCount, getStoresCount, getRecentStores, type StoreWithTenant, createClient } from '@/lib/superadmin/queries'
 import { resetDemoStoreAction } from '@/lib/demo/actions'
 import { toast } from 'sonner'
+
+type StoreWithTenant = {
+  id: string
+  name: string
+  slug: string
+  created_at: string
+  is_active: boolean
+  tenant: {
+    name: string
+  }
+}
 
 interface DashboardStats {
   tenantsCount: number
@@ -62,85 +72,22 @@ export default function SuperAdminDashboard() {
     async function loadData() {
       try {
         setLoading(true)
-        const supabase = createClient()
         
-        // Carregar dados básicos
-        const [tenantsCount, storesCount, recent] = await Promise.all([
-          getTenantsCount(),
-          getStoresCount(),
-          getRecentStores(10),
+        // Buscar estatísticas via API (usa admin client)
+        const [statsRes, storesRes] = await Promise.all([
+          fetch('/api/admin/stats'),
+          fetch('/api/admin/stores?limit=10')
         ])
         
-        setRecentStores(recent)
-        
-        // Buscar estatísticas avançadas dos tenants
-        const { data: tenantsData } = await supabase
-          .from('tenants')
-          .select('id, status, created_at')
-        
-        const allTenants = tenantsData || []
-        const now = new Date()
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-        
-        const activeCount = allTenants.filter((t: any) => t.status === 'active').length
-        const trialCount = allTenants.filter((t: any) => t.status === 'trial').length
-        const suspendedCount = allTenants.filter((t: any) => t.status === 'suspended').length
-        const newThisMonth = allTenants.filter((t: any) => new Date(t.created_at) >= startOfMonth).length
-        
-        // Buscar estatísticas de faturas
-        let paidCount = 0
-        let overdueCount = 0
-        let mrrCents = 0
-        let pendingCents = 0
-        
-        try {
-          const { data: invoicesData } = await supabase
-            .from('invoices')
-            .select('status, amount_cents')
-          
-          if (invoicesData) {
-            paidCount = invoicesData.filter((i: any) => i.status === 'paid').length
-            overdueCount = invoicesData.filter((i: any) => i.status === 'overdue').length
-            mrrCents = invoicesData.filter((i: any) => i.status === 'paid').reduce((sum: number, i: any) => sum + (i.amount_cents || 0), 0)
-            pendingCents = invoicesData.filter((i: any) => i.status === 'pending' || i.status === 'overdue').reduce((sum: number, i: any) => sum + (i.amount_cents || 0), 0)
-          }
-        } catch (e) {
-          // Tabela de invoices pode não existir ainda
+        if (!statsRes.ok || !storesRes.ok) {
+          throw new Error('Erro ao carregar dados')
         }
         
-        // Buscar pedidos de hoje
-        let ordersToday = 0
-        let revenueToday = 0
+        const statsData = await statsRes.json()
+        const storesData = await storesRes.json()
         
-        try {
-          const today = new Date().toISOString().slice(0, 10)
-          const { data: ordersData } = await supabase
-            .from('orders')
-            .select('id, total_amount')
-            .gte('created_at', today)
-          
-          if (ordersData) {
-            ordersToday = ordersData.length
-            revenueToday = ordersData.reduce((sum: number, o: any) => sum + (o.total_amount || 0), 0)
-          }
-        } catch (e) {
-          // Ignorar erros
-        }
-        
-        setStats({
-          tenantsCount,
-          storesCount,
-          activeTenantsCount: activeCount,
-          trialTenantsCount: trialCount,
-          suspendedTenantsCount: suspendedCount,
-          mrrCents,
-          pendingInvoicesCents: pendingCents,
-          paidInvoicesCount: paidCount,
-          overdueInvoicesCount: overdueCount,
-          newTenantsThisMonth: newThisMonth,
-          ordersToday,
-          revenueToday
-        })
+        setStats(statsData)
+        setRecentStores(storesData.stores || [])
       } catch (err) {
         console.error('Erro ao carregar dados:', err)
         setError('Erro ao carregar dados do dashboard')
