@@ -1,60 +1,86 @@
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { HistoryTab } from '@/modules/driver'
 import type { Delivery } from '@/modules/driver/types'
+import { createClient } from '@/lib/supabase/client'
+import { Loader2 } from 'lucide-react'
 
-export default async function HistoricoPage({ params }: { params: { slug: string } }) {
-  const supabase = await createClient()
-
-  // 1. Verificar autenticação
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect(`/${params.slug}/login`)
+interface DriverContext {
+  driver: {
+    id: string
+    name: string
+    phone: string
+    commission_percent: number
   }
-
-  // 2. Buscar loja pelo slug
-  const { data: store } = await supabase
-    .from('stores')
-    .select('id')
-    .eq('slug', params.slug)
-    .single()
-
-  if (!store) {
-    redirect(`/${params.slug}/login`)
+  store: {
+    id: string
+    name: string
+    slug: string
   }
+}
 
-  // 3. Buscar entregas do motorista
-  const { data: deliveries } = await supabase
-    .from('deliveries')
-    .select(`
-      *,
-      order:orders(
-        order_code,
-        customer_name,
-        total_amount
-      )
-    `)
-    .eq('driver_id', user.id)
-    .eq('store_id', store.id)
-    .order('created_at', { ascending: false })
+export default function HistoricoPage({ params }: { params: { slug: string } }) {
+  const router = useRouter()
+  const [loading, setLoading] = useState(true)
+  const [deliveries, setDeliveries] = useState<Delivery[]>([])
+  const [commissionPercent, setCommissionPercent] = useState(10)
 
-  // 4. Buscar perfil do motorista para comissão
-  const { data: profile } = await supabase
-    .from('drivers')
-    .select('commission_percent')
-    .eq('user_id', user.id)
-    .eq('store_id', store.id)
-    .single()
+  useEffect(() => {
+    async function loadData() {
+      // 1. Verificar autenticação local (localStorage)
+      const driverDataStr = localStorage.getItem(`driver_${params.slug}`)
+      if (!driverDataStr) {
+        router.push(`/${params.slug}/motorista`)
+        return
+      }
 
-  // Fallback seguro
-  const safeDeliveries = (deliveries || []) as Delivery[]
-  const commissionPercent = profile?.commission_percent || 10
+      try {
+        const driverContext: DriverContext = JSON.parse(driverDataStr)
+        const supabase = createClient()
+
+        // 2. Buscar entregas do motorista
+        const { data: deliveriesData } = await supabase
+          .from('deliveries')
+          .select(`
+            *,
+            order:orders(
+              order_code,
+              customer_name,
+              total_amount
+            )
+          `)
+          .eq('driver_phone', driverContext.driver.phone.replace(/\D/g, ''))
+          .eq('store_id', driverContext.store.id)
+          .order('created_at', { ascending: false })
+
+        setDeliveries((deliveriesData || []) as Delivery[])
+        setCommissionPercent(driverContext.driver.commission_percent || 10)
+      } catch (error) {
+        console.error('Erro ao carregar dados:', error)
+        router.push(`/${params.slug}/motorista`)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadData()
+  }, [params.slug, router])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    )
+  }
 
   return (
     <div className="container mx-auto py-6">
       <h1 className="text-2xl font-bold mb-6">Histórico de Entregas</h1>
       <HistoryTab 
-        deliveries={safeDeliveries} 
+        deliveries={deliveries} 
         commissionPercent={commissionPercent} 
       />
     </div>

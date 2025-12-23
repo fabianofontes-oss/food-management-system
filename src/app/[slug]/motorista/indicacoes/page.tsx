@@ -1,96 +1,126 @@
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
-import { headers } from 'next/headers'
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { AffiliatesTab } from '@/modules/driver'
 import type { ReferralData } from '@/modules/driver/types'
+import { createClient } from '@/lib/supabase/client'
+import { Loader2 } from 'lucide-react'
 
-export default async function IndicacoesPage({ params }: { params: { slug: string } }) {
-  const supabase = await createClient()
-
-  // 1. Verificar autenticação
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect(`/${params.slug}/login`)
+interface DriverContext {
+  driver: {
+    id: string
+    name: string
+    phone: string
+    commission_percent: number
   }
-
-  // 2. Buscar loja pelo slug
-  const { data: store } = await supabase
-    .from('stores')
-    .select('id')
-    .eq('slug', params.slug)
-    .single()
-
-  if (!store) {
-    redirect(`/${params.slug}/login`)
+  store: {
+    id: string
+    name: string
+    slug: string
   }
+}
 
-  // 3. Buscar partner do motorista
-  const { data: partner } = await supabase
-    .from('referral_partners')
-    .select('*')
-    .eq('user_id', user.id)
-    .eq('store_id', store.id)
-    .eq('is_active', true)
-    .maybeSingle()
+export default function IndicacoesPage({ params }: { params: { slug: string } }) {
+  const router = useRouter()
+  const [loading, setLoading] = useState(true)
+  const [referralData, setReferralData] = useState<ReferralData | null>(null)
+  const [baseUrl, setBaseUrl] = useState('')
 
-  // 4. Se tiver partner, buscar códigos e stats
-  let codes: Array<{ code: string; is_active: boolean }> = []
-  let referralsCount = 0
-  let pendingCommission = 0
-  let availableCommission = 0
+  useEffect(() => {
+    async function loadData() {
+      // 1. Verificar autenticação local (localStorage)
+      const driverDataStr = localStorage.getItem(`driver_${params.slug}`)
+      if (!driverDataStr) {
+        router.push(`/${params.slug}/motorista`)
+        return
+      }
 
-  if (partner) {
-    // Buscar códigos
-    const { data: codesData } = await supabase
-      .from('referral_codes')
-      .select('code, is_active')
-      .eq('partner_id', partner.id)
+      try {
+        const driverContext: DriverContext = JSON.parse(driverDataStr)
+        const supabase = createClient()
 
-    codes = codesData || []
+        // 2. Determinar base URL
+        const protocol = window.location.protocol
+        const host = window.location.host
+        setBaseUrl(`${protocol}//${host}`)
 
-    // Contar referrals
-    const { count } = await supabase
-      .from('tenant_referrals')
-      .select('*', { count: 'exact', head: true })
-      .eq('partner_id', partner.id)
+        // 3. Buscar partner do motorista (se existir user_id)
+        if (driverContext.driver.id) {
+          const { data: partner } = await supabase
+            .from('referral_partners')
+            .select('*')
+            .eq('user_id', driverContext.driver.id)
+            .eq('store_id', driverContext.store.id)
+            .eq('is_active', true)
+            .maybeSingle()
 
-    referralsCount = count || 0
+          if (partner) {
+            // Buscar códigos
+            const { data: codesData } = await supabase
+              .from('referral_codes')
+              .select('code, is_active')
+              .eq('partner_id', partner.id)
 
-    // Calcular comissões
-    const { data: sales } = await supabase
-      .from('referral_sales')
-      .select('commission_amount, status')
-      .eq('partner_id', partner.id)
+            const codes = codesData || []
 
-    if (sales) {
-      pendingCommission = sales
-        .filter((s: any) => s.status === 'PENDING')
-        .reduce((acc: number, s: any) => acc + (s.commission_amount || 0), 0)
-      
-      availableCommission = sales
-        .filter((s: any) => s.status === 'AVAILABLE')
-        .reduce((acc: number, s: any) => acc + (s.commission_amount || 0), 0)
+            // Contar referrals
+            const { count } = await supabase
+              .from('tenant_referrals')
+              .select('*', { count: 'exact', head: true })
+              .eq('partner_id', partner.id)
+
+            const referralsCount = count || 0
+
+            // Calcular comissões
+            const { data: sales } = await supabase
+              .from('referral_sales')
+              .select('commission_amount, status')
+              .eq('partner_id', partner.id)
+
+            let pendingCommission = 0
+            let availableCommission = 0
+
+            if (sales) {
+              pendingCommission = sales
+                .filter((s: any) => s.status === 'PENDING')
+                .reduce((acc: number, s: any) => acc + (s.commission_amount || 0), 0)
+              
+              availableCommission = sales
+                .filter((s: any) => s.status === 'AVAILABLE')
+                .reduce((acc: number, s: any) => acc + (s.commission_amount || 0), 0)
+            }
+
+            setReferralData({
+              partner: {
+                id: partner.id,
+                display_name: partner.display_name,
+                is_active: partner.is_active,
+              },
+              codes,
+              referralsCount,
+              pendingCommission,
+              availableCommission,
+            })
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao carregar dados:', error)
+      } finally {
+        setLoading(false)
+      }
     }
+
+    loadData()
+  }, [params.slug, router])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    )
   }
-
-  // 5. Montar dados de referral
-  const referralData: ReferralData | null = partner ? {
-    partner: {
-      id: partner.id,
-      display_name: partner.display_name,
-      is_active: partner.is_active,
-    },
-    codes,
-    referralsCount,
-    pendingCommission,
-    availableCommission,
-  } : null
-
-  // 6. Determinar base URL
-  const headersList = await headers()
-  const host = headersList.get('host') || 'pediu.food'
-  const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https'
-  const baseUrl = `${protocol}://${host}`
 
   return (
     <div className="container mx-auto py-6">
