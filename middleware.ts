@@ -26,10 +26,12 @@ function getSubdomainSlug(host: string | null): string | null {
   // pediu.food = URLs curtas para lojas (slug.pediu.food)
   // pediufood.com = Site principal (inglês)
   // pediufood.com.br = Site em português
+  // entregou.food = Plataforma de motoristas
   const baseDomains = [
     'pediu.food',           // Lojas dos clientes
     'pediufood.com',        // Principal
-    'pediufood.com.br'      // PT-BR
+    'pediufood.com.br',     // PT-BR
+    'entregou.food'         // Motoristas
   ]
 
   // Localhost puro: não tenta resolver subdomínio
@@ -59,7 +61,7 @@ function getSubdomainSlug(host: string | null): string | null {
       if (!sub) continue
 
       // Evitar subdomínios reservados
-      const reserved = new Set(['www', 'admin', 'app', 'api'])
+      const reserved = new Set(['www', 'admin', 'app', 'api', 'driver'])
       if (reserved.has(sub)) continue
       
       return sub
@@ -75,6 +77,44 @@ export async function middleware(request: NextRequest) {
       headers: request.headers,
     },
   })
+
+  const host = request.headers.get('host')
+  const hostname = host?.split(':')[0] || ''
+  const pathname = request.nextUrl.pathname
+
+  // === ROTEAMENTO ESPECIAL PARA entregou.food ===
+  
+  // driver.entregou.food → /driver/dashboard
+  if (hostname === 'driver.entregou.food') {
+    const url = request.nextUrl.clone()
+    if (pathname === '/') {
+      url.pathname = '/driver/dashboard'
+      return NextResponse.rewrite(url)
+    }
+    // Outras rotas passam direto
+  }
+
+  // entregou.food (root) → /para-motoristas
+  if (hostname === 'entregou.food' || hostname === 'www.entregou.food') {
+    const url = request.nextUrl.clone()
+    if (pathname === '/') {
+      url.pathname = '/para-motoristas'
+      return NextResponse.rewrite(url)
+    }
+    // Outras rotas passam direto
+  }
+
+  // *.entregou.food (wildcard) → /motorista-publico/[slug]
+  if (hostname.endsWith('.entregou.food') && hostname !== 'www.entregou.food' && hostname !== 'driver.entregou.food') {
+    const driverSlug = hostname.slice(0, -'.entregou.food'.length)
+    if (driverSlug && !['www', 'admin', 'app', 'api', 'driver'].includes(driverSlug)) {
+      const url = request.nextUrl.clone()
+      url.pathname = `/motorista-publico/${driverSlug}${pathname === '/' ? '' : pathname}`
+      return NextResponse.rewrite(url)
+    }
+  }
+
+  // === ROTEAMENTO PADRÃO PARA OUTROS DOMÍNIOS ===
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -124,10 +164,8 @@ export async function middleware(request: NextRequest) {
 
   // Suporte a subdomínio: {slug}.pediu.food => /{slug}
   // (Não reescreve /api, /_next, assets e nem /admin)
-  const host = request.headers.get('host')
   const slugFromSubdomain = getSubdomainSlug(host)
 
-  let pathname = request.nextUrl.pathname
   const isExcludedPath =
     pathname.startsWith('/api') ||
     pathname.startsWith('/_next') ||
@@ -136,15 +174,16 @@ export async function middleware(request: NextRequest) {
 
   // Se estiver na raiz do subdomínio (/) ou em rotas públicas do minisite,
   // reescreve para /{slug}/...
+  let currentPathname = pathname
   if (slugFromSubdomain && !isExcludedPath) {
     const url = request.nextUrl.clone()
     url.pathname = `/${slugFromSubdomain}${pathname === '/' ? '' : pathname}`
     response = NextResponse.rewrite(url)
-    pathname = url.pathname
+    currentPathname = url.pathname
   }
 
   const { data: { session } } = await supabase.auth.getSession()
-  const isPublicRoute = PUBLIC_ROUTES.some(route => pathname === route || pathname.startsWith(route))
+  const isPublicRoute = PUBLIC_ROUTES.some(route => currentPathname === route || currentPathname.startsWith(route))
   
   // Check if it's a public store menu route (e.g., /store-slug, /store-slug/cart, /store-slug/checkout)
   const isPublicStoreRoute = pathname.match(/^\/[^\/]+\/(cart|checkout|order)/) || 
@@ -156,7 +195,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Protect /admin/* routes
-  if (pathname.startsWith('/admin')) {
+  if (currentPathname.startsWith('/admin')) {
     if (!session) {
       return NextResponse.redirect(new URL('/login', request.url))
     }
@@ -171,7 +210,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Protect /:slug/dashboard/* routes
-  const dashboardMatch = pathname.match(/^\/([^\/]+)\/dashboard/)
+  const dashboardMatch = currentPathname.match(/^\/([^\/]+)\/dashboard/)
   if (dashboardMatch) {
     if (!session) {
       return NextResponse.redirect(new URL('/login', request.url))
