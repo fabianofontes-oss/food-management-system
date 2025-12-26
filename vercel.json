@@ -35,6 +35,36 @@
         }
       ],
       "destination": "/:subdomain/:path*"
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "(?<subdomain>[^.]+)\\.pediufood\\.com"
+        }
+      ],
+      "destination": "/:subdomain/:path*"
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "(?<subdomain>[^.]+)\\.pediufood\\.com\\.br"
+        }
+      ],
+      "destination": "/:subdomain/:path*"
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "(?<subdomain>[^.]+)\\.entregou\\.food"
+        }
+      ],
+      "destination": "/motorista-publico/:subdomain/:path*"
     }
   ]
 }
