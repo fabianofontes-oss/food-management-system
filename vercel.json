@@ -34,7 +34,7 @@
           "value": "(?<subdomain>[^.]+)\\.pediu\\.food"
         }
       ],
-      "destination": "/s/:subdomain/:path*"
+      "destination": "/:subdomain/:path*"
     }
   ]
 }
