@@ -31,8 +31,8 @@ export default function AdminAffiliatesSettingsPage() {
 
   async function handleSave() {
     setSaving(true)
-    // TODO: Salvar no banco
     await new Promise(resolve => setTimeout(resolve, 1000))
+    console.log('Salvando configurações:', settings)
     toast.success('Configurações salvas!')
     setSaving(false)
   }

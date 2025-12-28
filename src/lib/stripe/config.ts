@@ -18,10 +18,10 @@ export interface StripePlan {
 /**
  * Busca planos do banco de dados
  * 
- * TODO: Após criar produtos no Stripe Dashboard:
- * 1. Criar produto "Básico" → copiar price_id
- * 2. Criar produto "Pro" → copiar price_id
- * 3. Criar produto "Enterprise" → copiar price_id
+ * NOTA: Configure os price_ids do Stripe no banco de dados:
+ * 1. Criar produto "Básico" no Stripe Dashboard → copiar price_id
+ * 2. Criar produto "Pro" no Stripe Dashboard → copiar price_id
+ * 3. Criar produto "Enterprise" no Stripe Dashboard → copiar price_id
  * 4. Executar SQL:
  *    UPDATE subscription_plans SET stripe_price_id = 'price_xxx' WHERE id = 'basic';
  *    UPDATE subscription_plans SET stripe_price_id = 'price_xxx' WHERE id = 'pro';
