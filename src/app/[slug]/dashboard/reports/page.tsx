@@ -18,6 +18,25 @@ import {
   AreaChart, Area, ComposedChart
 } from 'recharts'
 
+interface OrderReport {
+  id: string
+  total_amount: number
+  payment_method: string
+  payment_status: string
+  status: string
+  created_at: string
+  customer_phone?: string
+  cancellation_reason?: string
+}
+
+interface OrderItemReport {
+  product_id: string
+  quantity: number
+  unit_price: number
+  order_id: string
+  products: { name: string } | null
+}
+
 interface ReportMetrics {
   total_orders: number
   total_revenue: number
