@@ -60,7 +60,7 @@ export async function loadTenantsAction() {
     console.error('Erro ao carregar tenants:', error)
     return {
       success: false,
-      error: error.message || 'Erro ao carregar tenants'
+      error: error instanceof Error ? error.message : 'Erro ao carregar tenants'
     }
   }
 }
@@ -111,7 +111,7 @@ export async function createTenantAction(data: TenantFormData) {
     console.error('Erro ao criar tenant:', error)
     return {
       success: false,
-      error: error.message || 'Erro ao criar tenant'
+      error: error instanceof Error ? error.message : 'Erro ao criar tenant'
     }
   }
 }
@@ -162,7 +162,7 @@ export async function updateTenantAction(id: string, data: TenantFormData) {
     console.error('Erro ao atualizar tenant:', error)
     return {
       success: false,
-      error: error.message || 'Erro ao atualizar tenant'
+      error: error instanceof Error ? error.message : 'Erro ao atualizar tenant'
     }
   }
 }
@@ -202,7 +202,7 @@ export async function deleteTenantAction(id: string) {
     console.error('Erro ao deletar tenant:', error)
     return {
       success: false,
-      error: error.message || 'Erro ao deletar tenant. Verifique se não há lojas vinculadas.'
+      error: error instanceof Error ? error.message : 'Erro ao deletar tenant. Verifique se não há lojas vinculadas.'
     }
   }
 }
@@ -244,7 +244,7 @@ export async function changeTenantPlanAction(tenantId: string, planId: string) {
     console.error('Erro ao alterar plano:', error)
     return {
       success: false,
-      error: error.message || 'Erro ao alterar plano do tenant'
+      error: error instanceof Error ? error.message : 'Erro ao alterar plano do tenant'
     }
   }
 }
