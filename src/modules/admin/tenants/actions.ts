@@ -56,7 +56,7 @@ export async function loadTenantsAction() {
       tenants: tenantsWithPlanInfo,
       plans: plans.filter((p: any) => p.is_active)
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Erro ao carregar tenants:', error)
     return {
       success: false,
@@ -107,7 +107,7 @@ export async function createTenantAction(data: TenantFormData) {
     revalidatePath('/admin/tenants')
 
     return { success: true }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Erro ao criar tenant:', error)
     return {
       success: false,
@@ -158,7 +158,7 @@ export async function updateTenantAction(id: string, data: TenantFormData) {
     revalidatePath('/admin/tenants')
 
     return { success: true }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Erro ao atualizar tenant:', error)
     return {
       success: false,
@@ -198,7 +198,7 @@ export async function deleteTenantAction(id: string) {
     revalidatePath('/admin/tenants')
 
     return { success: true }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Erro ao deletar tenant:', error)
     return {
       success: false,
@@ -240,7 +240,7 @@ export async function changeTenantPlanAction(tenantId: string, planId: string) {
     revalidatePath('/admin/tenants')
 
     return { success: true }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Erro ao alterar plano:', error)
     return {
       success: false,

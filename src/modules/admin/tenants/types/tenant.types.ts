@@ -39,10 +39,12 @@ export const INITIAL_FORM_DATA: TenantFormData = {
   notes: ''
 }
 
+import { LucideIcon } from 'lucide-react'
+
 export interface TenantStatusConfig {
   label: string
   color: string
-  icon: any
+  icon: LucideIcon
 }
 
 export const STATUS_CONFIG: Record<string, TenantStatusConfig> = {
