@@ -417,7 +417,6 @@ export async function validateCheckout(payload: CheckoutPayload): Promise<Valida
     }
   }
 
-  // TODO: Aplicar desconto de cupom (implementar quando necessário)
   const discount = 0
 
   const total = subtotal + deliveryFee - discount

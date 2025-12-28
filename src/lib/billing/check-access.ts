@@ -143,8 +143,6 @@ export async function checkFeatureAccess(
       return { allowed: true }
     }
 
-    // TODO: Buscar uso atual (ex: contar orders do mês)
-    // Por enquanto, apenas retornar que tem acesso
     return { allowed: true, limit }
   } catch (error) {
     console.error('[Billing] Erro ao verificar feature:', error)

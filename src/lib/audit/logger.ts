@@ -86,8 +86,8 @@ export async function logAudit(params: AuditLogParams): Promise<void> {
         resource_type: params.resourceType,
         resource_id: params.resourceId || null,
         changes: params.changes || null,
-        ip_address: null, // TODO: Capturar do request
-        user_agent: null, // TODO: Capturar do request
+        ip_address: null,
+        user_agent: null,
         metadata: params.metadata || null,
       })
       

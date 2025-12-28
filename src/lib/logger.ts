@@ -49,8 +49,9 @@ async function sendToSentry(entry: LogEntry): Promise<void> {
   // Sentry deve ser instalado separadamente: npm install @sentry/nextjs
   // Por enquanto, apenas logamos que seria enviado para Sentry
   if (entry.level === 'error' || entry.level === 'warn') {
-    // TODO: Configurar Sentry quando disponível
-    // import('@sentry/nextjs').then(Sentry => Sentry.captureMessage(...))
+    if (typeof window !== 'undefined' && (window as any).Sentry) {
+      (window as any).Sentry.captureMessage(entry.message, entry.level)
+    }
   }
 }
 

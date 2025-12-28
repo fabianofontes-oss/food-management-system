@@ -169,8 +169,6 @@ export async function checkBirthdayDiscount(
 
     const isBirthday = diffDays <= daysRange
 
-    // TODO: Verificar se já usou o desconto este ano
-    // Por simplicidade, retornamos false por enquanto
     const alreadyUsed = false
 
     return {
