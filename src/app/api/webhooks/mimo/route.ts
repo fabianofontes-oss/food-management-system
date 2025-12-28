@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
     }
 
-    const supabase = createClient()
+    const supabase = await createClient()
 
     if (status === 'paid') {
       const { error } = await supabase
