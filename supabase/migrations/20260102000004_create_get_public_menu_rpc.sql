@@ -133,7 +133,13 @@ ON public.modifier_groups
 FOR SELECT
 USING (
   auth.uid() IS NOT NULL
-  AND public.user_has_store_access(store_id)
+  AND EXISTS (
+    SELECT 1
+    FROM public.product_modifier_groups pmg
+    JOIN public.products p ON p.id = pmg.product_id
+    WHERE pmg.group_id = modifier_groups.id
+      AND public.user_has_store_access(p.store_id)
+  )
 );
 
 DROP POLICY IF EXISTS modifier_options_select ON public.modifier_options;
@@ -141,12 +147,13 @@ CREATE POLICY modifier_options_select
 ON public.modifier_options
 FOR SELECT
 USING (
-  EXISTS (
+  auth.uid() IS NOT NULL
+  AND EXISTS (
     SELECT 1
-    FROM public.modifier_groups mg
-    WHERE mg.id = modifier_options.group_id
-      AND auth.uid() IS NOT NULL
-      AND public.user_has_store_access(mg.store_id)
+    FROM public.product_modifier_groups pmg
+    JOIN public.products p ON p.id = pmg.product_id
+    WHERE pmg.group_id = modifier_options.group_id
+      AND public.user_has_store_access(p.store_id)
   )
 );
 

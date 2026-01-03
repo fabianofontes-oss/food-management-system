@@ -32,7 +32,7 @@ AS $$
     FROM public.store_users su
     WHERE su.store_id = p_store_id
       AND su.user_id = auth.uid()
-      AND su.role = ANY(p_roles)
+      AND su.role::text = ANY(p_roles) -- FIX: Convert enum to text for comparison
   );
 $$;
 
