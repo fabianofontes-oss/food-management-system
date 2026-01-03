@@ -1,0 +1,1110 @@
+{
+  "generated_at": "2026-01-03T04:44:56.993Z",
+  "total_routes": 160,
+  "breakdown": {
+    "pages": 116,
+    "api_routes": 38,
+    "layouts": 6
+  },
+  "by_domain": {
+    "marketing_pediufood_com": 6,
+    "admin_pediu_food": 33,
+    "app_pediu_food_auth": 4,
+    "white_label_slug_pediu_food": 1,
+    "driver_profile_slug_entregou_food": 1,
+    "driver_dashboard_entregou_food": 1,
+    "store_dashboard_slug": 37,
+    "api": 37,
+    "orphaned": 37
+  },
+  "routes_by_category": {
+    "marketing": [
+      "/",
+      "/criar-loja",
+      "/",
+      "/marketplace",
+      "/",
+      "/para-motoristas"
+    ],
+    "admin": [
+      "/admin/affiliates",
+      "/admin/affiliates/payouts",
+      "/admin/affiliates/sales",
+      "/admin/affiliates/settings",
+      "/admin/analytics",
+      "/admin/audit",
+      "/admin/automations",
+      "/admin/billing",
+      "/admin/demanda",
+      "/admin/features",
+      "/admin/health/audit",
+      "/admin/health/builder",
+      "/admin/health/database",
+      "/admin/health/files",
+      "/admin/health/images",
+      "/admin/health/monitor",
+      "/admin/health",
+      "/admin/health/pages",
+      "/admin/health/printing",
+      "/admin/health/slugs",
+      "/admin/integrations",
+      "/admin/logs",
+      "/admin",
+      "/admin/partners",
+      "/admin/plans/new",
+      "/admin/plans",
+      "/admin/plans/:planId",
+      "/admin/reports",
+      "/admin/settings",
+      "/admin/stores",
+      "/admin/tenants",
+      "/admin/tickets",
+      "/admin/users"
+    ],
+    "app_auth": [
+      "/login",
+      "/signup",
+      "/onboarding",
+      "/select-store"
+    ],
+    "white_label": [
+      "/s/:slug"
+    ],
+    "driver_profile": [
+      "/motorista-publico/:slug"
+    ],
+    "driver_dashboard": [
+      "/driver/dashboard"
+    ],
+    "store_dashboard": [
+      "/:slug/dashboard/addons",
+      "/:slug/dashboard/afiliados",
+      "/:slug/dashboard/analytics",
+      "/:slug/dashboard/appearance",
+      "/:slug/dashboard/coupons",
+      "/:slug/dashboard/crm",
+      "/:slug/dashboard/custom-orders",
+      "/:slug/dashboard/delivery",
+      "/:slug/dashboard/financial",
+      "/:slug/dashboard/inventory",
+      "/:slug/dashboard/kitchen",
+      "/:slug/dashboard/kits",
+      "/:slug/dashboard",
+      "/:slug/dashboard/marketing",
+      "/:slug/dashboard/onboarding",
+      "/:slug/dashboard/orders",
+      "/:slug/dashboard",
+      "/:slug/dashboard/pos",
+      "/:slug/dashboard/products",
+      "/:slug/dashboard/reports",
+      "/:slug/dashboard/reservations",
+      "/:slug/dashboard/reviews/integrations",
+      "/:slug/dashboard/reviews",
+      "/:slug/dashboard/settings/complete",
+      "/:slug/dashboard/settings/index",
+      "/:slug/dashboard/settings/integrations",
+      "/:slug/dashboard/settings",
+      "/:slug/dashboard/settings/loyalty",
+      "/:slug/dashboard/settings/modules",
+      "/:slug/dashboard/settings/niche",
+      "/:slug/dashboard/settings",
+      "/:slug/dashboard/settings/platforms",
+      "/:slug/dashboard/settings/scheduling",
+      "/:slug/dashboard/settings/store",
+      "/:slug/dashboard/tables",
+      "/:slug/dashboard/team",
+      "/:slug/dashboard/waiters"
+    ],
+    "api": [
+      "/api/admin/audit/fix",
+      "/api/admin/audit/fix-localhost",
+      "/api/admin/audit/run",
+      "/api/admin/demo-setup",
+      "/api/admin/stats",
+      "/api/admin/stores",
+      "/api/admin/tenants",
+      "/api/admin/users",
+      "/api/billing/generate",
+      "/api/cron/billing",
+      "/api/cron/check-pix-payments",
+      "/api/cron/clean-expired-drafts",
+      "/api/draft-store/create",
+      "/api/draft-store/get",
+      "/api/draft-store/update",
+      "/api/health/audit",
+      "/api/health/database",
+      "/api/health/diagnostic",
+      "/api/health/files",
+      "/api/health/fix",
+      "/api/health/pages",
+      "/api/health",
+      "/api/health/status",
+      "/api/integrations/google/callback",
+      "/api/integrations/google/sync",
+      "/api/internal/e2e/seed",
+      "/api/onboarding/complete-signup",
+      "/api/onboarding/publish-draft",
+      "/api/onboarding/reserve-slug",
+      "/api/onboarding/store/prepare",
+      "/api/onboarding/store/publish",
+      "/api/ping",
+      "/api/public/slug/check",
+      "/api/upload/banner",
+      "/api/upload/logo",
+      "/api/webhooks/mercadopago",
+      "/api/webhooks/mimo"
+    ],
+    "orphaned": [
+      {
+        "route": "/reset-password",
+        "file": "/(auth)/reset-password/page.tsx"
+      },
+      {
+        "route": "/update-password",
+        "file": "/(auth)/update-password/page.tsx"
+      },
+      {
+        "route": "/verify-email",
+        "file": "/(auth)/verify-email/page.tsx"
+      },
+      {
+        "route": "/profile",
+        "file": "/(public)/profile/page.tsx"
+      },
+      {
+        "route": "/billing/overdue",
+        "file": "/billing/overdue/page.tsx"
+      },
+      {
+        "route": "/billing/suspended",
+        "file": "/billing/suspended/page.tsx"
+      },
+      {
+        "route": "/billing/trial-expired",
+        "file": "/billing/trial-expired/page.tsx"
+      },
+      {
+        "route": "/cadastro-motorista",
+        "file": "/cadastro-motorista/page.tsx"
+      },
+      {
+        "route": "/choose-url",
+        "file": "/choose-url/page.tsx"
+      },
+      {
+        "route": "/demo-garcom",
+        "file": "/demo-garcom/page.tsx"
+      },
+      {
+        "route": "/mapa-do-site",
+        "file": "/mapa-do-site/page.tsx"
+      },
+      {
+        "route": "/para-garcons",
+        "file": "/para-garcons/page.tsx"
+      },
+      {
+        "route": "/qa",
+        "file": "/qa/page.tsx"
+      },
+      {
+        "route": "/r/:code",
+        "file": "/r/[code]/page.tsx"
+      },
+      {
+        "route": "/setup/:token",
+        "file": "/setup/[token]/page.tsx"
+      },
+      {
+        "route": "/unauthorized",
+        "file": "/unauthorized/page.tsx"
+      },
+      {
+        "route": "/:slug/avaliar/:deliveryId",
+        "file": "/[slug]/avaliar/[deliveryId]/page.tsx"
+      },
+      {
+        "route": "/:slug/cart",
+        "file": "/[slug]/cart/page.tsx"
+      },
+      {
+        "route": "/:slug/checkout",
+        "file": "/[slug]/checkout/page.tsx"
+      },
+      {
+        "route": "/:slug/confirmar/:deliveryId",
+        "file": "/[slug]/confirmar/[deliveryId]/page.tsx"
+      },
+      {
+        "route": "/:slug/encomenda",
+        "file": "/[slug]/encomenda/page.tsx"
+      },
+      {
+        "route": "/:slug/garcom",
+        "file": "/[slug]/garcom/page.tsx"
+      },
+      {
+        "route": "/:slug/mesa/:numero",
+        "file": "/[slug]/mesa/[numero]/page.tsx"
+      },
+      {
+        "route": "/:slug/mimo/:token",
+        "file": "/[slug]/mimo/[token]/page.tsx"
+      },
+      {
+        "route": "/:slug/minha-conta/fidelidade",
+        "file": "/[slug]/minha-conta/fidelidade/page.tsx"
+      },
+      {
+        "route": "/:slug/minha-conta",
+        "file": "/[slug]/minha-conta/page.tsx"
+      },
+      {
+        "route": "/:slug/motorista/ganhos",
+        "file": "/[slug]/motorista/ganhos/page.tsx"
+      },
+      {
+        "route": "/:slug/motorista/historico",
+        "file": "/[slug]/motorista/historico/page.tsx"
+      },
+      {
+        "route": "/:slug/motorista/indicacoes",
+        "file": "/[slug]/motorista/indicacoes/page.tsx"
+      },
+      {
+        "route": "/:slug/motorista",
+        "file": "/[slug]/motorista/page.tsx"
+      },
+      {
+        "route": "/:slug/motorista/perfil",
+        "file": "/[slug]/motorista/perfil/page.tsx"
+      },
+      {
+        "route": "/:slug/order/:orderId",
+        "file": "/[slug]/order/[orderId]/page.tsx"
+      },
+      {
+        "route": "/:slug",
+        "file": "/[slug]/page.tsx"
+      },
+      {
+        "route": "/:slug/pedido/:code",
+        "file": "/[slug]/pedido/[code]/page.tsx"
+      },
+      {
+        "route": "/:slug/rastreio/:deliveryId",
+        "file": "/[slug]/rastreio/[deliveryId]/page.tsx"
+      },
+      {
+        "route": "/:slug/tv/:code",
+        "file": "/[slug]/tv/[code]/page.tsx"
+      },
+      {
+        "route": "/:slug/waiter",
+        "file": "/[slug]/waiter/page.tsx"
+      }
+    ]
+  },
+  "all_routes": [
+    {
+      "route": "/",
+      "file": "/(super-admin)/layout.tsx",
+      "type": "layout"
+    },
+    {
+      "route": "/",
+      "file": "/layout.tsx",
+      "type": "layout"
+    },
+    {
+      "route": "/",
+      "file": "/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug",
+      "file": "/[slug]/layout.tsx",
+      "type": "layout"
+    },
+    {
+      "route": "/:slug",
+      "file": "/[slug]/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/avaliar/:deliveryId",
+      "file": "/[slug]/avaliar/[deliveryId]/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/cart",
+      "file": "/[slug]/cart/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/checkout",
+      "file": "/[slug]/checkout/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/confirmar/:deliveryId",
+      "file": "/[slug]/confirmar/[deliveryId]/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/dashboard",
+      "file": "/[slug]/dashboard/layout.tsx",
+      "type": "layout"
+    },
+    {
+      "route": "/:slug/dashboard",
+      "file": "/[slug]/dashboard/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/dashboard/addons",
+      "file": "/[slug]/dashboard/addons/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/dashboard/afiliados",
+      "file": "/[slug]/dashboard/afiliados/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/dashboard/analytics",
+      "file": "/[slug]/dashboard/analytics/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/dashboard/appearance",
+      "file": "/[slug]/dashboard/appearance/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/dashboard/coupons",
+      "file": "/[slug]/dashboard/coupons/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/dashboard/crm",
+      "file": "/[slug]/dashboard/crm/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/dashboard/custom-orders",
+      "file": "/[slug]/dashboard/custom-orders/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/dashboard/delivery",
+      "file": "/[slug]/dashboard/delivery/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/dashboard/financial",
+      "file": "/[slug]/dashboard/financial/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/dashboard/inventory",
+      "file": "/[slug]/dashboard/inventory/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/dashboard/kitchen",
+      "file": "/[slug]/dashboard/kitchen/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/dashboard/kits",
+      "file": "/[slug]/dashboard/kits/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/dashboard/marketing",
+      "file": "/[slug]/dashboard/marketing/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/dashboard/onboarding",
+      "file": "/[slug]/dashboard/onboarding/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/dashboard/orders",
+      "file": "/[slug]/dashboard/orders/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/dashboard/pos",
+      "file": "/[slug]/dashboard/pos/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/dashboard/products",
+      "file": "/[slug]/dashboard/products/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/dashboard/reports",
+      "file": "/[slug]/dashboard/reports/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/dashboard/reservations",
+      "file": "/[slug]/dashboard/reservations/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/dashboard/reviews",
+      "file": "/[slug]/dashboard/reviews/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/dashboard/reviews/integrations",
+      "file": "/[slug]/dashboard/reviews/integrations/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/dashboard/settings",
+      "file": "/[slug]/dashboard/settings/layout.tsx",
+      "type": "layout"
+    },
+    {
+      "route": "/:slug/dashboard/settings",
+      "file": "/[slug]/dashboard/settings/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/dashboard/settings/complete",
+      "file": "/[slug]/dashboard/settings/complete/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/dashboard/settings/index",
+      "file": "/[slug]/dashboard/settings/index/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/dashboard/settings/integrations",
+      "file": "/[slug]/dashboard/settings/integrations/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/dashboard/settings/loyalty",
+      "file": "/[slug]/dashboard/settings/loyalty/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/dashboard/settings/modules",
+      "file": "/[slug]/dashboard/settings/modules/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/dashboard/settings/niche",
+      "file": "/[slug]/dashboard/settings/niche/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/dashboard/settings/platforms",
+      "file": "/[slug]/dashboard/settings/platforms/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/dashboard/settings/scheduling",
+      "file": "/[slug]/dashboard/settings/scheduling/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/dashboard/settings/store",
+      "file": "/[slug]/dashboard/settings/store/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/dashboard/tables",
+      "file": "/[slug]/dashboard/tables/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/dashboard/team",
+      "file": "/[slug]/dashboard/team/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/dashboard/waiters",
+      "file": "/[slug]/dashboard/waiters/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/encomenda",
+      "file": "/[slug]/encomenda/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/garcom",
+      "file": "/[slug]/garcom/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/mesa/:numero",
+      "file": "/[slug]/mesa/[numero]/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/mimo/:token",
+      "file": "/[slug]/mimo/[token]/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/minha-conta",
+      "file": "/[slug]/minha-conta/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/minha-conta/fidelidade",
+      "file": "/[slug]/minha-conta/fidelidade/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/motorista",
+      "file": "/[slug]/motorista/layout.tsx",
+      "type": "layout"
+    },
+    {
+      "route": "/:slug/motorista",
+      "file": "/[slug]/motorista/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/motorista/ganhos",
+      "file": "/[slug]/motorista/ganhos/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/motorista/historico",
+      "file": "/[slug]/motorista/historico/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/motorista/indicacoes",
+      "file": "/[slug]/motorista/indicacoes/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/motorista/perfil",
+      "file": "/[slug]/motorista/perfil/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/order/:orderId",
+      "file": "/[slug]/order/[orderId]/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/pedido/:code",
+      "file": "/[slug]/pedido/[code]/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/rastreio/:deliveryId",
+      "file": "/[slug]/rastreio/[deliveryId]/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/tv/:code",
+      "file": "/[slug]/tv/[code]/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/:slug/waiter",
+      "file": "/[slug]/waiter/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/admin",
+      "file": "/(super-admin)/admin/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/admin/affiliates",
+      "file": "/(super-admin)/admin/affiliates/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/admin/affiliates/payouts",
+      "file": "/(super-admin)/admin/affiliates/payouts/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/admin/affiliates/sales",
+      "file": "/(super-admin)/admin/affiliates/sales/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/admin/affiliates/settings",
+      "file": "/(super-admin)/admin/affiliates/settings/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/admin/analytics",
+      "file": "/(super-admin)/admin/analytics/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/admin/audit",
+      "file": "/(super-admin)/admin/audit/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/admin/automations",
+      "file": "/(super-admin)/admin/automations/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/admin/billing",
+      "file": "/(super-admin)/admin/billing/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/admin/demanda",
+      "file": "/(super-admin)/admin/demanda/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/admin/features",
+      "file": "/(super-admin)/admin/features/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/admin/health",
+      "file": "/(super-admin)/admin/health/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/admin/health/audit",
+      "file": "/(super-admin)/admin/health/audit/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/admin/health/builder",
+      "file": "/(super-admin)/admin/health/builder/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/admin/health/database",
+      "file": "/(super-admin)/admin/health/database/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/admin/health/files",
+      "file": "/(super-admin)/admin/health/files/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/admin/health/images",
+      "file": "/(super-admin)/admin/health/images/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/admin/health/monitor",
+      "file": "/(super-admin)/admin/health/monitor/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/admin/health/pages",
+      "file": "/(super-admin)/admin/health/pages/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/admin/health/printing",
+      "file": "/(super-admin)/admin/health/printing/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/admin/health/slugs",
+      "file": "/(super-admin)/admin/health/slugs/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/admin/integrations",
+      "file": "/(super-admin)/admin/integrations/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/admin/logs",
+      "file": "/(super-admin)/admin/logs/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/admin/partners",
+      "file": "/(super-admin)/admin/partners/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/admin/plans",
+      "file": "/(super-admin)/admin/plans/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/admin/plans/:planId",
+      "file": "/(super-admin)/admin/plans/[planId]/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/admin/plans/new",
+      "file": "/(super-admin)/admin/plans/new/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/admin/reports",
+      "file": "/(super-admin)/admin/reports/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/admin/settings",
+      "file": "/(super-admin)/admin/settings/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/admin/stores",
+      "file": "/(super-admin)/admin/stores/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/admin/tenants",
+      "file": "/(super-admin)/admin/tenants/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/admin/tickets",
+      "file": "/(super-admin)/admin/tickets/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/admin/users",
+      "file": "/(super-admin)/admin/users/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/api/admin/audit/fix",
+      "file": "/api/admin/audit/fix/route.ts",
+      "type": "route"
+    },
+    {
+      "route": "/api/admin/audit/fix-localhost",
+      "file": "/api/admin/audit/fix-localhost/route.ts",
+      "type": "route"
+    },
+    {
+      "route": "/api/admin/audit/run",
+      "file": "/api/admin/audit/run/route.ts",
+      "type": "route"
+    },
+    {
+      "route": "/api/admin/demo-setup",
+      "file": "/api/admin/demo-setup/route.ts",
+      "type": "route"
+    },
+    {
+      "route": "/api/admin/stats",
+      "file": "/api/admin/stats/route.ts",
+      "type": "route"
+    },
+    {
+      "route": "/api/admin/stores",
+      "file": "/api/admin/stores/route.ts",
+      "type": "route"
+    },
+    {
+      "route": "/api/admin/tenants",
+      "file": "/api/admin/tenants/route.ts",
+      "type": "route"
+    },
+    {
+      "route": "/api/admin/users",
+      "file": "/api/admin/users/route.ts",
+      "type": "route"
+    },
+    {
+      "route": "/api/billing/generate",
+      "file": "/api/billing/generate/route.ts",
+      "type": "route"
+    },
+    {
+      "route": "/api/cron/billing",
+      "file": "/api/cron/billing/route.ts",
+      "type": "route"
+    },
+    {
+      "route": "/api/cron/check-pix-payments",
+      "file": "/api/cron/check-pix-payments/route.ts",
+      "type": "route"
+    },
+    {
+      "route": "/api/cron/clean-expired-drafts",
+      "file": "/api/cron/clean-expired-drafts/route.ts",
+      "type": "route"
+    },
+    {
+      "route": "/api/draft-store/create",
+      "file": "/api/draft-store/create/route.ts",
+      "type": "route"
+    },
+    {
+      "route": "/api/draft-store/get",
+      "file": "/api/draft-store/get/route.ts",
+      "type": "route"
+    },
+    {
+      "route": "/api/draft-store/update",
+      "file": "/api/draft-store/update/route.ts",
+      "type": "route"
+    },
+    {
+      "route": "/api/health",
+      "file": "/api/health/route.ts",
+      "type": "route"
+    },
+    {
+      "route": "/api/health/audit",
+      "file": "/api/health/audit/route.ts",
+      "type": "route"
+    },
+    {
+      "route": "/api/health/database",
+      "file": "/api/health/database/route.ts",
+      "type": "route"
+    },
+    {
+      "route": "/api/health/diagnostic",
+      "file": "/api/health/diagnostic/route.ts",
+      "type": "route"
+    },
+    {
+      "route": "/api/health/files",
+      "file": "/api/health/files/route.ts",
+      "type": "route"
+    },
+    {
+      "route": "/api/health/fix",
+      "file": "/api/health/fix/route.ts",
+      "type": "route"
+    },
+    {
+      "route": "/api/health/pages",
+      "file": "/api/health/pages/route.ts",
+      "type": "route"
+    },
+    {
+      "route": "/api/health/status",
+      "file": "/api/health/status/route.ts",
+      "type": "route"
+    },
+    {
+      "route": "/api/integrations/google/callback",
+      "file": "/api/integrations/google/callback/route.ts",
+      "type": "route"
+    },
+    {
+      "route": "/api/integrations/google/sync",
+      "file": "/api/integrations/google/sync/route.ts",
+      "type": "route"
+    },
+    {
+      "route": "/api/internal/e2e/seed",
+      "file": "/api/internal/e2e/seed/route.ts",
+      "type": "route"
+    },
+    {
+      "route": "/api/onboarding/complete-signup",
+      "file": "/api/onboarding/complete-signup/route.ts",
+      "type": "route"
+    },
+    {
+      "route": "/api/onboarding/publish-draft",
+      "file": "/api/onboarding/publish-draft/route.ts",
+      "type": "route"
+    },
+    {
+      "route": "/api/onboarding/reserve-slug",
+      "file": "/api/onboarding/reserve-slug/route.ts",
+      "type": "route"
+    },
+    {
+      "route": "/api/onboarding/store/prepare",
+      "file": "/api/onboarding/store/prepare/route.ts",
+      "type": "route"
+    },
+    {
+      "route": "/api/onboarding/store/publish",
+      "file": "/api/onboarding/store/publish/route.ts",
+      "type": "route"
+    },
+    {
+      "route": "/api/ping",
+      "file": "/api/ping/route.ts",
+      "type": "route"
+    },
+    {
+      "route": "/api/public/slug/check",
+      "file": "/api/public/slug/check/route.ts",
+      "type": "route"
+    },
+    {
+      "route": "/api/upload/banner",
+      "file": "/api/upload/banner/route.ts",
+      "type": "route"
+    },
+    {
+      "route": "/api/upload/logo",
+      "file": "/api/upload/logo/route.ts",
+      "type": "route"
+    },
+    {
+      "route": "/api/webhooks/mercadopago",
+      "file": "/api/webhooks/mercadopago/route.ts",
+      "type": "route"
+    },
+    {
+      "route": "/api/webhooks/mimo",
+      "file": "/api/webhooks/mimo/route.ts",
+      "type": "route"
+    },
+    {
+      "route": "/billing/overdue",
+      "file": "/billing/overdue/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/billing/suspended",
+      "file": "/billing/suspended/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/billing/trial-expired",
+      "file": "/billing/trial-expired/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/cadastro-motorista",
+      "file": "/cadastro-motorista/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/choose-url",
+      "file": "/choose-url/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/criar-loja",
+      "file": "/criar-loja/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/demo-garcom",
+      "file": "/demo-garcom/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/driver/dashboard",
+      "file": "/driver/dashboard/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/login",
+      "file": "/(auth)/login/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/logout",
+      "file": "/(auth)/logout/route.ts",
+      "type": "route"
+    },
+    {
+      "route": "/mapa-do-site",
+      "file": "/mapa-do-site/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/marketplace",
+      "file": "/marketplace/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/motorista-publico/:slug",
+      "file": "/motorista-publico/[slug]/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/onboarding",
+      "file": "/onboarding/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/para-garcons",
+      "file": "/para-garcons/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/para-motoristas",
+      "file": "/para-motoristas/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/profile",
+      "file": "/(public)/profile/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/qa",
+      "file": "/qa/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/r/:code",
+      "file": "/r/[code]/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/reset-password",
+      "file": "/(auth)/reset-password/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/s/:slug",
+      "file": "/s/[slug]/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/select-store",
+      "file": "/select-store/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/setup/:token",
+      "file": "/setup/[token]/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/signup",
+      "file": "/(auth)/signup/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/unauthorized",
+      "file": "/unauthorized/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/update-password",
+      "file": "/(auth)/update-password/page.tsx",
+      "type": "page"
+    },
+    {
+      "route": "/verify-email",
+      "file": "/(auth)/verify-email/page.tsx",
+      "type": "page"
+    }
+  ]
+}
