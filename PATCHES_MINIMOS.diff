@@ -1,0 +1,466 @@
+# PATCHES MÍNIMOS PARA GO-LIVE
+
+## PATCH #1: Validação de Assinatura no Webhook Mercado Pago
+
+**Arquivo:** src/app/api/webhooks/mercadopago/route.ts
+**Severidade:** 🔴 CRÍTICO (Bloqueador de go-live)
+**Tempo:** 30min (S)
+
+```diff
+--- a/src/app/api/webhooks/mercadopago/route.ts
++++ b/src/app/api/webhooks/mercadopago/route.ts
+@@ -1,5 +1,6 @@
+ import { NextRequest, NextResponse } from 'next/server'
+ import { processPaymentWebhook } from '@/lib/billing/mercadopago'
++import crypto from 'crypto'
+ 
+ /**
+  * Webhook do MercadoPago para receber notificações de pagamento
+@@ -9,7 +10,35 @@
+  * https://www.mercadopago.com.br/developers/panel/app
+  */
+ export async function POST(request: NextRequest) {
++  // SECURITY: Validar assinatura do webhook
++  const signature = request.headers.get('x-signature')
++  const requestId = request.headers.get('x-request-id')
++  
++  if (!signature || !requestId) {
++    console.error('[Webhook MP] Missing signature or request-id')
++    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
++  }
++  
+   try {
++    // Validar assinatura antes de processar
++    const secret = process.env.MP_WEBHOOK_SECRET
++    
++    if (!secret) {
++      console.error('[Webhook MP] MP_WEBHOOK_SECRET not configured')
++      return NextResponse.json({ error: 'Configuration error' }, { status: 500 })
++    }
++    
++    const body = await request.text()
++    const [ts, hash] = signature.split(',')
++    
++    const manifest = `id:${requestId};request-id:${requestId};ts:${ts};`
++    const hmac = crypto.createHmac('sha256', secret)
++    hmac.update(manifest + body)
++    const expectedHash = hmac.digest('hex')
++    
++    if (hash !== `v1=${expectedHash}`) {
++      console.error('[Webhook MP] Invalid signature')
++      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
++    }
++    
+-    const body = await request.json()
++    const parsedBody = JSON.parse(body)
+     
+-    console.log('Webhook MercadoPago recebido:', JSON.stringify(body, null, 2))
++    console.log('Webhook MercadoPago recebido (validado):', JSON.stringify(parsedBody, null, 2))
+ 
+-    if (body.type === 'payment' && body.data?.id) {
+-      const paymentId = body.data.id.toString()
++    if (parsedBody.type === 'payment' && parsedBody.data?.id) {
++      const paymentId = parsedBody.data.id.toString()
+```
+
+**Pós-aplicação:**
+1. Adicionar `MP_WEBHOOK_SECRET` no `.env` e variáveis de ambiente de produção
+2. Testar com evento real do Mercado Pago
+3. Monitorar logs para tentativas de acesso não autorizado
+
+---
+
+## PATCH #2: Proteção Server-Side do Super Admin
+
+**Arquivo:** src/app/(super-admin)/admin/layout.tsx (CRIAR NOVO)
+**Severidade:** 🔴 CRÍTICO (Bloqueador de go-live)
+**Tempo:** 20min (S)
+
+```diff
+--- /dev/null
++++ b/src/app/(super-admin)/admin/layout.tsx
+@@ -0,0 +1,28 @@
++import { redirect } from 'next/navigation'
++import { createClient } from '@/lib/supabase/server'
++import { isSuperAdmin } from '@/lib/auth/super-admin'
++
++/**
++ * Layout Server-Side para área Super Admin
++ * 
++ * SECURITY: Bloqueia acesso a /admin/* se não for super admin
++ * Este layout protege TODAS as 33 páginas em (super-admin)/admin/
++ */
++export default async function AdminLayout({
++  children,
++}: {
++  children: React.ReactNode
++}) {
++  const supabase = await createClient()
++  const { data: { user } } = await supabase.auth.getUser()
++  
++  // Bloquear se não autenticado ou não é super admin
++  if (!user || !isSuperAdmin(user.email)) {
++    redirect('/unauthorized')
++  }
++  
++  // Permitir acesso
++  return <>{children}</>
++}
++
++export const dynamic = 'force-dynamic'
+```
+
+**Pós-aplicação:**
+1. Testar acessar `/admin` sem estar logado → deve redirecionar para `/unauthorized`
+2. Testar acessar `/admin` como usuário comum → deve redirecionar para `/unauthorized`
+3. Testar acessar `/admin` como super admin → deve funcionar normalmente
+4. Testar acesso direto a `/admin/billing`, `/admin/tenants`, etc.
+
+---
+
+## PATCH #3: Enforcement de orders_per_month
+
+**Arquivo:** src/modules/orders/actions.ts
+**Severidade:** 🔴 CRÍTICO (Bloqueador de go-live)
+**Tempo:** 1h (M)
+
+```diff
+--- a/src/modules/orders/actions.ts
++++ b/src/modules/orders/actions.ts
+@@ -96,11 +96,53 @@ export async function createOrderAction(
+   const supabase = await createClient()
+ 
+   // ETAPA 5B: Billing Enforcement
+   const tenantId = await getTenantIdFromStore(storeId)
+   if (tenantId) {
+     const billingCheck = await enforceBillingInAction(tenantId)
+     if (!billingCheck.allowed) {
+       return { 
+         success: false, 
+         error: billingCheck.message || 'Ação bloqueada: billing inválido' 
+       }
+     }
++    
++    // ETAPA 5C: Plan Limits Enforcement (orders_per_month)
++    const { data: subscription } = await supabase
++      .from('subscriptions')
++      .select('plan_id, subscription_plans!inner(limits)')
++      .eq('tenant_id', tenantId)
++      .single()
++    
++    if (subscription) {
++      const limits = (subscription as any).subscription_plans?.limits || {}
++      const ordersLimit = limits.orders_per_month
++      
++      if (ordersLimit && ordersLimit !== -1) {
++        // Contar pedidos do mês atual
++        const startOfMonth = new Date()
++        startOfMonth.setDate(1)
++        startOfMonth.setHours(0, 0, 0, 0)
++        
++        const { count, error: countError } = await supabase
++          .from('orders')
++          .select('id', { count: 'exact', head: true })
++          .eq('store_id', storeId)
++          .gte('created_at', startOfMonth.toISOString())
++        
++        if (countError) {
++          console.error('[Orders] Erro ao contar pedidos:', countError)
++        } else if (count && count >= ordersLimit) {
++          return { 
++            success: false, 
++            error: `Limite de ${ordersLimit} pedidos/mês atingido. Faça upgrade do seu plano para continuar.`,
++            errorCode: 'PLAN_LIMIT_REACHED',
++            details: {
++              current: count,
++              limit: ordersLimit,
++              planId: subscription.plan_id
++            }
++          }
++        }
++      }
++    }
+   }
+```
+
+**Pós-aplicação:**
+1. Testar criar pedido no Trial após 100 pedidos → deve bloquear
+2. Testar criar pedido no Básico após 500 pedidos → deve bloquear
+3. Testar criar pedido no Pro/Enterprise (ilimitado) → deve permitir
+4. Verificar mensagem de erro amigável no frontend
+
+---
+
+## PATCH #4: Redirect Consistente no Google OAuth Callback
+
+**Arquivo:** src/app/api/integrations/google/callback/route.ts
+**Severidade:** 🟡 IMPORTANTE (Não bloqueador, mas fix rápido)
+**Tempo:** 5min (S)
+
+```diff
+--- a/src/app/api/integrations/google/callback/route.ts
++++ b/src/app/api/integrations/google/callback/route.ts
+@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
+     // Redirecionar com sucesso
+     return NextResponse.redirect(
+-      new URL(`/${slug}/dashboard/reviews/integrations?success=google_connected`, request.url)
++      new URL(`/${slug}/dashboard/reviews/integrations?success=google_connected`, request.url)
+     )
+   } catch (err: any) {
+     console.error('Erro no callback Google:', err)
+     
+     // SECURITY: Não vazar detalhes do erro
+     return NextResponse.redirect(
+-      new URL(`/dashboard/reviews/integrations?error=${encodeURIComponent(err.message)}`, request.url)
++      new URL(`/${slug}/dashboard/reviews/integrations?error=${encodeURIComponent(err.message)}`, request.url)
+     )
+   }
+```
+
+**Nota:** A linha 45 já está correta (com `/${slug}`). Apenas a linha do erro precisa corrigir.
+
+---
+
+## PATCH #5: Centralizar SUPER_ADMIN_EMAILS
+
+**Arquivos:** Múltiplos (5 arquivos)
+**Severidade:** 🟡 IMPORTANTE (Manutenção/Segurança)
+**Tempo:** 45min (M)
+
+### 5.1. src/app/(auth)/login/page.tsx
+
+```diff
+--- a/src/app/(auth)/login/page.tsx
++++ b/src/app/(auth)/login/page.tsx
+@@ -1,5 +1,6 @@
+ 'use client'
+ 
++import { isSuperAdmin } from '@/lib/auth/super-admin'
+ import { useState } from 'react'
+ import { useRouter } from 'next/navigation'
+ import { createClient } from '@/lib/supabase/client'
+@@ -23,11 +24,6 @@ interface StoreWithUser {
+   }
+ }
+ 
+-const SUPER_ADMIN_EMAILS = [
+-  'fabianobraga@me.com',
+-  ...(process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAILS?.split(',').map(e => e.trim()) || [])
+-]
+-
+ export default function LoginPage() {
+   const router = useRouter()
+   const supabase = createClient()
+@@ -75,7 +71,7 @@ export default function LoginPage() {
+       }
+ 
+       // Redirecionar super admin para painel admin
+-      if (SUPER_ADMIN_EMAILS.includes(user.email || '')) {
++      if (isSuperAdmin(user.email)) {
+         router.push('/admin')
+         return
+       }
+```
+
+### 5.2. src/app/api/admin/users/route.ts
+
+```diff
+--- a/src/app/api/admin/users/route.ts
++++ b/src/app/api/admin/users/route.ts
+@@ -1,15 +1,11 @@
+ import { NextResponse } from 'next/server'
+ import { createClient } from '@/lib/supabase/server'
++import { isSuperAdmin } from '@/lib/auth/super-admin'
+ import { createSupabaseAdminClient } from '@/lib/supabase/admin'
+ 
+-const SUPER_ADMIN_EMAILS = [
+-  'fabianobraga@me.com',
+-  ...(process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAILS?.split(',').map(e => e.trim()) || [])
+-]
+-
+ export async function GET() {
+   const supabase = await createClient()
+   const { data: { user } } = await supabase.auth.getUser()
+   
+-  if (!user || !SUPER_ADMIN_EMAILS.includes(user.email || '')) {
++  if (!user || !isSuperAdmin(user.email)) {
+     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+   }
+```
+
+### 5.3. src/app/api/admin/tenants/route.ts
+
+```diff
+--- a/src/app/api/admin/tenants/route.ts
++++ b/src/app/api/admin/tenants/route.ts
+@@ -1,15 +1,11 @@
+ import { NextResponse } from 'next/server'
+ import { createClient } from '@/lib/supabase/server'
++import { isSuperAdmin } from '@/lib/auth/super-admin'
+ import { createSupabaseAdminClient } from '@/lib/supabase/admin'
+ 
+-const SUPER_ADMIN_EMAILS = [
+-  'fabianobraga@me.com',
+-  ...(process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAILS?.split(',').map(e => e.trim()) || [])
+-]
+-
+ export async function GET() {
+   const supabase = await createClient()
+   const { data: { user } } = await supabase.auth.getUser()
+   
+-  if (!user || !SUPER_ADMIN_EMAILS.includes(user.email || '')) {
++  if (!user || !isSuperAdmin(user.email)) {
+     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+   }
+```
+
+### 5.4. src/app/api/admin/stores/route.ts
+
+```diff
+--- a/src/app/api/admin/stores/route.ts
++++ b/src/app/api/admin/stores/route.ts
+@@ -1,15 +1,11 @@
+ import { NextResponse } from 'next/server'
+ import { createClient } from '@/lib/supabase/server'
++import { isSuperAdmin } from '@/lib/auth/super-admin'
+ import { createSupabaseAdminClient } from '@/lib/supabase/admin'
+ 
+-const SUPER_ADMIN_EMAILS = [
+-  'fabianobraga@me.com',
+-  ...(process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAILS?.split(',').map(e => e.trim()) || [])
+-]
+-
+ export async function GET() {
+   const supabase = await createClient()
+   const { data: { user } } = await supabase.auth.getUser()
+   
+-  if (!user || !SUPER_ADMIN_EMAILS.includes(user.email || '')) {
++  if (!user || !isSuperAdmin(user.email)) {
+     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+   }
+```
+
+### 5.5. src/app/api/admin/stats/route.ts
+
+```diff
+--- a/src/app/api/admin/stats/route.ts
++++ b/src/app/api/admin/stats/route.ts
+@@ -1,15 +1,11 @@
+ import { NextResponse } from 'next/server'
+ import { createClient } from '@/lib/supabase/server'
++import { isSuperAdmin } from '@/lib/auth/super-admin'
+ import { createSupabaseAdminClient } from '@/lib/supabase/admin'
+ 
+-const SUPER_ADMIN_EMAILS = [
+-  'fabianobraga@me.com',
+-  ...(process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAILS?.split(',').map(e => e.trim()) || [])
+-]
+-
+ export async function GET() {
+   const supabase = await createClient()
+   const { data: { user } } = await supabase.auth.getUser()
+   
+-  if (!user || !SUPER_ADMIN_EMAILS.includes(user.email || '')) {
++  if (!user || !isSuperAdmin(user.email)) {
+     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+   }
+```
+
+**Pós-aplicação:**
+1. Verificar que todos os arquivos compilam sem erro
+2. Testar login como super admin
+3. Testar acesso às APIs admin
+4. Adicionar/remover admin via `SUPER_ADMIN_EMAILS` env var e confirmar que funciona globalmente
+
+---
+
+## PATCH #6: Suporte a Redirect Query Param no Login
+
+**Arquivo:** src/app/(auth)/login/page.tsx
+**Severidade:** 🟡 IMPORTANTE (UX)
+**Tempo:** 15min (S)
+
+```diff
+--- a/src/app/(auth)/login/page.tsx
++++ b/src/app/(auth)/login/page.tsx
+@@ -3,6 +3,7 @@
+ import { isSuperAdmin } from '@/lib/auth/super-admin'
+ import { useState } from 'react'
+ import { useRouter } from 'next/navigation'
++import { useSearchParams } from 'next/navigation'
+ import { createClient } from '@/lib/supabase/client'
+ import { Button } from '@/components/ui/button'
+ 
+@@ -26,6 +27,7 @@ interface StoreWithUser {
+ 
+ export default function LoginPage() {
+   const router = useRouter()
++  const searchParams = useSearchParams()
+   const supabase = createClient()
+   const [email, setEmail] = useState('')
+   const [password, setPassword] = useState('')
+@@ -75,6 +77,12 @@ export default function LoginPage() {
+         return
+       }
+ 
++      // Redirecionar para URL especificada em ?redirect=
++      const redirectTo = searchParams.get('redirect')
++      if (redirectTo) {
++        router.push(redirectTo)
++        return
++      }
++
+       // Buscar lojas do usuário
+       const { data: storeUsers } = await supabase
+         .from('store_users')
+```
+
+**Pós-aplicação:**
+1. Testar `/login?redirect=/onboarding` → após login deve ir para `/onboarding`
+2. Testar `/login` sem query param → deve funcionar normalmente
+3. Validar que não aceita redirects externos (opcional: adicionar whitelist)
+
+---
+
+## RESUMO DOS PATCHES
+
+| # | Arquivo | Severidade | Tempo | Status |
+|---|---------|------------|-------|--------|
+| 1 | webhooks/mercadopago/route.ts | 🔴 CRÍTICO | 30min | Bloqueador |
+| 2 | (super-admin)/admin/layout.tsx | 🔴 CRÍTICO | 20min | Bloqueador |
+| 3 | modules/orders/actions.ts | 🔴 CRÍTICO | 1h | Bloqueador |
+| 4 | integrations/google/callback/route.ts | 🟡 IMPORTANTE | 5min | Recomendado |
+| 5 | Múltiplos (5 arquivos) | 🟡 IMPORTANTE | 45min | Recomendado |
+| 6 | (auth)/login/page.tsx | 🟡 IMPORTANTE | 15min | Recomendado |
+
+**Total tempo P0 (bloqueadores):** 1h50min  
+**Total tempo P1 (recomendados):** 1h5min  
+**Total geral:** ~3h
+
+---
+
+## VALIDAÇÃO PÓS-PATCHES
+
+### Checklist de Go-Live
+
+Após aplicar os 3 patches críticos (P0):
+
+- [ ] Webhook MP valida assinatura (testar com evento real)
+- [ ] `/admin/*` só acessível por super admin (testar bypass)
+- [ ] Trial bloqueia após 100 pedidos (criar 101 pedidos de teste)
+- [ ] Básico bloqueia após 500 pedidos (verificar lógica)
+- [ ] Pro/Enterprise não bloqueiam (confirmar -1 = ilimitado)
+
+### Testes de Regressão
+
+- [ ] Login como super admin → deve ir para `/admin`
+- [ ] Login como lojista → deve ir para dashboard da loja
+- [ ] Login com `?redirect=/onboarding` → deve ir para onboarding
+- [ ] Criar pedido em loja trial (< 100) → deve funcionar
+- [ ] Criar pedido em loja trial (= 100) → deve bloquear
+- [ ] Webhook MP fake → deve retornar 401
+- [ ] Webhook MP válido → deve processar
+
+---
+
+**FIM DOS PATCHES**
