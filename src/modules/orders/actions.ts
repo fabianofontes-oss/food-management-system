@@ -111,7 +111,7 @@ export async function createOrderAction(
       .from('subscriptions')
       .select('plan_id, subscription_plans!inner(limits)')
       .eq('tenant_id', tenantId)
-      .eq('status', 'active')
+      .in('status', ['active', 'trialing'])
       .maybeSingle()
 
     if (subscription?.subscription_plans) {
@@ -125,11 +125,12 @@ export async function createOrderAction(
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
         startOfMonth.setHours(0, 0, 0, 0)
 
-        // Contar pedidos do mês atual da loja
+        // Contar pedidos do mês atual da loja (excluindo cancelados e drafts)
         const { count } = await supabase
           .from('orders')
           .select('id', { count: 'exact', head: true })
           .eq('store_id', storeId)
+          .not('status', 'in', '("cancelled","canceled","draft")')
           .gte('created_at', startOfMonth.toISOString())
 
         if (count !== null && count >= ordersLimit) {
