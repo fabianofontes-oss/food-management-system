@@ -11,6 +11,7 @@ import { HistoryTab } from './tabs/HistoryTab'
 import { EarningsTab } from './tabs/EarningsTab'
 import { AffiliatesTab } from './tabs/AffiliatesTab'
 import type { DriverTab, ReferralData } from '../types'
+import { APP_URL } from '@/lib/urls/public'
 
 interface DriverDashboardShellProps {
   driverName: string
@@ -54,9 +55,7 @@ export function DriverDashboardShell({
 
   const { isConnected } = useDriverRealtime(storeId, handleNewDelivery, soundEnabled)
 
-  const baseUrl = typeof window !== 'undefined' 
-    ? window.location.origin 
-    : 'https://pediu.food'
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : APP_URL
 
   const handleUpdateStatus = async (deliveryId: string, newStatus: string) => {
     try {

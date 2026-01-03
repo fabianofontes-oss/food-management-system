@@ -13,6 +13,7 @@ import {
   Rocket,
   AlertCircle
 } from 'lucide-react'
+import { storePublicUrl } from '@/lib/urls/public'
 
 type Step = 'slug' | 'menu' | 'publish'
 
@@ -309,10 +310,10 @@ export default function OnboardingPage() {
               <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
                 <div className="text-sm font-medium text-slate-700 mb-2">Prévia</div>
                 <div className="flex items-center gap-2">
-                  <span className="text-slate-500">pediu.food/</span>
                   <span className="text-violet-600 font-semibold">
                     {normalizedSlug || 'sua-loja'}
                   </span>
+                  <span className="text-slate-500">.pediu.food</span>
                   {checkingSlug && (
                     <Loader2 className="w-4 h-4 text-slate-400 animate-spin" />
                   )}
@@ -369,7 +370,7 @@ export default function OnboardingPage() {
                 <div>
                   <p className="font-medium text-amber-800">Sua loja ainda não está publicada</p>
                   <p className="text-sm text-amber-600">
-                    URL reservada: pediu.food/{store.slug}
+                    URL reservada: {store.slug}.pediu.food
                   </p>
                 </div>
               </div>
@@ -435,7 +436,7 @@ export default function OnboardingPage() {
                   Seu cardápio ficará disponível em
                 </p>
                 <p className="text-violet-600 font-semibold text-lg mt-2">
-                  pediu.food/{store.slug}
+                  {store.slug}.pediu.food
                 </p>
               </div>
 

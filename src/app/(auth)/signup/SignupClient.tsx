@@ -128,7 +128,7 @@ export default function SignupClient() {
             </p>
             {(reservedSlug || draftSlug) && (
               <p className="text-gray-600 mb-6">
-                Sua URL ficará em: <strong>pediu.food/{reservedSlug || draftSlug}</strong>
+                Sua URL ficará em: <strong>{reservedSlug || draftSlug}.pediu.food</strong>
               </p>
             )}
             <Link

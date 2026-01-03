@@ -58,10 +58,6 @@ export async function middleware(request: NextRequest) {
 
   // pediu.food (root) → pediufood.com
   if (host === 'pediu.food' || host === 'www.pediu.food') {
-    // Exceção: rotas de app/admin continuam funcionando
-    if (pathname.startsWith('/admin') || pathname.startsWith('/api') || pathname.startsWith('/login') || pathname.startsWith('/signup')) {
-      return await updateSession(request)
-    }
     return NextResponse.redirect(
       new URL(pathname + request.nextUrl.search, 'https://pediufood.com'),
       308

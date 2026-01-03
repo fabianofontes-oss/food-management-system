@@ -20,6 +20,7 @@ import {
   getMyStoresForReferralAction 
 } from '@/modules/referral/actions'
 import type { MyReferralData, PartnerType } from '@/modules/referral/types'
+import { APP_URL } from '@/lib/urls/public'
 
 export default function AfiliadosPage() {
   const [loading, setLoading] = useState(true)
@@ -37,7 +38,7 @@ export default function AfiliadosPage() {
 
   const baseUrl = typeof window !== 'undefined' 
     ? window.location.origin 
-    : process.env.NEXT_PUBLIC_APP_URL || 'https://pediu.food'
+    : APP_URL
 
   useEffect(() => {
     loadData()

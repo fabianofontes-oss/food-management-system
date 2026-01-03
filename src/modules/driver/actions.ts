@@ -23,20 +23,22 @@ interface DeliveryData {
   } | null
 }
 
+import { storePublicUrl } from '@/lib/urls/public'
+
 // Helper functions (não são server actions, movidas para utils)
 function generateTrackingUrl(storeSlug: string, deliveryId: string): string {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://pediu.food'
-  return `${baseUrl}/${storeSlug}/rastreio/${deliveryId}`
+  const baseUrl = storePublicUrl(storeSlug)
+  return `${baseUrl}/rastreio/${deliveryId}`
 }
 
 function generateRatingUrl(storeSlug: string, deliveryId: string): string {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://pediu.food'
-  return `${baseUrl}/${storeSlug}/avaliar/${deliveryId}`
+  const baseUrl = storePublicUrl(storeSlug)
+  return `${baseUrl}/avaliar/${deliveryId}`
 }
 
 function generateRatingUrlWithToken(storeSlug: string, deliveryId: string, token: string): string {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://pediu.food'
-  return `${baseUrl}/${storeSlug}/avaliar/${deliveryId}?token=${token}`
+  const baseUrl = storePublicUrl(storeSlug)
+  return `${baseUrl}/avaliar/${deliveryId}?token=${token}`
 }
 
 /**

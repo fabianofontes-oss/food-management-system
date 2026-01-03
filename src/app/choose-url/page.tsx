@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2, Link2 } from 'lucide-react'
+import { storePublicUrl } from '@/lib/urls/public'
 
 export default function ChooseUrlPage() {
   const router = useRouter()
@@ -20,7 +21,6 @@ export default function ChooseUrlPage() {
       .replace(/^-+|-+$/g, '')
   }, [slug])
 
-  const previewPath = normalized ? `pediu.food/${normalized}` : 'pediu.food/seu-nome'
   const previewSub = normalized ? `${normalized}.pediu.food` : 'seu-nome.pediu.food'
 
   const handleContinue = async () => {
@@ -71,9 +71,8 @@ export default function ChooseUrlPage() {
             </div>
 
             <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm text-slate-700">
-              <div className="font-medium">Prévia</div>
-              <div className="mt-1">{previewPath}</div>
-              <div className="mt-1">{previewSub}</div>
+              <div className="font-medium">Prévia da URL</div>
+              <div className="mt-1 font-mono text-violet-600">{previewSub}</div>
             </div>
 
             {error && (

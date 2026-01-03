@@ -43,7 +43,7 @@ export function Demo() {
                 <div className="flex-1 mx-8">
                   <div className="bg-gray-700/50 rounded-lg px-4 py-2 text-sm text-gray-400 text-center font-mono flex items-center justify-center gap-2">
                     <span className="text-emerald-400">🔒</span>
-                    pediu.food/demo/dashboard
+                    demo.pediu.food/dashboard
                   </div>
                 </div>
               </div>
