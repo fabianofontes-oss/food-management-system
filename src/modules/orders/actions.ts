@@ -100,9 +100,9 @@ export async function createOrderAction(
   if (tenantId) {
     const billingCheck = await enforceBillingInAction(tenantId)
     if (!billingCheck.allowed) {
-      return { 
-        success: false, 
-        error: billingCheck.message || 'Ação bloqueada: billing inválido' 
+      return {
+        success: false,
+        error: billingCheck.message || 'Ação bloqueada: billing inválido'
       }
     }
   }
@@ -252,6 +252,7 @@ export async function createOrder(
       .object({
         order_id: z.string().uuid(),
         code: z.string().min(1),
+        public_token: z.string().uuid(),
         idempotent: z.boolean(),
       })
       .parse(data)
@@ -260,6 +261,7 @@ export async function createOrder(
       success: true,
       orderId: parsed.order_id,
       code: parsed.code,
+      publicToken: parsed.public_token,
       idempotent: parsed.idempotent,
     }
   } catch (error) {

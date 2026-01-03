@@ -8,6 +8,7 @@ export interface OrderSubmitResult {
   success: boolean
   orderId?: string
   code?: string
+  publicToken?: string
   error?: string
   errorCode?: string
   errorDetails?: unknown
@@ -74,11 +75,12 @@ export async function validateAndSubmitOrder(
       scheduledTime: scheduling?.scheduledTime,
     })
 
-    if (result.success && result.orderId && result.code) {
+    if (result.success && result.orderId && result.code && result.publicToken) {
       return {
         success: true,
         orderId: result.orderId,
-        code: result.code
+        code: result.code,
+        publicToken: result.publicToken
       }
     } else {
       return {

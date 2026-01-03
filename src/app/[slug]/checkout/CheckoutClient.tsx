@@ -39,7 +39,7 @@ export function CheckoutClient({ slug }: CheckoutClientProps) {
   const [storeId, setStoreId] = useState<string | null>(null)
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null)
   const [idempotencyKey, setIdempotencyKey] = useState<string | null>(null)
-  
+
   // Estados de agendamento
   const [businessHours, setBusinessHours] = useState<BusinessHour[]>([])
   const [schedulingConfig, setSchedulingConfig] = useState({
@@ -81,7 +81,7 @@ export function CheckoutClient({ slug }: CheckoutClientProps) {
       const settings = await loadStoreSettings(slug)
       setCheckoutMode(settings.checkoutMode)
       setAvailablePaymentMethods(settings.availablePaymentMethods)
-      
+
       // Se nenhum método disponível, usar o primeiro como fallback
       if (settings.availablePaymentMethods.length > 0 && !settings.availablePaymentMethods.includes(formData.paymentMethod)) {
         setFormData(prev => ({ ...prev, paymentMethod: settings.availablePaymentMethods[0] }))
@@ -101,10 +101,10 @@ export function CheckoutClient({ slug }: CheckoutClientProps) {
         `)
         .eq('slug', slug)
         .single()
-      
+
       if (data) {
         setStoreId(data.id)
-        
+
         // Configurações de agendamento
         setSchedulingConfig({
           enabled: (data as any).scheduling_enabled || false,
@@ -112,16 +112,16 @@ export function CheckoutClient({ slug }: CheckoutClientProps) {
           maxDays: (data as any).scheduling_max_days || 7,
           intervalMinutes: (data as any).scheduling_interval || 30,
         })
-        
+
         // Timezone
         const timezone = ((data as any).tenants as any)?.timezone || 'America/Sao_Paulo'
         setStoreTimezone(timezone)
-        
+
         // Horários de funcionamento
         const storeSettings = (data as any).settings as any
         const hours: BusinessHour[] = storeSettings?.businessHours || []
         setBusinessHours(hours)
-        
+
         // Verificar se loja está aberta
         if (hours.length > 0) {
           const status = getStoreStatus(hours, timezone)
@@ -153,7 +153,7 @@ export function CheckoutClient({ slug }: CheckoutClientProps) {
     }
 
     const result = await validateCoupon(storeId, code, subtotal)
-    
+
     if (result.valid && result.discount_amount) {
       setAppliedCoupon({
         code: result.coupon_code || code,
@@ -161,7 +161,7 @@ export function CheckoutClient({ slug }: CheckoutClientProps) {
       })
       return { valid: true, discount: result.discount_amount }
     }
-    
+
     return { valid: false, reason: result.reason }
   }
 
@@ -211,16 +211,16 @@ export function CheckoutClient({ slug }: CheckoutClientProps) {
       }
 
       const result = await validateAndSubmitOrder(
-        slug, 
-        formData, 
-        checkoutMode, 
+        slug,
+        formData,
+        checkoutMode,
         items,
         appliedCoupon || undefined,
         key,
         scheduledDate && scheduledTime ? { scheduledDate, scheduledTime } : undefined
       )
 
-      if (result.success && result.code) {
+      if (result.success && result.code && result.publicToken) {
         clearCart()
         try {
           sessionStorage.removeItem(storageKey)
@@ -228,7 +228,7 @@ export function CheckoutClient({ slug }: CheckoutClientProps) {
           // ignore
         }
         setIdempotencyKey(null)
-        router.push(`/${slug}/pedido/${result.code}`)
+        router.push(`/${slug}/pedido/${result.code}?t=${result.publicToken}`)
       } else {
         setError(mapOrderError(result.error))
       }

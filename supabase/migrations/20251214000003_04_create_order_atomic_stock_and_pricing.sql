@@ -560,6 +560,7 @@ BEGIN
   RETURN jsonb_build_object(
     'order_id', v_order_id,
     'code', v_order_code,
+    'public_token', (SELECT public_token FROM public.orders WHERE id = v_order_id),
     'idempotent', false
   );
 END;
