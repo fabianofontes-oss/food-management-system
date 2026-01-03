@@ -1,15 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createDraftStore } from '@/modules/draft-store';
-import { rateLimit } from '@/lib/rate-limit';
+import { rateLimitByIP } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
   try {
-    // Rate limiting
-    const rateLimitResult = await rateLimit(req, 'auth');
+    // Rate limiting by IP
+    const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
+    const rateLimitResult = await rateLimitByIP(ip);
     if (!rateLimitResult.success) {
-      return rateLimitResult.response;
+      return NextResponse.json(
+        { success: false, error: 'Muitas tentativas. Aguarde alguns segundos.' },
+        { status: 429 }
+      );
     }
 
     const body = await req.json();
