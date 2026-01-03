@@ -94,6 +94,30 @@ export async function createPixPayment(params: CreatePixPaymentParams): Promise<
 }
 
 /**
+ * Verifica se um pagamento existe no MercadoPago (para validação de webhook)
+ * SEGURANÇA: Previne fraude verificando se o payment ID é real
+ */
+export async function verifyPaymentExists(paymentId: string): Promise<boolean> {
+  if (!MP_ACCESS_TOKEN) {
+    console.error('MP_ACCESS_TOKEN não configurado')
+    return false
+  }
+
+  try {
+    const response = await fetch(`${MP_API_URL}/v1/payments/${paymentId}`, {
+      headers: {
+        'Authorization': `Bearer ${MP_ACCESS_TOKEN}`
+      }
+    })
+
+    return response.ok
+  } catch (error) {
+    console.error('Erro ao verificar pagamento:', error)
+    return false
+  }
+}
+
+/**
  * Consulta o status de um pagamento no MercadoPago
  */
 export async function getPaymentStatus(paymentId: string): Promise<PaymentStatus | null> {

@@ -13,7 +13,7 @@ export const StoreRepository = {
       .from('stores')
       .select('*')
       .eq('slug', slug)
-      .single()
+      .maybeSingle()
 
     if (error) {
       console.error('Erro ao buscar loja por slug:', {
@@ -35,7 +35,7 @@ export const StoreRepository = {
       .from('stores')
       .select('*')
       .eq('id', storeId)
-      .single()
+      .maybeSingle()
 
     if (error) {
       console.error('Erro ao buscar loja por ID:', {

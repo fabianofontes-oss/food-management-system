@@ -7,7 +7,7 @@ import { Lock, Mail, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 const SUPER_ADMIN_EMAILS = [
-  'fabianobraga@me.com',
+  'monetizandooo@gmail.com',
   ...(process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAILS?.split(',').map(e => e.trim()) || [])
 ]
 

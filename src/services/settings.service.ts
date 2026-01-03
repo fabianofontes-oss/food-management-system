@@ -26,7 +26,7 @@ class SettingsService {
       .from('stores')
       .select('*')
       .eq('id', storeId)
-      .single()
+      .maybeSingle()
 
     if (error || !data) {
       console.error('Erro ao carregar configurações:', {

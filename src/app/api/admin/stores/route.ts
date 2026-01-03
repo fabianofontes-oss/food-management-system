@@ -1,11 +1,7 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
-
-const SUPER_ADMIN_EMAILS = [
-  'fabianobraga@me.com',
-  ...(process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAILS?.split(',').map(e => e.trim()) || [])
-]
+import { isSuperAdmin } from '@/lib/auth/super-admin'
 
 export async function GET(request: Request) {
   try {
@@ -13,7 +9,7 @@ export async function GET(request: Request) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     
-    if (!user || !SUPER_ADMIN_EMAILS.includes(user.email || '')) {
+    if (!user || !isSuperAdmin(user.email)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

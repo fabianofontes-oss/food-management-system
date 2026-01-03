@@ -13,9 +13,7 @@
  * IMPORTANTE: Em produção, use a variável de ambiente SUPER_ADMIN_EMAILS
  */
 const HARDCODED_SUPER_ADMINS = [
-  'admin@sistema.com',
-  'fabiano@exemplo.com',
-  'fabianobraga@me.com',
+  'monetizandooo@gmail.com',
 ]
 
 /**
