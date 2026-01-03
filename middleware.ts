@@ -1,10 +1,11 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-const SUPER_ADMIN_EMAILS = [
-  'fabianobraga@me.com',
-  ...(process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAILS?.split(',').map(e => e.trim()) || [])
-]
+// Super admin emails (SERVER-ONLY - never use NEXT_PUBLIC for sensitive data)
+const SUPER_ADMIN_EMAILS = (process.env.SUPER_ADMIN_EMAILS || 'fabianobraga@me.com')
+  .split(',')
+  .map(e => e.trim())
+  .filter(Boolean)
 
 // Public routes that don't require authentication (EXACT MATCH ONLY)
 const PUBLIC_ROUTES_EXACT = new Set([

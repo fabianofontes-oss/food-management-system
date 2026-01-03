@@ -1,5 +1,6 @@
 import { getStoreBySlug } from '@/modules/menu'
 import { createOrder } from '@/modules/orders/actions'
+import { rateLimitBySlug } from '@/lib/rate-limit'
 import type { OrderData } from '@/types/menu'
 import type { CheckoutFormData, CheckoutMode } from '../types'
 import type { CartItem } from '@/types/menu'
@@ -29,6 +30,16 @@ export async function validateAndSubmitOrder(
   scheduling?: SchedulingData
 ): Promise<OrderSubmitResult> {
   try {
+    // RATE LIMITING: Prevent spam/abuse
+    const rateLimitResult = await rateLimitBySlug(slug)
+    if (!rateLimitResult.success) {
+      return {
+        success: false,
+        error: `Muitas tentativas. Aguarde ${Math.ceil((rateLimitResult.reset.getTime() - Date.now()) / 1000)} segundos.`,
+        errorCode: 'RATE_LIMIT_EXCEEDED'
+      }
+    }
+
     // Validar telefone baseado no modo de checkout
     if (checkoutMode === 'phone_required' && !formData.phone.trim()) {
       return {
