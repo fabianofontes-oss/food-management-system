@@ -1,4 +1,5 @@
-import 'server-only'
+// Rate limiting utilities using Upstash Redis
+// Note: No 'server-only' import because this is used by services called from client components
 import { Ratelimit } from '@upstash/ratelimit'
 import { Redis } from '@upstash/redis'
 
