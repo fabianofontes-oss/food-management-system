@@ -6,22 +6,31 @@ const SUPER_ADMIN_EMAILS = [
   ...(process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAILS?.split(',').map(e => e.trim()) || [])
 ]
 
-// Public routes that don't require authentication
-const PUBLIC_ROUTES = [
-  '/',
+// Public routes that don't require authentication (EXACT MATCH ONLY)
+const PUBLIC_ROUTES_EXACT = new Set([
   '/landing',
   '/login',
   '/signup',
   '/reset-password',
   '/update-password',
-  '/unauthorized'
+  '/unauthorized',
+  '/criar-loja',
+  '/onboarding'
+])
+
+// Public route prefixes (require specific path patterns)
+const PUBLIC_ROUTE_PREFIXES = [
+  '/api/public',
+  '/api/health',
+  '/para-motoristas',
+  '/motorista-publico'
 ]
 
 function getSubdomainSlug(host: string | null): string | null {
   if (!host) return null
 
   const hostname = host.split(':')[0]
-  
+
   // Domínios suportados em produção
   // pediu.food = URLs curtas para lojas (slug.pediu.food)
   // pediufood.com = Site principal (inglês)
@@ -63,7 +72,7 @@ function getSubdomainSlug(host: string | null): string | null {
       // Evitar subdomínios reservados
       const reserved = new Set(['www', 'admin', 'app', 'api', 'driver'])
       if (reserved.has(sub)) continue
-      
+
       return sub
     }
   }
@@ -83,7 +92,7 @@ export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
   // === ROTEAMENTO ESPECIAL PARA entregou.food ===
-  
+
   // driver.entregou.food → /driver/dashboard
   if (hostname === 'driver.entregou.food') {
     const url = request.nextUrl.clone()
@@ -183,14 +192,23 @@ export async function middleware(request: NextRequest) {
   }
 
   const { data: { session } } = await supabase.auth.getSession()
-  const isPublicRoute = PUBLIC_ROUTES.some(route => currentPathname === route || currentPathname.startsWith(route))
-  
-  // Check if it's a public store menu route (e.g., /store-slug, /store-slug/cart, /store-slug/checkout)
-  const isPublicStoreRoute = pathname.match(/^\/[^\/]+\/(cart|checkout|order)/) || 
-                             (pathname.match(/^\/[^\/]+$/) && !pathname.includes('/dashboard'))
 
-  // Allow public routes and public store routes
-  if (isPublicRoute || isPublicStoreRoute) {
+  // 1. Check exact match public routes
+  const isExactPublicRoute = PUBLIC_ROUTES_EXACT.has(currentPathname) || currentPathname === '/'
+
+  // 2. Check public route prefixes
+  const hasPublicPrefix = PUBLIC_ROUTE_PREFIXES.some(prefix => currentPathname.startsWith(prefix))
+
+  // 3. Check public store routes (specific patterns only)
+  // Allow: /:slug (menu), /:slug/cart, /:slug/checkout, /:slug/pedido/:code
+  const isPublicStoreRoute =
+    pathname.match(/^\/[^\/]+$/) || // /:slug (store menu)
+    pathname.match(/^\/[^\/]+\/(cart|checkout)/) || // /:slug/cart or /:slug/checkout
+    pathname.match(/^\/[^\/]+\/pedido\/[^\/]+/) || // /:slug/pedido/:code
+    pathname.match(/^\/[^\/]+\/order\/[^\/]+/) // /:slug/order/:code (alt)
+
+  // Allow if any public route condition is true
+  if (isExactPublicRoute || hasPublicPrefix || isPublicStoreRoute) {
     return response
   }
 
