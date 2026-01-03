@@ -105,6 +105,41 @@ export async function createOrderAction(
         error: billingCheck.message || 'Ação bloqueada: billing inválido'
       }
     }
+
+    // ETAPA 5C: Verificar limite de pedidos por mês
+    const { data: subscription } = await supabase
+      .from('subscriptions')
+      .select('plan_id, subscription_plans!inner(limits)')
+      .eq('tenant_id', tenantId)
+      .eq('status', 'active')
+      .maybeSingle()
+
+    if (subscription?.subscription_plans) {
+      const limits = (subscription.subscription_plans as any).limits || {}
+      const ordersLimit = limits.orders_per_month
+
+      // Se há limite definido e não é ilimitado (-1)
+      if (ordersLimit && ordersLimit !== -1) {
+        // Calcular início do mês atual
+        const now = new Date()
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+        startOfMonth.setHours(0, 0, 0, 0)
+
+        // Contar pedidos do mês atual da loja
+        const { count } = await supabase
+          .from('orders')
+          .select('id', { count: 'exact', head: true })
+          .eq('store_id', storeId)
+          .gte('created_at', startOfMonth.toISOString())
+
+        if (count !== null && count >= ordersLimit) {
+          return {
+            success: false,
+            error: `Limite de ${ordersLimit} pedidos/mês atingido. Faça upgrade do seu plano para continuar recebendo pedidos.`
+          }
+        }
+      }
+    }
   }
 
   try {
