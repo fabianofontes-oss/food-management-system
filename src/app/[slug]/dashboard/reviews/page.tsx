@@ -88,6 +88,7 @@ export default function ReviewsPage() {
   const [templates, setTemplates] = useState<ReviewTemplate[]>([])
   const [showTemplates, setShowTemplates] = useState(false)
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null)
+  const [isDemoMode, setIsDemoMode] = useState(false)
 
   useEffect(() => {
     async function loadStore() {
@@ -131,77 +132,85 @@ export default function ReviewsPage() {
       let reviewsData: Review[] = []
 
       if (reviewsError || !dbReviews || dbReviews.length === 0) {
-        // Usar dados mock se tabela não existir
-        reviewsData = [
-          {
-            id: '1',
-            customer_id: null,
-            customer_name: 'João Silva',
-            customer_phone: '11999887766',
-            order_id: null,
-            rating: 5,
-            comment: 'Excelente açaí! Muito cremoso e bem servido. Entrega rápida.',
-            rating_food: 5,
-            rating_delivery: 5,
-            rating_service: 5,
-            nps_score: 10,
-            photos: [],
-            reply: 'Obrigado João! Ficamos felizes que tenha gostado!',
-            replied_at: new Date().toISOString(),
-            is_featured: true,
-            is_verified: true,
-            status: 'published',
-            source: 'order',
-            created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
-          },
-          {
-            id: '2',
-            customer_id: null,
-            customer_name: 'Maria Santos',
-            customer_phone: '11988776655',
-            order_id: null,
-            rating: 4,
-            comment: 'Bom produto, mas a entrega demorou um pouco.',
-            rating_food: 5,
-            rating_delivery: 3,
-            rating_service: 4,
-            nps_score: 7,
-            photos: [],
-            reply: null,
-            replied_at: null,
-            is_featured: false,
-            is_verified: true,
-            status: 'published',
-            source: 'order',
-            created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
-          },
-          {
-            id: '3',
-            customer_id: null,
-            customer_name: 'Pedro Oliveira',
-            customer_phone: '11977665544',
-            order_id: null,
-            rating: 5,
-            comment: 'Melhor açaí da região! Sempre peço aqui.',
-            rating_food: 5,
-            rating_delivery: 5,
-            rating_service: 5,
-            nps_score: 10,
-            photos: [],
-            reply: null,
-            replied_at: null,
-            is_featured: false,
-            is_verified: true,
-            status: 'published',
-            source: 'order',
-            created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-          }
-        ]
+        if (process.env.NODE_ENV === 'production') {
+          console.warn('⚠️ Sistema de avaliações não configurado ou sem dados')
+          reviewsData = []
+          setIsDemoMode(false)
+        } else {
+          console.warn('⚠️ MODO DEMO: Usando dados mock de avaliações (apenas DEV)')
+          setIsDemoMode(true)
+          reviewsData = [
+            {
+              id: '1',
+              customer_id: null,
+              customer_name: 'João Silva',
+              customer_phone: '11999887766',
+              order_id: null,
+              rating: 5,
+              comment: 'Excelente açaí! Muito cremoso e bem servido. Entrega rápida.',
+              rating_food: 5,
+              rating_delivery: 5,
+              rating_service: 5,
+              nps_score: 10,
+              photos: [],
+              reply: 'Obrigado João! Ficamos felizes que tenha gostado!',
+              replied_at: new Date().toISOString(),
+              is_featured: true,
+              is_verified: true,
+              status: 'published',
+              source: 'order',
+              created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+            },
+            {
+              id: '2',
+              customer_id: null,
+              customer_name: 'Maria Santos',
+              customer_phone: '11988776655',
+              order_id: null,
+              rating: 4,
+              comment: 'Bom produto, mas a entrega demorou um pouco.',
+              rating_food: 5,
+              rating_delivery: 3,
+              rating_service: 4,
+              nps_score: 7,
+              photos: [],
+              reply: null,
+              replied_at: null,
+              is_featured: false,
+              is_verified: true,
+              status: 'published',
+              source: 'order',
+              created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+            },
+            {
+              id: '3',
+              customer_id: null,
+              customer_name: 'Pedro Oliveira',
+              customer_phone: '11977665544',
+              order_id: null,
+              rating: 5,
+              comment: 'Melhor açaí da região! Sempre peço aqui.',
+              rating_food: 5,
+              rating_delivery: 5,
+              rating_service: 5,
+              nps_score: 10,
+              photos: [],
+              reply: null,
+              replied_at: null,
+              is_featured: false,
+              is_verified: true,
+              status: 'published',
+              source: 'order',
+              created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+            }
+          ]
+        }
       } else {
         reviewsData = dbReviews.map((r: any) => ({
           ...r,
           photos: r.photos || []
         }))
+        setIsDemoMode(false)
       }
 
       setReviews(reviewsData)
@@ -391,6 +400,22 @@ export default function ReviewsPage() {
           </Button>
         </Link>
       </div>
+
+      {/* Banner de Modo Demo */}
+      {isDemoMode && (
+        <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-4">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <h3 className="font-semibold text-amber-900">Modo Demonstração</h3>
+              <p className="text-sm text-amber-800 mt-1">
+                Você está visualizando dados de exemplo. As avaliações mostradas são fictícias e as respostas não serão salvas.
+                Para usar este módulo em produção, configure o sistema de coleta de avaliações.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-5">

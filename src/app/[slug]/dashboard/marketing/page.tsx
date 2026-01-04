@@ -88,6 +88,7 @@ export default function MarketingPage() {
   const [activeTab, setActiveTab] = useState<'campaigns' | 'automations' | 'templates'>('campaigns')
   const [showForm, setShowForm] = useState(false)
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null)
+  const [isDemoMode, setIsDemoMode] = useState(false)
   
   const [formData, setFormData] = useState({
     name: '',
@@ -140,74 +141,84 @@ export default function MarketingPage() {
       let campaignsData: Campaign[] = []
 
       if (!dbCampaigns || dbCampaigns.length === 0) {
-        // Mock data
-        campaignsData = [
-          {
-            id: '1',
-            name: 'Promoção de Verão',
-            type: 'promotion',
-            channel: 'whatsapp',
-            status: 'active',
-            subject: null,
-            message: '🌞 Verão chegou! Açaí 500ml por apenas R$15,90. Use o código VERAO2024',
-            target_audience: 'all',
-            scheduled_at: null,
-            sent_count: 245,
-            delivered_count: 238,
-            opened_count: 167,
-            clicked_count: 89,
-            converted_count: 34,
-            open_rate: 68,
-            click_rate: 53,
-            conversion_rate: 38,
-            revenue_generated: 1250.50,
-            created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
-          },
-          {
-            id: '2',
-            name: 'Lembrete Clientes Inativos',
-            type: 'remarketing',
-            channel: 'whatsapp',
-            status: 'scheduled',
-            subject: null,
-            message: 'Sentimos sua falta! 😊 Volte e ganhe 10% de desconto no seu pedido.',
-            target_audience: 'inactive',
-            scheduled_at: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
-            sent_count: 0,
-            delivered_count: 0,
-            opened_count: 0,
-            clicked_count: 0,
-            converted_count: 0,
-            open_rate: 0,
-            click_rate: 0,
-            conversion_rate: 0,
-            revenue_generated: 0,
-            created_at: new Date().toISOString()
-          },
-          {
-            id: '3',
-            name: 'Novidade no Cardápio',
-            type: 'announcement',
-            channel: 'push',
-            status: 'completed',
-            subject: null,
-            message: '🆕 Novidade! Experimentem nosso novo Açaí Premium com Whey Protein!',
-            target_audience: 'all',
-            scheduled_at: null,
-            sent_count: 512,
-            delivered_count: 498,
-            opened_count: 230,
-            clicked_count: 78,
-            converted_count: 22,
-            open_rate: 45,
-            click_rate: 34,
-            conversion_rate: 28,
-            revenue_generated: 890.00,
-            created_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString()
-          }
-        ]
+        // Não usar mock em produção
+        if (process.env.NODE_ENV === 'production') {
+          console.warn('⚠️ Sistema de campanhas não configurado ou sem dados')
+          campaignsData = []
+          setIsDemoMode(false)
+        } else {
+          console.warn('⚠️ MODO DEMO: Usando dados mock de campanhas (apenas DEV)')
+          setIsDemoMode(true)
+          // Mock data APENAS em DEV
+          campaignsData = [
+            {
+              id: '1',
+              name: 'Promoção de Verão',
+              type: 'promotion',
+              channel: 'whatsapp',
+              status: 'active',
+              subject: null,
+              message: '🌞 Verão chegou! Açaí 500ml por apenas R$15,90. Use o código VERAO2024',
+              target_audience: 'all',
+              scheduled_at: null,
+              sent_count: 245,
+              delivered_count: 238,
+              opened_count: 167,
+              clicked_count: 89,
+              converted_count: 34,
+              open_rate: 68,
+              click_rate: 53,
+              conversion_rate: 38,
+              revenue_generated: 1250.50,
+              created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+            },
+            {
+              id: '2',
+              name: 'Lembrete Clientes Inativos',
+              type: 'remarketing',
+              channel: 'whatsapp',
+              status: 'scheduled',
+              subject: null,
+              message: 'Sentimos sua falta! 😊 Volte e ganhe 10% de desconto no seu pedido.',
+              target_audience: 'inactive',
+              scheduled_at: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+              sent_count: 0,
+              delivered_count: 0,
+              opened_count: 0,
+              clicked_count: 0,
+              converted_count: 0,
+              open_rate: 0,
+              click_rate: 0,
+              conversion_rate: 0,
+              revenue_generated: 0,
+              created_at: new Date().toISOString()
+            },
+            {
+              id: '3',
+              name: 'Novidade no Cardápio',
+              type: 'announcement',
+              channel: 'push',
+              status: 'completed',
+              subject: null,
+              message: '🆕 Novidade! Experimentem nosso novo Açaí Premium com Whey Protein!',
+              target_audience: 'all',
+              scheduled_at: null,
+              sent_count: 512,
+              delivered_count: 498,
+              opened_count: 230,
+              clicked_count: 78,
+              converted_count: 22,
+              open_rate: 45,
+              click_rate: 34,
+              conversion_rate: 28,
+              revenue_generated: 890.00,
+              created_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString()
+            }
+          ]
+        }
       } else {
         campaignsData = dbCampaigns
+        setIsDemoMode(false)
       }
 
       setCampaigns(campaignsData)
@@ -390,6 +401,22 @@ export default function MarketingPage() {
           Nova Campanha
         </Button>
       </div>
+
+      {/* Banner DEMO */}
+      {isDemoMode && (
+        <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-4">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <h3 className="font-semibold text-amber-900">Modo Demonstração</h3>
+              <p className="text-sm text-amber-800 mt-1">
+                Você está visualizando dados de exemplo. As campanhas mostradas são fictícias e não serão enviadas.
+                Para usar este módulo em produção, configure as integrações de envio (WhatsApp, Email, SMS).
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
