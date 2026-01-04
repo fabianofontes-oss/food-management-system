@@ -132,45 +132,52 @@ export default function ReservationsPage() {
         .order('time', { ascending: true })
 
       if (dbError) {
-        console.log('Tabela reservations não existe, usando dados de exemplo')
-        // Dados de exemplo
-        const mockReservations: Reservation[] = [
-          {
-            id: '1',
-            customer_name: 'João Silva',
-            customer_phone: '11999887766',
-            customer_email: 'joao@email.com',
-            party_size: 4,
-            date: today,
-            time: '19:00',
-            duration_minutes: 90,
-            status: 'confirmed',
-            notes: 'Aniversário',
-            internal_notes: null,
-            table_id: null,
-            occasion: 'aniversario',
-            source: 'dashboard',
-            created_at: new Date().toISOString()
-          },
-          {
-            id: '2',
-            customer_name: 'Maria Santos',
-            customer_phone: '11988776655',
-            customer_email: null,
-            party_size: 2,
-            date: today,
-            time: '20:00',
-            duration_minutes: 90,
-            status: 'pending',
-            notes: null,
-            internal_notes: null,
-            table_id: null,
-            occasion: null,
-            source: 'online',
-            created_at: new Date().toISOString()
-          }
-        ]
-        setReservations(mockReservations)
+        console.error('Erro ao carregar reservas:', dbError)
+        // Se tabela não existe ou houve erro, não usar mock em produção
+        if (process.env.NODE_ENV === 'production') {
+          setError('Sistema de reservas não configurado. Entre em contato com o suporte.')
+          setReservations([])
+        } else {
+          console.warn('⚠️ MODO DEMO: Usando dados mock de reservas (apenas DEV)')
+          // Dados de exemplo apenas em DEV
+          const mockReservations: Reservation[] = [
+            {
+              id: '1',
+              customer_name: 'João Silva',
+              customer_phone: '11999887766',
+              customer_email: 'joao@email.com',
+              party_size: 4,
+              date: today,
+              time: '19:00',
+              duration_minutes: 90,
+              status: 'confirmed',
+              notes: 'Aniversário',
+              internal_notes: null,
+              table_id: null,
+              occasion: 'aniversario',
+              source: 'dashboard',
+              created_at: new Date().toISOString()
+            },
+            {
+              id: '2',
+              customer_name: 'Maria Santos',
+              customer_phone: '11988776655',
+              customer_email: null,
+              party_size: 2,
+              date: today,
+              time: '20:00',
+              duration_minutes: 90,
+              status: 'pending',
+              notes: null,
+              internal_notes: null,
+              table_id: null,
+              occasion: null,
+              source: 'online',
+              created_at: new Date().toISOString()
+            }
+          ]
+          setReservations(mockReservations)
+        }
       } else {
         setReservations(dbReservations || [])
       }
@@ -193,38 +200,53 @@ export default function ReservationsPage() {
     }
   }
 
-  function handleSaveReservation() {
-    if (!formData.customer_name || !formData.customer_phone) return
-    
-    const newReservation: Reservation = {
-      id: Date.now().toString(),
-      customer_name: formData.customer_name,
-      customer_phone: formData.customer_phone,
-      customer_email: formData.customer_email || null,
-      party_size: parseInt(formData.party_size),
-      date: formData.date,
-      time: formData.time,
-      duration_minutes: parseInt(formData.duration_minutes) || 90,
-      status: 'pending',
-      notes: formData.notes || null,
-      internal_notes: formData.internal_notes || null,
-      table_id: formData.table_id || null,
-      occasion: formData.occasion || null,
-      source: 'dashboard',
-      created_at: new Date().toISOString()
+  async function handleSaveReservation() {
+    if (!formData.customer_name || !formData.customer_phone || !storeId) return
+
+    try {
+      const reservationData = {
+        store_id: storeId,
+        customer_name: formData.customer_name,
+        customer_phone: formData.customer_phone,
+        customer_email: formData.customer_email || null,
+        party_size: parseInt(formData.party_size),
+        date: formData.date,
+        time: formData.time,
+        duration_minutes: parseInt(formData.duration_minutes) || 90,
+        status: selectedReservation?.status || 'pending',
+        notes: formData.notes || null,
+        internal_notes: formData.internal_notes || null,
+        table_id: formData.table_id || null,
+        occasion: formData.occasion || null,
+        source: 'dashboard'
+      }
+
+      if (selectedReservation) {
+        // UPDATE
+        const { error } = await supabase
+          .from('reservations')
+          .update(reservationData)
+          .eq('id', selectedReservation.id)
+          .eq('store_id', storeId)
+
+        if (error) throw error
+      } else {
+        // INSERT
+        const { error } = await supabase
+          .from('reservations')
+          .insert(reservationData)
+
+        if (error) throw error
+      }
+
+      await loadReservations()
+      setShowForm(false)
+      setSelectedReservation(null)
+      resetForm()
+    } catch (err) {
+      console.error('Erro ao salvar reserva:', err)
+      alert('Erro ao salvar reserva. Tente novamente.')
     }
-    
-    if (selectedReservation) {
-      setReservations(prev => prev.map(r => 
-        r.id === selectedReservation.id ? { ...newReservation, id: r.id, status: r.status } : r
-      ))
-    } else {
-      setReservations(prev => [newReservation, ...prev])
-    }
-    
-    setShowForm(false)
-    setSelectedReservation(null)
-    resetForm()
   }
 
   function resetForm() {
@@ -243,15 +265,42 @@ export default function ReservationsPage() {
     })
   }
 
-  function handleUpdateStatus(reservation: Reservation, newStatus: Reservation['status']) {
-    setReservations(prev => prev.map(r => 
-      r.id === reservation.id ? { ...r, status: newStatus } : r
-    ))
+  async function handleUpdateStatus(reservation: Reservation, newStatus: Reservation['status']) {
+    if (!storeId) return
+
+    try {
+      const { error } = await supabase
+        .from('reservations')
+        .update({ status: newStatus })
+        .eq('id', reservation.id)
+        .eq('store_id', storeId)
+
+      if (error) throw error
+
+      await loadReservations()
+    } catch (err) {
+      console.error('Erro ao atualizar status:', err)
+      alert('Erro ao atualizar status. Tente novamente.')
+    }
   }
 
-  function handleDelete(id: string) {
-    if (!confirm('Deseja cancelar esta reserva?')) return
-    setReservations(prev => prev.filter(r => r.id !== id))
+  async function handleDelete(id: string) {
+    if (!confirm('Deseja cancelar esta reserva?') || !storeId) return
+
+    try {
+      const { error} = await supabase
+        .from('reservations')
+        .delete()
+        .eq('id', id)
+        .eq('store_id', storeId)
+
+      if (error) throw error
+
+      await loadReservations()
+    } catch (err) {
+      console.error('Erro ao deletar reserva:', err)
+      alert('Erro ao deletar reserva. Tente novamente.')
+    }
   }
 
   const getStatusBadge = (status: Reservation['status']) => {
