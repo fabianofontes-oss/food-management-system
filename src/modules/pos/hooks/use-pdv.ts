@@ -146,28 +146,67 @@ export function usePDV({ storeId }: UsePDVProps) {
     setProcessing(true)
     try {
       const orderCode = tableNumber ? `MESA-${tableNumber}` : `PDV-${Date.now()}`
-      
+
       const notes = [
         attendant && `Atendente: ${attendant}`,
         tableNumber && `Mesa: ${tableNumber}`,
+        customerName && `Cliente: ${customerName}`,
+        customerPhone && `Telefone: ${customerPhone}`,
         discountAmount > 0 && `Desconto: R$${discountAmount.toFixed(2)}`,
         serviceFee && `Taxa serviço: R$${serviceFeeAmount.toFixed(2)}`,
         tipPercent > 0 && `Gorjeta ${tipPercent}%: R$${tipAmount.toFixed(2)}`,
       ].filter(Boolean).join(' | ')
 
+      // Criar/buscar customer se tiver nome ou telefone
+      let customerId: string | null = null
+      if (customerName || customerPhone) {
+        const { data: existingCustomer } = await supabase
+          .from('customers')
+          .select('id')
+          .eq('store_id', storeId)
+          .eq('phone', customerPhone || '')
+          .maybeSingle()
+
+        if (existingCustomer) {
+          customerId = existingCustomer.id
+        } else if (customerName && customerPhone) {
+          const { data: newCustomer, error: customerError } = await supabase
+            .from('customers')
+            .insert({
+              store_id: storeId,
+              name: customerName,
+              phone: customerPhone
+            })
+            .select('id')
+            .single()
+
+          if (!customerError && newCustomer) {
+            customerId = newCustomer.id
+          }
+        }
+      }
+
+      // Mapear payment_method para valores do enum
+      let dbPaymentMethod: 'PIX' | 'CASH' | 'CARD' | 'ONLINE' = 'CASH'
+      if (paymentMethod === 'pix') dbPaymentMethod = 'PIX'
+      else if (paymentMethod === 'card') dbPaymentMethod = 'CARD'
+      else if (paymentMethod === 'cash') dbPaymentMethod = 'CASH'
+
+      // Mapear channel baseado no tipo de venda
+      const channel: 'COUNTER' | 'DELIVERY' | 'TAKEAWAY' = tableNumber ? 'COUNTER' : 'COUNTER'
+
       const { data: order, error } = await supabase
         .from('orders')
         .insert({
           store_id: storeId,
-          order_code: orderCode,
-          customer_name: customerName || 'Cliente PDV',
-          customer_phone: customerPhone || '',
-          order_type: tableNumber ? 'dine_in' : 'counter',
-          payment_method: paymentMethod === 'card' ? 'credit_card' : paymentMethod,
-          subtotal,
-          discount: discountAmount,
+          customer_id: customerId,
+          code: orderCode,
+          channel: channel,
+          payment_method: dbPaymentMethod,
+          subtotal_amount: subtotal,
+          discount_amount: discountAmount,
           total_amount: total,
-          status: 'confirmed',
+          status: 'ACCEPTED', // PDV já aceita automaticamente
           notes: notes || 'Venda via PDV'
         })
         .select('id')
@@ -184,12 +223,12 @@ export function usePDV({ storeId }: UsePDVProps) {
         total_price: item.price * item.quantity,
         notes: item.obs || null
       }))
-      
+
       await supabase.from('order_items').insert(orderItems)
 
       setLastOrderId(order.id)
       setSuccess(true)
-      
+
       setTimeout(() => {
         setSuccess(false)
         clearCart()
