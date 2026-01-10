@@ -2,20 +2,14 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { Lock, Mail, User, Phone, Loader2, CheckCircle } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Lock, Mail, User, Phone, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 export default function SignupClient() {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const reservationToken = searchParams.get('reservation')
-  const draftToken = searchParams.get('draft')
-  const reservedSlug = searchParams.get('slug')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [success, setSuccess] = useState(false)
-  const [draftSlug, setDraftSlug] = useState('')
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -28,12 +22,6 @@ export default function SignupClient() {
     e.preventDefault()
     setLoading(true)
     setError('')
-
-    if (!reservationToken && !draftToken) {
-      setError('Você precisa escolher sua URL antes de criar a conta.')
-      setLoading(false)
-      return
-    }
 
     if (formData.password !== formData.confirmPassword) {
       setError('As senhas não coincidem')
@@ -68,98 +56,12 @@ export default function SignupClient() {
       }
 
       if (data.user) {
-        const endpoint = draftToken 
-          ? '/api/onboarding/publish-draft' 
-          : '/api/onboarding/complete-signup'
-        
-        const payload = draftToken
-          ? {
-              draftToken,
-              userId: data.user.id,
-              email: formData.email,
-              name: formData.name,
-              phone: formData.phone,
-            }
-          : {
-              token: reservationToken,
-              userId: data.user.id,
-              email: formData.email,
-              name: formData.name,
-              phone: formData.phone,
-            }
-
-        const res = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        })
-
-        const json = await res.json().catch(() => null)
-        if (!res.ok || !json?.success) {
-          setError(json?.error || 'Conta criada, mas falhou ao provisionar sua loja. Tente novamente.')
-          setLoading(false)
-          return
-        }
-
-        if (draftToken && json.slug) {
-          setDraftSlug(json.slug)
-        }
-
-        setSuccess(true)
+        router.push('/onboarding')
       }
     } catch (err: any) {
       setError(err.message || 'Erro ao criar conta')
       setLoading(false)
     }
-  }
-
-  if (success) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-white flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
-            <div className="inline-block p-3 bg-green-100 rounded-full mb-4">
-              <CheckCircle className="w-8 h-8 text-green-600" />
-            </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Conta criada!</h1>
-            <p className="text-gray-600 mb-6">
-              Enviamos um email de confirmação para <strong>{formData.email}</strong>. Por favor, verifique sua caixa de
-              entrada e clique no link para ativar sua conta.
-            </p>
-            {(reservedSlug || draftSlug) && (
-              <p className="text-gray-600 mb-6">
-                Sua URL ficará em: <strong>{reservedSlug || draftSlug}.pediu.food</strong>
-              </p>
-            )}
-            <Link
-              href="/login"
-              className="inline-block bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-semibold"
-            >
-              Ir para Login
-            </Link>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (!reservationToken && !draftToken) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-white flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Escolha sua URL primeiro</h1>
-            <p className="text-gray-600 mb-6">Para criar sua loja, você precisa reservar o endereço do seu minisite.</p>
-            <Link
-              href="/choose-url"
-              className="inline-block bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-semibold"
-            >
-              Escolher URL
-            </Link>
-          </div>
-        </div>
-      </div>
-    )
   }
 
   return (
