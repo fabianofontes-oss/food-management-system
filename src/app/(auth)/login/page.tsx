@@ -65,8 +65,7 @@ export default function LoginPage() {
       }
 
       if (!storeUsers || storeUsers.length === 0) {
-        setError('Nenhuma loja atribuída. Entre em contato com o administrador.')
-        setLoading(false)
+        router.push('/onboarding')
         return
       }
 
@@ -79,8 +78,7 @@ export default function LoginPage() {
 
       if (storeError || !store) {
         console.error('Error fetching store:', storeError)
-        setError('Erro ao carregar dados da loja.')
-        setLoading(false)
+        router.push('/onboarding')
         return
       }
 
