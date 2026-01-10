@@ -1,2 +1,0 @@
-schema,function_name,security_definer,args,return_type,owner
-public,no_security_definer_functions_found,false,,,postgres

@@ -1,5 +1,0 @@
-﻿
-> food-management-system@1.0.0 lint
-> next lint
-
-Ô£ö No ESLint warnings or errors
