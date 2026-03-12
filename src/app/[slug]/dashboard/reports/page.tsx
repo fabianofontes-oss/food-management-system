@@ -515,16 +515,16 @@ export default function ReportsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white p-4 md:p-6">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white p-3 md:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-4 md:mb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 flex items-center gap-3">
-              <TrendingUp className="w-8 h-8 md:w-10 md:h-10 text-blue-600" />
+            <h1 className="text-2xl md:text-4xl font-bold text-gray-900 flex items-center gap-2 md:gap-3">
+              <TrendingUp className="w-6 h-6 md:w-10 md:h-10 text-blue-600" />
               Relatórios
             </h1>
-            <p className="text-gray-600 mt-1">Análise de vendas e desempenho</p>
+            <p className="text-gray-600 mt-1 text-sm md:text-base">Análise de vendas e desempenho</p>
           </div>
           {!loading && metrics.total_orders > 0 && (
             <Button
@@ -538,13 +538,13 @@ export default function ReportsPage() {
         </div>
 
         {/* Filtros de Data */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm mb-6">
+        <div className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-sm mb-4 md:mb-6">
           <div className="flex items-center gap-2 mb-4">
             <Calendar className="w-5 h-5 text-gray-600" />
             <h2 className="text-lg font-bold text-gray-900">Período</h2>
           </div>
           
-          <div className="flex flex-wrap gap-2 mb-4">
+          <div className="flex flex-wrap gap-1.5 md:gap-2 mb-4">
             {[
               { key: 'today', label: 'Hoje' },
               { key: '7days', label: '7 dias' },
@@ -558,7 +558,7 @@ export default function ReportsPage() {
                 key={key}
                 size="sm"
                 onClick={() => setDatePreset(key as DatePreset)}
-                className={datePreset === key ? 'bg-blue-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}
+                className={`text-xs md:text-sm px-2 md:px-3 py-1.5 md:py-2 ${datePreset === key ? 'bg-blue-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
               >
                 {label}
               </Button>
@@ -590,12 +590,12 @@ export default function ReportsPage() {
         </div>
 
         {loading ? (
-          <div className="bg-white rounded-2xl p-12 shadow-sm text-center">
-            <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
-            <p className="text-gray-600">Carregando relatórios...</p>
+          <div className="bg-white rounded-xl md:rounded-2xl p-8 md:p-12 shadow-sm text-center">
+            <Loader2 className="w-10 h-10 md:w-12 md:h-12 text-blue-600 animate-spin mx-auto mb-4" />
+            <p className="text-gray-600 text-sm md:text-base">Carregando relatórios...</p>
           </div>
         ) : error ? (
-          <div className="bg-red-50 border border-red-200 rounded-2xl p-6 shadow-sm">
+          <div className="bg-red-50 border border-red-200 rounded-xl md:rounded-2xl p-4 md:p-6 shadow-sm">
             <div className="flex items-center gap-3 text-red-700">
               <AlertCircle className="w-6 h-6" />
               <p className="font-medium">{error}</p>
@@ -604,37 +604,37 @@ export default function ReportsPage() {
         ) : (
           <>
             {/* Métricas Principais */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-lg">
-                <div className="flex items-center gap-3 mb-2">
-                  <ShoppingBag className="w-6 h-6" />
-                  <span className="text-sm font-medium opacity-90">Total de Pedidos</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-4 md:mb-6">
+              <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl md:rounded-2xl p-4 md:p-6 text-white shadow-lg">
+                <div className="flex items-center gap-2 md:gap-3 mb-1 md:mb-2">
+                  <ShoppingBag className="w-5 h-5 md:w-6 md:h-6" />
+                  <span className="text-xs md:text-sm font-medium opacity-90">Total de Pedidos</span>
                 </div>
-                <div className="text-3xl font-bold">{metrics.total_orders}</div>
+                <div className="text-2xl md:text-3xl font-bold">{metrics.total_orders}</div>
               </div>
 
-              <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-6 text-white shadow-lg">
-                <div className="flex items-center gap-3 mb-2">
-                  <DollarSign className="w-6 h-6" />
-                  <span className="text-sm font-medium opacity-90">Receita Total</span>
+              <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl md:rounded-2xl p-4 md:p-6 text-white shadow-lg">
+                <div className="flex items-center gap-2 md:gap-3 mb-1 md:mb-2">
+                  <DollarSign className="w-5 h-5 md:w-6 md:h-6" />
+                  <span className="text-xs md:text-sm font-medium opacity-90">Receita Total</span>
                 </div>
-                <div className="text-3xl font-bold">{formatCurrency(metrics.total_revenue)}</div>
+                <div className="text-2xl md:text-3xl font-bold">{formatCurrency(metrics.total_revenue)}</div>
               </div>
 
-              <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-6 text-white shadow-lg">
-                <div className="flex items-center gap-3 mb-2">
-                  <TrendingUp className="w-6 h-6" />
-                  <span className="text-sm font-medium opacity-90">Ticket Médio</span>
+              <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl md:rounded-2xl p-4 md:p-6 text-white shadow-lg">
+                <div className="flex items-center gap-2 md:gap-3 mb-1 md:mb-2">
+                  <TrendingUp className="w-5 h-5 md:w-6 md:h-6" />
+                  <span className="text-xs md:text-sm font-medium opacity-90">Ticket Médio</span>
                 </div>
-                <div className="text-3xl font-bold">{formatCurrency(metrics.average_ticket)}</div>
+                <div className="text-2xl md:text-3xl font-bold">{formatCurrency(metrics.average_ticket)}</div>
               </div>
 
-              <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-2xl p-6 text-white shadow-lg">
-                <div className="flex items-center gap-3 mb-2">
-                  <CreditCard className="w-6 h-6" />
-                  <span className="text-sm font-medium opacity-90">Status Pagamento</span>
+              <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl md:rounded-2xl p-4 md:p-6 text-white shadow-lg">
+                <div className="flex items-center gap-2 md:gap-3 mb-1 md:mb-2">
+                  <CreditCard className="w-5 h-5 md:w-6 md:h-6" />
+                  <span className="text-xs md:text-sm font-medium opacity-90">Status Pagamento</span>
                 </div>
-                <div className="text-lg font-bold">
+                <div className="text-base md:text-lg font-bold">
                   {metrics.paid_count} Pagos / {metrics.pending_count} Pendentes
                 </div>
               </div>
@@ -642,8 +642,8 @@ export default function ReportsPage() {
 
             {/* Comparação com período anterior */}
             {comparison && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-4 md:mb-6">
+                <div className="bg-white rounded-xl md:rounded-2xl p-4 md:p-5 shadow-sm border border-slate-100">
                   <p className="text-sm text-slate-500 mb-1">Pedidos vs Período Anterior</p>
                   <div className="flex items-center gap-2">
                     <span className="text-2xl font-bold">{comparison.current.orders}</span>
@@ -654,7 +654,7 @@ export default function ReportsPage() {
                   </div>
                   <p className="text-xs text-slate-400 mt-1">Anterior: {comparison.previous.orders}</p>
                 </div>
-                <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+                <div className="bg-white rounded-xl md:rounded-2xl p-4 md:p-5 shadow-sm border border-slate-100">
                   <p className="text-sm text-slate-500 mb-1">Receita vs Período Anterior</p>
                   <div className="flex items-center gap-2">
                     <span className="text-2xl font-bold">{formatCurrency(comparison.current.revenue)}</span>
@@ -665,7 +665,7 @@ export default function ReportsPage() {
                   </div>
                   <p className="text-xs text-slate-400 mt-1">Anterior: {formatCurrency(comparison.previous.revenue)}</p>
                 </div>
-                <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+                <div className="bg-white rounded-xl md:rounded-2xl p-4 md:p-5 shadow-sm border border-slate-100">
                   <p className="text-sm text-slate-500 mb-1">Ticket vs Período Anterior</p>
                   <div className="flex items-center gap-2">
                     <span className="text-2xl font-bold">{formatCurrency(comparison.current.ticket)}</span>
@@ -681,12 +681,12 @@ export default function ReportsPage() {
 
             {/* Gráfico de Evolução Diária */}
             {dailyData.length > 1 && (
-              <div className="bg-white rounded-2xl p-6 shadow-sm mb-6">
+              <div className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-sm mb-4 md:mb-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                   <BarChart3 className="w-6 h-6 text-indigo-600" />
                   Evolução Diária
                 </h2>
-                <div className="h-80">
+                <div className="h-64 md:h-80">
                   <ResponsiveContainer width="100%" height="100%">
                     <ComposedChart data={dailyData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
@@ -694,10 +694,13 @@ export default function ReportsPage() {
                         dataKey="date" 
                         tickFormatter={(date) => new Date(date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
                         stroke="#9CA3AF"
-                        fontSize={12}
+                        fontSize={10}
+                        angle={-45}
+                        textAnchor="end"
+                        height={60}
                       />
-                      <YAxis yAxisId="left" stroke="#9CA3AF" fontSize={12} />
-                      <YAxis yAxisId="right" orientation="right" stroke="#9CA3AF" fontSize={12} tickFormatter={(v) => `R$${(v/1000).toFixed(0)}k`} />
+                      <YAxis yAxisId="left" stroke="#9CA3AF" fontSize={10} width={40} />
+                      <YAxis yAxisId="right" orientation="right" stroke="#9CA3AF" fontSize={10} width={50} tickFormatter={(v) => `R$${(v/1000).toFixed(0)}k`} />
                       <Tooltip 
                         formatter={(value: number, name: string) => [
                           name === 'revenue' ? formatCurrency(value) : value,
@@ -715,7 +718,7 @@ export default function ReportsPage() {
             )}
 
             {/* Breakdown por Método de Pagamento */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm">
+            <div className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-sm">
               <h2 className="text-xl font-bold text-gray-900 mb-4">Vendas por Método de Pagamento</h2>
               
               {paymentBreakdown.length === 0 ? (
@@ -761,7 +764,7 @@ export default function ReportsPage() {
             </div>
 
             {/* Top Products */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm mt-6">
+            <div className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-sm mt-4 md:mt-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <Award className="w-6 h-6 text-orange-600" />

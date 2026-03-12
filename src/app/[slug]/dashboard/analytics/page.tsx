@@ -263,25 +263,25 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50/30 p-4 md:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50/30 p-3 md:p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto space-y-4 md:space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-slate-800 flex items-center gap-3">
-            <div className="p-2.5 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-xl shadow-lg shadow-indigo-500/25">
-              <BarChart3 className="w-6 h-6 md:w-7 md:h-7 text-white" />
+          <h1 className="text-xl md:text-3xl font-bold text-slate-800 flex items-center gap-2 md:gap-3">
+            <div className="p-2 md:p-2.5 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-xl shadow-lg shadow-indigo-500/25">
+              <BarChart3 className="w-5 h-5 md:w-7 md:h-7 text-white" />
             </div>
             Analytics
           </h1>
-          <p className="text-slate-500 mt-2 ml-14">Métricas e tendências do seu negócio</p>
+          <p className="text-slate-500 mt-1 md:mt-2 text-sm md:text-base ml-0 md:ml-14">Métricas e tendências do seu negócio</p>
         </div>
-        <div className="flex gap-2 bg-white p-1.5 rounded-xl shadow-lg shadow-slate-200/50 border border-slate-100">
+        <div className="flex gap-1.5 md:gap-2 bg-white p-1 md:p-1.5 rounded-xl shadow-lg shadow-slate-200/50 border border-slate-100 w-full md:w-auto overflow-x-auto">
           {(['7d', '30d', '90d'] as Period[]).map(p => (
             <button
               key={p}
               onClick={() => setPeriod(p)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              className={`px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-xs md:text-sm font-medium transition-all whitespace-nowrap ${
                 period === p 
                   ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-500/25' 
                   : 'text-slate-600 hover:bg-slate-100'
@@ -294,65 +294,65 @@ export default function AnalyticsPage() {
       </div>
 
       {/* KPIs principais */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div className="bg-white rounded-2xl p-6 shadow-lg shadow-slate-200/50 border border-slate-100 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-sm font-medium text-slate-500">Pedidos</p>
-            <div className="p-2 bg-violet-100 rounded-xl">
-              <ShoppingBag className="w-5 h-5 text-violet-600" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5">
+        <div className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg shadow-slate-200/50 border border-slate-100 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
+          <div className="flex items-center justify-between mb-3 md:mb-4">
+            <p className="text-xs md:text-sm font-medium text-slate-500">Pedidos</p>
+            <div className="p-1.5 md:p-2 bg-violet-100 rounded-lg md:rounded-xl">
+              <ShoppingBag className="w-4 h-4 md:w-5 md:h-5 text-violet-600" />
             </div>
           </div>
-          <p className="text-3xl font-bold text-slate-800">{data.totalOrders}</p>
-          <div className={`flex items-center gap-1.5 mt-3 text-sm ${getChangeColor(data.comparison.orders.change)}`}>
+          <p className="text-2xl md:text-3xl font-bold text-slate-800">{data.totalOrders}</p>
+          <div className={`flex items-center gap-1 md:gap-1.5 mt-2 md:mt-3 text-xs md:text-sm ${getChangeColor(data.comparison.orders.change)}`}>
             {getChangeIcon(data.comparison.orders.change)}
-            <span className="font-medium">{Math.abs(data.comparison.orders.change).toFixed(1)}% vs período anterior</span>
+            <span className="font-medium">{Math.abs(data.comparison.orders.change).toFixed(1)}% vs anterior</span>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-6 shadow-lg shadow-slate-200/50 border border-slate-100 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-sm font-medium text-slate-500">Faturamento</p>
-            <div className="p-2 bg-emerald-100 rounded-xl">
-              <DollarSign className="w-5 h-5 text-emerald-600" />
+        <div className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg shadow-slate-200/50 border border-slate-100 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
+          <div className="flex items-center justify-between mb-3 md:mb-4">
+            <p className="text-xs md:text-sm font-medium text-slate-500">Faturamento</p>
+            <div className="p-1.5 md:p-2 bg-emerald-100 rounded-lg md:rounded-xl">
+              <DollarSign className="w-4 h-4 md:w-5 md:h-5 text-emerald-600" />
             </div>
           </div>
-          <p className="text-3xl font-bold text-slate-800">{formatCurrency(data.totalRevenue)}</p>
-          <div className={`flex items-center gap-1.5 mt-3 text-sm ${getChangeColor(data.comparison.revenue.change)}`}>
+          <p className="text-2xl md:text-3xl font-bold text-slate-800">{formatCurrency(data.totalRevenue)}</p>
+          <div className={`flex items-center gap-1 md:gap-1.5 mt-2 md:mt-3 text-xs md:text-sm ${getChangeColor(data.comparison.revenue.change)}`}>
             {getChangeIcon(data.comparison.revenue.change)}
-            <span className="font-medium">{Math.abs(data.comparison.revenue.change).toFixed(1)}% vs período anterior</span>
+            <span className="font-medium">{Math.abs(data.comparison.revenue.change).toFixed(1)}% vs anterior</span>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-6 shadow-lg shadow-slate-200/50 border border-slate-100 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-sm font-medium text-slate-500">Ticket Médio</p>
-            <div className="p-2 bg-blue-100 rounded-xl">
-              <Activity className="w-5 h-5 text-blue-600" />
+        <div className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg shadow-slate-200/50 border border-slate-100 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
+          <div className="flex items-center justify-between mb-3 md:mb-4">
+            <p className="text-xs md:text-sm font-medium text-slate-500">Ticket Médio</p>
+            <div className="p-1.5 md:p-2 bg-blue-100 rounded-lg md:rounded-xl">
+              <Activity className="w-4 h-4 md:w-5 md:h-5 text-blue-600" />
             </div>
           </div>
-          <p className="text-3xl font-bold text-slate-800">{formatCurrency(data.averageTicket)}</p>
-          <div className={`flex items-center gap-1.5 mt-3 text-sm ${getChangeColor(data.comparison.ticket.change)}`}>
+          <p className="text-2xl md:text-3xl font-bold text-slate-800">{formatCurrency(data.averageTicket)}</p>
+          <div className={`flex items-center gap-1 md:gap-1.5 mt-2 md:mt-3 text-xs md:text-sm ${getChangeColor(data.comparison.ticket.change)}`}>
             {getChangeIcon(data.comparison.ticket.change)}
-            <span className="font-medium">{Math.abs(data.comparison.ticket.change).toFixed(1)}% vs período anterior</span>
+            <span className="font-medium">{Math.abs(data.comparison.ticket.change).toFixed(1)}% vs anterior</span>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-6 shadow-lg shadow-slate-200/50 border border-slate-100 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-sm font-medium text-slate-500">Clientes</p>
-            <div className="p-2 bg-amber-100 rounded-xl">
-              <Users className="w-5 h-5 text-amber-600" />
+        <div className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg shadow-slate-200/50 border border-slate-100 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
+          <div className="flex items-center justify-between mb-3 md:mb-4">
+            <p className="text-xs md:text-sm font-medium text-slate-500">Clientes</p>
+            <div className="p-1.5 md:p-2 bg-amber-100 rounded-lg md:rounded-xl">
+              <Users className="w-4 h-4 md:w-5 md:h-5 text-amber-600" />
             </div>
           </div>
-          <p className="text-3xl font-bold text-slate-800">{data.totalCustomers}</p>
-          <p className="text-sm text-slate-400 mt-3 font-medium">Total cadastrados</p>
+          <p className="text-2xl md:text-3xl font-bold text-slate-800">{data.totalCustomers}</p>
+          <p className="text-xs md:text-sm text-slate-400 mt-2 md:mt-3 font-medium">Total cadastrados</p>
         </div>
       </div>
 
       {/* Gráficos e Detalhes */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         {/* Vendas por dia */}
-        <div className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-6">
+        <div className="bg-white rounded-xl md:rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-4 md:p-6">
           <h3 className="font-semibold text-slate-800 mb-5 flex items-center gap-3">
             <div className="p-2 bg-indigo-100 rounded-xl">
               <Calendar className="w-5 h-5 text-indigo-600" />
@@ -393,7 +393,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Horários de pico */}
-        <div className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-6">
+        <div className="bg-white rounded-xl md:rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-4 md:p-6">
           <h3 className="font-semibold text-slate-800 mb-5 flex items-center gap-3">
             <div className="p-2 bg-violet-100 rounded-xl">
               <Clock className="w-5 h-5 text-violet-600" />
@@ -433,7 +433,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Top Produtos */}
-        <div className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-6">
+        <div className="bg-white rounded-xl md:rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-4 md:p-6">
           <h3 className="font-semibold text-slate-800 mb-5 flex items-center gap-3">
             <div className="p-2 bg-emerald-100 rounded-xl">
               <TrendingUp className="w-5 h-5 text-emerald-600" />
@@ -466,7 +466,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Formas de Pagamento */}
-        <div className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-6">
+        <div className="bg-white rounded-xl md:rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-4 md:p-6">
           <h3 className="font-semibold text-slate-800 mb-5 flex items-center gap-3">
             <div className="p-2 bg-cyan-100 rounded-xl">
               <PieChart className="w-5 h-5 text-cyan-600" />
@@ -513,7 +513,7 @@ export default function AnalyticsPage() {
 
       {/* Gráfico de Receita ao longo do tempo */}
       {data.ordersByDay.length > 0 && (
-        <div className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-6">
+        <div className="bg-white rounded-xl md:rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-4 md:p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="font-semibold text-slate-800 flex items-center gap-3">
               <div className="p-2 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-xl">
@@ -526,7 +526,7 @@ export default function AnalyticsPage() {
               Exportar
             </Button>
           </div>
-          <div className="h-80">
+          <div className="h-64 md:h-80">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={data.ordersByDay}>
                 <defs>
@@ -540,12 +540,16 @@ export default function AnalyticsPage() {
                   dataKey="date" 
                   tickFormatter={(date) => new Date(date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
                   stroke="#9CA3AF"
-                  fontSize={12}
+                  fontSize={10}
+                  angle={-45}
+                  textAnchor="end"
+                  height={60}
                 />
                 <YAxis 
                   tickFormatter={(value) => `R$${(value/1000).toFixed(0)}k`}
                   stroke="#9CA3AF"
-                  fontSize={12}
+                  fontSize={10}
+                  width={45}
                 />
                 <Tooltip 
                   formatter={(value: number) => [formatCurrency(value), 'Receita']}
@@ -567,17 +571,17 @@ export default function AnalyticsPage() {
       )}
 
       {/* Gráficos de Pizza lado a lado */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         {/* Pizza de Canais */}
         {data.ordersByChannel.length > 0 && (
-          <div className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-6">
+          <div className="bg-white rounded-xl md:rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-4 md:p-6">
             <h3 className="font-semibold text-slate-800 mb-6 flex items-center gap-3">
               <div className="p-2 bg-cyan-100 rounded-xl">
                 <PieChart className="w-5 h-5 text-cyan-600" />
               </div>
               Vendas por Canal
             </h3>
-            <div className="h-64">
+            <div className="h-56 md:h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <RechartsPie>
                   <Pie
@@ -606,25 +610,25 @@ export default function AnalyticsPage() {
 
         {/* Barras de Top Produtos */}
         {data.topProducts.length > 0 && (
-          <div className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-6">
+          <div className="bg-white rounded-xl md:rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-4 md:p-6">
             <h3 className="font-semibold text-slate-800 mb-6 flex items-center gap-3">
               <div className="p-2 bg-emerald-100 rounded-xl">
                 <BarChart3 className="w-5 h-5 text-emerald-600" />
               </div>
               Top 5 Produtos (Quantidade)
             </h3>
-            <div className="h-64">
+            <div className="h-56 md:h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={data.topProducts.slice(0, 5)} layout="vertical">
                   <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                  <XAxis type="number" stroke="#9CA3AF" fontSize={12} />
+                  <XAxis type="number" stroke="#9CA3AF" fontSize={10} />
                   <YAxis 
                     type="category" 
                     dataKey="name" 
                     stroke="#9CA3AF" 
-                    fontSize={12}
-                    width={100}
-                    tickFormatter={(name) => name.length > 15 ? name.slice(0, 15) + '...' : name}
+                    fontSize={9}
+                    width={80}
+                    tickFormatter={(name) => name.length > 12 ? name.slice(0, 12) + '...' : name}
                   />
                   <Tooltip 
                     formatter={(value: number) => [value, 'Quantidade']}
@@ -639,14 +643,14 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Métricas Adicionais */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl p-5 text-white">
-          <div className="flex items-center gap-2 mb-2">
-            <Target className="w-5 h-5 opacity-80" />
-            <span className="text-sm opacity-80">Taxa Conversão</span>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        <div className="bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl md:rounded-2xl p-3 md:p-5 text-white">
+          <div className="flex items-center gap-1 md:gap-2 mb-1 md:mb-2">
+            <Target className="w-4 h-4 md:w-5 md:h-5 opacity-80" />
+            <span className="text-xs md:text-sm opacity-80">Taxa Conversão</span>
           </div>
-          <p className="text-2xl font-bold">{data.totalOrders > 0 ? '68%' : '0%'}</p>
-          <p className="text-xs opacity-70 mt-1">Visitantes → Pedidos</p>
+          <p className="text-xl md:text-2xl font-bold">{data.totalOrders > 0 ? '68%' : '0%'}</p>
+          <p className="text-[10px] md:text-xs opacity-70 mt-0.5 md:mt-1">Visitantes → Pedidos</p>
         </div>
 
         <div className="bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl p-5 text-white">
